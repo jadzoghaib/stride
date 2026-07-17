@@ -1,0 +1,127 @@
+# Stride on Kubernetes — first-draft manifests (single file for readability).
+# Probes map to the API's /healthz (liveness) and /readyz (readiness); the
+# chaos db_down drill demonstrates the readiness contract. Metrics are scraped
+# from /metrics (prometheus.io annotations below).
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stride-config
+data:
+  STRIDE_ENV: "production"
+  STRIDE_CHAOS: "0"
+  STRIDE_CORS_ORIGINS: "https://stride.example.com"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: stride-secrets
+type: Opaque
+stringData:
+  STRIDE_SECRET: "REPLACE_ME"          # openssl rand -hex 32
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stride-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: stride-api }
+  template:
+    metadata:
+      labels: { app: stride-api }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8490"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: api
+          image: stride-api:0.1.0
+          ports: [{ containerPort: 8490 }]
+          envFrom:
+            - configMapRef: { name: stride-config }
+            - secretRef: { name: stride-secrets }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8490 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /readyz, port: 8490 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 2
+      # NOTE: replicas: 2 requires Phase-2 Postgres (SQLite is single-writer).
+      # For the SQLite draft run replicas: 1 with a PersistentVolumeClaim.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+spec:
+  selector: { app: stride-api }
+  ports: [{ port: 8490, targetPort: 8490 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stride-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: stride-web }
+  template:
+    metadata:
+      labels: { app: stride-web }
+    spec:
+      containers:
+        - name: web
+          image: stride-web:0.1.0
+          ports: [{ containerPort: 80 }]
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 200m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  selector: { app: stride-web }
+  ports: [{ port: 80, targetPort: 80 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stride
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 4m
+spec:
+  rules:
+    - host: stride.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: web, port: { number: 80 } } }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: stride-api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: stride-api
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: 70 }

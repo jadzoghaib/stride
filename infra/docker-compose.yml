@@ -1,0 +1,50 @@
+# Stride — containerized first draft.
+#   docker compose -f infra/docker-compose.yml up --build
+# Web on :8080, API on :8490. SQLite volume for the draft; the postgres service
+# is included (commented) as the Phase-2 target — see infra/supabase/migrations.
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.api
+    environment:
+      STRIDE_ENV: production
+      STRIDE_SECRET: ${STRIDE_SECRET:-change-me-in-real-deploys}
+      STRIDE_CHAOS: "0"
+      STRIDE_CORS_ORIGINS: http://localhost:8080
+    volumes:
+      - stride-data:/data
+    ports:
+      - "8490:8490"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8490/readyz')"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.web
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+
+  # -- Phase 2: move persistence to Postgres (schema: infra/supabase/migrations)
+  # postgres:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_DB: stride
+  #     POSTGRES_USER: stride
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+  #   volumes:
+  #     - pg-data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U stride"]
+
+volumes:
+  stride-data:
+  # pg-data:

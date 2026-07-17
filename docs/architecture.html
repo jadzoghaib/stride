@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stride — Production Architecture</title>
+<style>
+  :root {
+    --page:#f7f6f2; --card:#ffffff; --field:#f5f4ef; --wash:#edece5; --track:#e3e1d8;
+    --line:rgba(24,22,40,.09); --line2:rgba(24,22,40,.20);
+    --ink:#161426; --ink2:#343146; --ink3:#565367; --mute:#77748a;
+    --indigo:#6366f1; --violet:#8b5cf6; --cyan:#0891b2;
+    --ok:#0e9f6e; --warn:#b45309; --danger:#dc2626;
+    --shadow:0 1px 2px rgba(22,20,38,.05), 0 10px 30px -14px rgba(22,20,38,.14);
+  }
+  * { box-sizing:border-box; margin:0; }
+  body {
+    font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink2);
+    background:
+      radial-gradient(1100px 480px at 10% -12%, rgba(99,102,241,.10), transparent 60%),
+      radial-gradient(900px 420px at 90% -16%, rgba(139,92,246,.08), transparent 60%),
+      radial-gradient(1000px 620px at 55% 118%, rgba(8,145,178,.06), transparent 55%),
+      var(--page);
+    padding:48px 20px 80px;
+  }
+  main { max-width:1080px; margin:0 auto; }
+  h1 { color:var(--ink); font-size:30px; letter-spacing:-.02em; }
+  h1 .wave { background:linear-gradient(90deg,#4a4dd8,var(--violet) 55%,var(--cyan));
+             -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub { color:var(--ink3); margin-top:6px; max-width:70ch; }
+  .cap { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--mute); font-weight:600; }
+  section { margin-top:44px; }
+  section > .cap { display:block; border-bottom:1px solid var(--line2); padding-bottom:6px; margin-bottom:16px; }
+
+  /* diagram */
+  .tier { display:grid; gap:10px; }
+  .flow { text-align:center; color:var(--mute); font-size:16px; padding:2px 0; }
+  .cols { display:grid; gap:10px; }
+  .c2 { grid-template-columns:1fr 1fr; } .c3 { grid-template-columns:1fr 1fr 1fr; }
+  .c4 { grid-template-columns:repeat(4,1fr); }
+  .node {
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    box-shadow:var(--shadow); padding:14px 16px;
+  }
+  .node.accent { border-top:3px solid var(--indigo); }
+  .node h3 { color:var(--ink); font-size:14px; }
+  .node .who { float:right; font-size:11px; color:var(--mute); font-weight:500; }
+  .node ul { margin:8px 0 0; padding-left:16px; color:var(--ink3); font-size:12.5px; }
+  .node li { margin:2px 0; }
+  .node .tag { display:inline-block; font-size:10.5px; border:1px solid var(--line);
+    background:var(--wash); border-radius:99px; padding:1px 8px; margin:6px 4px 0 0; color:var(--ink3); }
+  .now  { color:var(--ok); }  .next { color:var(--warn); }
+  .legend { display:flex; gap:18px; font-size:12px; color:var(--mute); margin:14px 2px 0; }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; }
+
+  /* tables */
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line);
+          border-radius:16px; overflow:hidden; box-shadow:var(--shadow); font-size:13px; }
+  th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--mute);
+       padding:10px 14px; border-bottom:1px solid var(--line2); background:var(--field); }
+  td { padding:10px 14px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink3); }
+  td:first-child { color:var(--ink); font-weight:600; white-space:nowrap; }
+  tr:last-child td { border-bottom:none; }
+
+  /* stripe flow */
+  ol.money { counter-reset:step; list-style:none; display:grid; gap:8px; padding:0; }
+  ol.money li { background:var(--card); border:1px solid var(--line); border-radius:12px;
+    box-shadow:var(--shadow); padding:12px 14px 12px 52px; position:relative; font-size:13px; }
+  ol.money li::before {
+    counter-increment:step; content:counter(step);
+    position:absolute; left:14px; top:12px; width:24px; height:24px; border-radius:50%;
+    background:linear-gradient(135deg,var(--indigo),var(--violet)); color:#fff;
+    font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+  ol.money b { color:var(--ink); }
+  .note { font-size:12px; color:var(--mute); margin-top:10px; }
+  @media (max-width:840px){ .c2,.c3,.c4 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="cap">Stride &mdash; system blueprint</div>
+  <h1>Production architecture, <span class="wave">scaled &amp; secured</span></h1>
+  <p class="sub">The full target system: what runs today (green), and what each stage adds (amber).
+  Every component is placed so that no later stage requires a rewrite &mdash; only additions and swaps
+  behind interfaces that already exist in the codebase.</p>
+
+  <section>
+    <span class="cap">System diagram</span>
+    <div class="tier cols c3">
+      <div class="node"><h3>Athlete workspace</h3><ul><li>Analytics &amp; evidence</li><li>Rate card, deal inbox</li></ul></div>
+      <div class="node"><h3>Sponsor console</h3><ul><li>Campaign briefs &amp; matching</li><li>Offers, pipeline</li></ul></div>
+      <div class="node"><h3>Supporter app</h3><ul><li>Discovery, follows, feed</li></ul></div>
+    </div>
+    <div class="flow">&darr;</div>
+    <div class="tier">
+      <div class="node accent"><h3>Edge <span class="who next">10k+ stage</span></h3>
+        <span class="tag">DNS</span><span class="tag">Cloudflare CDN</span><span class="tag">WAF + DDoS shield</span>
+        <span class="tag">TLS termination (cert-manager on ingress)</span><span class="tag">Bot filtering</span>
+      </div>
+    </div>
+    <div class="flow">&darr;</div>
+    <div class="tier cols c2">
+      <div class="node accent"><h3>Web tier <span class="who now">live</span></h3>
+        <ul>
+          <li>React 18 + Vite + TS + Tailwind SPA (light design system)</li>
+          <li>nginx replicas: static assets, SPA routing, API proxy</li>
+          <li>CSP, nosniff, frame-ancestors, referrer policy <span class="now">&#10003; shipped</span></li>
+        </ul>
+      </div>
+      <div class="node accent"><h3>API tier <span class="who now">live</span></h3>
+        <ul>
+          <li>FastAPI replicas behind the ingress, HPA on CPU</li>
+          <li>JWT sessions (httpOnly) + token-version revocation <span class="now">&#10003;</span></li>
+          <li>RBAC + ownership checks on every route <span class="now">&#10003;</span></li>
+          <li>Rate limiting (auth strict / API ceiling) <span class="now">&#10003;</span> &rarr; Redis-backed at 10k+</li>
+          <li>Body caps, security headers, boot-guarded secrets <span class="now">&#10003;</span></li>
+          <li>/healthz &middot; /readyz &middot; /metrics, chaos-drill verified <span class="now">&#10003;</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="flow">&darr;</div>
+    <div class="tier">
+      <div class="node accent"><h3>Async tier <span class="who next">10k+ stage</span></h3>
+        <ul>
+          <li>Queue (Redis + RQ, or Postgres-backed pgmq to stay one-store) feeding worker pods</li>
+          <li>Jobs: platform syncs (nightly + on-demand), score recomputes, matching precompute for large pools,
+              Stripe webhook processing, transactional email</li>
+          <li>The ingestion pipeline is already idempotent + retry-safe &mdash; it moves here unchanged</li>
+        </ul>
+      </div>
+    </div>
+    <div class="flow">&darr;</div>
+    <div class="tier cols c3">
+      <div class="node accent"><h3>Primary data <span class="who now">migration ready</span></h3>
+        <ul>
+          <li><b>Supabase Postgres</b>: schema + row-level security written (0001_stride.sql)</li>
+          <li>PITR backups, connection pooling (Supavisor), read replicas at scale</li>
+          <li>Plain SQL only &rarr; portable to RDS / Cloud SQL / self-hosted any time</li>
+        </ul>
+      </div>
+      <div class="node"><h3>Cache <span class="who next">10k+</span></h3>
+        <ul><li>Redis: match results, rate-limit state, session hints</li>
+            <li>Columnar metric store (Timescale/ClickHouse) only when volume hurts &mdash; 100k+ stage</li></ul>
+      </div>
+      <div class="node"><h3>Object storage <span class="who next">10k+</span></h3>
+        <ul><li>Supabase Storage (S3 API): media kits, deal deliverables, contracts</li><li>S3-compatible &rarr; portable</li></ul>
+      </div>
+    </div>
+    <div class="flow">&darr;</div>
+    <div class="tier cols c4">
+      <div class="node"><h3>Identity <span class="who now">live</span></h3>
+        <ul><li>Supabase Auth: signup, email confirmation, password reset</li><li>MFA = dashboard toggle</li></ul></div>
+      <div class="node"><h3>Social platforms <span class="who next">phase 2</span></h3>
+        <ul><li>Instagram Graph &middot; YouTube Data/Analytics &middot; TikTok</li>
+            <li>Same 3-method connector interface as today&rsquo;s mocks; encrypted token vault</li></ul></div>
+      <div class="node"><h3>Payments <span class="who next">phase 4</span></h3>
+        <ul><li><b>Stripe Connect</b> (Express accounts)</li><li>Card data never touches Stride &rarr; PCI stays with Stripe</li></ul></div>
+      <div class="node"><h3>Email <span class="who next">phase 2</span></h3>
+        <ul><li>Resend/Postmark: offer &amp; response notifications</li><li>Supabase SMTP replaced by custom SMTP at volume</li></ul></div>
+    </div>
+    <div class="flow">&darr;</div>
+    <div class="tier">
+      <div class="node accent"><h3>Observability <span class="who now">foundations live</span></h3>
+        <span class="tag">Prometheus scrape of /metrics &#10003;</span><span class="tag">JSON logs + request IDs &#10003;</span>
+        <span class="tag">Audit log (every action) &#10003;</span><span class="tag">Chaos drills &#10003;</span>
+        <span class="tag">Grafana dashboards</span><span class="tag">Loki log aggregation</span>
+        <span class="tag">OpenTelemetry traces (request-ID slot ready)</span><span class="tag">Alertmanager &rarr; on-call</span>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--ok)"></span>running or written today</span>
+      <span><span class="dot" style="background:var(--warn)"></span>added at the named stage &mdash; no rewrite required</span>
+    </div>
+  </section>
+
+  <section>
+    <span class="cap">Money flow &mdash; Stripe Connect</span>
+    <ol class="money">
+      <li><b>Athlete onboards</b> once via Stripe Express &mdash; Stripe collects identity/KYC and bank details directly; Stride stores only the connected account id.</li>
+      <li><b>Sponsor accepts a deal</b> &rarr; Stride creates a PaymentIntent (destination charge) for the deal amount; the sponsor pays on a Stripe-hosted element &mdash; card data never touches Stride servers.</li>
+      <li><b>Funds hold</b> until the deliverable is confirmed (deal state <i>accepted &rarr; completed</i>), using delayed transfers &mdash; the marketplace-escrow pattern.</li>
+      <li><b>Stride takes its platform fee</b> as the application fee on the charge (the monetization model, priced per deal).</li>
+      <li><b>Stripe webhooks</b> (payment_intent.succeeded, transfer.paid, account.updated) land on a signature-verified endpoint and drive deal-state transitions &mdash; processed by the async tier, recorded in the audit log.</li>
+      <li><b>Payout</b> to the athlete&rsquo;s bank on completion; refunds and disputes flow back through the same objects with full lineage.</li>
+    </ol>
+    <p class="note">Why Connect: it removes PCI scope, KYC, payout rails, and dispute machinery from the roadmap entirely.
+    The deals table already models the state machine the webhooks will drive.</p>
+  </section>
+
+  <section>
+    <span class="cap">Security &mdash; defense in depth</span>
+    <table>
+      <tr><th>Layer</th><th>Controls</th><th>Status</th></tr>
+      <tr><td>Edge</td><td>WAF managed rules, DDoS absorption, bot filtering, TLS 1.3 everywhere, HSTS</td><td>10k+ stage (Cloudflare in front)</td></tr>
+      <tr><td>Application</td><td>Rate limiting (strict on credentials), request size caps, security headers + CSP, RBAC + ownership checks per route, parameterized SQL, boot refusal on default secrets, chaos-tested probes</td><td>Shipped &amp; test-verified</td></tr>
+      <tr><td>Identity</td><td>Supabase Auth (email confirmation live; MFA and refresh rotation are dashboard/config steps), PBKDF2 fallback for local accounts, token-version revocation (&ldquo;sign out everywhere&rdquo;)</td><td>Live / toggle away</td></tr>
+      <tr><td>Data</td><td>Postgres row-level security mirroring API rules (second enforcement layer), encrypted platform tokens in a dedicated vault table, PITR backups with tested restores, least-privilege DB roles</td><td>RLS written; applies with the migration</td></tr>
+      <tr><td>Payments</td><td>Stripe Connect &mdash; no card data, no PCI scope; webhook signature verification; idempotent processing</td><td>Phase 4 design locked</td></tr>
+      <tr><td>Operations</td><td>Secrets in a manager (never in images/repos), dependency audits (scripts/security_audit.ps1) in CI, immutable audit log, per-request trace IDs, OWASP Top-10 review before launch</td><td>Script shipped; CI at phase 2</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <span class="cap">Scaling stages &mdash; what changes, and only this</span>
+    <table>
+      <tr><th>Stage</th><th>Load</th><th>Changes</th><th>What stays identical</th></tr>
+      <tr><td>Draft (today)</td><td>Demo &rarr; hundreds of users</td>
+          <td>SQLite, single API replica, in-process syncs, in-memory rate limits</td>
+          <td>All product code, formulas, RBAC, observability</td></tr>
+      <tr><td>10k users</td><td>Real marketplace traffic</td>
+          <td>Supabase Postgres (migration written) &rarr; API replicas + HPA unlocked; Redis for cache + rate-limit state; queue + workers for syncs; CDN/WAF at the edge; live social connectors</td>
+          <td>Schema (same SQL), routers, matching engine, UI</td></tr>
+      <tr><td>100k+ users</td><td>High-volume analytics</td>
+          <td>Matching precomputed nightly + cached; metric captures to a columnar store; read replicas; multi-region CDN; learned ranking layer on top of the transparent formula</td>
+          <td>Evidence model, deal state machine, audit trail, Stripe rails</td></tr>
+      <tr><td>Exit options</td><td>&mdash;</td>
+          <td>Supabase &rarr; any Postgres (plain SQL + RLS); Supabase Storage &rarr; any S3; Supabase Auth &rarr; any OIDC provider (users keyed by auth_id)</td>
+          <td>Everything else &mdash; that is the point</td></tr>
+    </table>
+    <p class="note">Companion to docs/architecture.md (decisions &amp; tradeoffs) and docs/build-plan.md (phasing).</p>
+  </section>
+</main>
+</body>
+</html>

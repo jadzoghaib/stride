@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Stride visual language ──────────────────────────────────────────────────
+   Light, airy, premium. Warm off-white surfaces, soft card shadows, generous
+   radius. Color arrives as one signature gradient (indigo → violet → cyan)
+   used sparingly on accents and quiet background washes — never loud fills.
+   Zero emojis; adult through typography: tracked microcaps + tabular figures. */
+
+@layer base {
+  html {
+    @apply bg-ink-950 text-mist-200 antialiased;
+    color-scheme: light;
+  }
+  body {
+    @apply font-sans text-[14px] leading-relaxed;
+  }
+  ::selection {
+    background: rgba(99, 102, 241, 0.18);
+  }
+}
+
+@layer components {
+  /* signature background: barely-there pastel waves on warm off-white */
+  .wave-field {
+    background:
+      radial-gradient(1100px 480px at 10% -12%, rgba(99, 102, 241, 0.10), transparent 60%),
+      radial-gradient(900px 420px at 90% -16%, rgba(139, 92, 246, 0.08), transparent 60%),
+      radial-gradient(1000px 620px at 55% 118%, rgba(8, 145, 178, 0.06), transparent 55%),
+      theme('colors.ink.950');
+  }
+  .wave-line {
+    background-image: linear-gradient(90deg,
+      theme('colors.wave.indigo'), theme('colors.wave.violet') 45%, theme('colors.wave.cyan'));
+  }
+  .wave-text {
+    background-image: linear-gradient(90deg,
+      theme('colors.pulse.600'), theme('colors.wave.violet') 55%, theme('colors.wave.cyan'));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .microcaps {
+    @apply text-[11px] uppercase tracking-micro text-mist-400 font-medium;
+  }
+  .panel {
+    @apply bg-ink-900 border border-line rounded-2xl shadow-card;
+  }
+  .panel-hover {
+    @apply transition-all hover:border-line-strong hover:shadow-lift;
+  }
+  .field {
+    @apply w-full bg-ink-850 border border-line rounded-xl px-3 py-2 text-mist-100
+           placeholder:text-mist-400/70 focus:outline-none focus:border-pulse-400
+           focus:bg-white transition-colors;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium
+           border border-line bg-white text-mist-200 transition-all hover:border-line-strong
+           hover:shadow-card disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn border-transparent text-white shadow-card;
+    background-image: linear-gradient(90deg, theme('colors.pulse.500'), theme('colors.wave.violet'));
+  }
+  .btn-primary:hover:not(:disabled) {
+    filter: brightness(1.06);
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full border border-line bg-ink-800/70
+           px-2.5 py-0.5 text-xs text-mist-300 whitespace-nowrap;
+  }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+  .table-head {
+    @apply microcaps text-left px-3 py-2 border-b border-line-strong;
+  }
+  .table-cell {
+    @apply px-3 py-2.5 border-b border-line align-middle;
+  }
+}

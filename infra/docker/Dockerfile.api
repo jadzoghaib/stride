@@ -1,0 +1,22 @@
+# Stride API — multi-stage build with uv
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
+WORKDIR /app
+COPY pyproject.toml ./
+COPY apps/api/ apps/api/
+COPY packages/creatorlens/ packages/creatorlens/
+RUN uv sync --no-dev --directory apps/api
+
+FROM python:3.12-slim-bookworm
+RUN useradd --create-home stride
+USER stride
+WORKDIR /app
+COPY --from=builder --chown=stride /app /app
+ENV PATH="/app/apps/api/.venv/bin:$PATH" \
+    STRIDE_ENV=production \
+    STRIDE_DB=/data/stride.db \
+    STRIDE_CHAOS=0
+VOLUME /data
+EXPOSE 8490
+HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
+  CMD python -c "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8490/healthz')"
+CMD ["stride", "serve", "--host", "0.0.0.0", "--port", "8490"]

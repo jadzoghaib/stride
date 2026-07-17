@@ -1,0 +1,19 @@
+[project]
+name = "creatorlens"
+version = "0.1.0"
+description = "Creator marketability console — multi-platform social analytics core (prototype)"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+]
+
+[project.scripts]
+creatorlens = "creatorlens.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["creatorlens"]
