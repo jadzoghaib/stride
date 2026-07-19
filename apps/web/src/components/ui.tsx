@@ -114,6 +114,30 @@ export function StatusChip({ status }: { status: string }) {
   return <span className={`chip bg-transparent ${STATUS_STYLE[status] ?? ''}`}>{status}</span>
 }
 
+export function PageLoading({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="animate-pulse space-y-4" aria-label="Loading" role="status">
+      <div className="h-7 w-56 rounded-lg bg-ink-800" />
+      <div className="grid gap-3 md:grid-cols-3">
+        {Array.from({ length: rows }).map((_, i) => (
+          <div key={i} className="panel h-24 border-transparent bg-ink-800/60 shadow-none" />
+        ))}
+      </div>
+      <div className="panel h-48 border-transparent bg-ink-800/40 shadow-none" />
+    </div>
+  )
+}
+
+export function LoadError({ text }: { text: string }) {
+  return (
+    <div className="panel border-danger/40 px-5 py-6 text-center">
+      <div className="microcaps text-danger">Couldn't load this page</div>
+      <p className="mt-2 text-sm text-mist-300">{text}</p>
+      <button className="btn mt-4" onClick={() => window.location.reload()}>Try again</button>
+    </div>
+  )
+}
+
 export function EmptyNote({ text, action }: { text: string; action?: ReactNode }) {
   return (
     <div className="panel px-5 py-8 text-center text-mist-400">

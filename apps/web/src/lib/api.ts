@@ -23,6 +23,12 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     } catch {
       /* keep statusText */
     }
+    // an expired/revoked session anywhere in the app returns to sign-in —
+    // except the auth probe itself, which anonymous visitors hit legitimately
+    if (res.status === 401 && path !== '/api/auth/me' &&
+        ['not_authenticated', 'invalid_session', 'session_revoked', 'account_unavailable'].includes(detail)) {
+      window.location.assign('/auth')
+    }
     throw new ApiError(res.status, detail)
   }
   return res.json() as Promise<T>

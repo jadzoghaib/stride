@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { Avatar, CoverageChip, DimensionGrid, EmptyNote, Section, ShareBar } from '../../components/ui'
+import { LoadError, PageLoading, Avatar, CoverageChip, DimensionGrid, EmptyNote, Section, ShareBar } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDate, fmtMoney, fmtNum, fmtPct } from '../../lib/format'
 import type { AthletePublic } from '../../types'
@@ -29,7 +29,7 @@ export default function AthleteEvidence() {
     api.get<Evidence>(`/api/sponsor/athletes/${slug}/analytics${q}`).then(setData).catch((e) => setError(errorText(e)))
   }, [slug, campaignId])
 
-  if (!data) return <div className="text-mist-400">{error || 'Assembling evidence…'}</div>
+  if (!data) return error ? <LoadError text={error} /> : <PageLoading />
 
   const a = data.athlete
   const kpis = data.analytics?.inputs.platform_kpis ?? {}

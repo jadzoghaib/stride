@@ -71,7 +71,7 @@ export default function Shell({ children }: { children: ReactNode }) {
                 }
               >
                 <Icon size={15} strokeWidth={1.8} />
-                {label}
+                <span className="hidden md:inline">{label}</span>
               </NavLink>
             ))}
           </nav>
@@ -83,6 +83,7 @@ export default function Shell({ children }: { children: ReactNode }) {
                 <button
                   className="text-mist-400 hover:text-mist-200"
                   title="Sign out"
+                  aria-label="Sign out"
                   onClick={async () => {
                     await logout()
                     navigate('/')

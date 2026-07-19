@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Avatar, CoverageChip, EmptyNote, Sparkline } from '../../components/ui'
+import { LoadError, PageLoading, Avatar, CoverageChip, EmptyNote, Sparkline } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import type { AthletePublic } from '../../types'
 
@@ -12,7 +12,7 @@ export default function Feed() {
     api.get<AthletePublic[]>('/api/feed').then(setAthletes).catch((e) => setError(errorText(e)))
   }, [])
 
-  if (!athletes) return <div className="text-mist-400">{error || 'Loading your athletes…'}</div>
+  if (!athletes) return error ? <LoadError text={error} /> : <PageLoading />
 
   return (
     <div>

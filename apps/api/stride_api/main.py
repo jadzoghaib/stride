@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 
 from . import __version__
 from .chaos import ChaosMiddleware, chaos
@@ -52,6 +52,18 @@ app.include_router(sponsors.router)
 app.include_router(clubs.router)
 app.include_router(discover.router)
 app.include_router(admin.router)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """Unhandled errors return a stable JSON shape with the request id for
+    support correlation — never a stack trace or framework default page.
+    (The request-context middleware has already logged the exception.)"""
+    return JSONResponse(
+        {"detail": "internal_error",
+         "request_id": getattr(request.state, "request_id", None)},
+        status_code=500,
+    )
 
 
 @app.get("/healthz", tags=["ops"])

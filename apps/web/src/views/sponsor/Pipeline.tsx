@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { EmptyNote, Section, StatusChip } from '../../components/ui'
+import { LoadError, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDate, fmtMoney } from '../../lib/format'
 import type { Commitment, Deal } from '../../types'
@@ -39,7 +39,7 @@ export default function SponsorPipeline() {
     }
   }
 
-  if (!deals) return <div className="text-mist-400">{error || 'Loading pipeline…'}</div>
+  if (!deals) return error ? <LoadError text={error} /> : <PageLoading />
 
   return (
     <div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Avatar, EmptyNote, Section } from '../components/ui'
+import { LoadError, PageLoading, Avatar, EmptyNote, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { fmtMoney } from '../lib/format'
@@ -36,7 +36,7 @@ export default function ClubPublic() {
     }
   }
 
-  if (!club) return <div className="text-mist-400">{error || 'Loading club…'}</div>
+  if (!club) return error ? <LoadError text={error} /> : <PageLoading />
 
   return (
     <div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Avatar, CoverageChip, DimensionGrid, Section, ShareBar } from '../components/ui'
+import { LoadError, PageLoading, Avatar, CoverageChip, DimensionGrid, Section, ShareBar } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { fmtMoney } from '../lib/format'
 import type { AthletePublic as Athlete } from '../types'
@@ -15,7 +15,7 @@ export default function AthletePublicView() {
     api.get<Athlete>(`/api/athletes/${slug}`).then(setA).catch((e) => setError(errorText(e)))
   }, [slug])
 
-  if (!a) return <div className="text-mist-400">{error || 'Loading profile…'}</div>
+  if (!a) return error ? <LoadError text={error} /> : <PageLoading />
 
   return (
     <div>

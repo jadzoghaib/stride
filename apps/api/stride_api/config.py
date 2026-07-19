@@ -29,9 +29,11 @@ class Settings:
         self.env = os.environ.get("STRIDE_ENV", "dev")
         self.db_path = Path(os.environ.get("STRIDE_DB", "")) if os.environ.get("STRIDE_DB") \
             else Path.cwd() / "data" / "stride.db"
-        # Dev default only — outside dev/test the process refuses to boot without a real secret.
-        self.secret_key = os.environ.get("STRIDE_SECRET", "dev-secret-not-for-production")
-        if self.env not in ("dev", "test") and self.secret_key == "dev-secret-not-for-production":
+        # Dev default only (>=32 bytes for HS256) — outside dev/test the process
+        # refuses to boot without a real secret.
+        _DEV_SECRET = "dev-secret-not-for-production-use-only!!"
+        self.secret_key = os.environ.get("STRIDE_SECRET", _DEV_SECRET)
+        if self.env not in ("dev", "test") and self.secret_key == _DEV_SECRET:
             raise RuntimeError(
                 "STRIDE_SECRET must be set to a strong random value outside dev"
                 " (e.g. `openssl rand -hex 32`); refusing to start.")

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { EmptyNote, Section, StatusChip } from '../../components/ui'
+import { LoadError, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDate, fmtMoney } from '../../lib/format'
 import type { AthleteWorkspace, Deal } from '../../types'
@@ -25,7 +25,7 @@ export default function AthleteDeals() {
     }
   }
 
-  if (!deals) return <div className="text-mist-400">{error || 'Loading deals…'}</div>
+  if (!deals) return error ? <LoadError text={error} /> : <PageLoading />
 
   const open = deals.filter((d) => d.status === 'offered')
   const history = deals.filter((d) => d.status !== 'offered')

@@ -17,7 +17,7 @@ from creatorlens.analytics.scoring import (InsufficientData, _combined_demograph
 from creatorlens.events import log_event
 from creatorlens.ingestion import sync_account
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..auth import get_db, require_role
 from ..db import now_iso, row, rows
@@ -94,15 +94,15 @@ def athlete_detail(slug: str, conn: sqlite3.Connection = Depends(get_db)):
 # ---- athlete workspace (role: athlete) ---------------------------------------
 
 class ProfileIn(BaseModel):
-    display_name: str | None = None
-    sport: str | None = None
-    country: str | None = None
-    region: str | None = None
-    bio: str | None = None
-    career_highlights: list[str] | None = None
-    topics: list[str] | None = None
-    deal_types: list[str] | None = None
-    base_rate_usd: int | None = None
+    display_name: str | None = Field(default=None, min_length=2, max_length=80)
+    sport: str | None = Field(default=None, max_length=80)
+    country: str | None = Field(default=None, max_length=80)
+    region: str | None = Field(default=None, max_length=80)
+    bio: str | None = Field(default=None, max_length=2000)
+    career_highlights: list[str] | None = Field(default=None, max_length=12)
+    topics: list[str] | None = Field(default=None, max_length=12)
+    deal_types: list[str] | None = Field(default=None, max_length=5)
+    base_rate_usd: int | None = Field(default=None, ge=0, le=1_000_000)
     status: str | None = None  # draft -> listed
 
 

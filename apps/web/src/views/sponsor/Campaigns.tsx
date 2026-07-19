@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { EmptyNote, Section, Stat, StatusChip } from '../../components/ui'
+import { LoadError, PageLoading, EmptyNote, Section, Stat, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtMoney } from '../../lib/format'
 import type { Campaign, Deal } from '../../types'
@@ -28,7 +28,7 @@ export default function SponsorCampaigns() {
     void load()
   }, [])
 
-  if (!ws) return <div className="text-mist-400">{error || 'Loading workspace…'}</div>
+  if (!ws) return error ? <LoadError text={error} /> : <PageLoading />
 
   const open = ws.deals.filter((d) => d.status === 'offered').length
 

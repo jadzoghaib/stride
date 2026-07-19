@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Avatar, EmptyNote } from '../components/ui'
+import { LoadError, PageLoading, Avatar, EmptyNote } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import type { Club } from '../types'
 
@@ -12,7 +12,7 @@ export default function ClubsDirectory() {
     api.get<Club[]>('/api/clubs').then(setClubs).catch((e) => setError(errorText(e)))
   }, [])
 
-  if (!clubs) return <div className="text-mist-400">{error || 'Loading clubs…'}</div>
+  if (!clubs) return error ? <LoadError text={error} /> : <PageLoading />
 
   return (
     <div>

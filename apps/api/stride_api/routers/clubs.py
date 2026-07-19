@@ -114,11 +114,11 @@ def workspace(user: dict = Depends(require_role("club")),
 
 
 class ClubProfileIn(BaseModel):
-    name: str | None = None
-    sport: str | None = None
-    country: str | None = None
-    region: str | None = None
-    bio: str | None = None
+    name: str | None = Field(default=None, min_length=2, max_length=120)
+    sport: str | None = Field(default=None, max_length=80)
+    country: str | None = Field(default=None, max_length=80)
+    region: str | None = Field(default=None, max_length=80)
+    bio: str | None = Field(default=None, max_length=2000)
     status: str | None = None
 
 
@@ -144,8 +144,8 @@ def update_profile(body: ClubProfileIn, user: dict = Depends(require_role("club"
 
 
 class MemberIn(BaseModel):
-    athlete_slug: str
-    position: str = ""
+    athlete_slug: str = Field(max_length=80)
+    position: str = Field(default="", max_length=60)
 
 
 @router.post("/club/members", status_code=201)
@@ -204,11 +204,11 @@ def remove_member(athlete_id: int, user: dict = Depends(require_role("club")),
 
 class PackageIn(BaseModel):
     name: str = Field(min_length=3, max_length=120)
-    description: str = ""
+    description: str = Field(default="", max_length=1000)
     package_type: str  # club | player_direct
-    price_usd: int = Field(gt=0)
-    athlete_slug: str | None = None  # required for player_direct
-    perks: list[str] = []
+    price_usd: int = Field(gt=0, le=10_000_000)
+    athlete_slug: str | None = Field(default=None, max_length=80)  # required for player_direct
+    perks: list[str] = Field(default=[], max_length=10)
 
 
 @router.post("/club/packages", status_code=201)

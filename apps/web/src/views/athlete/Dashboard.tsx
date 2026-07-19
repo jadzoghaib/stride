@@ -1,6 +1,6 @@
 import { RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { CoverageChip, DimensionGrid, EmptyNote, Section, ShareBar, Stat, StatusChip } from '../../components/ui'
+import { LoadError, PageLoading, CoverageChip, DimensionGrid, EmptyNote, Section, ShareBar, Stat, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDT, fmtMoney, fmtNum } from '../../lib/format'
 import type { AthleteWorkspace } from '../../types'
@@ -32,7 +32,7 @@ export default function AthleteDashboard() {
     }
   }
 
-  if (!ws) return <div className="text-mist-400">{error || 'Loading workspace…'}</div>
+  if (!ws) return error ? <LoadError text={error} /> : <PageLoading />
 
   const connected = new Set(ws.accounts.filter((a) => a.connection_status === 'connected').map((a) => a.platform))
   const available = PLATFORMS.filter((p) => !connected.has(p))

@@ -19,8 +19,8 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
 class RegisterIn(BaseModel):
-    email: str
-    password: str = Field(min_length=8)
+    email: str = Field(max_length=254)
+    password: str = Field(min_length=8, max_length=128)
 
     @field_validator("email")
     @classmethod
@@ -30,17 +30,17 @@ class RegisterIn(BaseModel):
             raise ValueError("invalid email")
         return v
     display_name: str = Field(min_length=2, max_length=80)
-    role: str  # athlete | sponsor | fan
+    role: str  # athlete | sponsor | fan | club
     # role-specific onboarding fields
-    sport: str | None = None
-    country: str | None = None
-    org_name: str | None = None
-    industry: str | None = None
+    sport: str | None = Field(default=None, max_length=80)
+    country: str | None = Field(default=None, max_length=80)
+    org_name: str | None = Field(default=None, max_length=120)
+    industry: str | None = Field(default=None, max_length=80)
 
 
 class LoginIn(BaseModel):
-    email: str
-    password: str
+    email: str = Field(max_length=254)
+    password: str = Field(max_length=128)
 
 
 def _slugify(name: str, conn: sqlite3.Connection) -> str:

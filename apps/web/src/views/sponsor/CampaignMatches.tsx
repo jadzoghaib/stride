@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp, Send } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Avatar, CoverageChip, Meter, Section } from '../../components/ui'
+import { LoadError, PageLoading, Avatar, CoverageChip, Meter, Section } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtMoney } from '../../lib/format'
 import type { Campaign, Match } from '../../types'
@@ -30,7 +30,7 @@ export default function CampaignMatches() {
       .then(setData).catch((e) => setError(errorText(e)))
   }, [id])
 
-  if (!data) return <div className="text-mist-400">{error || 'Running matching against the athlete pool…'}</div>
+  if (!data) return error ? <LoadError text={error} /> : <PageLoading />
 
   const c = data.campaign
   return (

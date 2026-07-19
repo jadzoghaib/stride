@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Section } from '../../components/ui'
+import { LoadError, PageLoading, Section } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
+import { useToast } from '../../lib/toast'
 import type { AthleteWorkspace } from '../../types'
 import { DEAL_TYPES } from '../../types'
 
@@ -11,12 +12,13 @@ export default function AthleteProfile() {
   const [form, setForm] = useState<AthleteWorkspace['editable'] | null>(null)
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const toast = useToast()
 
   useEffect(() => {
     api.get<AthleteWorkspace>('/api/athlete/workspace').then((ws) => setForm(ws.editable)).catch((e) => setError(errorText(e)))
   }, [])
 
-  if (!form) return <div className="text-mist-400">{error || 'Loading profile…'}</div>
+  if (!form) return error ? <LoadError text={error} /> : <PageLoading />
 
   const set = (k: string, v: unknown) => setForm((f) => ({ ...f!, [k]: v }))
   const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v])
@@ -26,7 +28,7 @@ export default function AthleteProfile() {
     setStatus('')
     try {
       await api.put('/api/athlete/profile', form)
-      setStatus('Saved.')
+      toast('Profile saved')
     } catch (e) {
       setError(errorText(e))
     }

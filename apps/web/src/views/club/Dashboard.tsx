@@ -1,8 +1,9 @@
 import { Plus, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Avatar, EmptyNote, Section, Stat, StatusChip } from '../../components/ui'
+import { LoadError, PageLoading, Avatar, EmptyNote, Section, Stat, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
+import { useToast } from '../../lib/toast'
 import { fmtDate, fmtMoney } from '../../lib/format'
 import type { ClubWorkspace } from '../../types'
 
@@ -11,6 +12,7 @@ export default function ClubDashboard() {
   const [error, setError] = useState('')
   const [addingMember, setAddingMember] = useState(false)
   const [creatingPackage, setCreatingPackage] = useState(false)
+  const toast = useToast()
 
   const load = () => api.get<ClubWorkspace>('/api/club/workspace').then(setWs).catch((e) => setError(errorText(e)))
   useEffect(() => {
@@ -27,7 +29,7 @@ export default function ClubDashboard() {
     }
   }
 
-  if (!ws) return <div className="text-mist-400">{error || 'Loading club workspace…'}</div>
+  if (!ws) return error ? <LoadError text={error} /> : <PageLoading />
 
   const activePackages = ws.packages.filter((p) => p.status === 'active')
 
@@ -59,7 +61,7 @@ export default function ClubDashboard() {
                  <Plus size={13} /> New package</button>}>
         {creatingPackage && (
           <PackageForm roster={ws.roster.map((m) => ({ slug: m.slug, name: m.display_name }))}
-                       onDone={() => { setCreatingPackage(false); void load() }} />
+                       onDone={() => { setCreatingPackage(false); toast('Package published'); void load() }} />
         )}
         <table className="w-full text-sm">
           <thead>
@@ -104,7 +106,7 @@ export default function ClubDashboard() {
       <Section title="Roster"
                aside={<button className="btn px-3 py-1 text-xs" onClick={() => setAddingMember((v) => !v)}>
                  <Plus size={13} /> Add athlete</button>}>
-        {addingMember && <MemberForm onDone={() => { setAddingMember(false); void load() }} />}
+        {addingMember && <MemberForm onDone={() => { setAddingMember(false); toast('Athlete added to roster'); void load() }} />}
         <div className="grid gap-2 md:grid-cols-2">
           {ws.roster.map((m) => (
             <div key={m.athlete_id} className="panel flex items-center gap-3 p-3">

@@ -2,12 +2,14 @@ import type { ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Shell from './components/Shell'
 import { AuthProvider, roleHome, useAuth } from './lib/auth'
+import { ToastProvider } from './lib/toast'
 import AthletePublicView from './views/AthletePublic'
 import AthletesDirectory from './views/AthletesDirectory'
 import Auth from './views/Auth'
 import ClubPublic from './views/ClubPublic'
 import ClubsDirectory from './views/ClubsDirectory'
 import Landing from './views/Landing'
+import NotFound from './views/NotFound'
 import ClubDashboard from './views/club/Dashboard'
 import AthleteDashboard from './views/athlete/Dashboard'
 import AthleteDeals from './views/athlete/Deals'
@@ -34,6 +36,7 @@ function Public({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <AuthProvider>
+      <ToastProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -57,9 +60,10 @@ export default function App() {
           <Route path="/discover" element={<Guard roles={['fan', 'athlete', 'sponsor', 'admin']}><Discover /></Guard>} />
           <Route path="/feed" element={<Guard roles={['fan', 'athlete', 'sponsor', 'admin']}><Feed /></Guard>} />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Public><NotFound /></Public>} />
         </Routes>
       </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   )
 }

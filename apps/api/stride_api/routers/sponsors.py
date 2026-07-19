@@ -73,15 +73,15 @@ def workspace(user: dict = Depends(require_role("sponsor")),
 
 class CampaignIn(BaseModel):
     name: str = Field(min_length=3, max_length=120)
-    objective: str = ""
-    category: str
-    deal_types: list[str] = []
-    budget_usd_min: int = Field(ge=0, default=1000)
-    budget_usd_max: int = Field(ge=0, default=10000)
-    target_age_buckets: list[str] = []
-    target_genders: list[str] = []
-    target_countries: list[str] = []
-    target_topics: list[str] = []
+    objective: str = Field(default="", max_length=500)
+    category: str = Field(max_length=60)
+    deal_types: list[str] = Field(default=[], max_length=5)
+    budget_usd_min: int = Field(ge=0, le=10_000_000, default=1000)
+    budget_usd_max: int = Field(ge=0, le=10_000_000, default=10000)
+    target_age_buckets: list[str] = Field(default=[], max_length=6)
+    target_genders: list[str] = Field(default=[], max_length=3)
+    target_countries: list[str] = Field(default=[], max_length=20)
+    target_topics: list[str] = Field(default=[], max_length=12)
 
 
 @router.post("/campaigns", status_code=201)
@@ -131,9 +131,9 @@ def campaign_matches(campaign_id: int, user: dict = Depends(require_role("sponso
 
 class OfferIn(BaseModel):
     athlete_id: int
-    deal_type: str
-    amount_usd: int = Field(gt=0)
-    message: str = ""
+    deal_type: str = Field(max_length=40)
+    amount_usd: int = Field(gt=0, le=10_000_000)
+    message: str = Field(default="", max_length=1000)
 
 
 @router.post("/campaigns/{campaign_id}/offers", status_code=201)
