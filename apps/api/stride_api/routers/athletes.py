@@ -88,6 +88,13 @@ def athlete_detail(slug: str, conn: sqlite3.Connection = Depends(get_db)):
     if a["creatorlens_creator_id"]:
         out["audience"] = _combined_demographics(
             conn, creator_kpis(conn, a["creatorlens_creator_id"]))["dimensions"]
+    # club affiliation is part of the public identity — an empty list means
+    # independent, so the UI can say so instead of leaving the question open
+    out["clubs"] = rows(conn, """
+        SELECT c.name, c.slug, cm.position FROM club_members cm
+        JOIN clubs c ON c.id = cm.club_id
+        WHERE cm.athlete_id = ? AND cm.status = 'active' AND c.status = 'listed'
+        ORDER BY c.name""", (a["id"],))
     return out
 
 

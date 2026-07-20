@@ -87,4 +87,10 @@
   .table-cell {
     @apply px-3 py-2.5 border-b border-line align-middle;
   }
+  tbody tr {
+    @apply transition-colors;
+  }
+  tbody tr:hover .table-cell {
+    background: rgba(24, 22, 40, 0.025);
+  }
 }

@@ -34,6 +34,10 @@ def test_public_athlete_detail(client):
     detail = client.get("/api/athletes/kaia-mercer").json()
     assert detail["score"]["coverage"]["connected"] == 3
     assert "age" in detail["audience"]
+    assert detail["clubs"] == []  # independent athlete says so explicitly
+
+    club_member = client.get("/api/athletes/luca-ferreira").json()
+    assert [c["name"] for c in club_member["clubs"]] == ["Meridian FC"]
 
 
 def test_public_clubs(client):

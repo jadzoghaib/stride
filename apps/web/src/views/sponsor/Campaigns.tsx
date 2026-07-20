@@ -41,8 +41,10 @@ export default function SponsorCampaigns() {
 
       <div className="mt-6 grid gap-3 md:grid-cols-3">
         <Stat label="Active campaigns" value={ws.campaigns.filter((c) => c.status === 'active').length} />
-        <Stat label="Open offers" value={open} sub="awaiting athlete response" />
-        <Stat label="Committed spend" value={fmtMoney(ws.spend_committed)} sub="accepted + completed" />
+        <Stat label="Open offers" value={open} sub="awaiting athlete response — track in pipeline"
+              to="/sponsor/pipeline" />
+        <Stat label="Committed spend" value={fmtMoney(ws.spend_committed)} sub="deals + club packages"
+              to="/sponsor/pipeline" />
       </div>
 
       <Section

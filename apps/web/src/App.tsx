@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { useEffect, type ReactNode } from 'react'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Shell from './components/Shell'
 import { AuthProvider, roleHome, useAuth } from './lib/auth'
 import { ToastProvider } from './lib/toast'
@@ -33,11 +33,28 @@ function Public({ children }: { children: ReactNode }) {
   return <Shell>{children}</Shell>
 }
 
+/** React Router doesn't scroll to #anchors — stat cards deep-link to sections. */
+function ScrollToHash() {
+  const { hash, pathname } = useLocation()
+  useEffect(() => {
+    if (hash) {
+      // slight delay so freshly-routed views have rendered their sections
+      const t = window.setTimeout(() => {
+        document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth' })
+      }, 60)
+      return () => window.clearTimeout(t)
+    }
+    window.scrollTo(0, 0)
+  }, [hash, pathname])
+  return null
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
       <BrowserRouter>
+        <ScrollToHash />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />

@@ -1,6 +1,8 @@
+import { Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { LoadError, PageLoading, Avatar, CoverageChip, DimensionGrid, Section, ShareBar } from '../components/ui'
+import { Link, useParams } from 'react-router-dom'
+import { AudiencePanel } from '../components/charts'
+import { LoadError, PageLoading, Avatar, CoverageChip, DimensionGrid, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { fmtMoney } from '../lib/format'
 import type { AthletePublic as Athlete } from '../types'
@@ -31,6 +33,21 @@ export default function AthletePublicView() {
         </div>
       </div>
 
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <Shield size={13} className="text-mist-400" />
+        {(a.clubs ?? []).length > 0 ? (
+          (a.clubs ?? []).map((c) => (
+            <Link key={c.slug} to={`/clubs/${c.slug}`}
+                  className="chip border-pulse-500 text-mist-100 hover:shadow-card"
+                  title={c.position ? `${c.position} — view club` : 'View club'}>
+              {c.name}{c.position ? ` · ${c.position}` : ''}
+            </Link>
+          ))
+        ) : (
+          <span className="text-xs text-mist-400">Independent — no club affiliation</span>
+        )}
+      </div>
+
       {a.bio && <p className="mt-4 max-w-2xl text-sm text-mist-300">{a.bio}</p>}
 
       {a.career_highlights.length > 0 && (
@@ -47,16 +64,7 @@ export default function AthletePublicView() {
 
       {a.audience && Object.keys(a.audience).length > 0 && (
         <Section title="Audience">
-          <div className="grid gap-6 md:grid-cols-3">
-            {(['age', 'gender', 'country'] as const).map((dim) =>
-              a.audience![dim] ? (
-                <div key={dim}>
-                  <div className="microcaps mb-2">{dim}</div>
-                  <ShareBar data={a.audience![dim]} />
-                </div>
-              ) : null,
-            )}
-          </div>
+          <AudiencePanel audience={a.audience} />
         </Section>
       )}
 

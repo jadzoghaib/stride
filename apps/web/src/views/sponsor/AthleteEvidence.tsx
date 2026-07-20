@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { LoadError, PageLoading, Avatar, CoverageChip, DimensionGrid, EmptyNote, Section, ShareBar } from '../../components/ui'
+import { AudiencePanel } from '../../components/charts'
+import { LoadError, PageLoading, Avatar, CoverageChip, DimensionGrid, EmptyNote, Section } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDate, fmtMoney, fmtNum, fmtPct } from '../../lib/format'
 import type { AthletePublic } from '../../types'
@@ -93,16 +94,7 @@ export default function AthleteEvidence() {
 
       {Object.keys(data.audience).length > 0 && (
         <Section title="Audience">
-          <div className="grid gap-6 md:grid-cols-3">
-            {(['age', 'gender', 'country'] as const).map((dim) =>
-              data.audience[dim] ? (
-                <div key={dim}>
-                  <div className="microcaps mb-2">{dim}</div>
-                  <ShareBar data={data.audience[dim]} />
-                </div>
-              ) : null,
-            )}
-          </div>
+          <AudiencePanel audience={data.audience} />
         </Section>
       )}
 

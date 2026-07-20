@@ -1,6 +1,8 @@
 import { RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { LoadError, PageLoading, CoverageChip, DimensionGrid, EmptyNote, Section, ShareBar, Stat, StatusChip } from '../../components/ui'
+import { Link } from 'react-router-dom'
+import { AudiencePanel } from '../../components/charts'
+import { LoadError, PageLoading, CoverageChip, DimensionGrid, EmptyNote, Section, Stat, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDT, fmtMoney, fmtNum } from '../../lib/format'
 import type { AthleteWorkspace } from '../../types'
@@ -47,9 +49,10 @@ export default function AthleteDashboard() {
         <StatusChip status={ws.editable.status} />
         <CoverageChip coverage={ws.profile.score?.coverage ?? null} />
         {(ws.clubs ?? []).map((c) => (
-          <span key={c.slug} className="chip border-pulse-500 text-mist-100" title={c.position}>
+          <Link key={c.slug} to={`/clubs/${c.slug}`} className="chip border-pulse-500 text-mist-100 hover:shadow-card"
+                title={c.position ? `${c.position} — view club` : 'View club'}>
             {c.name}
-          </span>
+          </Link>
         ))}
       </div>
 
@@ -67,12 +70,16 @@ export default function AthleteDashboard() {
       )}
 
       <div className="mt-6 grid gap-3 md:grid-cols-3">
-        <Stat label="Committed earnings" value={fmtMoney(ws.earnings)} sub="accepted + completed deals" />
-        <Stat label="Open offers" value={openDeals.length} sub="awaiting your response" />
+        <Stat label="Committed earnings" value={fmtMoney(ws.earnings)} sub="accepted + completed deals"
+              to="/athlete/deals#history" />
+        <Stat label="Open offers" value={openDeals.length}
+              sub={openDeals.length ? 'awaiting your response — review them' : 'nothing waiting on you'}
+              to="/athlete/deals" />
         <Stat
           label="Total followers"
           value={fmtNum(ws.accounts.reduce((s, a) => s + (a.connection_status === 'connected' ? a.followers ?? 0 : 0), 0))}
           sub={`${connected.size} connected platform${connected.size === 1 ? '' : 's'}`}
+          to="/athlete#platforms"
         />
       </div>
 
@@ -101,7 +108,7 @@ export default function AthleteDashboard() {
         )}
       </Section>
 
-      <Section title="Connected platforms">
+      <Section title="Connected platforms" id="platforms">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -153,18 +160,9 @@ export default function AthleteDashboard() {
         )}
       </Section>
 
-      <Section title="Audience">
+      <Section title="Audience" id="audience">
         {Object.keys(ws.audience).length ? (
-          <div className="grid gap-6 md:grid-cols-3">
-            {(['age', 'gender', 'country'] as const).map((dim) =>
-              ws.audience[dim] ? (
-                <div key={dim}>
-                  <div className="microcaps mb-2">{dim}</div>
-                  <ShareBar data={ws.audience[dim]} />
-                </div>
-              ) : null,
-            )}
-          </div>
+          <AudiencePanel audience={ws.audience} />
         ) : (
           <EmptyNote text="Audience demographics appear after your first platform sync." />
         )}

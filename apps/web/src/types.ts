@@ -101,6 +101,7 @@ export interface AthletePublic {
   following?: boolean
   audience?: Record<string, Record<string, number>>
   score_history?: { computed_at: string; audience_scale: number | null }[]
+  clubs?: { name: string; slug: string; position: string }[]
 }
 
 export interface Deal {

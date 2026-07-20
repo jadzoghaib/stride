@@ -1,7 +1,9 @@
 /** Shared primitives — the whole product renders through these, so the
  *  register stays consistent: microcaps labels, hairline panels, wave accents. */
 
+import { ArrowUpRight } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { avatarHue, fmtNum, initials } from '../lib/format'
 import { DIMENSIONS, type ScoreSummary } from '../types'
 
@@ -23,9 +25,9 @@ export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   )
 }
 
-export function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
+export function Section({ title, aside, id, children }: { title: string; aside?: ReactNode; id?: string; children: ReactNode }) {
   return (
-    <section className="mt-8 first:mt-0">
+    <section className="mt-8 scroll-mt-20 first:mt-0" id={id}>
       <div className="flex items-baseline justify-between border-b border-line pb-2 mb-4">
         <h2 className="microcaps">{title}</h2>
         {aside}
@@ -182,14 +184,25 @@ export function Sparkline({ points, width = 120, height = 28 }: { points: number
   )
 }
 
-export function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: string }) {
-  return (
-    <div className="panel px-5 py-4">
-      <div className="microcaps">{label}</div>
+export function Stat({ label, value, sub, to }: { label: string; value: ReactNode; sub?: string; to?: string }) {
+  const body = (
+    <>
+      <div className="flex items-start justify-between">
+        <div className="microcaps">{label}</div>
+        {to && <ArrowUpRight size={14} className="text-mist-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-pulse-400" />}
+      </div>
       <div className="tnum mt-1 text-2xl font-semibold text-mist-100">{value}</div>
       {sub && <div className="mt-0.5 text-xs text-mist-400">{sub}</div>}
-    </div>
+    </>
   )
+  if (to) {
+    return (
+      <Link to={to} className="panel panel-hover group block px-5 py-4" title={`Go to ${label.toLowerCase()}`}>
+        {body}
+      </Link>
+    )
+  }
+  return <div className="panel px-5 py-4">{body}</div>
 }
 
 export { fmtNum }

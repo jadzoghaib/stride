@@ -15,6 +15,13 @@ export default function AthleteDeals() {
     void load()
   }, [])
 
+  useEffect(() => {
+    // deep links from dashboard stats (e.g. /athlete/deals#history)
+    if (deals && window.location.hash) {
+      document.querySelector(window.location.hash)?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [deals])
+
   const respond = async (id: number, action: 'accept' | 'decline') => {
     setError('')
     try {
@@ -56,7 +63,7 @@ export default function AthleteDeals() {
         </div>
       </Section>
 
-      <Section title="History">
+      <Section title="History" id="history">
         {history.length === 0 ? (
           <EmptyNote text="No deal history yet." />
         ) : (

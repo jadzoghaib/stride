@@ -50,13 +50,15 @@ export default function ClubDashboard() {
       {error && <div className="mt-4 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
 
       <div className="mt-6 grid gap-3 md:grid-cols-3">
-        <Stat label="Active sponsorship revenue" value={fmtMoney(ws.revenue_active)} sub="committed packages" />
-        <Stat label="Roster" value={ws.roster.length} sub="active athletes" />
+        <Stat label="Active sponsorship revenue" value={fmtMoney(ws.revenue_active)} sub="committed packages"
+              to="/club#commitments" />
+        <Stat label="Roster" value={ws.roster.length} sub="active athletes" to="/club#roster" />
         <Stat label="Packages live" value={activePackages.length}
-              sub={`${activePackages.filter((p) => p.package_type === 'player_direct').length} player-direct`} />
+              sub={`${activePackages.filter((p) => p.package_type === 'player_direct').length} player-direct`}
+              to="/club#packages" />
       </div>
 
-      <Section title="Sponsorship packages"
+      <Section title="Sponsorship packages" id="packages"
                aside={<button className="btn px-3 py-1 text-xs" onClick={() => setCreatingPackage((v) => !v)}>
                  <Plus size={13} /> New package</button>}>
         {creatingPackage && (
@@ -103,7 +105,7 @@ export default function ClubDashboard() {
         {ws.packages.length === 0 && <EmptyNote text="No packages yet — a package is what sponsors commit to." />}
       </Section>
 
-      <Section title="Roster"
+      <Section title="Roster" id="roster"
                aside={<button className="btn px-3 py-1 text-xs" onClick={() => setAddingMember((v) => !v)}>
                  <Plus size={13} /> Add athlete</button>}>
         {addingMember && <MemberForm onDone={() => { setAddingMember(false); toast('Athlete added to roster'); void load() }} />}
@@ -130,7 +132,7 @@ export default function ClubDashboard() {
         {ws.roster.length === 0 && <EmptyNote text="No athletes on the roster yet — add athletes by their Stride handle." />}
       </Section>
 
-      <Section title="Commitments">
+      <Section title="Commitments" id="commitments">
         {ws.commitments.length === 0 ? (
           <EmptyNote text="No sponsor commitments yet. Sponsors back packages from your public page." />
         ) : (
