@@ -27,7 +27,7 @@ export default function AthletesDirectory() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-mist-100">Athlete directory</h1>
+      <h1 className="text-2xl font-semibold text-ink">Athlete directory</h1>
       <div className="mt-4 flex flex-wrap gap-2">
         <input className="field w-56 py-1.5 text-sm" placeholder="Search name or sport" value={q} onChange={(e) => setQ(e.target.value)} />
         <select className="field w-44 py-1.5 text-sm" value={sport} onChange={(e) => setSport(e.target.value)}>
@@ -39,7 +39,7 @@ export default function AthletesDirectory() {
           {facets.countries.map((c) => <option key={c}>{c}</option>)}
         </select>
       </div>
-      {error && <div className="mt-4 text-sm text-danger">{error}</div>}
+      {error && <div className="mt-4 text-sm text-critical">{error}</div>}
       <div className="mt-6 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -55,7 +55,7 @@ export default function AthletesDirectory() {
             {athletes?.map((a) => (
               <tr key={a.id}>
                 <td className="table-cell">
-                  <Link to={`/athletes/${a.slug}`} className="flex items-center gap-2.5 text-mist-100 hover:text-pulse-400">
+                  <Link to={`/athletes/${a.slug}`} className="flex items-center gap-2.5 text-ink hover:text-accent">
                     <Avatar name={a.display_name} size={28} /> {a.display_name}
                   </Link>
                 </td>

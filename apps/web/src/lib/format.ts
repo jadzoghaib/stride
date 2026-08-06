@@ -20,9 +20,12 @@ export const fmtDT = (ts: string | null | undefined): string =>
 export const initials = (name: string): string =>
   name.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('')
 
-/** Deterministic gradient pair per name — avatar identity without photos. */
+/** Deterministic gradient pair per name — avatar identity without photos.
+ *  Lightness is pinned low in both themes so the initials can always sit in a
+ *  fixed light foreground; a theme-flipping text colour would fail contrast on
+ *  one side or the other. */
 export const avatarHue = (name: string): [string, string] => {
   let h = 0
   for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360
-  return [`hsl(${h} 45% 38%)`, `hsl(${(h + 50) % 360} 55% 30%)`]
+  return [`hsl(${h} 40% 27%)`, `hsl(${(h + 45) % 360} 48% 17%)`]
 }

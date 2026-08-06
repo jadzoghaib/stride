@@ -4,7 +4,11 @@
  *               never color-alone: direct % labels + legend)
  *    country -> bubble map on an equirectangular graticule (true centroids,
  *               area ~ share) with a ranked list as the table view
- *  Values render in ink tokens, marks carry the color; native <title> tooltips.
+ *
+ *  Every mark draws from the theme tokens rather than literal hex, so the
+ *  charts follow the page into dark or light. The one exception is the gender
+ *  palette: those three hues are identity slots that must stay stable across
+ *  themes, and they are legible on both grounds.
  */
 
 import type { ReactNode } from 'react'
@@ -13,9 +17,9 @@ const AGE_ORDER = ['13-17', '18-24', '25-34', '35-44', '45-54', '55+']
 
 // validated categorical slots (dataviz reference palette): blue / aqua / yellow
 const GENDER_SLOTS: [string, string][] = [
-  ['female', '#2a78d6'],
-  ['male', '#1baf7a'],
-  ['other', '#eda100'],
+  ['female', '#3b86e0'],
+  ['male', '#1fbd85'],
+  ['other', '#f0a00c'],
 ]
 
 const pct = (x: number) => `${(100 * x).toFixed(1)}%`
@@ -23,7 +27,7 @@ const pct = (x: number) => `${(100 * x).toFixed(1)}%`
 function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="panel p-4">
-      <div className="microcaps mb-3">{title}</div>
+      <div className="cap mb-3">{title}</div>
       {children}
     </div>
   )
@@ -40,27 +44,35 @@ export function AgeBars({ data }: { data: Record<string, number> }) {
   return (
     <ChartCard title="Age">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Audience by age">
-        <defs>
-          <linearGradient id="agegrad" x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0" stopColor="#6366f1" />
-            <stop offset="1" stopColor="#8b5cf6" />
-          </linearGradient>
-        </defs>
         {buckets.map((b, i) => {
           const h = (data[b] / max) * (H - 46)
           const x = i * bw + bw * 0.18
           const y = H - 26 - h
+          const peak = data[b] === max
           return (
             <g key={b} className="transition-opacity hover:opacity-80">
               <title>{`${b}: ${pct(data[b])}`}</title>
-              <rect x={x} y={y} width={bw * 0.64} height={Math.max(h, 2)} rx={4}
-                    fill="url(#agegrad)" />
-              <text x={i * bw + bw / 2} y={y - 6} textAnchor="middle"
-                    fontSize="10" fill="#565367" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              {/* the modal bucket carries the accent; the rest stay neutral so
+                  the shape of the distribution reads before the colour does */}
+              <rect
+                x={x}
+                y={y}
+                width={bw * 0.64}
+                height={Math.max(h, 2)}
+                rx={2}
+                className={peak ? 'fill-accent' : 'fill-track'}
+              />
+              <text
+                x={i * bw + bw / 2}
+                y={y - 6}
+                textAnchor="middle"
+                fontSize="10"
+                className="fill-ink-2"
+                style={{ fontVariantNumeric: 'tabular-nums' }}
+              >
                 {pct(data[b])}
               </text>
-              <text x={i * bw + bw / 2} y={H - 10} textAnchor="middle"
-                    fontSize="9.5" fill="#77748a">
+              <text x={i * bw + bw / 2} y={H - 10} textAnchor="middle" fontSize="9.5" className="fill-ink-3">
                 {b}
               </text>
             </g>
@@ -107,8 +119,8 @@ export function GenderDonut({ data }: { data: Record<string, number> }) {
           {arcs.map((a) => (
             <div key={a.key} className="flex items-center gap-2">
               <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: a.color }} />
-              <span className="capitalize text-mist-300">{a.key}</span>
-              <span className="tnum ml-auto pl-3 text-mist-100">{pct(a.frac)}</span>
+              <span className="capitalize text-ink-2">{a.key}</span>
+              <span className="tnum ml-auto pl-3 font-display font-semibold text-ink">{pct(a.frac)}</span>
             </div>
           ))}
         </div>
@@ -145,53 +157,70 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
 
   return (
     <ChartCard title="Countries">
-      <div className="grid gap-4 sm:grid-cols-[1fr_130px]">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-xl bg-ink-850"
-             role="img" aria-label="Audience by country">
-          <defs>
-            <radialGradient id="bubble" cx="0.35" cy="0.3" r="1">
-              <stop offset="0" stopColor="#8b5cf6" />
-              <stop offset="1" stopColor="#4a4dd8" />
-            </radialGradient>
-          </defs>
+      <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded bg-ground-deep" role="img" aria-label="Audience by country">
           {/* graticule */}
           {Array.from({ length: 11 }).map((_, i) => (
-            <line key={`v${i}`} x1={(i + 1) * (W / 12)} y1={8} x2={(i + 1) * (W / 12)} y2={H - 8}
-                  stroke="rgba(24,22,40,0.06)" strokeWidth={1} />
+            <line
+              key={`v${i}`}
+              x1={(i + 1) * (W / 12)}
+              y1={8}
+              x2={(i + 1) * (W / 12)}
+              y2={H - 8}
+              className="stroke-line"
+              strokeWidth={1}
+            />
           ))}
           {Array.from({ length: 5 }).map((_, i) => (
-            <line key={`h${i}`} x1={8} y1={(i + 1) * (H / 6)} x2={W - 8} y2={(i + 1) * (H / 6)}
-                  stroke="rgba(24,22,40,0.06)" strokeWidth={1} />
+            <line
+              key={`h${i}`}
+              x1={8}
+              y1={(i + 1) * (H / 6)}
+              x2={W - 8}
+              y2={(i + 1) * (H / 6)}
+              className="stroke-line"
+              strokeWidth={1}
+            />
           ))}
           {/* equator hint */}
-          <line x1={8} y1={py(0)} x2={W - 8} y2={py(0)} stroke="rgba(24,22,40,0.12)"
-                strokeWidth={1} strokeDasharray="3 5" />
+          <line x1={8} y1={py(0)} x2={W - 8} y2={py(0)} className="stroke-line-strong" strokeWidth={1} strokeDasharray="3 5" />
           {mapped.map(([code, share]) => {
             const c = CENTROIDS[code]
             const radius = 7 + Math.sqrt(share / maxShare) * 22
             return (
               <g key={code} className="transition-opacity hover:opacity-85">
                 <title>{`${c.name}: ${pct(share)}`}</title>
-                <circle cx={px(c.lon)} cy={py(c.lat)} r={radius}
-                        fill="url(#bubble)" fillOpacity={0.85}
-                        stroke="#ffffff" strokeWidth={2} />
-                <text x={px(c.lon)} y={py(c.lat) + 3.5} textAnchor="middle"
-                      fontSize={radius > 14 ? 11 : 9} fontWeight={700} fill="#ffffff">
+                <circle
+                  cx={px(c.lon)}
+                  cy={py(c.lat)}
+                  r={radius}
+                  className="fill-accent stroke-ground-deep"
+                  fillOpacity={0.9}
+                  strokeWidth={2}
+                />
+                {/* dark on amber in both themes — see --c-accent-on */}
+                <text
+                  x={px(c.lon)}
+                  y={py(c.lat) + 3.5}
+                  textAnchor="middle"
+                  fontSize={radius > 14 ? 11 : 9}
+                  fontWeight={700}
+                  className="fill-accent-on"
+                >
                   {code}
                 </text>
               </g>
             )
           })}
         </svg>
-        <div className="space-y-1 self-center text-xs">
+        <div className="space-y-1.5 self-center text-xs">
           {ranked.slice(0, 6).map(([code, share]) => (
             <div key={code} className="flex items-center gap-2">
-              <span className="w-10 text-mist-300">{code}</span>
-              <span className="h-1.5 flex-1 rounded-full bg-ink-800">
-                <span className="block h-full rounded-full wave-line"
-                      style={{ width: `${(100 * share) / (ranked[0][1] || 1)}%` }} />
+              <span className="w-8 font-display font-semibold uppercase tracking-board text-ink-2">{code}</span>
+              <span className="bar h-1.5 flex-1">
+                <i style={{ width: `${(100 * share) / (ranked[0][1] || 1)}%` }} />
               </span>
-              <span className="tnum text-mist-100">{pct(share)}</span>
+              <span className="tnum font-display font-semibold text-ink">{pct(share)}</span>
             </div>
           ))}
         </div>

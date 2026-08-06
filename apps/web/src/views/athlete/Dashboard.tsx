@@ -1,14 +1,34 @@
 import { RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Board } from '../../components/Board'
 import { AudiencePanel } from '../../components/charts'
-import { LoadError, PageLoading, CoverageChip, DimensionGrid, EmptyNote, Section, Stat, StatusChip } from '../../components/ui'
+import {
+  CoverageChip,
+  DimensionGrid,
+  EmptyNote,
+  LoadError,
+  PageLoading,
+  Section,
+  StatusChip,
+} from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDT, fmtMoney, fmtNum } from '../../lib/format'
 import type { AthleteWorkspace } from '../../types'
 import { DIMENSIONS } from '../../types'
 
 const PLATFORMS = ['instagram', 'youtube', 'tiktok']
+
+/** The API returns the five dimensions but no athlete-level composite — the
+ *  only `score` it computes is per sponsor campaign. The headline figure is
+ *  therefore derived here, and labelled as a mean so it is never mistaken for a
+ *  stored value. Returns null when nothing has been computed yet. */
+function meanScore(dimensions: Record<string, number | null> | undefined) {
+  if (!dimensions) return { value: null as number | null, n: 0 }
+  const vals = DIMENSIONS.map((d) => dimensions[d.key]).filter((v): v is number => typeof v === 'number')
+  if (!vals.length) return { value: null as number | null, n: 0 }
+  return { value: vals.reduce((s, v) => s + v, 0) / vals.length, n: vals.length }
+}
 
 export default function AthleteDashboard() {
   const [ws, setWs] = useState<AthleteWorkspace | null>(null)
@@ -39,161 +59,263 @@ export default function AthleteDashboard() {
   const connected = new Set(ws.accounts.filter((a) => a.connection_status === 'connected').map((a) => a.platform))
   const available = PLATFORMS.filter((p) => !connected.has(p))
   const openDeals = ws.deals.filter((d) => d.status === 'offered')
+  const followers = ws.accounts.reduce((s, a) => s + (a.connection_status === 'connected' ? a.followers ?? 0 : 0), 0)
+
+  const { value: overall, n: computedDims } = meanScore(ws.analytics?.dimensions)
+
+  // The only stored history is audience scale, so that — not the headline mean —
+  // is what the trend line shows, and it says so.
+  const history = (ws.profile.score_history ?? [])
+    .map((h) => h.audience_scale)
+    .filter((v): v is number => typeof v === 'number')
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold text-mist-100">{ws.profile.display_name}</h1>
-        <span className="chip">{ws.profile.sport}</span>
-        <span className="chip">{ws.profile.country}</span>
-        <StatusChip status={ws.editable.status} />
-        <CoverageChip coverage={ws.profile.score?.coverage ?? null} />
-        {(ws.clubs ?? []).map((c) => (
-          <Link key={c.slug} to={`/clubs/${c.slug}`} className="chip border-pulse-500 text-mist-100 hover:shadow-card"
-                title={c.position ? `${c.position} — view club` : 'View club'}>
-            {c.name}
-          </Link>
-        ))}
-      </div>
-
-      {error && <div className="mt-4 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
-
-      {(ws.club_backing ?? []).length > 0 && (
-        <div className="mt-4 rounded-lg border border-ok/40 bg-ok/10 px-4 py-3 text-sm">
-          <div className="microcaps mb-1">Club-routed backing</div>
-          {ws.club_backing.map((b, i) => (
-            <div key={i} className="text-mist-200">
-              {b.org_name} backs you through {b.club_name} — {b.package_name} ({fmtMoney(b.amount_usd)})
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="mt-6 grid gap-3 md:grid-cols-3">
-        <Stat label="Committed earnings" value={fmtMoney(ws.earnings)} sub="accepted + completed deals"
-              to="/athlete/deals#history" />
-        <Stat label="Open offers" value={openDeals.length}
-              sub={openDeals.length ? 'awaiting your response — review them' : 'nothing waiting on you'}
-              to="/athlete/deals" />
-        <Stat
-          label="Total followers"
-          value={fmtNum(ws.accounts.reduce((s, a) => s + (a.connection_status === 'connected' ? a.followers ?? 0 : 0), 0))}
-          sub={`${connected.size} connected platform${connected.size === 1 ? '' : 's'}`}
-          to="/athlete#platforms"
-        />
-      </div>
-
-      <Section
-        title="Marketability"
-        aside={ws.analytics && <span className="text-xs text-mist-400">computed {fmtDT(ws.analytics.computed_at)} · formulas v{ws.analytics.formula_version}</span>}
-      >
-        <DimensionGrid
-          score={ws.analytics ? { dimensions: ws.analytics.dimensions } : null}
-          onSelect={(k) => setEvidence(evidence === k ? null : k)}
-          selected={evidence}
-        />
-        {evidence && ws.analytics && (
-          <div className="panel mt-3 border-pulse-500 p-4">
-            <div className="microcaps">{DIMENSIONS.find((d) => d.key === evidence)?.label} — per-platform inputs</div>
-            <EvidenceTable inputs={ws.analytics.inputs} dimension={evidence} />
-            <div className="mt-2 text-xs text-mist-400">
-              {(() => {
-                const cov = ws.analytics!.coverage.dimensions[evidence]
-                return cov?.confidence
-                  ? `Confidence ${cov.confidence} (${cov.data_points} ${String(cov.unit ?? '').replace(/_/g, ' ')})`
-                  : `Unavailable: ${String(cov?.reason ?? 'no data').replace(/_/g, ' ')}`
-              })()}
-            </div>
-          </div>
-        )}
-      </Section>
-
-      <Section title="Connected platforms" id="platforms">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr>
-                <th className="table-head">Platform</th>
-                <th className="table-head">Status</th>
-                <th className="table-head text-right">Followers</th>
-                <th className="table-head">Last sync</th>
-                <th className="table-head" />
-              </tr>
-            </thead>
-            <tbody>
-              {ws.accounts.map((a) => (
-                <tr key={a.id}>
-                  <td className="table-cell capitalize text-mist-100">{a.platform}</td>
-                  <td className="table-cell"><StatusChip status={a.connection_status} /></td>
-                  <td className="table-cell tnum text-right">{fmtNum(a.followers)}</td>
-                  <td className="table-cell text-xs text-mist-400">
-                    {a.last_run ? `${a.last_run.status} · ${fmtDT(a.last_run.finished_at)}` : 'never'}
-                    {a.last_run?.error && <span className="text-danger"> — {a.last_run.error}</span>}
-                  </td>
-                  <td className="table-cell text-right">
-                    {a.connection_status === 'connected' && (
-                      <button className="btn px-2.5 py-1 text-xs" disabled={busy}
-                              onClick={() => act(() => api.post(`/api/athlete/platforms/${a.id}/sync`))}>
-                        <RefreshCw size={12} /> Sync
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {ws.accounts.length === 0 && (
-                <tr><td className="table-cell text-mist-400" colSpan={5}>No platforms connected yet.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        {available.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="microcaps">Connect</span>
-            {available.map((p) => (
-              <button key={p} className="btn capitalize" disabled={busy}
-                      onClick={() => act(() => api.post('/api/athlete/platforms/connect', { platform: p }))}>
-                {p}
-              </button>
+    <>
+      <Board
+        eyebrow="Athlete"
+        title={ws.profile.display_name}
+        tags={
+          <>
+            <span className="tag">{ws.profile.sport}</span>
+            <span className="tag">{ws.profile.country}</span>
+            <StatusChip status={ws.editable.status} />
+            <CoverageChip coverage={ws.profile.score?.coverage ?? null} />
+            {(ws.clubs ?? []).map((c) => (
+              <Link
+                key={c.slug}
+                to={`/clubs/${c.slug}`}
+                className="tag border-accent/50 text-ink transition-colors hover:bg-raised"
+                title={c.position ? `${c.position} — view club` : 'View club'}
+              >
+                {c.name}
+              </Link>
             ))}
-            <span className="text-xs text-mist-400">First iteration uses simulated platform data behind the production connector interface.</span>
+          </>
+        }
+        score={overall === null ? null : Math.round(overall)}
+        scoreLabel="Marketability"
+        deltaNote={computedDims ? `mean of ${computedDims} computed dimension${computedDims === 1 ? '' : 's'}` : 'not yet computed'}
+        trend={history}
+        trendLabel={history.length > 1 ? `audience scale · last ${history.length} snapshots` : undefined}
+        figures={[
+          { label: 'Committed', value: fmtMoney(ws.earnings), to: '/athlete/deals#history' },
+          { label: 'Open offers', value: openDeals.length, to: '/athlete/deals' },
+          { label: 'Total reach', value: fmtNum(followers), to: '/athlete#platforms' },
+          { label: 'Base rate', value: fmtMoney(ws.editable.base_rate_usd) },
+        ]}
+        footNote={
+          ws.analytics ? `computed ${fmtDT(ws.analytics.computed_at)} · formulas v${ws.analytics.formula_version}` : undefined
+        }
+      />
+
+      <div>
+        {error && (
+          <div className="mt-4 rounded border border-critical/45 bg-critical/10 px-3.5 py-2.5 text-sm text-critical">{error}</div>
+        )}
+
+        {(ws.club_backing ?? []).length > 0 && (
+          <div className="mt-4 rounded border border-ok/45 bg-ok/10 px-4 py-3 text-sm">
+            <div className="cap mb-1">Club-routed backing</div>
+            {ws.club_backing.map((b, i) => (
+              <div key={i} className="text-ink-2">
+                {b.org_name} backs you through {b.club_name} — {b.package_name} ({fmtMoney(b.amount_usd)})
+              </div>
+            ))}
           </div>
         )}
-      </Section>
 
-      <Section title="Audience" id="audience">
-        {Object.keys(ws.audience).length ? (
-          <AudiencePanel audience={ws.audience} />
-        ) : (
-          <EmptyNote text="Audience demographics appear after your first platform sync." />
-        )}
-      </Section>
-    </div>
+        <Section
+          title="Marketability — ranked dimensions"
+          aside={<span className="meta">select a lane for per-platform inputs</span>}
+        >
+          <DimensionGrid
+            score={ws.analytics ? { dimensions: ws.analytics.dimensions } : null}
+            confidence={ws.analytics?.coverage.dimensions}
+            onSelect={(k) => setEvidence(evidence === k ? null : k)}
+            selected={evidence}
+          />
+          {evidence && ws.analytics && (
+            <div className="panel mt-3 border-line-strong p-4">
+              <div className="cap">{DIMENSIONS.find((d) => d.key === evidence)?.label} — per-platform inputs</div>
+              <EvidenceTable inputs={ws.analytics.inputs} dimension={evidence} />
+              <div className="meta mt-2.5">
+                {(() => {
+                  const cov = ws.analytics!.coverage.dimensions[evidence]
+                  return cov?.confidence
+                    ? `Confidence ${cov.confidence} (${cov.data_points} ${String(cov.unit ?? '').replace(/_/g, ' ')})`
+                    : `Unavailable: ${String(cov?.reason ?? 'no data').replace(/_/g, ' ')}`
+                })()}
+              </div>
+            </div>
+          )}
+        </Section>
+
+        <div className="mt-10 grid items-start gap-6 lg:grid-cols-[1.85fr_1fr]">
+          <div>
+            <div className="mb-4 flex items-baseline justify-between gap-4 border-b border-line-strong pb-2.5">
+              <h2 className="cap" id="platforms">
+                Connected platforms
+              </h2>
+              <span className="meta">
+                {connected.size} of {PLATFORMS.length} live
+              </span>
+            </div>
+            <div className="panel overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th className="table-head">Platform</th>
+                    <th className="table-head">Status</th>
+                    <th className="table-head text-right">Followers</th>
+                    <th className="table-head">Last sync</th>
+                    <th className="table-head" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {ws.accounts.map((a) => (
+                    <tr key={a.id}>
+                      <td className="table-cell font-display font-semibold uppercase tracking-board text-ink">{a.platform}</td>
+                      <td className="table-cell">
+                        <StatusChip status={a.connection_status} />
+                      </td>
+                      <td className="table-cell tnum text-right font-display text-[17px] font-bold text-ink">
+                        {fmtNum(a.followers)}
+                      </td>
+                      <td className="table-cell meta">
+                        {a.last_run ? `${a.last_run.status} · ${fmtDT(a.last_run.finished_at)}` : 'never'}
+                        {a.last_run?.error && <span className="text-critical"> — {a.last_run.error}</span>}
+                      </td>
+                      <td className="table-cell text-right">
+                        {a.connection_status === 'connected' && (
+                          <button
+                            className="btn"
+                            disabled={busy}
+                            onClick={() => act(() => api.post(`/api/athlete/platforms/${a.id}/sync`))}
+                          >
+                            <RefreshCw size={12} /> Sync
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {ws.accounts.length === 0 && (
+                    <tr>
+                      <td className="table-cell text-ink-3" colSpan={5}>
+                        No platforms connected yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {available.length > 0 && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="cap">Connect</span>
+                {available.map((p) => (
+                  <button
+                    key={p}
+                    className="btn"
+                    disabled={busy}
+                    onClick={() => act(() => api.post('/api/athlete/platforms/connect', { platform: p }))}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            )}
+            <p className="meta mt-3">
+              First iteration uses simulated platform data behind the production connector interface.
+            </p>
+          </div>
+
+          <div>
+            <div className="mb-4 flex items-baseline justify-between gap-4 border-b border-line-strong pb-2.5">
+              <h2 className="cap">Awaiting you</h2>
+              <span className="meta">{openDeals.length}</span>
+            </div>
+            {openDeals.length === 0 ? (
+              <EmptyNote text="Nothing waiting on you." />
+            ) : (
+              <div className="panel">
+                {openDeals.map((d) => (
+                  <div key={d.id} className="relative border-b border-line px-4 py-4 last:border-b-0">
+                    {/* stripe marks "needs your response" — it appears on no other state */}
+                    <span className="absolute bottom-0 left-0 top-0 w-[3px] bg-accent" aria-hidden />
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="font-display text-[15px] font-semibold uppercase tracking-board text-ink">
+                        {d.org_name}
+                      </span>
+                      <span className="tnum font-display text-[21px] font-bold text-ink">{fmtMoney(d.amount_usd)}</span>
+                    </div>
+                    <p className="meta mt-1">
+                      {d.deal_type.replace(/_/g, ' ')} · {d.category} · offered {fmtDT(d.created_at).slice(0, 10)}
+                    </p>
+                    {d.message && <p className="mt-2 text-sm">{d.message}</p>}
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        className="btn-go"
+                        disabled={busy}
+                        onClick={() => act(() => api.post(`/api/athlete/deals/${d.id}/respond`, { action: 'accept' }))}
+                      >
+                        Accept
+                      </button>
+                      <button
+                        className="btn"
+                        disabled={busy}
+                        onClick={() => act(() => api.post(`/api/athlete/deals/${d.id}/respond`, { action: 'decline' }))}
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <Section title="Audience" id="audience">
+          {Object.keys(ws.audience).length ? (
+            <AudiencePanel audience={ws.audience} />
+          ) : (
+            <EmptyNote text="Audience demographics appear after your first platform sync." />
+          )}
+        </Section>
+      </div>
+    </>
   )
 }
 
 function EvidenceTable({ inputs, dimension }: { inputs: NonNullable<AthleteWorkspace['analytics']>['inputs']; dimension: string }) {
   const inter = (inputs.intermediate as Record<string, Record<string, unknown>>)[dimension]
-  if (!inter) return <div className="mt-2 text-sm text-mist-400">No inputs recorded for this dimension.</div>
+  if (!inter) return <div className="mt-2 text-sm text-ink-3">No inputs recorded for this dimension.</div>
   const platformKeyed = Object.values(inter).every((v) => typeof v === 'object' && v !== null)
-  const rows = platformKeyed && !('total_followers' in inter)
-    ? Object.entries(inter as Record<string, Record<string, number>>)
-    : [['inputs', inter as Record<string, number>] as const]
+  const rows =
+    platformKeyed && !('total_followers' in inter)
+      ? Object.entries(inter as Record<string, Record<string, number>>)
+      : [['inputs', inter as Record<string, number>] as const]
   const cols = Object.keys(rows[0][1])
   return (
-    <div className="mt-2 overflow-x-auto">
+    <div className="mt-3 overflow-x-auto">
       <table className="w-full text-xs">
         <thead>
           <tr>
             <th className="table-head">Source</th>
-            {cols.map((c) => <th key={c} className="table-head text-right">{c.replace(/_/g, ' ')}</th>)}
+            {cols.map((c) => (
+              <th key={c} className="table-head text-right">
+                {c.replace(/_/g, ' ')}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {rows.map(([name, vals]) => (
             <tr key={String(name)}>
-              <td className="table-cell capitalize text-mist-100">{String(name)}</td>
+              <td className="table-cell font-display font-semibold uppercase tracking-board text-ink">{String(name)}</td>
               {cols.map((c) => (
-                <td key={c} className="table-cell tnum text-right">{String((vals as Record<string, unknown>)[c] ?? '—')}</td>
+                <td key={c} className="table-cell tnum text-right">
+                  {String((vals as Record<string, unknown>)[c] ?? '—')}
+                </td>
               ))}
             </tr>
           ))}

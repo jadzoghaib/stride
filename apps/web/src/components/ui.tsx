@@ -1,22 +1,75 @@
-/** Shared primitives — the whole product renders through these, so the
- *  register stays consistent: microcaps labels, hairline panels, wave accents. */
+/** Shared primitives — the whole product renders through these, so the register
+ *  stays consistent: condensed board type, ranked lanes, signed deltas, one
+ *  amber accent. Motion is a single settling sequence on mount; everything here
+ *  checks prefers-reduced-motion before animating. */
 
 import { ArrowUpRight } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { avatarHue, fmtNum, initials } from '../lib/format'
 import { DIMENSIONS, type ScoreSummary } from '../types'
+
+// ── motion helpers ───────────────────────────────────────────────────────────
+
+export function useReducedMotion() {
+  const [reduce, setReduce] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const on = () => setReduce(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  return reduce
+}
+
+/** Numerals roll up and settle, the way a scoreboard resolves. */
+export function useCountUp(to: number | null | undefined, dp = 0, dur = 950) {
+  const reduce = useReducedMotion()
+  const target = to ?? 0
+  const [n, setN] = useState(() => (reduce ? target : 0))
+  const frame = useRef(0)
+
+  useEffect(() => {
+    if (reduce) {
+      setN(target)
+      return
+    }
+    const t0 = performance.now()
+    const step = (now: number) => {
+      const p = Math.min(1, (now - t0) / dur)
+      setN(target * (1 - Math.pow(1 - p, 3)))
+      if (p < 1) frame.current = requestAnimationFrame(step)
+    }
+    frame.current = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(frame.current)
+  }, [target, dur, reduce])
+
+  return to === null || to === undefined ? '—' : n.toFixed(dp)
+}
+
+/** Fades a block in on mount. `delay` staggers siblings into a sequence. */
+export function Rise({ delay = 0, className = '', children }: { delay?: number; className?: string; children: ReactNode }) {
+  return (
+    <div className={`rise ${className}`} style={{ animationDelay: `${delay}ms` }}>
+      {children}
+    </div>
+  )
+}
+
+// ── identity ─────────────────────────────────────────────────────────────────
 
 export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   const [a, b] = avatarHue(name)
   return (
     <div
-      className="flex items-center justify-center rounded-full text-mist-100 font-semibold shrink-0"
+      className="flex shrink-0 items-center justify-center rounded-full font-display font-bold tracking-board text-[#F2F4F7]"
       style={{
         width: size,
         height: size,
-        fontSize: size * 0.36,
-        backgroundImage: `linear-gradient(135deg, ${a}, ${b})`,
+        fontSize: size * 0.38,
+        backgroundImage: `linear-gradient(140deg, ${a}, ${b})`,
       }}
       aria-hidden
     >
@@ -27,9 +80,9 @@ export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
 
 export function Section({ title, aside, id, children }: { title: string; aside?: ReactNode; id?: string; children: ReactNode }) {
   return (
-    <section className="mt-8 scroll-mt-20 first:mt-0" id={id}>
-      <div className="flex items-baseline justify-between border-b border-line pb-2 mb-4">
-        <h2 className="microcaps">{title}</h2>
+    <section className="mt-10 scroll-mt-24 first:mt-0" id={id}>
+      <div className="mb-4 flex items-baseline justify-between gap-4 border-b border-line-strong pb-2.5">
+        <h2 className="cap">{title}</h2>
         {aside}
       </div>
       {children}
@@ -37,48 +90,94 @@ export function Section({ title, aside, id, children }: { title: string; aside?:
   )
 }
 
-export function Meter({ value, height = 5 }: { value: number | null; height?: number }) {
+// ── meters ───────────────────────────────────────────────────────────────────
+
+/** Bar wipes out from left on mount; `delay` staggers a stack of them. */
+export function Meter({ value, height = 6, delay = 0, muted = false }: { value: number | null; height?: number; delay?: number; muted?: boolean }) {
+  const reduce = useReducedMotion()
+  const [run, setRun] = useState(reduce)
+  const pct = Math.max(0, Math.min(100, value ?? 0))
+
+  useEffect(() => {
+    if (reduce) {
+      setRun(true)
+      return
+    }
+    const t = setTimeout(() => setRun(true), 340 + delay)
+    return () => clearTimeout(t)
+  }, [reduce, delay])
+
   return (
-    <div className="rounded-full bg-ink-700 overflow-hidden" style={{ height }}>
-      <div
-        className="h-full rounded-full wave-line"
-        style={{ width: `${Math.max(0, Math.min(100, value ?? 0))}%` }}
+    <div className="bar" style={{ height }}>
+      <i
+        className={muted ? 'muted' : undefined}
+        style={{
+          width: `${pct}%`,
+          transform: run ? 'scaleX(1)' : 'scaleX(0)',
+          transition: reduce ? undefined : 'transform .85s cubic-bezier(.16,1,.3,1)',
+        }}
       />
     </div>
   )
 }
 
+// ── ranked dimension lanes ───────────────────────────────────────────────────
+
+/** Below this, a lane bar renders neutral instead of amber — the accent marks
+ *  strength, so a weak dimension should not read as an emphasised one. */
+const STRONG_ENOUGH = 65
+
+const CONFIDENCE_TONE: Record<string, string> = {
+  high: 'text-ok',
+  medium: 'text-accent-ink',
+  low: 'text-accent-ink',
+}
+
+/** The five marketability dimensions as ranked lanes. The lane number is the
+ *  athlete's actual rank on that dimension, so the numbering carries
+ *  information instead of decorating rows. */
 export function DimensionGrid({
   score,
   onSelect,
   selected,
+  confidence,
 }: {
   score: ScoreSummary | { dimensions: Record<string, number | null> } | null
   onSelect?: (key: string) => void
   selected?: string | null
+  confidence?: Record<string, { confidence: string | null } | undefined>
 }) {
   if (!score) return <EmptyNote text="No analytics yet — connect a platform to compute marketability." />
+
+  const ranked = DIMENSIONS.map((d) => ({ ...d, value: score.dimensions[d.key] ?? null })).sort(
+    (a, b) => (b.value ?? -1) - (a.value ?? -1),
+  )
+  const clickable = Boolean(onSelect)
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-      {DIMENSIONS.map((d) => {
-        const v = score.dimensions[d.key]
-        const clickable = Boolean(onSelect)
+    <div className="panel overflow-hidden">
+      {ranked.map((d, i) => {
+        const conf = confidence?.[d.key]?.confidence ?? null
         return (
           <button
             key={d.key}
+            type="button"
             disabled={!clickable}
+            aria-pressed={selected === d.key}
             onClick={() => onSelect?.(d.key)}
-            className={`panel p-4 text-left ${clickable ? 'panel-hover cursor-pointer' : 'cursor-default'} ${
-              selected === d.key ? 'border-pulse-500' : ''
-            }`}
+            className={`lane ${clickable ? 'cursor-pointer' : 'cursor-default'}`}
           >
-            <div className="microcaps">{d.label}</div>
-            <div className={`tnum mt-1 text-2xl font-semibold ${v === null ? 'text-mist-400 text-base' : 'text-mist-100'}`}>
-              {v === null || v === undefined ? 'n/a' : v.toFixed(0)}
-            </div>
-            <div className="mt-2">
-              <Meter value={v ?? 0} />
-            </div>
+            <span className="lane-no">{d.value === null ? '—' : i + 1}</span>
+            <span className="lane-name">{d.label}</span>
+            <span className={d.value === null ? 'font-display text-sm uppercase tracking-micro text-ink-3' : 'lane-val'}>
+              {d.value === null ? 'n/a' : d.value.toFixed(0)}
+            </span>
+            <span className="lane-bar">
+              <Meter value={d.value} delay={i * 85} muted={(d.value ?? 0) < STRONG_ENOUGH} />
+            </span>
+            <span className={`lane-conf cap ${conf ? CONFIDENCE_TONE[conf] ?? '' : ''}`}>
+              {conf ?? (d.value === null ? 'no data' : '')}
+            </span>
           </button>
         )
       })}
@@ -86,113 +185,157 @@ export function DimensionGrid({
   )
 }
 
+// ── state chips ──────────────────────────────────────────────────────────────
+
 export function CoverageChip({ coverage }: { coverage: ScoreSummary['coverage'] | null | undefined }) {
-  if (!coverage) return <span className="chip">no analytics</span>
+  if (!coverage) return <span className="tag">no analytics</span>
   const full = coverage.connected === coverage.total
   return (
-    <span className="chip" title={coverage.missing.length ? `Missing: ${coverage.missing.join(', ')}` : 'Full platform coverage'}>
-      <span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${full ? 'bg-ok' : 'bg-warn'}`} />
+    <span
+      className={`tag ${full ? 'border-ok/45 bg-ok/10 text-ok' : 'border-warn/45 bg-warn/10 text-accent-ink'}`}
+      title={coverage.missing.length ? `Missing: ${coverage.missing.join(', ')}` : 'Full platform coverage'}
+    >
       {coverage.connected} of {coverage.total} platforms
     </span>
   )
 }
 
 const STATUS_STYLE: Record<string, string> = {
-  offered: 'text-warn border-warn/40',
-  accepted: 'text-ok border-ok/40',
-  completed: 'text-ok border-ok/40',
-  declined: 'text-danger border-danger/40',
-  withdrawn: 'text-mist-400 border-line',
-  connected: 'text-ok border-ok/40',
-  disconnected: 'text-mist-400 border-line',
-  error: 'text-danger border-danger/40',
-  listed: 'text-ok border-ok/40',
-  draft: 'text-warn border-warn/40',
-  active: 'text-ok border-ok/40',
-  closed: 'text-mist-400 border-line',
+  offered: 'border-warn/45 bg-warn/10 text-accent-ink',
+  accepted: 'border-ok/45 bg-ok/10 text-ok',
+  completed: 'border-ok/45 bg-ok/10 text-ok',
+  declined: 'border-critical/45 bg-critical/10 text-critical',
+  withdrawn: '',
+  connected: 'border-ok/45 bg-ok/10 text-ok',
+  disconnected: '',
+  error: 'border-critical/45 bg-critical/10 text-critical',
+  listed: 'border-ok/45 bg-ok/10 text-ok',
+  draft: 'border-warn/45 bg-warn/10 text-accent-ink',
+  active: 'border-ok/45 bg-ok/10 text-ok',
+  closed: '',
 }
 
 export function StatusChip({ status }: { status: string }) {
-  return <span className={`chip bg-transparent ${STATUS_STYLE[status] ?? ''}`}>{status}</span>
+  return <span className={`tag ${STATUS_STYLE[status] ?? ''}`}>{status}</span>
 }
+
+// ── load / empty / error states ──────────────────────────────────────────────
 
 export function PageLoading({ rows = 3 }: { rows?: number }) {
   return (
-    <div className="animate-pulse space-y-4" aria-label="Loading" role="status">
-      <div className="h-7 w-56 rounded-lg bg-ink-800" />
+    <div className="animate-pulse space-y-5" aria-label="Loading" role="status">
+      <div className="h-9 w-64 rounded bg-raised" />
       <div className="grid gap-3 md:grid-cols-3">
         {Array.from({ length: rows }).map((_, i) => (
-          <div key={i} className="panel h-24 border-transparent bg-ink-800/60 shadow-none" />
+          <div key={i} className="h-24 rounded-card bg-raised" />
         ))}
       </div>
-      <div className="panel h-48 border-transparent bg-ink-800/40 shadow-none" />
+      <div className="h-72 rounded-card bg-raised/60" />
     </div>
   )
 }
 
 export function LoadError({ text }: { text: string }) {
   return (
-    <div className="panel border-danger/40 px-5 py-6 text-center">
-      <div className="microcaps text-danger">Couldn't load this page</div>
-      <p className="mt-2 text-sm text-mist-300">{text}</p>
-      <button className="btn mt-4" onClick={() => window.location.reload()}>Try again</button>
+    <div className="panel border-critical/45 px-5 py-7 text-center">
+      <div className="cap text-critical">Couldn't load this page</div>
+      <p className="mt-2 text-sm text-ink-2">{text}</p>
+      <button className="btn mt-4" onClick={() => window.location.reload()}>
+        Try again
+      </button>
     </div>
   )
 }
 
 export function EmptyNote({ text, action }: { text: string; action?: ReactNode }) {
   return (
-    <div className="panel px-5 py-8 text-center text-mist-400">
+    <div className="panel px-5 py-9 text-center text-ink-3">
       <p>{text}</p>
       {action && <div className="mt-3">{action}</div>}
     </div>
   )
 }
 
+// ── data marks ───────────────────────────────────────────────────────────────
+
 export function ShareBar({ data, max, highlight }: { data: Record<string, number>; max?: number; highlight?: Set<string> }) {
   const top = max ?? Math.max(...Object.values(data), 0.01)
   return (
     <div className="space-y-1.5">
-      {Object.entries(data).map(([bucket, share]) => (
-        <div key={bucket} className="grid grid-cols-[64px_1fr_48px] items-center gap-2 text-xs">
-          <span className="text-mist-300 truncate">{bucket}</span>
-          <div className="h-2.5 rounded-sm bg-ink-800 overflow-hidden">
-            <div
-              className={`h-full rounded-sm ${highlight?.has(bucket) ? 'wave-line' : 'bg-ink-600'}`}
-              style={{ width: `${(100 * share) / top}%` }}
-            />
-          </div>
-          <span className="tnum text-right text-mist-400">{(100 * share).toFixed(1)}%</span>
+      {Object.entries(data).map(([bucket, share], i) => (
+        <div key={bucket} className="grid grid-cols-[64px_1fr_52px] items-center gap-2.5 text-xs">
+          <span className="truncate text-ink-2">{bucket}</span>
+          <Meter value={(100 * share) / top} height={9} delay={i * 55} muted={!highlight?.has(bucket) && Boolean(highlight)} />
+          <span className="tnum text-right text-ink-3">{(100 * share).toFixed(1)}%</span>
         </div>
       ))}
     </div>
   )
 }
 
-export function Sparkline({ points, width = 120, height = 28 }: { points: number[]; width?: number; height?: number }) {
-  if (points.length < 2) return <span className="text-xs text-mist-400">—</span>
+/** Trend line with an area fade and an emphasised endpoint — the endpoint is
+ *  the value that matters, so it gets the only filled mark. */
+export function Sparkline({ points, width = 200, height = 56 }: { points: number[]; width?: number; height?: number }) {
+  const gid = useRef(`spark-${Math.random().toString(36).slice(2, 9)}`).current
+  if (points.length < 2) return <span className="text-xs text-ink-3">—</span>
+
   const min = Math.min(...points)
   const max = Math.max(...points)
   const span = max - min || 1
-  const path = points
-    .map((v, i) => `${((i / (points.length - 1)) * (width - 2) + 1).toFixed(1)},${(height - 3 - ((v - min) / span) * (height - 6)).toFixed(1)}`)
-    .join(' ')
+  const x = (i: number) => (i / (points.length - 1)) * (width - 6) + 3
+  const y = (v: number) => height - 6 - ((v - min) / span) * (height - 14)
+  const line = points.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ')
+  const area = `M${line.split(' ').join(' L')} L${x(points.length - 1).toFixed(1)},${height} L${x(0).toFixed(1)},${height} Z`
+
   return (
-    <svg width={width} height={height} aria-label="trend">
-      <polyline points={path} fill="none" stroke="#585ceb" strokeWidth={2} strokeLinejoin="round" />
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="trend">
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" style={{ stopColor: 'rgb(var(--c-accent))', stopOpacity: 0.26 }} />
+          <stop offset="100%" style={{ stopColor: 'rgb(var(--c-accent))', stopOpacity: 0 }} />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gid})`} />
+      <polyline points={line} className="stroke-accent" fill="none" strokeWidth={2.25} strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={x(points.length - 1)} cy={y(points[points.length - 1])} r={3.5} className="fill-accent" />
     </svg>
   )
 }
+
+/** A signed change. Direction is carried by the arrow and the word, not colour
+ *  alone, so it survives a colour-blind read and a greyscale print. */
+export function Delta({ value, suffix = '%', dp = 1 }: { value: number | null | undefined; suffix?: string; dp?: number }) {
+  if (value === null || value === undefined) return <span className="meta">—</span>
+  const up = value >= 0
+  return (
+    <span className={`tnum inline-flex items-center gap-1 font-display font-bold ${up ? 'text-ok' : 'text-critical'}`}>
+      <span aria-hidden>{up ? '▲' : '▼'}</span>
+      <span>
+        {up ? '+' : ''}
+        {value.toFixed(dp)}
+        {suffix}
+      </span>
+      <span className="sr-only">{up ? 'increase' : 'decrease'}</span>
+    </span>
+  )
+}
+
+// ── figures ──────────────────────────────────────────────────────────────────
 
 export function Stat({ label, value, sub, to }: { label: string; value: ReactNode; sub?: string; to?: string }) {
   const body = (
     <>
       <div className="flex items-start justify-between">
-        <div className="microcaps">{label}</div>
-        {to && <ArrowUpRight size={14} className="text-mist-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-pulse-400" />}
+        <div className="cap">{label}</div>
+        {to && (
+          <ArrowUpRight
+            size={14}
+            className="text-ink-3 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
+          />
+        )}
       </div>
-      <div className="tnum mt-1 text-2xl font-semibold text-mist-100">{value}</div>
-      {sub && <div className="mt-0.5 text-xs text-mist-400">{sub}</div>}
+      <div className="tnum mt-1.5 font-display text-[32px] font-bold leading-none text-ink">{value}</div>
+      {sub && <div className="mt-1.5 text-xs text-ink-3">{sub}</div>}
     </>
   )
   if (to) {
@@ -203,6 +346,32 @@ export function Stat({ label, value, sub, to }: { label: string; value: ReactNod
     )
   }
   return <div className="panel px-5 py-4">{body}</div>
+}
+
+/** Compact label/value pair for the board footer strip. Given `to`, it becomes
+ *  a deep link — the board is a readout, but the readouts are the fastest route
+ *  into the section behind them. */
+export function KV({ label, value, to }: { label: string; value: ReactNode; to?: string }) {
+  const body = (
+    <>
+      <span className="cap">{label}</span>
+      <b className="tnum font-display text-[19px] font-bold text-ink">{value}</b>
+      {to && (
+        <ArrowUpRight
+          size={13}
+          className="text-ink-3 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
+        />
+      )}
+    </>
+  )
+  if (to) {
+    return (
+      <Link to={to} className="group flex items-baseline gap-2.5" title={`Go to ${label.toLowerCase()}`}>
+        {body}
+      </Link>
+    )
+  }
+  return <div className="flex items-baseline gap-2.5">{body}</div>
 }
 
 export { fmtNum }

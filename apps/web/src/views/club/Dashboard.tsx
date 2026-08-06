@@ -36,18 +36,18 @@ export default function ClubDashboard() {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold text-mist-100">{ws.club.name}</h1>
-        <span className="chip">{ws.club.sport}</span>
-        <span className="chip">{ws.club.country}</span>
+        <h1 className="text-2xl font-semibold text-ink">{ws.club.name}</h1>
+        <span className="tag">{ws.club.sport}</span>
+        <span className="tag">{ws.club.country}</span>
         <StatusChip status={ws.editable.status} />
         <Link to={`/clubs/${ws.club.slug}`} className="btn ml-auto px-3 py-1 text-xs">Public page</Link>
       </div>
       {ws.editable.status === 'draft' && (
-        <div className="mt-3 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn">
+        <div className="mt-3 rounded border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn">
           Your club is in draft — set it to listed below to appear in the directory.
         </div>
       )}
-      {error && <div className="mt-4 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
+      {error && <div className="mt-4 rounded border border-critical/40 bg-critical/10 px-3 py-2 text-sm text-critical">{error}</div>}
 
       <div className="mt-6 grid gap-3 md:grid-cols-3">
         <Stat label="Active sponsorship revenue" value={fmtMoney(ws.revenue_active)} sub="committed packages"
@@ -80,9 +80,9 @@ export default function ClubDashboard() {
           <tbody>
             {ws.packages.map((p) => (
               <tr key={p.id}>
-                <td className="table-cell text-mist-100">{p.name}</td>
+                <td className="table-cell text-ink">{p.name}</td>
                 <td className="table-cell">
-                  <span className={`chip ${p.package_type === 'player_direct' ? 'border-pulse-500 text-mist-100' : ''}`}>
+                  <span className={`tag ${p.package_type === 'player_direct' ? 'border-accent text-ink' : ''}`}>
                     {p.package_type === 'player_direct' ? 'Player-direct' : 'Club'}
                   </span>
                 </td>
@@ -114,12 +114,12 @@ export default function ClubDashboard() {
             <div key={m.athlete_id} className="panel flex items-center gap-3 p-3">
               <Avatar name={m.display_name} size={36} />
               <div className="min-w-0">
-                <Link to={`/athletes/${m.slug}`} className="text-sm font-medium text-mist-100 hover:text-pulse-400">
+                <Link to={`/athletes/${m.slug}`} className="text-sm font-medium text-ink hover:text-accent">
                   {m.display_name}
                 </Link>
-                <div className="text-xs text-mist-400">{m.position || m.sport} · joined {fmtDate(m.joined_at)}</div>
+                <div className="text-xs text-ink-3">{m.position || m.sport} · joined {fmtDate(m.joined_at)}</div>
               </div>
-              <button className="ml-auto text-mist-400 hover:text-danger" title="Remove from roster"
+              <button className="ml-auto text-ink-3 hover:text-critical" title="Remove from roster"
                       onClick={() => {
                         if (confirm(`Remove ${m.display_name}? Their player-direct packages will be archived.`))
                           void act(() => api.post(`/api/club/members/${m.athlete_id}/remove`))
@@ -150,12 +150,12 @@ export default function ClubDashboard() {
             <tbody>
               {ws.commitments.map((c) => (
                 <tr key={c.id}>
-                  <td className="table-cell text-mist-100">{c.org_name}</td>
+                  <td className="table-cell text-ink">{c.org_name}</td>
                   <td className="table-cell">{c.package_name}</td>
                   <td className="table-cell">{c.athlete_name ?? '—'}</td>
                   <td className="table-cell tnum text-right">{fmtMoney(c.amount_usd)}</td>
                   <td className="table-cell"><StatusChip status={c.status} /></td>
-                  <td className="table-cell text-xs text-mist-400">{fmtDate(c.created_at)}</td>
+                  <td className="table-cell text-xs text-ink-3">{fmtDate(c.created_at)}</td>
                 </tr>
               ))}
             </tbody>
@@ -185,19 +185,19 @@ function MemberForm({ onDone }: { onDone: () => void }) {
     }
   }
   return (
-    <form onSubmit={submit} className="panel mb-3 flex flex-wrap items-end gap-3 border-pulse-500 p-4">
+    <form onSubmit={submit} className="panel mb-3 flex flex-wrap items-end gap-3 border-accent p-4">
       <label className="block">
-        <span className="microcaps">Athlete handle (slug)</span>
+        <span className="cap">Athlete handle (slug)</span>
         <input className="field mt-1 w-56" required value={slug} onChange={(e) => setSlug(e.target.value)}
                placeholder="e.g. sofia-brandt" />
       </label>
       <label className="block">
-        <span className="microcaps">Position / role</span>
+        <span className="cap">Position / role</span>
         <input className="field mt-1 w-44" value={position} onChange={(e) => setPosition(e.target.value)} />
       </label>
-      <button className="btn-primary">Add to roster</button>
-      {error && <span className="text-sm text-danger">{error}</span>}
-      <span className="w-full text-xs text-mist-400">Handles are visible on athlete profile pages in the directory.</span>
+      <button className="btn-go">Add to roster</button>
+      {error && <span className="text-sm text-critical">{error}</span>}
+      <span className="w-full text-xs text-ink-3">Handles are visible on athlete profile pages in the directory.</span>
     </form>
   )
 }
@@ -224,38 +224,38 @@ function PackageForm({ roster, onDone }: { roster: { slug: string; name: string 
     }
   }
   return (
-    <form onSubmit={submit} className="panel mb-3 space-y-3 border-pulse-500 p-4">
+    <form onSubmit={submit} className="panel mb-3 space-y-3 border-accent p-4">
       <div className="grid gap-3 md:grid-cols-2">
-        <label className="block"><span className="microcaps">Package name</span>
+        <label className="block"><span className="cap">Package name</span>
           <input className="field mt-1" required minLength={3} value={form.name}
                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} /></label>
-        <label className="block"><span className="microcaps">Price (USD)</span>
+        <label className="block"><span className="cap">Price (USD)</span>
           <input className="field mt-1 tnum" type="number" min={1} value={form.price_usd}
                  onChange={(e) => setForm((f) => ({ ...f, price_usd: Number(e.target.value) }))} /></label>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        <label className="block"><span className="microcaps">Type</span>
+        <label className="block"><span className="cap">Type</span>
           <select className="field mt-1" value={form.package_type}
                   onChange={(e) => setForm((f) => ({ ...f, package_type: e.target.value }))}>
             <option value="club">Club package</option>
             <option value="player_direct">Player-direct (backs one roster athlete)</option>
           </select></label>
         {form.package_type === 'player_direct' && (
-          <label className="block"><span className="microcaps">Roster athlete</span>
+          <label className="block"><span className="cap">Roster athlete</span>
             <select className="field mt-1" value={form.athlete_slug}
                     onChange={(e) => setForm((f) => ({ ...f, athlete_slug: e.target.value }))}>
               {roster.map((m) => <option key={m.slug} value={m.slug}>{m.name}</option>)}
             </select></label>
         )}
       </div>
-      <label className="block"><span className="microcaps">Description</span>
+      <label className="block"><span className="cap">Description</span>
         <input className="field mt-1" value={form.description}
                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} /></label>
-      <label className="block"><span className="microcaps">Perks (one per line)</span>
+      <label className="block"><span className="cap">Perks (one per line)</span>
         <textarea className="field mt-1 min-h-16" value={form.perks}
                   onChange={(e) => setForm((f) => ({ ...f, perks: e.target.value }))} /></label>
-      {error && <div className="text-sm text-danger">{error}</div>}
-      <button className="btn-primary">Publish package</button>
+      {error && <div className="text-sm text-critical">{error}</div>}
+      <button className="btn-go">Publish package</button>
     </form>
   )
 }
@@ -279,27 +279,27 @@ function ProfileForm({ editable, onSaved }: { editable: ClubWorkspace['editable'
   return (
     <div className="max-w-2xl">
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="block"><span className="microcaps">Club name</span>
+        <label className="block"><span className="cap">Club name</span>
           <input className="field mt-1" value={form.name} onChange={(e) => set('name', e.target.value)} /></label>
-        <label className="block"><span className="microcaps">Sport</span>
+        <label className="block"><span className="cap">Sport</span>
           <input className="field mt-1" value={form.sport} onChange={(e) => set('sport', e.target.value)} /></label>
-        <label className="block"><span className="microcaps">Country</span>
+        <label className="block"><span className="cap">Country</span>
           <input className="field mt-1" value={form.country} onChange={(e) => set('country', e.target.value)} /></label>
-        <label className="block"><span className="microcaps">Region</span>
+        <label className="block"><span className="cap">Region</span>
           <input className="field mt-1" value={form.region} onChange={(e) => set('region', e.target.value)} /></label>
       </div>
-      <label className="mt-4 block"><span className="microcaps">About the club</span>
+      <label className="mt-4 block"><span className="cap">About the club</span>
         <textarea className="field mt-1 min-h-20" value={form.bio} onChange={(e) => set('bio', e.target.value)} /></label>
       <div className="mt-4 flex items-center gap-2">
         {['draft', 'listed', 'hidden'].map((s) => (
           <button key={s} type="button" onClick={() => set('status', s)}
-                  className={`btn capitalize ${form.status === s ? 'border-pulse-500 text-mist-100' : ''}`}>
+                  className={`btn capitalize ${form.status === s ? 'border-accent text-ink' : ''}`}>
             {s}
           </button>
         ))}
-        <button className="btn-primary ml-4" onClick={save}>Save</button>
+        <button className="btn-go ml-4" onClick={save}>Save</button>
         {status && <span className="text-sm text-ok">{status}</span>}
-        {error && <span className="text-sm text-danger">{error}</span>}
+        {error && <span className="text-sm text-critical">{error}</span>}
       </div>
     </div>
   )

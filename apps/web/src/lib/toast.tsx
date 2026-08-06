@@ -5,7 +5,7 @@ import { createContext, useCallback, useContext, useRef, useState, type ReactNod
 interface Toast {
   id: number
   text: string
-  kind: 'ok' | 'danger'
+  kind: 'ok' | 'critical'
 }
 
 const ToastContext = createContext<(text: string, kind?: Toast['kind']) => void>(() => {})
@@ -29,8 +29,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => (
           <div key={t.id} role="status"
                className={`panel pointer-events-auto flex items-center gap-2 px-4 py-2.5 text-sm shadow-lift ${
-                 t.kind === 'ok' ? 'text-mist-100' : 'border-danger/40 text-danger'}`}>
-            <span className={`inline-block h-1.5 w-1.5 rounded-full ${t.kind === 'ok' ? 'bg-ok' : 'bg-danger'}`} />
+                 t.kind === 'ok' ? 'text-ink' : 'border-critical/40 text-critical'}`}>
+            <span className={`inline-block h-1.5 w-1.5 rounded-full ${t.kind === 'ok' ? 'bg-ok' : 'bg-critical'}`} />
             {t.text}
           </div>
         ))}

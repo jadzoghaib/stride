@@ -37,19 +37,19 @@ export default function AthleteEvidence() {
 
   return (
     <div>
-      <div className="text-xs text-mist-400">
-        <Link to="/sponsor" className="hover:text-mist-200">Campaigns</Link> / athlete analytics
+      <div className="text-xs text-ink-3">
+        <Link to="/sponsor" className="hover:text-ink-2">Campaigns</Link> / athlete analytics
         {campaignId && <span> · scored against campaign #{campaignId}'s target</span>}
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-4">
         <Avatar name={a.display_name} size={52} />
         <div>
-          <h1 className="text-2xl font-semibold text-mist-100">{a.display_name}</h1>
-          <div className="text-sm text-mist-400">{a.sport} · {a.country} · rate {fmtMoney(a.base_rate_usd)}</div>
+          <h1 className="text-2xl font-semibold text-ink">{a.display_name}</h1>
+          <div className="text-sm text-ink-3">{a.sport} · {a.country} · rate {fmtMoney(a.base_rate_usd)}</div>
         </div>
         <div className="ml-auto"><CoverageChip coverage={a.score?.coverage ?? null} /></div>
       </div>
-      {a.bio && <p className="mt-3 max-w-2xl text-sm text-mist-300">{a.bio}</p>}
+      {a.bio && <p className="mt-3 max-w-2xl text-sm text-ink-2">{a.bio}</p>}
 
       <Section title="Marketability dimensions">
         {data.analytics ? (
@@ -77,7 +77,7 @@ export default function AthleteEvidence() {
               <tbody>
                 {Object.entries(kpis).map(([platform, k]) => (
                   <tr key={platform}>
-                    <td className="table-cell capitalize text-mist-100">{platform}</td>
+                    <td className="table-cell capitalize text-ink">{platform}</td>
                     <td className="table-cell tnum text-right">{fmtNum(k.followers)}</td>
                     <td className="table-cell tnum text-right">{fmtNum(k.median_reach)}</td>
                     <td className="table-cell tnum text-right">{fmtPct(k.median_er, 2)}</td>
@@ -113,9 +113,9 @@ export default function AthleteEvidence() {
             <tbody>
               {data.posts.map((p, i) => (
                 <tr key={i}>
-                  <td className="table-cell text-xs text-mist-400">{fmtDate(p.published_at)}</td>
+                  <td className="table-cell text-xs text-ink-3">{fmtDate(p.published_at)}</td>
                   <td className="table-cell capitalize">{p.platform}</td>
-                  <td className="table-cell max-w-64 truncate text-mist-100">{p.title}</td>
+                  <td className="table-cell max-w-64 truncate text-ink">{p.title}</td>
                   <td className="table-cell tnum text-right">{fmtNum(p.reach)}</td>
                   <td className="table-cell tnum text-right">{fmtPct(p.engagement_rate, 2)}</td>
                 </tr>

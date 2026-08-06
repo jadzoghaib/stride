@@ -15,14 +15,14 @@ export default class ErrorBoundary extends Component<{ children: ReactNode }, St
   render() {
     if (!this.state.error) return this.props.children
     return (
-      <div className="flex min-h-screen items-center justify-center wave-field p-6">
+      <div className="flex min-h-screen items-center justify-center bg-ground p-6">
         <div className="panel max-w-md p-8 text-center">
-          <div className="microcaps">Something went wrong</div>
-          <p className="mt-3 text-sm text-mist-300">
+          <div className="cap">Something went wrong</div>
+          <p className="mt-3 text-sm text-ink-2">
             The page hit an unexpected error. Reloading usually resolves it — if it keeps
             happening, the error has been logged.
           </p>
-          <button className="btn-primary mt-5" onClick={() => window.location.reload()}>
+          <button className="btn-go mt-5" onClick={() => window.location.reload()}>
             Reload
           </button>
         </div>

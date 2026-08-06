@@ -23,7 +23,7 @@ import SponsorPipeline from './views/sponsor/Pipeline'
 
 function Guard({ roles, children }: { roles: string[]; children: ReactNode }) {
   const { me, loading } = useAuth()
-  if (loading) return <div className="p-8 text-mist-400">Checking session…</div>
+  if (loading) return <div className="p-8 text-ink-3">Checking session…</div>
   if (!me) return <Navigate to="/auth" replace />
   if (!roles.includes(me.role)) return <Navigate to={roleHome(me.role)} replace />
   return <Shell>{children}</Shell>

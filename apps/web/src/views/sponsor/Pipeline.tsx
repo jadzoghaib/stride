@@ -43,8 +43,8 @@ export default function SponsorPipeline() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-mist-100">Deal pipeline</h1>
-      {error && <div className="mt-3 text-sm text-danger">{error}</div>}
+      <h1 className="text-2xl font-semibold text-ink">Deal pipeline</h1>
+      {error && <div className="mt-3 text-sm text-critical">{error}</div>}
       {STAGES.map((stage) => {
         const list = deals.filter((d) => d.status === stage)
         if (!list.length) return null
@@ -65,15 +65,15 @@ export default function SponsorPipeline() {
                 {list.map((d) => (
                   <tr key={d.id}>
                     <td className="table-cell">
-                      <Link to={`/sponsor/athletes/${d.athlete_slug}`} className="text-mist-100 hover:text-pulse-400">
+                      <Link to={`/sponsor/athletes/${d.athlete_slug}`} className="text-ink hover:text-accent">
                         {d.athlete_name}
                       </Link>
-                      <span className="ml-2 text-xs text-mist-400">{d.sport}</span>
+                      <span className="ml-2 text-xs text-ink-3">{d.sport}</span>
                     </td>
                     <td className="table-cell">{d.campaign_name}</td>
                     <td className="table-cell">{dealTypeLabel(d.deal_type)}</td>
                     <td className="table-cell tnum text-right">{fmtMoney(d.amount_usd)}</td>
-                    <td className="table-cell text-xs text-mist-400">{fmtDate(d.created_at)}</td>
+                    <td className="table-cell text-xs text-ink-3">{fmtDate(d.created_at)}</td>
                     <td className="table-cell text-right">
                       {d.status === 'offered' && (
                         <button className="btn px-2.5 py-1 text-xs" onClick={() => withdraw(d.id)}>Withdraw</button>
@@ -107,10 +107,10 @@ export default function SponsorPipeline() {
               {commitments.map((c) => (
                 <tr key={c.id}>
                   <td className="table-cell">
-                    <Link to={`/clubs/${c.club_slug}`} className="text-mist-100 hover:text-pulse-400">{c.club_name}</Link>
+                    <Link to={`/clubs/${c.club_slug}`} className="text-ink hover:text-accent">{c.club_name}</Link>
                   </td>
                   <td className="table-cell">{c.package_name}
-                    {c.package_type === 'player_direct' && <span className="chip ml-2 border-pulse-500 text-mist-100">player-direct</span>}
+                    {c.package_type === 'player_direct' && <span className="tag ml-2 border-accent text-ink">player-direct</span>}
                   </td>
                   <td className="table-cell">{c.athlete_name ?? '—'}</td>
                   <td className="table-cell tnum text-right">{fmtMoney(c.amount_usd)}</td>

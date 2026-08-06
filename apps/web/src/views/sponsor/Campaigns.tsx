@@ -35,8 +35,8 @@ export default function SponsorCampaigns() {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold text-mist-100">{ws.org.name}</h1>
-        <span className="chip">{ws.org.industry}</span>
+        <h1 className="text-2xl font-semibold text-ink">{ws.org.name}</h1>
+        <span className="tag">{ws.org.industry}</span>
       </div>
 
       <div className="mt-6 grid gap-3 md:grid-cols-3">
@@ -63,18 +63,18 @@ export default function SponsorCampaigns() {
           {ws.campaigns.map((c) => (
             <Link key={c.id} to={`/sponsor/campaigns/${c.id}`} className="panel panel-hover block p-5">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="font-medium text-mist-100">{c.name}</span>
-                <span className="chip">{c.category}</span>
+                <span className="font-medium text-ink">{c.name}</span>
+                <span className="tag">{c.category}</span>
                 <StatusChip status={c.status} />
-                <span className="ml-auto tnum text-sm text-mist-300">
+                <span className="ml-auto tnum text-sm text-ink-2">
                   {fmtMoney(c.budget_usd_min)} – {fmtMoney(c.budget_usd_max)}
                 </span>
               </div>
-              <p className="mt-1.5 text-sm text-mist-400">{c.objective}</p>
+              <p className="mt-1.5 text-sm text-ink-3">{c.objective}</p>
               <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
-                {c.deal_types.map((t) => <span key={t} className="chip">{dealTypeLabel(t)}</span>)}
-                {c.target_countries.length > 0 && <span className="chip">{c.target_countries.join(' · ')}</span>}
-                {c.target_age_buckets.length > 0 && <span className="chip">ages {c.target_age_buckets.join(', ')}</span>}
+                {c.deal_types.map((t) => <span key={t} className="tag">{dealTypeLabel(t)}</span>)}
+                {c.target_countries.length > 0 && <span className="tag">{c.target_countries.join(' · ')}</span>}
+                {c.target_age_buckets.length > 0 && <span className="tag">ages {c.target_age_buckets.join(', ')}</span>}
               </div>
             </Link>
           ))}
@@ -106,25 +106,25 @@ function CampaignForm({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <form onSubmit={submit} className="panel mb-4 space-y-4 border-pulse-500 p-5">
+    <form onSubmit={submit} className="panel mb-4 space-y-4 border-accent p-5">
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="block"><span className="microcaps">Campaign name</span>
+        <label className="block"><span className="cap">Campaign name</span>
           <input className="field mt-1" required minLength={3} value={form.name}
                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} /></label>
-        <label className="block"><span className="microcaps">Category</span>
+        <label className="block"><span className="cap">Category</span>
           <select className="field mt-1" value={form.category}
                   onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
             {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
           </select></label>
       </div>
-      <label className="block"><span className="microcaps">Objective</span>
+      <label className="block"><span className="cap">Objective</span>
         <input className="field mt-1" value={form.objective}
                onChange={(e) => setForm((f) => ({ ...f, objective: e.target.value }))} /></label>
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="block"><span className="microcaps">Budget min (USD)</span>
+        <label className="block"><span className="cap">Budget min (USD)</span>
           <input className="field mt-1 tnum" type="number" min={0} value={form.budget_usd_min}
                  onChange={(e) => setForm((f) => ({ ...f, budget_usd_min: Number(e.target.value) }))} /></label>
-        <label className="block"><span className="microcaps">Budget max (USD)</span>
+        <label className="block"><span className="cap">Budget max (USD)</span>
           <input className="field mt-1 tnum" type="number" min={0} value={form.budget_usd_max}
                  onChange={(e) => setForm((f) => ({ ...f, budget_usd_max: Number(e.target.value) }))} /></label>
       </div>
@@ -135,19 +135,19 @@ function CampaignForm({ onDone }: { onDone: () => void }) {
         ['Target themes', 'target_topics', TOPICS],
       ] as const).map(([label, key, options]) => (
         <div key={key}>
-          <div className="microcaps mb-2">{label}</div>
+          <div className="cap mb-2">{label}</div>
           <div className="flex flex-wrap gap-2">
             {options.map((o) => (
               <button key={o} type="button" onClick={() => toggle(key, o)}
-                      className={`chip cursor-pointer ${form[key].includes(o) ? 'border-pulse-500 text-mist-100' : ''}`}>
+                      className={`tag cursor-pointer ${form[key].includes(o) ? 'border-accent text-ink' : ''}`}>
                 {key === 'deal_types' ? dealTypeLabel(o) : o}
               </button>
             ))}
           </div>
         </div>
       ))}
-      {error && <div className="text-sm text-danger">{error}</div>}
-      <button className="btn-primary">Create campaign</button>
+      {error && <div className="text-sm text-critical">{error}</div>}
+      <button className="btn-go">Create campaign</button>
     </form>
   )
 }

@@ -35,13 +35,13 @@ export default function CampaignMatches() {
   const c = data.campaign
   return (
     <div>
-      <div className="text-xs text-mist-400"><Link to="/sponsor" className="hover:text-mist-200">Campaigns</Link> / matches</div>
+      <div className="text-xs text-ink-3"><Link to="/sponsor" className="hover:text-ink-2">Campaigns</Link> / matches</div>
       <div className="mt-1 flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold text-mist-100">{c.name}</h1>
-        <span className="chip">{c.category}</span>
-        <span className="tnum text-sm text-mist-300">{fmtMoney(c.budget_usd_min)} – {fmtMoney(c.budget_usd_max)}</span>
+        <h1 className="text-2xl font-semibold text-ink">{c.name}</h1>
+        <span className="tag">{c.category}</span>
+        <span className="tnum text-sm text-ink-2">{fmtMoney(c.budget_usd_min)} – {fmtMoney(c.budget_usd_max)}</span>
       </div>
-      <p className="mt-1 text-sm text-mist-400">
+      <p className="mt-1 text-sm text-ink-3">
         {data.matches.length} athletes ranked against this brief. Audience fit is computed against this campaign's
         target — every score decomposes into its components below.
       </p>
@@ -52,19 +52,19 @@ export default function CampaignMatches() {
             <div key={m.athlete_id} className="panel panel-hover">
               <button className="flex w-full items-center gap-4 p-4 text-left"
                       onClick={() => setOpen(open === m.athlete_id ? null : m.athlete_id)}>
-                <span className="tnum w-6 text-right text-mist-400">{idx + 1}</span>
+                <span className="tnum w-6 text-right text-ink-3">{idx + 1}</span>
                 <Avatar name={m.display_name} size={36} />
                 <div className="min-w-0">
-                  <div className="font-medium text-mist-100">{m.display_name}</div>
-                  <div className="text-xs text-mist-400">{m.sport} · {m.country} · rate {fmtMoney(m.base_rate_usd)}</div>
+                  <div className="font-medium text-ink">{m.display_name}</div>
+                  <div className="text-xs text-ink-3">{m.sport} · {m.country} · rate {fmtMoney(m.base_rate_usd)}</div>
                 </div>
                 <div className="ml-auto flex items-center gap-4">
                   <CoverageChip coverage={m.analytics_summary ? { ...m.analytics_summary.coverage, list: [] } : null} />
                   <div className="w-28">
-                    <div className="tnum text-right text-lg font-semibold text-mist-100">{m.score.toFixed(1)}</div>
+                    <div className="tnum text-right text-lg font-semibold text-ink">{m.score.toFixed(1)}</div>
                     <Meter value={m.score} height={4} />
                   </div>
-                  {open === m.athlete_id ? <ChevronUp size={16} className="text-mist-400" /> : <ChevronDown size={16} className="text-mist-400" />}
+                  {open === m.athlete_id ? <ChevronUp size={16} className="text-ink-3" /> : <ChevronDown size={16} className="text-ink-3" />}
                 </div>
               </button>
 
@@ -72,28 +72,28 @@ export default function CampaignMatches() {
                 <div className="border-t border-line p-4">
                   <div className="grid gap-6 md:grid-cols-2">
                     <div>
-                      <div className="microcaps mb-2">Score composition (weight × component)</div>
+                      <div className="cap mb-2">Score composition (weight × component)</div>
                       <div className="space-y-1.5">
                         {Object.entries(m.components).map(([k, v]) => (
                           <div key={k} className="grid grid-cols-[150px_1fr_72px] items-center gap-2 text-xs">
-                            <span className="text-mist-300">{COMPONENT_LABELS[k] ?? k}</span>
-                            <div className="h-2 rounded-sm bg-ink-800 overflow-hidden">
-                              <div className="h-full wave-line rounded-sm" style={{ width: `${100 * v}%` }} />
+                            <span className="text-ink-2">{COMPONENT_LABELS[k] ?? k}</span>
+                            <div className="h-2 rounded-sm bg-raised overflow-hidden">
+                              <div className="h-full bg-accent rounded-sm" style={{ width: `${100 * v}%` }} />
                             </div>
-                            <span className="tnum text-right text-mist-400">{(100 * v).toFixed(0)} × {(m.weights[k] * 100).toFixed(0)}%</span>
+                            <span className="tnum text-right text-ink-3">{(100 * v).toFixed(0)} × {(m.weights[k] * 100).toFixed(0)}%</span>
                           </div>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <div className="microcaps mb-2">Why this match</div>
-                      <ul className="space-y-1 text-sm text-mist-300">
+                      <div className="cap mb-2">Why this match</div>
+                      <ul className="space-y-1 text-sm text-ink-2">
                         {m.reasons.map((r) => <li key={r} className="flex gap-2"><span className="text-ok">+</span>{r}</li>)}
                         {m.caveats.map((r) => <li key={r} className="flex gap-2"><span className="text-warn">!</span>{r}</li>)}
-                        {m.reasons.length + m.caveats.length === 0 && <li className="text-mist-400">No strong signals either way.</li>}
+                        {m.reasons.length + m.caveats.length === 0 && <li className="text-ink-3">No strong signals either way.</li>}
                       </ul>
                       <div className="mt-4 flex gap-2">
-                        <button className="btn-primary px-3 py-1.5 text-xs" onClick={() => setOfferFor(m)}>
+                        <button className="btn-go px-3 py-1.5 text-xs" onClick={() => setOfferFor(m)}>
                           <Send size={12} /> Send offer
                         </button>
                         <Link to={`/sponsor/athletes/${m.slug}?campaign=${c.id}`} className="btn px-3 py-1.5 text-xs">
@@ -135,38 +135,38 @@ function OfferDialog({ campaign, match, onClose }: { campaign: Campaign; match: 
   }
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-ink-950/80 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-ground/80 p-4" onClick={onClose}>
       <div className="panel w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
         {done ? (
           <div>
-            <h3 className="font-medium text-mist-100">Offer sent</h3>
-            <p className="mt-2 text-sm text-mist-300">
+            <h3 className="font-medium text-ink">Offer sent</h3>
+            <p className="mt-2 text-sm text-ink-2">
               {match.display_name} will see this in their deal inbox and can accept or decline. Track it in your pipeline.
             </p>
-            <button className="btn-primary mt-4" onClick={onClose}>Close</button>
+            <button className="btn-go mt-4" onClick={onClose}>Close</button>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-4">
-            <h3 className="font-medium text-mist-100">Offer — {match.display_name}</h3>
-            <label className="block"><span className="microcaps">Deal format</span>
+            <h3 className="font-medium text-ink">Offer — {match.display_name}</h3>
+            <label className="block"><span className="cap">Deal format</span>
               <select className="field mt-1" value={form.deal_type}
                       onChange={(e) => setForm((f) => ({ ...f, deal_type: e.target.value }))}>
                 {(campaign.deal_types.length ? campaign.deal_types : ['social_post']).map((t) => (
                   <option key={t} value={t}>{dealTypeLabel(t)}</option>
                 ))}
               </select></label>
-            <label className="block"><span className="microcaps">Amount (USD)</span>
+            <label className="block"><span className="cap">Amount (USD)</span>
               <input className="field mt-1 tnum" type="number" min={1} value={form.amount_usd}
                      onChange={(e) => setForm((f) => ({ ...f, amount_usd: Number(e.target.value) }))} />
-              <span className="mt-1 block text-xs text-mist-400">
+              <span className="mt-1 block text-xs text-ink-3">
                 Athlete rate card: {fmtMoney(match.base_rate_usd)} · campaign budget up to {fmtMoney(campaign.budget_usd_max)}
               </span></label>
-            <label className="block"><span className="microcaps">Message</span>
+            <label className="block"><span className="cap">Message</span>
               <textarea className="field mt-1 min-h-20" value={form.message}
                         onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} /></label>
-            {error && <div className="text-sm text-danger">{error}</div>}
+            {error && <div className="text-sm text-critical">{error}</div>}
             <div className="flex gap-2">
-              <button className="btn-primary">Send offer</button>
+              <button className="btn-go">Send offer</button>
               <button type="button" className="btn" onClick={onClose}>Cancel</button>
             </div>
           </form>

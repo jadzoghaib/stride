@@ -1,56 +1,82 @@
 import type { Config } from 'tailwindcss'
 
-/** Stride design tokens — light, airy, premium (Passes-register).
- *  Token NAMES are semantic and stable; only values changed in the light reskin:
- *  `ink` = surface ramp (page → card → field → hover → track),
- *  `mist` = text ramp (100 darkest heading → 400 muted). */
+/** Stride design tokens — direction: "Timing Board".
+ *
+ *  Values live in index.css as RGB *channel triplets* (`--c-ink: 242 244 247`)
+ *  so Tailwind can inject alpha: `text-ink/60` compiles to
+ *  `rgb(var(--c-ink) / 0.6)`. Storing whole colours (`#f2f4f7`) would silently
+ *  break every `/opacity` modifier already used across the views.
+ *
+ *  One vocabulary: ground/panel/raised/track, ink/ink-2/ink-3, accent, ok/warn/critical.
+ */
+const ch = (name: string) => `rgb(var(--c-${name}) / <alpha-value>)`
+
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        ink: {
-          950: '#f7f6f2', // page
-          900: '#ffffff', // card / panel
-          850: '#f5f4ef', // field background
-          800: '#edece5', // chips, hover washes
-          700: '#e3e1d8', // meter tracks
-          600: '#cfccc0', // muted bar fills
-        },
-        line: {
-          DEFAULT: 'rgba(24, 22, 40, 0.09)',
-          strong: 'rgba(24, 22, 40, 0.20)',
-        },
-        mist: {
-          400: '#77748a', // muted labels
-          300: '#565367',
-          200: '#343146', // body text
-          100: '#161426', // headings
-        },
-        pulse: {
-          400: '#6d70f6',
-          500: '#585ceb',
-          600: '#4a4dd8',
-        },
-        wave: {
-          violet: '#8b5cf6',
-          indigo: '#6366f1',
-          cyan: '#0891b2',
-          teal: '#0d9488',
-        },
-        ok: '#0e9f6e',
-        warn: '#b45309',
-        danger: '#dc2626',
+        // ── surfaces ──────────────────────────────────────────────────────
+        ground: { DEFAULT: ch('ground'), deep: ch('ground-deep') },
+        panel: ch('panel'),
+        raised: ch('raised'),
+        track: ch('track'),
+
+        // ── text ──────────────────────────────────────────────────────────
+        ink: { DEFAULT: ch('ink'), 2: ch('ink-2'), 3: ch('ink-3') },
+
+        // ── accent + semantics ────────────────────────────────────────────
+        // `on` is the foreground for text placed on the amber fill; it stays
+        // dark in both themes because the fill itself never goes dark.
+        accent: { DEFAULT: ch('accent'), ink: ch('accent-ink'), on: ch('accent-on') },
+        ok: ch('ok'),
+        warn: ch('warn'),
+        critical: ch('critical'),
+
+        // ── hairlines (alpha already baked; no /opacity modifiers on these) ─
+        line: { DEFAULT: 'var(--line)', strong: 'var(--line-strong)' },
       },
+
       fontFamily: {
-        sans: ['system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        // Barlow Condensed is the board face: numerals, labels, table heads.
+        display: ['Barlow Condensed', 'Bahnschrift', 'DIN Alternate', 'Arial Narrow', 'ui-sans-serif', 'sans-serif'],
+        sans: ['Barlow', 'ui-sans-serif', '-apple-system', 'Segoe UI', 'sans-serif'],
+        mono: ['ui-monospace', 'Cascadia Mono', 'SF Mono', 'Consolas', 'monospace'],
       },
+
       letterSpacing: {
-        micro: '0.08em',
+        micro: '0.13em', // uppercase utility labels
+        board: '0.05em', // condensed display runs
       },
+
       boxShadow: {
-        card: '0 1px 2px rgba(22, 20, 38, 0.05), 0 10px 30px -14px rgba(22, 20, 38, 0.14)',
-        lift: '0 2px 4px rgba(22, 20, 38, 0.06), 0 16px 40px -16px rgba(22, 20, 38, 0.22)',
+        card: 'var(--shadow)',
+        lift: 'var(--shadow-lift)',
+      },
+
+      borderRadius: {
+        // the board register is rectilinear — small, consistent radii
+        DEFAULT: '5px',
+        card: '5px',
+      },
+
+      keyframes: {
+        rise: {
+          from: { opacity: '0', transform: 'translateY(9px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        wipe: {
+          from: { transform: 'scaleX(0)' },
+          to: { transform: 'scaleX(1)' },
+        },
+      },
+      animation: {
+        rise: 'rise .5s cubic-bezier(.16,1,.3,1) both',
+        wipe: 'wipe 1s cubic-bezier(.16,1,.3,1) both',
+      },
+
+      transitionTimingFunction: {
+        settle: 'cubic-bezier(.16,1,.3,1)',
       },
     },
   },

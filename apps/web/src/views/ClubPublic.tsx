@@ -43,16 +43,16 @@ export default function ClubPublic() {
       <div className="flex flex-wrap items-center gap-4">
         <Avatar name={club.name} size={56} />
         <div>
-          <h1 className="text-2xl font-semibold text-mist-100">{club.name}</h1>
-          <div className="text-sm text-mist-400">{club.sport} · {club.country} · {club.region}</div>
+          <h1 className="text-2xl font-semibold text-ink">{club.name}</h1>
+          <div className="text-sm text-ink-3">{club.sport} · {club.country} · {club.region}</div>
         </div>
         <div className="ml-auto flex gap-2">
-          <span className="chip">{club.backer_count} active backers</span>
+          <span className="tag">{club.backer_count} active backers</span>
         </div>
       </div>
-      {club.bio && <p className="mt-4 max-w-2xl text-sm text-mist-300">{club.bio}</p>}
-      {notice && <div className="mt-4 rounded-lg border border-ok/40 bg-ok/10 px-3 py-2 text-sm text-ok">{notice}</div>}
-      {error && <div className="mt-4 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
+      {club.bio && <p className="mt-4 max-w-2xl text-sm text-ink-2">{club.bio}</p>}
+      {notice && <div className="mt-4 rounded border border-ok/40 bg-ok/10 px-3 py-2 text-sm text-ok">{notice}</div>}
+      {error && <div className="mt-4 rounded border border-critical/40 bg-critical/10 px-3 py-2 text-sm text-critical">{error}</div>}
 
       <Section title="Sponsorship packages">
         {club.packages.length === 0 && <EmptyNote text="No active packages." />}
@@ -61,30 +61,30 @@ export default function ClubPublic() {
             <div key={p.id} className="panel p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="font-medium text-mist-100">{p.name}</div>
+                  <div className="font-medium text-ink">{p.name}</div>
                   <div className="mt-1 flex flex-wrap gap-1.5">
-                    <span className={`chip ${p.package_type === 'player_direct' ? 'border-pulse-500 text-mist-100' : ''}`}>
+                    <span className={`tag ${p.package_type === 'player_direct' ? 'border-accent text-ink' : ''}`}>
                       {p.package_type === 'player_direct' ? 'Player-direct' : 'Club package'}
                     </span>
                     {p.athlete_slug && (
-                      <Link to={`/athletes/${p.athlete_slug}`} className="chip hover:border-pulse-500">
+                      <Link to={`/athletes/${p.athlete_slug}`} className="tag hover:border-accent">
                         {p.athlete_name}
                       </Link>
                     )}
                   </div>
                 </div>
-                <div className="tnum text-lg font-semibold text-mist-100">{fmtMoney(p.price_usd)}</div>
+                <div className="tnum text-lg font-semibold text-ink">{fmtMoney(p.price_usd)}</div>
               </div>
-              {p.description && <p className="mt-2 text-sm text-mist-300">{p.description}</p>}
+              {p.description && <p className="mt-2 text-sm text-ink-2">{p.description}</p>}
               {p.perks.length > 0 && (
-                <ul className="mt-2 space-y-0.5 text-xs text-mist-400">
+                <ul className="mt-2 space-y-0.5 text-xs text-ink-3">
                   {p.perks.map((perk) => <li key={perk}>· {perk}</li>)}
                 </ul>
               )}
               <div className="mt-3 flex items-center justify-between">
-                <span className="text-xs text-mist-400">{p.active_backers} active backer{p.active_backers === 1 ? '' : 's'}</span>
+                <span className="text-xs text-ink-3">{p.active_backers} active backer{p.active_backers === 1 ? '' : 's'}</span>
                 {me?.role === 'sponsor' && (
-                  <button className="btn-primary px-3 py-1.5 text-xs" onClick={() => back(p)}>
+                  <button className="btn-go px-3 py-1.5 text-xs" onClick={() => back(p)}>
                     Back this package
                   </button>
                 )}
@@ -93,7 +93,7 @@ export default function ClubPublic() {
           ))}
         </div>
         {me?.role !== 'sponsor' && (
-          <p className="mt-3 text-xs text-mist-400">Sponsors can back packages from their account.</p>
+          <p className="mt-3 text-xs text-ink-3">Sponsors can back packages from their account.</p>
         )}
       </Section>
 
@@ -103,8 +103,8 @@ export default function ClubPublic() {
             <Link key={m.athlete_id} to={`/athletes/${m.slug}`} className="panel panel-hover flex items-center gap-3 p-3">
               <Avatar name={m.display_name} size={36} />
               <div>
-                <div className="text-sm font-medium text-mist-100">{m.display_name}</div>
-                <div className="text-xs text-mist-400">{m.position || m.sport} · {m.country}</div>
+                <div className="text-sm font-medium text-ink">{m.display_name}</div>
+                <div className="text-xs text-ink-3">{m.position || m.sport} · {m.country}</div>
               </div>
             </Link>
           ))}

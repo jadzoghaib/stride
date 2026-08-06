@@ -2,95 +2,358 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Stride visual language ──────────────────────────────────────────────────
-   Light, airy, premium. Warm off-white surfaces, soft card shadows, generous
-   radius. Color arrives as one signature gradient (indigo → violet → cyan)
-   used sparingly on accents and quiet background washes — never loud fills.
-   Zero emojis; adult through typography: tracked microcaps + tabular figures. */
+/* ── Stride visual language — "Timing Board" ──────────────────────────────────
+   The register of a stadium results board and a race split sheet: enormous
+   condensed numerals against 11px tracked caps, signed deltas, ranked lanes,
+   timestamped official results. Sports data has its own typographic tradition
+   and it beats generic dashboard styling for a marketability product.
+
+   One accent — signal amber, the scoreboard LED — carries emphasis. Semantic
+   colour (ok / warn / critical) is held separate so state never competes with
+   emphasis. Surfaces are graphite, not black; radii are small; motion is a
+   single orchestrated moment on load, not scattered micro-effects.
+
+   Dark is the default. `data-theme="light"` on <html> flips the token values;
+   component rules below never reference a theme directly.                    */
+
+/* ══ FONTS ══════════════════════════════════════════════════════════════════
+   Self-hosted (SIL OFL). system-ui was the loudest "not sporty" tell — a
+   condensed grotesque does more for the register than any colour change.    */
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/barlow-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/barlow-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/barlow-condensed-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/barlow-condensed-700.woff2') format('woff2');
+}
+
+/* ══ TOKENS ═════════════════════════════════════════════════════════════════
+   RGB channel triplets, not hex — Tailwind injects alpha into these, which is
+   what keeps `bg-ok/10`, `border-danger/40`, `text-ink-3/70` working.       */
+:root {
+  --c-ground: 16 18 22;
+  --c-ground-deep: 10 12 15;
+  --c-panel: 23 26 32;
+  --c-raised: 31 36 44;
+  --c-track: 38 44 53;
+
+  --c-ink: 242 244 247;
+  --c-ink-2: 174 182 194;
+  --c-ink-3: 115 125 139;
+
+  --c-accent: 255 176 32;
+  --c-accent-ink: 255 176 32;
+  /* Text sitting ON the amber fill. Deliberately does NOT flip with the theme —
+     the fill is light amber in both modes, so its foreground must stay dark. */
+  --c-accent-on: 20 16 10;
+  --c-ok: 63 207 142;
+  --c-warn: 255 176 32;
+  --c-critical: 242 85 90;
+
+  --line: rgba(255, 255, 255, 0.085);
+  --line-strong: rgba(255, 255, 255, 0.19);
+  --scan: rgba(255, 255, 255, 0.022);
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 18px 44px -22px rgba(0, 0, 0, 0.8);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.45), 0 24px 56px -24px rgba(0, 0, 0, 0.9);
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --c-ground: 233 235 239;
+  --c-ground-deep: 222 225 231;
+  --c-panel: 255 255 255;
+  --c-raised: 241 243 246;
+  --c-track: 220 224 230;
+
+  --c-ink: 16 18 22;
+  --c-ink-2: 74 82 94;
+  --c-ink-3: 121 130 143;
+
+  --c-accent: 240 160 12;
+  /* #FFB020 fails contrast as text on white — accent splits into fill vs ink */
+  --c-accent-ink: 138 82 0;
+  --c-accent-on: 20 16 10;
+  --c-ok: 18 153 106;
+  --c-warn: 176 106 0;
+  --c-critical: 206 47 53;
+
+  --line: rgba(16, 18, 22, 0.1);
+  --line-strong: rgba(16, 18, 22, 0.22);
+  /* No scanlines on the light ground: dark 1px rules over a pale surface
+     moiré against the device pixel grid and read as a rendering fault. The
+     board still separates from the page by its darker ground. */
+  --scan: transparent;
+
+  --shadow: 0 1px 2px rgba(16, 18, 22, 0.06), 0 16px 40px -20px rgba(16, 18, 22, 0.28);
+  --shadow-lift: 0 2px 6px rgba(16, 18, 22, 0.08), 0 22px 52px -22px rgba(16, 18, 22, 0.34);
+
+  color-scheme: light;
+}
 
 @layer base {
   html {
-    @apply bg-ink-950 text-mist-200 antialiased;
-    color-scheme: light;
+    @apply bg-ground text-ink-2 antialiased;
   }
   body {
-    @apply font-sans text-[14px] leading-relaxed;
+    @apply font-sans text-[15px] leading-relaxed;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display font-bold text-ink;
+    text-wrap: balance;
   }
   ::selection {
-    background: rgba(99, 102, 241, 0.18);
+    background: rgb(var(--c-accent) / 0.24);
   }
-  /* keyboard navigation: a visible, consistent focus ring everywhere */
   :focus-visible {
-    outline: 2px solid theme('colors.pulse.400');
+    outline: 2px solid rgb(var(--c-accent));
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 3px;
   }
 }
 
 @layer components {
-  /* signature background: barely-there pastel waves on warm off-white */
-  .wave-field {
-    background:
-      radial-gradient(1100px 480px at 10% -12%, rgba(99, 102, 241, 0.10), transparent 60%),
-      radial-gradient(900px 420px at 90% -16%, rgba(139, 92, 246, 0.08), transparent 60%),
-      radial-gradient(1000px 620px at 55% 118%, rgba(8, 145, 178, 0.06), transparent 55%),
-      theme('colors.ink.950');
+  /* ── page frame ──────────────────────────────────────────────────────────
+     Full-bleed grid. Content children sit in the centred 1084px track; a child
+     marked `.bleed` spans edge to edge so a board header can break the column.
+     Deliberately not `width: 100vw` + negative margins — 100vw includes the
+     scrollbar on Windows and would scroll the body sideways.
+     Views render their content as a direct child of <main> (fragments flatten),
+     so untouched views keep their column with no changes. */
+  .stride-main {
+    display: grid;
+    grid-template-columns:
+      [full-start] minmax(28px, 1fr)
+      [content-start] minmax(0, 1084px) [content-end]
+      minmax(28px, 1fr) [full-end];
+    padding-bottom: 76px;
   }
-  .wave-line {
-    background-image: linear-gradient(90deg,
-      theme('colors.wave.indigo'), theme('colors.wave.violet') 45%, theme('colors.wave.cyan'));
+  .stride-main > * {
+    grid-column: content;
+    min-width: 0;
   }
-  .wave-text {
-    background-image: linear-gradient(90deg,
-      theme('colors.pulse.600'), theme('colors.wave.violet') 55%, theme('colors.wave.cyan'));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  .stride-main > .bleed {
+    grid-column: full;
+  }
+  /* whichever block opens the content column gets the top gap */
+  .stride-main > :not(.bleed):first-child,
+  .stride-main > .bleed + :not(.bleed) {
+    padding-top: 32px;
   }
 
-  .microcaps {
-    @apply text-[11px] uppercase tracking-micro text-mist-400 font-medium;
+  /* ── grounds ─────────────────────────────────────────────────────────── */
+  .board-field {
+    @apply bg-ground;
   }
-  .panel {
-    @apply bg-ink-900 border border-line rounded-2xl shadow-card;
+
+  /* full-bleed board header, with the faint housing texture */
+  .board {
+    @apply relative overflow-hidden border-b border-line bg-ground-deep;
   }
-  .panel-hover {
-    @apply transition-all hover:border-line-strong hover:shadow-lift;
+  .board::before {
+    content: '';
+    @apply pointer-events-none absolute inset-0;
+    background: repeating-linear-gradient(0deg, var(--scan) 0 1px, transparent 1px 3px);
   }
-  .field {
-    @apply w-full bg-ink-850 border border-line rounded-xl px-3 py-2 text-mist-100
-           placeholder:text-mist-400/70 focus:outline-none focus:border-pulse-400
-           focus:bg-white transition-colors;
+  /* The rule closing the board is the headline figure's own meter — it fills to
+     `--board-rule`, set from the score. A rule that stopped at an arbitrary
+     width would be decoration; this one reports something. */
+  .board::after {
+    content: '';
+    @apply absolute bottom-0 left-0 right-0 h-0.5;
+    background: linear-gradient(
+      90deg,
+      rgb(var(--c-accent)) 0%,
+      rgb(var(--c-accent)) var(--board-rule, 100%),
+      transparent var(--board-rule, 100%)
+    );
+    transform-origin: left;
+    animation: wipe 1s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
   }
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium
-           border border-line bg-white text-mist-200 transition-all hover:border-line-strong
-           hover:shadow-card disabled:opacity-40 disabled:cursor-not-allowed;
+
+  /* ── type utilities ──────────────────────────────────────────────────── */
+  .cap {
+    @apply font-display text-[11px] font-semibold uppercase tracking-micro text-ink-3;
   }
-  .btn-primary {
-    @apply btn border-transparent text-white shadow-card;
-    background-image: linear-gradient(90deg, theme('colors.pulse.500'), theme('colors.wave.violet'));
-  }
-  .btn-primary:hover:not(:disabled) {
-    filter: brightness(1.06);
-  }
-  .chip {
-    @apply inline-flex items-center rounded-full border border-line bg-ink-800/70
-           px-2.5 py-0.5 text-xs text-mist-300 whitespace-nowrap;
+  .meta {
+    @apply font-mono text-[11px] text-ink-3;
   }
   .tnum {
     font-variant-numeric: tabular-nums;
   }
+  /* the headline figure — violent scale contrast is the point */
+  .score {
+    @apply font-display font-bold text-ink tnum;
+    font-size: clamp(64px, 9.5vw, 116px);
+    line-height: 0.82;
+    letter-spacing: -0.02em;
+  }
+  .figure {
+    @apply font-display font-bold text-ink tnum;
+  }
+
+  /* ── surfaces ────────────────────────────────────────────────────────── */
+  .panel {
+    @apply rounded-card border border-line bg-panel shadow-card;
+  }
+  .panel-hover {
+    @apply transition-all duration-200 hover:border-line-strong hover:shadow-lift;
+  }
+
+  /* ── controls ────────────────────────────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-card border border-line-strong
+           bg-transparent px-3.5 py-1.5 font-display text-xs font-semibold uppercase tracking-micro
+           text-ink-2 transition-colors duration-150
+           hover:border-ink-3 hover:bg-raised hover:text-ink
+           disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent;
+  }
+  .btn-go {
+    @apply btn border-accent bg-accent text-accent-on hover:border-accent hover:bg-accent hover:text-accent-on;
+  }
+  .btn-go:hover:not(:disabled) {
+    filter: brightness(1.09);
+  }
+
+  .field {
+    @apply w-full rounded-card border border-line bg-raised px-3 py-2 text-ink
+           transition-colors placeholder:text-ink-3/70
+           focus:border-accent focus:outline-none;
+  }
+
+  /* ── chips / tags ────────────────────────────────────────────────────── */
+  .tag {
+    @apply inline-flex items-center whitespace-nowrap rounded-full border border-line-strong
+           px-2.5 py-0.5 font-display text-[11px] font-semibold uppercase tracking-micro text-ink-2;
+  }
+
+  /* ── tables ──────────────────────────────────────────────────────────── */
   .table-head {
-    @apply microcaps text-left px-3 py-2 border-b border-line-strong;
+    @apply cap whitespace-nowrap border-b border-line-strong px-4 py-2.5 text-left;
   }
   .table-cell {
-    @apply px-3 py-2.5 border-b border-line align-middle;
+    @apply border-b border-line px-4 py-3 align-middle;
   }
   tbody tr {
-    @apply transition-colors;
+    @apply transition-colors duration-150;
   }
   tbody tr:hover .table-cell {
-    background: rgba(24, 22, 40, 0.025);
+    background: rgb(var(--c-raised));
+  }
+
+  /* ── meters / bars ───────────────────────────────────────────────────── */
+  .bar {
+    @apply overflow-hidden rounded-full bg-track;
+  }
+  .bar > i {
+    @apply block h-full rounded-full bg-accent;
+    transform-origin: left;
+  }
+  /* Must be `.bar > i.muted`, not a bare utility: `.bar > i` is specificity
+     0,1,1 and would win against `.bg-ink-3` at 0,1,0. */
+  .bar > i.muted {
+    @apply bg-ink-3;
+  }
+
+  /* ── lanes: ranked dimension rows. Lane number = actual rank, so the
+     numbering encodes something true rather than decorating. ───────────── */
+  .lane {
+    @apply grid w-full items-center gap-4 border-b border-line px-4 text-left
+           transition-colors duration-150 last:border-b-0 hover:bg-raised;
+    grid-template-columns: 42px minmax(140px, 1.1fr) 68px minmax(110px, 2fr) 88px;
+    height: 60px;
+  }
+  .lane[aria-pressed='true'] {
+    @apply bg-raised;
+    box-shadow: inset 3px 0 0 rgb(var(--c-accent));
+  }
+  .lane-no {
+    @apply font-display text-2xl font-bold leading-none text-ink-3 tnum;
+  }
+  .lane[aria-pressed='true'] .lane-no {
+    @apply text-accent-ink;
+  }
+  .lane-name {
+    @apply font-display text-[15px] font-semibold uppercase tracking-board text-ink;
+  }
+  .lane-val {
+    @apply font-display text-[28px] font-bold leading-none text-ink tnum;
+  }
+  /* Alignment lives here, not as a utility on the element — a `text-right`
+     utility would outrank the mobile override below and never flip. */
+  .lane-conf {
+    @apply text-right;
+  }
+
+  @media (max-width: 900px) {
+    .lane {
+      grid-template-columns: 32px 1fr 60px;
+      height: auto;
+      @apply gap-x-3 gap-y-2.5 py-3.5;
+    }
+    .lane > .lane-bar,
+    .lane > .lane-conf {
+      grid-column: 2 / -1;
+      text-align: left;
+    }
+  }
+}
+
+/* ══ MOTION ═════════════════════════════════════════════════════════════════
+   One orchestrated moment: the board boots. Scattered micro-animation is what
+   makes a UI read as generated; a single settling sequence reads as intended. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes wipe {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.rise {
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
   }
 }
