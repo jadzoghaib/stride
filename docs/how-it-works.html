@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stride — Architecture Flowcharts</title>
+<style>
+@font-face{font-family:'Barlow';font-style:normal;font-weight:400;font-display:swap;src:url('../apps/web/public/fonts/barlow-400.woff2') format('woff2')}
+@font-face{font-family:'Barlow';font-style:normal;font-weight:500;font-display:swap;src:url('../apps/web/public/fonts/barlow-500.woff2') format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:700;font-display:swap;src:url('../apps/web/public/fonts/barlow-condensed-700.woff2') format('woff2')}
+
+:root {
+  --ground: 16 18 22;
+  --ground-deep: 10 12 15;
+  --panel: 23 26 32;
+  --raised: 31 36 44;
+  --ink: 242 244 247;
+  --ink-2: 174 182 194;
+  --ink-3: 115 125 139;
+  --accent: 255 176 32;
+  --accent-ink: 255 176 32;
+  --accent-on: 20 16 10;
+  --ok: 63 207 142;
+  --critical: 242 85 90;
+  --line: rgba(255, 255, 255, 0.085);
+  --line-strong: rgba(255, 255, 255, 0.19);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 18px 44px -22px rgba(0, 0, 0, 0.8);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --ground: 233 235 239;
+    --ground-deep: 222 225 231;
+    --panel: 255 255 255;
+    --raised: 241 243 246;
+    --ink: 16 18 22;
+    --ink-2: 74 82 94;
+    --ink-3: 121 130 143;
+    --accent: 240 160 12;
+    --accent-ink: 138 82 0;
+    --ok: 18 153 106;
+    --critical: 206 47 53;
+    --line: rgba(16, 18, 22, 0.1);
+    --line-strong: rgba(16, 18, 22, 0.22);
+    --shadow: 0 1px 2px rgba(16, 18, 22, 0.06), 0 16px 40px -20px rgba(16, 18, 22, 0.28);
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: 16 18 22;
+  --ground-deep: 10 12 15;
+  --panel: 23 26 32;
+  --raised: 31 36 44;
+  --ink: 242 244 247;
+  --ink-2: 174 182 194;
+  --ink-3: 115 125 139;
+  --accent: 255 176 32;
+  --accent-ink: 255 176 32;
+  --ok: 63 207 142;
+  --critical: 242 85 90;
+  --line: rgba(255, 255, 255, 0.085);
+  --line-strong: rgba(255, 255, 255, 0.19);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 18px 44px -22px rgba(0, 0, 0, 0.8);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --ground: 233 235 239;
+  --ground-deep: 222 225 231;
+  --panel: 255 255 255;
+  --raised: 241 243 246;
+  --ink: 16 18 22;
+  --ink-2: 74 82 94;
+  --ink-3: 121 130 143;
+  --accent: 240 160 12;
+  --accent-ink: 138 82 0;
+  --ok: 18 153 106;
+  --critical: 206 47 53;
+  --line: rgba(16, 18, 22, 0.1);
+  --line-strong: rgba(16, 18, 22, 0.22);
+  --shadow: 0 1px 2px rgba(16, 18, 22, 0.06), 0 16px 40px -20px rgba(16, 18, 22, 0.28);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: rgb(var(--ground));
+  color: rgb(var(--ink-2));
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 16.5px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 0 24px 120px;
+}
+
+/* ── board header ─────────────────────────────────────────────── */
+.board {
+  background: rgb(var(--ground-deep));
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  margin-bottom: 56px;
+}
+.board::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -1px;
+  width: 62%;
+  height: 2px;
+  background: rgb(var(--accent));
+}
+.board-inner {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 46px 24px 40px;
+}
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  font-size: 21px;
+  color: rgb(var(--ink));
+  margin-bottom: 26px;
+}
+.wordmark i {
+  display: block;
+  width: 21px;
+  height: 3px;
+  background: rgb(var(--accent));
+}
+.board h1 {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: clamp(38px, 7vw, 62px);
+  line-height: 0.98;
+  letter-spacing: 0.005em;
+  color: rgb(var(--ink));
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+.board .lede {
+  max-width: 62ch;
+  margin: 0;
+  font-size: 17px;
+  color: rgb(var(--ink-2));
+}
+
+/* ── shared type ──────────────────────────────────────────────── */
+.cap {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: rgb(var(--ink-3));
+}
+code {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.87em;
+  color: rgb(var(--accent-ink));
+  background: rgb(var(--raised));
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+/* ── how to read ──────────────────────────────────────────────── */
+.legend {
+  background: rgb(var(--panel));
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 24px 26px 26px;
+  margin-bottom: 60px;
+  box-shadow: var(--shadow);
+}
+.legend h2 {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  color: rgb(var(--ink));
+  margin: 0 0 4px;
+}
+.legend p {
+  margin: 0 0 20px;
+  font-size: 15.5px;
+  color: rgb(var(--ink-3));
+}
+.keys {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px 22px;
+}
+.key {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 15px;
+  color: rgb(var(--ink-2));
+}
+.chip {
+  flex: none;
+  width: 32px;
+  height: 20px;
+  border-radius: 4px;
+  background: rgb(var(--raised));
+  border: 1.6px solid var(--line-strong);
+}
+.chip.dec { border-color: rgb(var(--accent)); }
+.chip.ok { border-color: rgb(var(--ok)); }
+.chip.bad { border-color: rgb(var(--critical)); }
+
+/* ── part bands ───────────────────────────────────────────────── */
+.part {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  border-top: 1px solid var(--line-strong);
+  padding-top: 22px;
+  margin: 76px 0 34px;
+}
+.part .num {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 54px;
+  line-height: 0.8;
+  color: rgb(var(--accent-ink));
+  font-variant-numeric: tabular-nums;
+}
+.part h2 {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: 0.02em;
+  color: rgb(var(--ink));
+  margin: 0;
+}
+.part p {
+  margin: 3px 0 0;
+  font-size: 15.5px;
+  color: rgb(var(--ink-3));
+}
+
+/* ── cards ────────────────────────────────────────────────────── */
+.card {
+  background: rgb(var(--panel));
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 28px 30px 26px;
+  margin-bottom: 30px;
+  box-shadow: var(--shadow);
+}
+.card > .cap { display: block; margin-bottom: 9px; }
+.card h3 {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 29px;
+  line-height: 1.12;
+  letter-spacing: 0.015em;
+  color: rgb(var(--ink));
+  margin: 0 0 12px;
+  text-wrap: balance;
+}
+.short {
+  margin: 0;
+  padding: 12px 16px;
+  background: rgb(var(--raised));
+  border-left: 2px solid rgb(var(--accent));
+  border-radius: 0 5px 5px 0;
+  font-size: 16px;
+  color: rgb(var(--ink));
+}
+.short b {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  color: rgb(var(--ink-3));
+  display: block;
+}
+
+figure { margin: 26px 0 0; }
+.scroll { overflow-x: auto; }
+figure svg {
+  display: block;
+  width: 100%;
+  min-width: 520px;
+  max-width: 100%;
+  height: auto;
+}
+figcaption, .note {
+  margin-top: 14px;
+  font-size: 15px;
+  color: rgb(var(--ink-3));
+  max-width: 66ch;
+}
+.note { margin-bottom: 0; }
+
+/* ── diagram grammar ──────────────────────────────────────────── */
+.dg .box { fill: rgb(var(--raised)); stroke: var(--line-strong); stroke-width: 1.4; }
+.dg .dec .box { stroke: rgb(var(--accent)); stroke-width: 1.8; }
+.dg .ok .box { stroke: rgb(var(--ok)); stroke-width: 1.8; }
+.dg .bad .box { stroke: rgb(var(--critical)); stroke-width: 1.8; }
+.dg .t {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.015em;
+  fill: rgb(var(--ink));
+  text-anchor: middle;
+}
+.dg .s {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  fill: rgb(var(--ink-3));
+  text-anchor: middle;
+}
+.dg .e {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  fill: rgb(var(--ink-3));
+  text-anchor: middle;
+}
+.dg .flow { stroke: var(--line-strong); stroke-width: 1.6; fill: none; }
+.dg .flow.hot { stroke: rgb(var(--accent)); }
+.dg .flow.dash { stroke-dasharray: 5 4; }
+.dg marker path { fill: rgb(var(--ink-3)); }
+.dg .rule { stroke: rgb(var(--accent)); stroke-width: 1.2; stroke-dasharray: 6 5; opacity: 0.75; }
+.dg .frame { fill: none; stroke: rgb(var(--accent)); stroke-width: 1.4; stroke-dasharray: 6 5; opacity: 0.8; }
+
+/* ── role table ───────────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 22px;
+  font-size: 15.5px;
+}
+th {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: rgb(var(--ink-3));
+  text-align: left;
+  padding: 0 14px 9px 0;
+  border-bottom: 1px solid var(--line-strong);
+}
+td {
+  padding: 11px 14px 11px 0;
+  border-bottom: 1px solid var(--line);
+  color: rgb(var(--ink-2));
+  vertical-align: top;
+}
+td:first-child {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgb(var(--ink));
+  white-space: nowrap;
+}
+tr:last-child td { border-bottom: none; }
+
+/* ── gaps callout ─────────────────────────────────────────────── */
+.gaps {
+  border: 1px solid rgba(242, 85, 90, 0.4);
+  background: rgb(var(--panel));
+  border-radius: 8px;
+  padding: 26px 30px;
+  margin-top: 40px;
+}
+.gaps h3 {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: 0.02em;
+  color: rgb(var(--ink));
+  margin: 0 0 14px;
+}
+.gaps ul { margin: 0; padding-left: 20px; }
+.gaps li { margin-bottom: 11px; font-size: 15.5px; }
+.gaps li:last-child { margin-bottom: 0; }
+.gaps b { color: rgb(var(--ink)); font-weight: 500; }
+
+footer {
+  margin-top: 66px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  font-size: 14.5px;
+  color: rgb(var(--ink-3));
+}
+
+@media (max-width: 640px) {
+  .card { padding: 24px 20px 22px; }
+  .card h3 { font-size: 25px; }
+  .part { gap: 13px; }
+  .part .num { font-size: 42px; }
+  .part h2 { font-size: 26px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}</style>
+</head>
+<body>
+<header class="board">
+  <div class="board-inner">
+    <div class="wordmark"><i></i>STRIDE</div>
+    <h1>How it works, one question at a time</h1>
+    <p class="lede">Seven small flowcharts covering the whole system — four for what happens in the browser,
+      three for what happens on the server. Every card stands alone. Nothing here needs you to remember
+      the card before it.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="legend">
+    <h2>How to read these</h2>
+    <p>One rule, used in all seven: <b style="color:rgb(var(--ink))">down means you carry on, sideways means you stop there.</b></p>
+    <div class="keys">
+      <div class="key"><span class="chip"></span> A step that just happens</div>
+      <div class="key"><span class="chip dec"></span> A fork — something gets decided</div>
+      <div class="key"><span class="chip ok"></span> You're through</div>
+      <div class="key"><span class="chip bad"></span> Blocked or bounced</div>
+    </div>
+  </section>
+
+  <!-- ══ PART 1 ══════════════════════════════════════════════════ -->
+  <div class="part">
+    <span class="num">01</span>
+    <div>
+      <h2>In the browser</h2>
+      <p>The life of a session, in order: you arrive, you move around, a screen loads, your session expires.</p>
+    </div>
+  </div>
+
+  <!-- CARD 1 -->
+  <article class="card">
+    <span class="cap">Browser · 01</span>
+    <h3>You open the app. What happens?</h3>
+    <p class="short"><b>Short version</b>The app asks the server who you are, then sends you to your own home screen.</p>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 660 400" class="dg" role="img" aria-label="Cold start: the page loads, the theme is applied before first paint, the app requests the current user, and depending on whether a valid session cookie exists you are either a visitor limited to public pages or a signed-in user sent to your role's home.">
+          <defs>
+            <marker id="a1" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" />
+            </marker>
+          </defs>
+
+          <g><rect class="box" x="210" y="16" width="240" height="46" rx="5" /><text class="t" x="330" y="45">Page loads</text></g>
+          <line class="flow" x1="330" y1="62" x2="330" y2="82" marker-end="url(#a1)" />
+
+          <g><rect class="box" x="210" y="86" width="240" height="46" rx="5" /><text class="t" x="330" y="108">Theme applied</text><text class="s" x="330" y="123">before first paint — no flash</text></g>
+          <line class="flow" x1="330" y1="132" x2="330" y2="152" marker-end="url(#a1)" />
+
+          <g><rect class="box" x="210" y="156" width="240" height="46" rx="5" /><text class="t" x="330" y="178">App asks: who am I?</text><text class="s" x="330" y="193">GET /api/auth/me</text></g>
+          <line class="flow" x1="330" y1="202" x2="330" y2="222" marker-end="url(#a1)" />
+
+          <g class="dec"><rect class="box" x="210" y="226" width="240" height="46" rx="5" /><text class="t" x="330" y="255">Valid session cookie?</text></g>
+
+          <polyline class="flow" points="330,272 330,296 170,296 170,322" marker-end="url(#a1)" />
+          <polyline class="flow" points="330,272 330,296 490,296 490,322" marker-end="url(#a1)" />
+          <text class="e" x="243" y="289">no</text>
+          <text class="e" x="419" y="289">yes</text>
+
+          <g><rect class="box" x="30" y="326" width="280" height="56" rx="5" /><text class="t" x="170" y="352">You're a visitor</text><text class="s" x="170" y="368">public pages only</text></g>
+          <g class="ok"><rect class="box" x="350" y="326" width="280" height="56" rx="5" /><text class="t" x="490" y="352">You're signed in</text><text class="s" x="490" y="368">sent to your role's home</text></g>
+        </svg>
+      </div>
+      <figcaption>The session check runs once, at the very top. Until the server answers, the app shows
+        “Checking session…” rather than guessing.</figcaption>
+    </figure>
+  </article>
+
+  <!-- CARD 2 -->
+  <article class="card">
+    <span class="cap">Browser · 02</span>
+    <h3>You click a link. Who decides what you're allowed to see?</h3>
+    <p class="short"><b>Short version</b>Three questions in a row. Fail any one and you get sent somewhere else instead.</p>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 660 372" class="dg" role="img" aria-label="Route guard: opening a protected URL runs three checks in sequence — is the session still resolving, are you signed in, does your role match. Failing any check sends you sideways to a wait state, the sign-in page, or your own home. Passing all three renders the screen.">
+          <defs>
+            <marker id="a2" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" />
+            </marker>
+          </defs>
+
+          <g><rect class="box" x="40" y="16" width="250" height="46" rx="5" /><text class="t" x="165" y="38">You open a locked URL</text><text class="s" x="165" y="53">/sponsor/pipeline</text></g>
+          <line class="flow" x1="165" y1="62" x2="165" y2="82" marker-end="url(#a2)" />
+
+          <g class="dec"><rect class="box" x="40" y="86" width="250" height="46" rx="5" /><text class="t" x="165" y="115">Session answered yet?</text></g>
+          <line class="flow" x1="290" y1="109" x2="366" y2="109" marker-end="url(#a2)" />
+          <text class="e" x="328" y="102">not yet</text>
+          <g><rect class="box" x="370" y="86" width="250" height="46" rx="5" /><text class="t" x="495" y="115">Wait — “Checking session…”</text></g>
+          <line class="flow" x1="165" y1="132" x2="165" y2="152" marker-end="url(#a2)" />
+          <text class="e" x="192" y="147">pass</text>
+
+          <g class="dec"><rect class="box" x="40" y="156" width="250" height="46" rx="5" /><text class="t" x="165" y="185">Are you signed in?</text></g>
+          <line class="flow" x1="290" y1="179" x2="366" y2="179" marker-end="url(#a2)" />
+          <text class="e" x="328" y="172">no</text>
+          <g class="bad"><rect class="box" x="370" y="156" width="250" height="46" rx="5" /><text class="t" x="495" y="185">Off to the sign-in page</text></g>
+          <line class="flow" x1="165" y1="202" x2="165" y2="222" marker-end="url(#a2)" />
+          <text class="e" x="192" y="217">pass</text>
+
+          <g class="dec"><rect class="box" x="40" y="226" width="250" height="46" rx="5" /><text class="t" x="165" y="255">Does your role match?</text></g>
+          <line class="flow" x1="290" y1="249" x2="366" y2="249" marker-end="url(#a2)" />
+          <text class="e" x="328" y="242">no</text>
+          <g class="bad"><rect class="box" x="370" y="226" width="250" height="46" rx="5" /><text class="t" x="495" y="248">Off to your own home</text><text class="s" x="495" y="263">wherever your role lives</text></g>
+          <line class="flow" x1="165" y1="272" x2="165" y2="292" marker-end="url(#a2)" />
+          <text class="e" x="192" y="287">pass</text>
+
+          <g class="ok"><rect class="box" x="40" y="296" width="250" height="46" rx="5" /><text class="t" x="165" y="325">The screen renders</text></g>
+        </svg>
+      </div>
+      <figcaption>These checks decide what gets <em>drawn</em>, not what you're allowed to have. The server
+        checks your role again on every single request — editing your way past this gets you a refusal, not data.</figcaption>
+    </figure>
+  </article>
+
+  <!-- CARD 3 -->
+  <article class="card">
+    <span class="cap">Browser · 03</span>
+    <h3>A screen is loading. What are you actually looking at?</h3>
+    <p class="short"><b>Short version</b>One of four things — and never a blank page. Every screen has a designed answer for “nothing to show”.</p>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 660 330" class="dg" role="img" aria-label="View states: a screen makes one request for its data, and renders one of four outcomes — still waiting shows a skeleton, a failed request shows a plain sentence, an empty result explains what to do next, and data renders the screen.">
+          <defs>
+            <marker id="a3" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" />
+            </marker>
+          </defs>
+
+          <g><rect class="box" x="210" y="14" width="240" height="46" rx="5" /><text class="t" x="330" y="36">Screen appears</text><text class="s" x="330" y="51">asks for its data — one request</text></g>
+          <line class="flow" x1="330" y1="60" x2="330" y2="80" marker-end="url(#a3)" />
+
+          <g class="dec"><rect class="box" x="210" y="84" width="240" height="46" rx="5" /><text class="t" x="330" y="113">What came back?</text></g>
+
+          <polyline class="flow" points="330,130 330,152 85,152 85,176" marker-end="url(#a3)" />
+          <polyline class="flow" points="330,130 330,152 245,152 245,176" marker-end="url(#a3)" />
+          <polyline class="flow" points="330,130 330,152 415,152 415,176" marker-end="url(#a3)" />
+          <polyline class="flow" points="330,130 330,152 575,152 575,176" marker-end="url(#a3)" />
+
+          <g class="dec"><rect class="box" x="10" y="180" width="150" height="60" rx="5" /><text class="t" x="85" y="206">Still waiting</text><text class="s" x="85" y="223">a skeleton</text></g>
+          <g class="bad"><rect class="box" x="170" y="180" width="150" height="60" rx="5" /><text class="t" x="245" y="206">It failed</text><text class="s" x="245" y="223">a plain sentence</text></g>
+          <g><rect class="box" x="340" y="180" width="150" height="60" rx="5" /><text class="t" x="415" y="206">Nothing in it</text><text class="s" x="415" y="223">what to do next</text></g>
+          <g class="ok"><rect class="box" x="500" y="180" width="150" height="60" rx="5" /><text class="t" x="575" y="206">Data arrived</text><text class="s" x="575" y="223">the real screen</text></g>
+
+          <line class="rule" x1="20" y1="266" x2="640" y2="266" />
+          <text class="e" x="330" y="258">once it has loaded</text>
+          <g><rect class="box" x="120" y="278" width="420" height="42" rx="5" /><text class="t" x="330" y="298">An action fails? A note appears in place</text><text class="s" x="330" y="313">the screen keeps everything it already showed you</text></g>
+        </svg>
+      </div>
+      <figcaption>The difference that matters: a screen that never loaded shows an error <em>instead of</em>
+        content. A screen that loaded and then hit a problem keeps its content and adds a note — it doesn't
+        throw away what you were looking at.</figcaption>
+    </figure>
+  </article>
+
+  <!-- CARD 4 -->
+  <article class="card">
+    <span class="cap">Browser · 04</span>
+    <h3>Your session expires while you're using it. Then what?</h3>
+    <p class="short"><b>Short version</b>One piece of code watches every request. The moment the server says “that session is dead”, it takes you to sign-in.</p>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 660 300" class="dg" role="img" aria-label="Expired session handling: any request that returns a 401 with a known session-failure code is caught in a single place in the API client, which redirects to the sign-in page. The who-am-I probe is exempt because anonymous visitors hit it on every load.">
+          <defs>
+            <marker id="a4" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" />
+            </marker>
+          </defs>
+
+          <g><rect class="box" x="60" y="14" width="280" height="46" rx="5" /><text class="t" x="200" y="43">You do something</text></g>
+          <line class="flow" x1="200" y1="60" x2="200" y2="80" marker-end="url(#a4)" />
+
+          <g class="bad"><rect class="box" x="60" y="84" width="280" height="46" rx="5" /><text class="t" x="200" y="106">The server refuses</text><text class="s" x="200" y="121">401 — session_revoked</text></g>
+          <line class="flow" x1="200" y1="130" x2="200" y2="150" marker-end="url(#a4)" />
+
+          <g class="dec"><rect class="box" x="60" y="154" width="280" height="46" rx="5" /><text class="t" x="200" y="176">One place notices</text><text class="s" x="200" y="191">the only check, in the API client</text></g>
+
+          <line class="flow dash" x1="342" y1="177" x2="416" y2="177" marker-end="url(#a4)" />
+          <text class="e" x="379" y="170">except</text>
+          <g><rect class="box" x="420" y="154" width="230" height="46" rx="5" /><text class="t" x="535" y="176">The “who am I?” check</text><text class="s" x="535" y="191">visitors fail it every load</text></g>
+
+          <line class="flow" x1="200" y1="200" x2="200" y2="220" marker-end="url(#a4)" />
+          <g class="ok"><rect class="box" x="60" y="224" width="280" height="46" rx="5" /><text class="t" x="200" y="246">You land on sign-in</text><text class="s" x="200" y="261">never a half-signed-in screen</text></g>
+        </svg>
+      </div>
+      <figcaption>Handling this once, centrally, is the whole point — otherwise every screen would need its own
+        expiry logic and one of them would eventually forget.</figcaption>
+    </figure>
+  </article>
+
+  <!-- CARD 5 — role table -->
+  <article class="card">
+    <span class="cap">Browser · 05</span>
+    <h3>Four kinds of people. Where does each one land?</h3>
+    <p class="short"><b>Short version</b>Your role decides your home screen and your menu. One list in the code answers both.</p>
+    <table>
+      <thead>
+        <tr><th>Role</th><th>Lands on</th><th>Menu</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Athlete</td><td>Their dashboard</td><td>Dashboard · Deals · Profile · Directory · Clubs</td></tr>
+        <tr><td>Sponsor</td><td>Their campaigns</td><td>Campaigns · Pipeline · Directory · Clubs</td></tr>
+        <tr><td>Club</td><td>Club HQ</td><td>Club HQ · Directory · Clubs</td></tr>
+        <tr><td>Fan</td><td>Discover</td><td>Discover · Following · Clubs</td></tr>
+        <tr><td>Admin</td><td>The athlete directory</td><td>Directory · Clubs · Operations</td></tr>
+      </tbody>
+    </table>
+    <p class="note">This is a table rather than a flowchart because there's no decision to
+      follow — it's a lookup. Every redirect in the app asks this same list, so there's only ever one answer to
+      “where does this person belong?”</p>
+  </article>
+
+  <!-- ══ PART 2 ══════════════════════════════════════════════════ -->
+  <div class="part">
+    <span class="num">02</span>
+    <div>
+      <h2>On the server</h2>
+      <p>Follow one request all the way down: where it goes, what happens to it, and where it finally lands.</p>
+    </div>
+  </div>
+
+  <!-- CARD 6 -->
+  <article class="card">
+    <span class="cap">Server · 06</span>
+    <h3>Where does a request actually go?</h3>
+    <p class="short"><b>Short version</b>Browser → the web server → the API → the database. The analytics engine isn't a separate service; it's a library sharing the same database connection.</p>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 660 356" class="dg" role="img" aria-label="Request path: the browser talks to nginx, which serves the app files and passes API calls through to FastAPI. FastAPI calls the CreatorLens analytics library in-process, and both write through one shared database connection to either SQLite or Postgres.">
+          <defs>
+            <marker id="a6" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" />
+            </marker>
+          </defs>
+
+          <g><rect class="box" x="210" y="14" width="240" height="46" rx="5" /><text class="t" x="330" y="43">Your browser</text></g>
+          <line class="flow" x1="330" y1="60" x2="330" y2="80" marker-end="url(#a6)" />
+
+          <g><rect class="box" x="210" y="84" width="240" height="46" rx="5" /><text class="t" x="330" y="106">The web server</text><text class="s" x="330" y="121">serves the app, forwards /api</text></g>
+          <line class="flow" x1="318" y1="130" x2="200" y2="158" marker-end="url(#a6)" />
+          <text class="e" x="228" y="140">/api</text>
+
+          <g><rect class="box" x="40" y="164" width="250" height="46" rx="5" /><text class="t" x="165" y="186">The API</text><text class="s" x="165" y="201">one router per area</text></g>
+
+          <line class="flow" x1="292" y1="187" x2="366" y2="187" marker-end="url(#a6)" />
+          <text class="e" x="329" y="180">calls</text>
+          <g><rect class="box" x="370" y="164" width="250" height="46" rx="5" /><text class="t" x="495" y="186">Analytics engine</text><text class="s" x="495" y="201">a library, not a service</text></g>
+
+          <line class="flow" x1="180" y1="210" x2="270" y2="264" marker-end="url(#a6)" />
+          <line class="flow" x1="480" y1="210" x2="390" y2="264" marker-end="url(#a6)" />
+          <text class="e" x="330" y="240">one shared connection</text>
+
+          <g class="ok"><rect class="box" x="170" y="270" width="320" height="56" rx="5" /><text class="t" x="330" y="296">One database</text><text class="s" x="330" y="312">a SQLite file, or Postgres</text></g>
+        </svg>
+      </div>
+      <figcaption>Both arrows into the database matter: because the app and the analytics engine share one
+        connection, a change to both either saves together or fails together. Split them into separate services
+        and you lose that for free.</figcaption>
+    </figure>
+  </article>
+
+  <!-- CARD 7 -->
+  <article class="card">
+    <span class="cap">Server · 07</span>
+    <h3>What happens to a request on the way through?</h3>
+    <p class="short"><b>Short version</b>It gets a tracking ID, its role is checked, the work runs — and a log line and a counter fall out the bottom.</p>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 660 272" class="dg" role="img" aria-label="Request lifecycle: a request is tagged with an ID, its role is checked, the handler runs against the database, and a response goes out. Wrapping all four steps, middleware emits a JSON log line carrying the same ID and updates the metrics counters.">
+          <defs>
+            <marker id="a7" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" />
+            </marker>
+          </defs>
+
+          <rect class="frame" x="10" y="30" width="640" height="84" rx="7" />
+          <text class="e" x="330" y="22">wrapped around every request</text>
+
+          <g><rect class="box" x="22" y="44" width="140" height="56" rx="5" /><text class="t" x="92" y="70">Tagged</text><text class="s" x="92" y="86">gets an ID</text></g>
+          <line class="flow" x1="164" y1="72" x2="184" y2="72" marker-end="url(#a7)" />
+
+          <g class="dec"><rect class="box" x="186" y="44" width="140" height="56" rx="5" /><text class="t" x="256" y="70">Role checked</text><text class="s" x="256" y="86">allowed here?</text></g>
+          <line class="flow" x1="328" y1="72" x2="348" y2="72" marker-end="url(#a7)" />
+
+          <g><rect class="box" x="350" y="44" width="140" height="56" rx="5" /><text class="t" x="420" y="70">Work runs</text><text class="s" x="420" y="86">hits the database</text></g>
+          <line class="flow" x1="492" y1="72" x2="512" y2="72" marker-end="url(#a7)" />
+
+          <g class="ok"><rect class="box" x="514" y="44" width="130" height="56" rx="5" /><text class="t" x="579" y="78">Reply sent</text></g>
+
+          <line class="flow dash" x1="190" y1="114" x2="190" y2="172" marker-end="url(#a7)" />
+          <line class="flow dash" x1="470" y1="114" x2="470" y2="172" marker-end="url(#a7)" />
+
+          <g><rect class="box" x="90" y="176" width="200" height="56" rx="5" /><text class="t" x="190" y="202">One log line</text><text class="s" x="190" y="218">carries the same ID</text></g>
+          <g><rect class="box" x="370" y="176" width="200" height="56" rx="5" /><text class="t" x="470" y="202">Counters tick</text><text class="s" x="470" y="218">how many, how slow</text></g>
+        </svg>
+      </div>
+      <figcaption>The tracking ID is the useful part: one slow or broken request can be followed across every log
+        line it produced. A failure-injection layer can also be switched on here to make requests hang or fail on
+        purpose, so recovery can be rehearsed rather than hoped for.</figcaption>
+    </figure>
+  </article>
+
+  <!-- CARD 8 -->
+  <article class="card">
+    <span class="cap">Server · 08</span>
+    <h3>Two different databases, one set of code. How?</h3>
+    <p class="short"><b>Short version</b>One setting decides. Everything above that fork is byte-for-byte identical — a small translator absorbs the difference.</p>
+    <figure>
+      <div class="scroll">
+        <svg viewBox="0 0 660 360" class="dg" role="img" aria-label="Database backend switch: all application code is written in SQLite dialect. If a Postgres connection string is set, a compatibility shim rewrites each statement on the way through to Postgres; if not, SQLite connects directly to a file. Everything above the fork is identical in both cases.">
+          <defs>
+            <marker id="a8" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" />
+            </marker>
+          </defs>
+
+          <g><rect class="box" x="180" y="14" width="300" height="46" rx="5" /><text class="t" x="330" y="36">Every query in the app</text><text class="s" x="330" y="51">written one way only</text></g>
+          <line class="flow" x1="330" y1="60" x2="330" y2="80" marker-end="url(#a8)" />
+
+          <g class="dec"><rect class="box" x="180" y="84" width="300" height="46" rx="5" /><text class="t" x="330" y="113">Is a Postgres address set?</text></g>
+
+          <polyline class="flow" points="330,130 330,150 165,150 165,196" marker-end="url(#a8)" />
+          <polyline class="flow" points="330,130 330,150 495,150 495,196" marker-end="url(#a8)" />
+          <text class="e" x="240" y="143">no</text>
+          <text class="e" x="420" y="143">yes</text>
+
+          <line class="rule" x1="20" y1="172" x2="640" y2="172" />
+          <text class="e" x="330" y="166">everything above this line is identical</text>
+
+          <g><rect class="box" x="40" y="200" width="250" height="52" rx="5" /><text class="t" x="165" y="224">Connects straight through</text><text class="s" x="165" y="240">nothing to translate</text></g>
+          <g class="dec"><rect class="box" x="370" y="200" width="250" height="52" rx="5" /><text class="t" x="495" y="224">A translator sits in between</text><text class="s" x="495" y="240">rewrites each statement</text></g>
+
+          <line class="flow" x1="165" y1="252" x2="165" y2="282" marker-end="url(#a8)" />
+          <line class="flow hot" x1="495" y1="252" x2="495" y2="282" marker-end="url(#a8)" />
+
+          <g class="ok"><rect class="box" x="40" y="286" width="250" height="52" rx="5" /><text class="t" x="165" y="310">A file on disk</text><text class="s" x="165" y="326">the local draft</text></g>
+          <g class="ok"><rect class="box" x="370" y="286" width="250" height="52" rx="5" /><text class="t" x="495" y="310">Postgres</text><text class="s" x="495" y="326">the real deployment</text></g>
+        </svg>
+      </div>
+      <figcaption>The translator is about a hundred lines in one file. The alternative — writing every query twice,
+        or teaching the whole codebase two dialects — is the thing being avoided. If it ever has to translate more
+        than it does now, that's the signal to stop and use a proper database layer.</figcaption>
+    </figure>
+  </article>
+
+  <div class="gaps">
+    <h3>Three things these charts don't paper over</h3>
+    <ul>
+      <li><b>Admins have a menu item that goes nowhere.</b> The admin menu links to an Operations screen that
+        was never built. The server side of it exists and works — the screen just isn't there, so admins clicking
+        it land on a “page not found”.</li>
+      <li><b>Two screens skip the loading state.</b> The athlete directory and Discover flash empty for a
+        moment instead of showing a skeleton. Twelve of the fourteen data screens do this properly.</li>
+      <li><b>The big board header is on one screen only.</b> The redesign's signature element carries the
+        athlete dashboard. Everywhere else got the colours and type without the layout.</li>
+    </ul>
+  </div>
+
+  <footer>
+    Companion to <code>docs/ui-architecture.md</code> and <code>docs/architecture.md</code>. Those carry the exact
+    file paths, route table and endpoint names; this page carries the shape.
+  </footer>
+
+</div>
+</body>
+</html>

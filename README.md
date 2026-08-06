@@ -37,10 +37,17 @@ packages/creatorlens/    the analytics engine: connectors → ingestion → KPIs
 infra/                   Dockerfiles + compose, K8s manifests (probes, HPA, scrape
                          annotations), Supabase/Postgres migration with RLS policies
 scripts/failure_drill.py chaos drill: latency / errors / db-down → observe → recover
-docs/                    repo-analysis · product · architecture (+ architecture.html,
-                         the visual blueprint) · design-system · build-plan · runbook ·
-                         costs (staged infra/maintenance cost model + unit economics,
-                         for the business plan)
+docs/                    written: architecture (system) · ui-architecture (the client's
+                         layers, routing, session, data flow) · product · repo-analysis ·
+                         build-plan · runbook · costs (staged cost model + unit economics)
+                         visual, open in a browser:
+                           system-map.html    the whole system on one canvas, with a
+                                              five-step walkthrough of the request path
+                           how-it-works.html  seven small flowcharts — four for the
+                                              browser, three for the server
+                           architecture.html  the future-state deployment blueprint
+                         design-system.md is a redirect; the design brief is
+                         apps/web/DESIGN.md — read it before writing any UI
 ```
 
 ## Verification status

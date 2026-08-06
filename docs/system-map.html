@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stride — The System on One Canvas</title>
+<style>
+@font-face{font-family:'Barlow';font-style:normal;font-weight:400;font-display:swap;src:url('../apps/web/public/fonts/barlow-400.woff2') format('woff2')}
+@font-face{font-family:'Barlow';font-style:normal;font-weight:500;font-display:swap;src:url('../apps/web/public/fonts/barlow-500.woff2') format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:700;font-display:swap;src:url('../apps/web/public/fonts/barlow-condensed-700.woff2') format('woff2')}
+
+:root {
+  --ground: 16 18 22; --ground-deep: 10 12 15; --panel: 23 26 32; --raised: 31 36 44;
+  --ink: 242 244 247; --ink-2: 174 182 194; --ink-3: 115 125 139;
+  --accent: 255 176 32; --accent-ink: 255 176 32; --accent-on: 20 16 10;
+  --ok: 63 207 142; --critical: 242 85 90;
+  --line: rgba(255,255,255,0.085); --line-strong: rgba(255,255,255,0.19);
+  --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 18px 44px -22px rgba(0,0,0,0.8);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --ground: 233 235 239; --ground-deep: 222 225 231; --panel: 255 255 255; --raised: 241 243 246;
+    --ink: 16 18 22; --ink-2: 74 82 94; --ink-3: 121 130 143;
+    --accent: 240 160 12; --accent-ink: 138 82 0; --accent-on: 20 16 10;
+    --ok: 18 153 106; --critical: 206 47 53;
+    --line: rgba(16,18,22,0.1); --line-strong: rgba(16,18,22,0.22);
+    --shadow: 0 1px 2px rgba(16,18,22,0.06), 0 16px 40px -20px rgba(16,18,22,0.28);
+    color-scheme: light;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: 16 18 22; --ground-deep: 10 12 15; --panel: 23 26 32; --raised: 31 36 44;
+  --ink: 242 244 247; --ink-2: 174 182 194; --ink-3: 115 125 139;
+  --accent: 255 176 32; --accent-ink: 255 176 32; --accent-on: 20 16 10;
+  --ok: 63 207 142; --critical: 242 85 90;
+  --line: rgba(255,255,255,0.085); --line-strong: rgba(255,255,255,0.19);
+  --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 18px 44px -22px rgba(0,0,0,0.8);
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --ground: 233 235 239; --ground-deep: 222 225 231; --panel: 255 255 255; --raised: 241 243 246;
+  --ink: 16 18 22; --ink-2: 74 82 94; --ink-3: 121 130 143;
+  --accent: 240 160 12; --accent-ink: 138 82 0; --accent-on: 20 16 10;
+  --ok: 18 153 106; --critical: 206 47 53;
+  --line: rgba(16,18,22,0.1); --line-strong: rgba(16,18,22,0.22);
+  --shadow: 0 1px 2px rgba(16,18,22,0.06), 0 16px 40px -20px rgba(16,18,22,0.28);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: rgb(var(--ground)); color: rgb(var(--ink-2));
+  font-family: 'Barlow', system-ui, sans-serif; font-size: 16.5px; line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 110px; }
+
+.board { background: rgb(var(--ground-deep)); border-bottom: 1px solid var(--line); position: relative; margin-bottom: 48px; }
+.board::after { content: ""; position: absolute; left: 0; bottom: -1px; width: 58%; height: 2px; background: rgb(var(--accent)); }
+.board-inner { max-width: 1120px; margin: 0 auto; padding: 44px 24px 38px; }
+.wordmark { display: flex; align-items: baseline; gap: 9px; font-family: 'Barlow Condensed','Arial Narrow',sans-serif;
+  font-weight: 700; letter-spacing: 0.05em; font-size: 21px; color: rgb(var(--ink)); margin-bottom: 24px; }
+.wordmark i { display: block; width: 21px; height: 3px; background: rgb(var(--accent)); }
+.board h1 { font-family: 'Barlow Condensed','Arial Narrow',sans-serif; font-weight: 700;
+  font-size: clamp(36px,6.4vw,58px); line-height: 0.99; color: rgb(var(--ink)); margin: 0 0 16px; text-wrap: balance; }
+.board .lede { max-width: 64ch; margin: 0; font-size: 17px; color: rgb(var(--ink-2)); }
+
+h2 { font-family: 'Barlow Condensed','Arial Narrow',sans-serif; font-weight: 700; font-size: 30px;
+  letter-spacing: 0.02em; color: rgb(var(--ink)); margin: 0 0 6px; }
+.sub { margin: 0 0 24px; color: rgb(var(--ink-3)); font-size: 16px; }
+code { font-family: ui-monospace,'SF Mono',Menlo,monospace; font-size: 0.86em; color: rgb(var(--accent-ink));
+  background: rgb(var(--raised)); padding: 1px 6px; border-radius: 3px; }
+
+.canvas { background: rgb(var(--panel)); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px; box-shadow: var(--shadow); margin-bottom: 20px; }
+.scroll { overflow-x: auto; }
+.canvas svg { display: block; width: 100%; min-width: 860px; height: auto; }
+figcaption { margin: 0 0 60px; font-size: 15px; color: rgb(var(--ink-3)); max-width: 70ch; }
+figure { margin: 0; }
+
+/* diagram grammar */
+.zone { fill: rgb(var(--raised)); fill-opacity: 0.45; stroke: var(--line-strong); stroke-width: 1.5; }
+.zone.api { fill: rgb(var(--accent)); fill-opacity: 0.055; stroke: rgb(var(--accent)); stroke-opacity: 0.42; }
+.zone.eng { fill: rgb(var(--ok)); fill-opacity: 0.055; stroke: rgb(var(--ok)); stroke-opacity: 0.42; }
+.zlabel { font-family: 'Barlow Condensed','Arial Narrow',sans-serif; font-weight: 700; font-size: 14px;
+  text-transform: uppercase; letter-spacing: 0.14em; fill: rgb(var(--ink-3)); }
+.zlabel.api { fill: rgb(var(--accent-ink)); }
+.zlabel.eng { fill: rgb(var(--ok)); }
+.badge { fill: rgb(var(--accent)); }
+.bnum { font-family: 'Barlow Condensed','Arial Narrow',sans-serif; font-weight: 700; font-size: 15px;
+  fill: rgb(var(--accent-on)); text-anchor: middle; }
+.chip { fill: rgb(var(--panel)); stroke: var(--line-strong); stroke-width: 1.4; }
+.t { font-family: 'Barlow Condensed','Arial Narrow',sans-serif; font-weight: 700; font-size: 16px;
+  letter-spacing: 0.015em; fill: rgb(var(--ink)); text-anchor: middle; }
+.t.sm { font-size: 13.5px; }
+.s { font-family: ui-monospace,'SF Mono',Menlo,monospace; font-size: 11px; fill: rgb(var(--ink-3)); text-anchor: middle; }
+.e { font-family: 'Barlow Condensed','Arial Narrow',sans-serif; font-weight: 700; font-size: 12.5px;
+  text-transform: uppercase; letter-spacing: 0.1em; fill: rgb(var(--ink-3)); text-anchor: middle; }
+.flow { stroke: var(--line-strong); stroke-width: 1.7; fill: none; }
+.flow.dash { stroke-dasharray: 5 4; }
+.dg marker path { fill: rgb(var(--ink-3)); }
+
+/* walkthrough */
+.steps { display: grid; gap: 16px; margin: 0 0 56px; padding: 0; list-style: none; counter-reset: s; }
+.step { display: grid; grid-template-columns: 42px 1fr; gap: 18px; align-items: start;
+  background: rgb(var(--panel)); border: 1px solid var(--line); border-radius: 8px; padding: 20px 24px; }
+.step .n { width: 30px; height: 30px; border-radius: 50%; background: rgb(var(--accent));
+  color: rgb(var(--accent-on)); font-family: 'Barlow Condensed','Arial Narrow',sans-serif; font-weight: 700;
+  font-size: 16px; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+.step h3 { font-family: 'Barlow Condensed','Arial Narrow',sans-serif; font-weight: 700; font-size: 23px;
+  letter-spacing: 0.02em; color: rgb(var(--ink)); margin: 0 0 5px; }
+.step p { margin: 0; font-size: 16px; }
+.step p + p { margin-top: 9px; }
+
+.punch { border: 1px solid rgb(var(--accent) / 0.45); background: rgb(var(--panel)); border-radius: 10px;
+  padding: 28px 32px; box-shadow: var(--shadow); }
+.punch h2 { margin-bottom: 12px; }
+.punch ul { margin: 0; padding-left: 20px; }
+.punch li { margin-bottom: 9px; font-size: 16px; }
+.punch li:last-child { margin-bottom: 0; }
+.punch b { color: rgb(var(--ink)); font-weight: 500; }
+
+footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 14.5px; color: rgb(var(--ink-3)); }
+
+@media (max-width: 640px) {
+  .step { grid-template-columns: 34px 1fr; gap: 13px; padding: 18px 18px; }
+  .punch { padding: 22px 20px; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }</style>
+</head>
+<body>
+<header class="board">
+  <div class="board-inner">
+    <div class="wordmark"><i></i>STRIDE</div>
+    <h1>The whole system on one canvas</h1>
+    <p class="lede">Every part of Stride and how a request travels through them — top to bottom, browser to
+      database. Five numbered zones, matching the walkthrough underneath.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <figure>
+    <div class="canvas">
+      <div class="scroll">
+        <svg viewBox="0 0 1040 910" class="dg" role="img" aria-label="Stride system architecture: the browser holds one JavaScript app with public pages, role workspaces and a shared API client. It talks to nginx, which serves the app files and forwards API calls to a FastAPI process. Inside FastAPI, every request passes a middleware chain — CORS, security headers, rate limit, size limit, chaos injection, request ID and logging — before reaching one of six routers, alongside a matching engine and ops endpoints. FastAPI calls the CreatorLens analytics library in-process, which runs connectors, ingestion, KPIs and scoring. Both the API and the analytics library write through one shared database connection to either a SQLite file or Postgres.">
+          <defs>
+            <marker id="m1" markerWidth="9" markerHeight="9" refX="7.5" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" />
+            </marker>
+          </defs>
+
+          <!-- ═══ ZONE 1 — BROWSER ═══ -->
+          <rect class="zone" x="20" y="44" width="1000" height="120" rx="11" />
+          <circle class="badge" cx="44" cy="68" r="12" />
+          <text class="bnum" x="44" y="73">1</text>
+          <text class="zlabel" x="66" y="73">In your browser</text>
+
+          <g><rect class="chip" x="60" y="92" width="280" height="54" rx="7" /><text class="t" x="200" y="114">Public pages</text><text class="s" x="200" y="130">directories and profiles</text></g>
+          <g><rect class="chip" x="380" y="92" width="280" height="54" rx="7" /><text class="t" x="520" y="114">Role workspaces</text><text class="s" x="520" y="130">athlete · sponsor · club · fan</text></g>
+          <g><rect class="chip" x="700" y="92" width="280" height="54" rx="7" /><text class="t" x="840" y="114">One API client</text><text class="s" x="840" y="130">session cookie, error text</text></g>
+
+          <line class="flow" x1="520" y1="164" x2="520" y2="208" marker-end="url(#m1)" />
+          <text class="e" x="562" y="190">https</text>
+
+          <!-- ═══ ZONE 2 — EDGE ═══ -->
+          <rect class="zone" x="20" y="214" width="1000" height="100" rx="11" />
+          <circle class="badge" cx="44" cy="238" r="12" />
+          <text class="bnum" x="44" y="243">2</text>
+          <text class="zlabel" x="66" y="243">At the edge</text>
+
+          <g><rect class="chip" x="340" y="258" width="360" height="44" rx="7" /><text class="t" x="520" y="277">The web server</text><text class="s" x="520" y="292">hands out the app, forwards /api</text></g>
+
+          <line class="flow" x1="520" y1="314" x2="520" y2="358" marker-end="url(#m1)" />
+          <text class="e" x="562" y="340">/api</text>
+
+          <!-- ═══ ZONE 3 — API ═══ -->
+          <rect class="zone api" x="20" y="364" width="664" height="300" rx="11" />
+          <circle class="badge" cx="44" cy="388" r="12" />
+          <text class="bnum" x="44" y="393">3</text>
+          <text class="zlabel api" x="66" y="393">The API — one process</text>
+
+          <rect class="chip" x="44" y="414" width="616" height="58" rx="7" />
+          <text class="e" x="352" y="409">every request passes these, in order</text>
+          <g><rect class="chip" x="60" y="426" width="90" height="34" rx="5" /><text class="t sm" x="105" y="447">CORS</text></g>
+          <g><rect class="chip" x="158" y="426" width="90" height="34" rx="5" /><text class="t sm" x="203" y="447">Headers</text></g>
+          <g><rect class="chip" x="256" y="426" width="90" height="34" rx="5" /><text class="t sm" x="301" y="447">Rate cap</text></g>
+          <g><rect class="chip" x="354" y="426" width="90" height="34" rx="5" /><text class="t sm" x="399" y="447">Size cap</text></g>
+          <g><rect class="chip" x="452" y="426" width="90" height="34" rx="5" /><text class="t sm" x="497" y="447">Chaos</text></g>
+          <g><rect class="chip" x="550" y="426" width="90" height="34" rx="5" /><text class="t sm" x="595" y="447">ID + logs</text></g>
+
+          <line class="flow" x1="352" y1="472" x2="352" y2="496" marker-end="url(#m1)" />
+
+          <g><rect class="chip" x="44" y="502" width="95" height="48" rx="6" /><text class="t" x="91" y="531">auth</text></g>
+          <g><rect class="chip" x="147" y="502" width="95" height="48" rx="6" /><text class="t" x="194" y="531">athletes</text></g>
+          <g><rect class="chip" x="250" y="502" width="95" height="48" rx="6" /><text class="t" x="297" y="531">clubs</text></g>
+          <g><rect class="chip" x="353" y="502" width="95" height="48" rx="6" /><text class="t" x="400" y="531">sponsors</text></g>
+          <g><rect class="chip" x="456" y="502" width="95" height="48" rx="6" /><text class="t" x="503" y="531">discover</text></g>
+          <g><rect class="chip" x="559" y="502" width="95" height="48" rx="6" /><text class="t" x="606" y="531">admin</text></g>
+
+          <g><rect class="chip" x="50" y="580" width="290" height="54" rx="7" /><text class="t" x="195" y="602">Matching engine</text><text class="s" x="195" y="618">scores briefs against athletes</text></g>
+          <g><rect class="chip" x="364" y="580" width="290" height="54" rx="7" /><text class="t" x="509" y="602">Ops endpoints</text><text class="s" x="509" y="618">/healthz /readyz /metrics</text></g>
+
+          <!-- ═══ ZONE 4 — ANALYTICS ═══ -->
+          <rect class="zone eng" x="740" y="364" width="280" height="300" rx="11" />
+          <circle class="badge" cx="764" cy="388" r="12" />
+          <text class="bnum" x="764" y="393">4</text>
+          <text class="zlabel eng" x="786" y="393">Analytics</text>
+
+          <g><rect class="chip" x="760" y="414" width="240" height="40" rx="6" /><text class="t" x="880" y="431">Connectors</text><text class="s" x="880" y="446">3 platforms, simulated</text></g>
+          <line class="flow" x1="880" y1="454" x2="880" y2="470" marker-end="url(#m1)" />
+          <g><rect class="chip" x="760" y="474" width="240" height="40" rx="6" /><text class="t" x="880" y="491">Ingestion</text><text class="s" x="880" y="506">retries, safe to replay</text></g>
+          <line class="flow" x1="880" y1="514" x2="880" y2="530" marker-end="url(#m1)" />
+          <g><rect class="chip" x="760" y="534" width="240" height="40" rx="6" /><text class="t" x="880" y="551">KPIs</text><text class="s" x="880" y="566">reach, engagement, growth</text></g>
+          <line class="flow" x1="880" y1="574" x2="880" y2="590" marker-end="url(#m1)" />
+          <g><rect class="chip" x="760" y="594" width="240" height="40" rx="6" /><text class="t" x="880" y="611">Scoring</text><text class="s" x="880" y="626">versioned formulas</text></g>
+
+          <line class="flow" x1="686" y1="500" x2="736" y2="500" marker-end="url(#m1)" />
+          <text class="e" x="711" y="492">calls</text>
+
+          <!-- ═══ into the data zone ═══ -->
+          <line class="flow" x1="352" y1="664" x2="352" y2="728" marker-end="url(#m1)" />
+          <line class="flow" x1="880" y1="664" x2="880" y2="728" marker-end="url(#m1)" />
+          <line class="flow dash" x1="352" y1="700" x2="880" y2="700" />
+          <text class="e" x="616" y="692">one shared connection</text>
+
+          <!-- ═══ ZONE 5 — DATA ═══ -->
+          <rect class="zone" x="20" y="734" width="1000" height="150" rx="11" />
+          <circle class="badge" cx="44" cy="758" r="12" />
+          <text class="bnum" x="44" y="763">5</text>
+          <text class="zlabel" x="66" y="763">The data</text>
+
+          <g><rect class="chip" x="170" y="776" width="300" height="56" rx="7" /><text class="t" x="320" y="801">A file on disk</text><text class="s" x="320" y="817">the default</text></g>
+          <text class="e" x="520" y="808">or</text>
+          <g><rect class="chip" x="570" y="776" width="300" height="56" rx="7" /><text class="t" x="720" y="801">Postgres</text><text class="s" x="720" y="817">when an address is set</text></g>
+          <text class="s" x="520" y="860">product tables · analytics tables · one shared audit log</text>
+        </svg>
+      </div>
+    </div>
+    <figcaption>Read it top to bottom — that's the path a request takes. The only sideways arrow is the API
+      calling the analytics engine, because that isn't a network hop.</figcaption>
+  </figure>
+
+  <h2>The same thing in words</h2>
+  <p class="sub">Five steps, matching the numbers on the canvas.</p>
+
+  <ol class="steps">
+    <li class="step">
+      <span class="n">1</span>
+      <div>
+        <h3>In your browser</h3>
+        <p>One JavaScript app. Some pages anyone can open — the athlete and club directories, public profiles.
+          The rest sit behind a sign-in, and what you see there depends on whether you're an athlete, a sponsor,
+          a club or a fan.</p>
+        <p>Every call to the server goes through one small piece of code. It attaches your session, turns error
+          codes into readable sentences, and notices when your session has expired.</p>
+      </div>
+    </li>
+    <li class="step">
+      <span class="n">2</span>
+      <div>
+        <h3>At the edge</h3>
+        <p>A web server sits in front. It hands out the app's files, and anything starting with <code>/api</code>
+          it passes back to the API. That's its entire job — it holds no logic and no data.</p>
+      </div>
+    </li>
+    <li class="step">
+      <span class="n">3</span>
+      <div>
+        <h3>The API — one process</h3>
+        <p>Before a request reaches any code that matters, it runs the same gauntlet every time: cross-origin
+          rules, security headers, a rate cap, a size cap, the failure-injection layer, and finally the step that
+          stamps it with an ID, logs it and counts it.</p>
+        <p>Then it lands in one of six areas — sign-in, athletes, clubs, sponsors, discovery, admin. Two other
+          things live here: the engine that scores campaign briefs against athletes, and the health endpoints a
+          load balancer polls to decide whether this copy is fit to receive traffic.</p>
+      </div>
+    </li>
+    <li class="step">
+      <span class="n">4</span>
+      <div>
+        <h3>The analytics engine</h3>
+        <p>This is <b>not a separate service</b>. It's a library running inside the same process, and that's the
+          most important thing on the canvas. It pulls data from Instagram, YouTube and TikTok — simulated for
+          now, but through the real pipeline — stores it, computes the KPIs, then scores.</p>
+        <p>Because the data is simulated but the path is real, switching to live platforms changes one class per
+          platform and nothing downstream.</p>
+      </div>
+    </li>
+    <li class="step">
+      <span class="n">5</span>
+      <div>
+        <h3>The data</h3>
+        <p>One database holds both the product tables and the analytics tables. It's a file on disk by default;
+          point it at a Postgres address and it uses that instead, with no other change.</p>
+        <p>The dashed line matters: the API and the analytics engine share a single connection, so anything that
+          touches both either saves together or fails together. Split them into separate services and you'd have
+          to build that guarantee yourself.</p>
+      </div>
+    </li>
+  </ol>
+
+  <div class="punch">
+    <h2>How many moving parts is that, really?</h2>
+    <ul>
+      <li><b>Two programs run in a deployment</b> — the web server and the API. That's it.</li>
+      <li><b>The analytics engine isn't one of them.</b> It's a library inside the API, which is why it can share
+        a database connection rather than a network call.</li>
+      <li><b>The database is a file</b> until you point it at Postgres.</li>
+      <li>Everything else on the canvas — routers, the matching engine, connectors, scoring — is a module inside
+        one of those two programs.</li>
+    </ul>
+  </div>
+
+  <footer>
+    Companion to <code>docs/architecture.md</code> and <code>docs/ui-architecture.md</code>, which carry the exact
+    file paths, endpoints and decision records. This page carries the shape.
+  </footer>
+
+</div>
+</body>
+</html>
