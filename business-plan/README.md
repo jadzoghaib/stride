@@ -33,6 +33,7 @@ are no agents at all, and the athlete's alternative to Stride is nothing. See
 | 05 | [Product gaps](05-product-gaps.md) | What the app must gain before a euro can move — assessed against the actual codebase, including the age model |
 | 06 | [Market strategy](06-market-strategy.md) | Two segments: disintermediation in popular sports, market creation in niche sports |
 | 07 | [Open questions](07-open-questions.md) | What is settled, and what still needs a founder |
+| 08 | [Sport index](08-sport-index.md) | 714 country x sport pairs, the classification method, and its three product uses |
 
 Every number in 03 and 04 is produced by [`model.py`](model.py). Change an
 assumption there and rerun — nothing is hand-typed:

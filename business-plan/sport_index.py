@@ -1,209 +1,274 @@
-"""Stride Sport Opportunity Index.
+"""Stride Sport Opportunity Index — every sport, every country in scope.
 
-Ranks a sport, in a region, by how well it fits Stride — and classifies it as a
-**disintermediation** play (an agent already takes the value) or a **market
-creation** play (nobody does).
+    python business-plan/sport_index.py                    # top opportunities, all countries
+    python business-plan/sport_index.py --country Spain     # one country ranked
+    python business-plan/sport_index.py --sport padel       # one sport across countries
+    python business-plan/sport_index.py --athlete Spain padel   # athlete-facing content guidance
+    python business-plan/sport_index.py --sponsor Spain padel   # what each sponsor tier sees
+    python business-plan/sport_index.py --coverage          # data confidence audit
 
-    python business-plan/sport_index.py            # Spain ranking
-    python business-plan/sport_index.py --global   # global ranking
-    python business-plan/sport_index.py --explain padel
+Four signals, from sport_data.py:
 
-The four signals, and why each is in the formula:
+    supply     participants per capita     — how many athletes exist to sign
+    demand     followers per capita        — how many people might pay
+    gap        1 − agent density           — how much value is still unclaimed
+    appetite   participation / (participation + fandom)
 
-  supply        participants per 1,000 people — how many athletes we can sign
-  demand        followers/spectators per 1,000 — how many people might pay
-  gap           1 − agent density — how much of the value is still unclaimed
-  appetite      participation / (participation + fandom)
+`appetite` does the real work. It asks whether the fans of a sport also DO the
+sport. A trail runner's audience is other trail runners, who want training
+knowledge and will pay for it. A football fan watches and does not want a
+training plan. Participatory sports already have the content habit — athletes
+publish training logs for free on platforms that pay them nothing — so the
+paywall is the only missing piece.
 
-`appetite` is the one that is not obvious and is doing the most work. It asks:
-**do the fans of this sport also DO the sport?** A trail runner's audience is
-other trail runners, who want training knowledge and will pay for it. A
-football fan watches and does not want a training plan. Participatory sports
-already have the content habit — athletes publish training logs for free on
-platforms that pay them nothing — so the paywall is the only missing piece.
-
-Scores are computed per region and blended with the global score, because an
-athlete's audience is mostly local but their ceiling is not. Padel is the
-clearest case: globally mid-table, in Spain the single best market in the world.
-
-DATA PROVENANCE: padel figures for Spain are sourced (see SOURCES). Everything
-else is a reasoned estimate at the right order of magnitude, marked `est`.
-The methodology is the deliverable; the numbers are meant to be replaced with
-federation licence data (public via CSD in Spain) and a media-measurement panel.
+There is no launch sport. The index is CONTEXT, not a gate: it tells an athlete
+what content will convert for their audience, tells a sponsor how to read a
+score, and normalises `audience_scale` so a 25k-follower trail runner is not
+scored as though they were a 25k-follower footballer.
 """
 
 from __future__ import annotations
 
 import math
 import sys
-from dataclasses import dataclass
 
-SOURCES = {
-    "padel_es": "FIP World Padel Report 2025 — ~6.0M active players in Spain (12.7% of population), "
-                "109,040 federation licences (2024), 17,300+ courts",
-    "padel_global": "FIP 2025 — 35M+ players worldwide, 77,000+ courts",
-}
+from sport_data import (COUNTRIES, SOURCES, SPORTS, confidence_summary,
+                        country_row, multiplier, region_of)
 
+WEIGHTS = {"supply": 0.25, "demand": 0.20, "gap": 0.25, "appetite": 0.15, "concentration": 0.15}
+POPULAR_THRESHOLD = 0.45   # agent density above which an incumbent exists
 
-@dataclass
-class Sport:
-    name: str
-    # per 1,000 population
-    participation: float      # people who actively do it
-    fandom: float             # people who follow/watch it
-    agent_density: float      # 0..1 — share of commercially active athletes with representation
-    sourced: bool = False     # True where the figure is from a cited source, not an estimate
+# Supply and demand span orders of magnitude, so they are log-normalised against
+# the actual range of the whole matrix rather than against a hand-set ceiling.
+# A fixed cap made running saturate in every country and buried everything else.
+_RANGE: dict[str, tuple[float, float]] = {}
+
+# appetite bands — these drive the athlete-facing content guidance
+PRACTITIONER = 0.55
+MIXED = 0.30
 
 
-# ── Spain ────────────────────────────────────────────────────────────────────
-# Population ~48.6M. Padel from FIP; the rest are estimates of the right shape.
-SPAIN: list[Sport] = [
-    Sport("running / trail", participation=150.0, fandom=40.0, agent_density=0.10),
-    Sport("padel",           participation=127.0, fandom=90.0, agent_density=0.15, sourced=True),
-    Sport("cycling",         participation=60.0,  fandom=120.0, agent_density=0.35),
-    Sport("swimming",        participation=25.0,  fandom=35.0,  agent_density=0.25),
-    Sport("football",        participation=22.0,  fandom=600.0, agent_density=0.85),
-    Sport("tennis",          participation=20.0,  fandom=180.0, agent_density=0.75),
-    Sport("climbing",        participation=12.0,  fandom=10.0,  agent_density=0.10),
-    Sport("athletics",       participation=12.0,  fandom=60.0,  agent_density=0.45),
-    Sport("basketball",      participation=8.0,   fandom=250.0, agent_density=0.70),
-    Sport("triathlon",       participation=8.0,   fandom=15.0,  agent_density=0.12),
-    Sport("surfing",         participation=6.0,   fandom=20.0,  agent_density=0.20),
-    Sport("handball",        participation=4.0,   fandom=45.0,  agent_density=0.40),
-    Sport("rowing",          participation=2.0,   fandom=8.0,   agent_density=0.15),
-    Sport("motorsport",      participation=1.0,   fandom=200.0, agent_density=0.80),
-]
+def _sport(name: str):
+    for s in SPORTS:
+        if s[0] == name:
+            return s
+    raise KeyError(name)
 
-# ── Global ───────────────────────────────────────────────────────────────────
-GLOBAL: list[Sport] = [
-    Sport("running / trail", participation=90.0, fandom=35.0,  agent_density=0.12),
-    Sport("football",        participation=45.0, fandom=700.0, agent_density=0.88),
-    Sport("cycling",         participation=40.0, fandom=90.0,  agent_density=0.38),
-    Sport("swimming",        participation=30.0, fandom=40.0,  agent_density=0.28),
-    Sport("basketball",      participation=28.0, fandom=400.0, agent_density=0.78),
-    Sport("tennis",          participation=12.0, fandom=200.0, agent_density=0.78),
-    Sport("padel",           participation=4.4,  fandom=6.0,   agent_density=0.18, sourced=True),
-    Sport("climbing",        participation=8.0,  fandom=12.0,  agent_density=0.15),
-    Sport("athletics",       participation=10.0, fandom=120.0, agent_density=0.50),
-    Sport("triathlon",       participation=3.0,  fandom=10.0,  agent_density=0.15),
-    Sport("surfing",         participation=5.0,  fandom=25.0,  agent_density=0.25),
-    Sport("handball",        participation=4.0,  fandom=30.0,  agent_density=0.42),
-    Sport("rowing",          participation=2.0,  fandom=10.0,  agent_density=0.18),
-    Sport("motorsport",      participation=0.8,  fandom=180.0, agent_density=0.85),
-]
 
-WEIGHTS = {"supply": 0.30, "demand": 0.20, "gap": 0.30, "appetite": 0.20}
-
-REGIONAL_WEIGHT = 0.60   # the athlete's audience is mostly local
-GLOBAL_WEIGHT = 0.40     # but the ceiling is not
-
-# Above this share of athletes being represented, an agent is the incumbent and
-# the pitch changes from "here is a market" to "here is a better deal".
-POPULAR_THRESHOLD = 0.45
+def _calibrate() -> None:
+    """Learn the matrix's own min/max once, so normalisation is self-calibrating
+    rather than hand-tuned — change the data and the scale follows."""
+    if _RANGE:
+        return
+    parts, fans = [], []
+    for country, region, activity, media, _ in COUNTRIES:
+        for sport, base_part, base_fan, _a in SPORTS:
+            m = multiplier(region, sport)
+            parts.append(activity * base_part * m)
+            fans.append(media * base_fan * m)
+    _RANGE["participation"] = (min(parts), max(parts))
+    _RANGE["fandom"] = (min(fans), max(fans))
 
 
 def _lognorm(value: float, lo: float, hi: float) -> float:
-    """Log-scaled 0..1. Participation and fandom span orders of magnitude, so a
-    linear normalisation would let football's fandom flatten everything else."""
-    if value <= 0:
+    if value <= 0 or hi <= lo:
         return 0.0
-    v, a, b = math.log10(value), math.log10(lo), math.log10(hi)
+    v, a, b = math.log10(value), math.log10(max(lo, 1e-6)), math.log10(hi)
     return max(0.0, min(1.0, (v - a) / (b - a)))
 
 
-def components(s: Sport) -> dict[str, float]:
+def signals(country: str, sport: str) -> dict:
+    _calibrate()
+    name, region, activity, media, conf = country_row(country)
+    _, base_part, base_fan, agent = _sport(sport)
+    m = multiplier(region, sport)
+
+    participation = activity * base_part * m
+    fandom = media * base_fan * m
+    total = participation + fandom
+
     return {
-        "supply": _lognorm(s.participation, 0.5, 160.0),
-        "demand": _lognorm(s.fandom, 5.0, 700.0),
-        "gap": 1.0 - s.agent_density,
-        "appetite": s.participation / (s.participation + s.fandom),
+        "country": country, "region": region, "sport": sport,
+        "participation": participation, "fandom": fandom,
+        "agent_density": agent,
+        "supply": _lognorm(participation, *_RANGE["participation"]),
+        "demand": _lognorm(fandom, *_RANGE["fandom"]),
+        "gap": 1.0 - agent,
+        "appetite": participation / total if total else 0.0,
+        # How much stronger this sport is here than in the world at large. This
+        # is what makes padel/Spain a different proposition from padel/Poland,
+        # and it is the signal a global average would erase.
+        "concentration": min(1.0, math.log10(max(m, 0.1)) / math.log10(7.0) * 0.5 + 0.5),
+        "multiplier": m,
+        "country_confidence": conf,
     }
 
 
-def score(s: Sport) -> float:
-    c = components(s)
-    return 100 * sum(WEIGHTS[k] * c[k] for k in WEIGHTS)
+def score(country: str, sport: str) -> float:
+    s = signals(country, sport)
+    return 100 * sum(WEIGHTS[k] * s[k] for k in WEIGHTS)
 
 
-def segment(s: Sport) -> str:
-    return "popular" if s.agent_density >= POPULAR_THRESHOLD else "niche"
+def segment(sport: str) -> str:
+    return "popular" if _sport(sport)[3] >= POPULAR_THRESHOLD else "niche"
 
 
-def blended(name: str) -> dict:
-    """Regional (Spain) blended with global — the number that should drive
-    go-to-market, and the one that belongs in the product."""
-    es = next((x for x in SPAIN if x.name == name), None)
-    gl = next((x for x in GLOBAL if x.name == name), None)
-    if es is None or gl is None:
-        raise KeyError(name)
-    b = REGIONAL_WEIGHT * score(es) + GLOBAL_WEIGHT * score(gl)
-    return {
-        "sport": name,
-        "regional": score(es),
-        "global": score(gl),
-        "blended": b,
-        "segment": segment(es),
-        "play": "disintermediation" if segment(es) == "popular" else "market creation",
-        "sourced": es.sourced,
-    }
+def audience_type(appetite: float) -> str:
+    if appetite >= PRACTITIONER:
+        return "practitioner"
+    if appetite >= MIXED:
+        return "mixed"
+    return "spectator"
 
 
-def table(rows: list[list[str]], head: list[str]) -> str:
+# ── Athlete-facing: what content converts for this audience ──────────────────
+
+GUIDANCE = {
+    "practitioner": {
+        "headline": "Your followers do your sport.",
+        "why": "They follow you to get better at the thing you both do, so they will "
+               "pay for knowledge rather than for access.",
+        "publish": ["Session and training breakdowns", "Technique explainers",
+                    "Gear and setup reviews", "Race/competition data and pacing",
+                    "Q&A on programming and recovery"],
+        "monetise": "Subscription-led. Anchor the €9.99 tier; a season pass sells well "
+                    "because training is seasonal.",
+        "avoid": "Pure lifestyle content — it competes with everyone and converts worst here.",
+    },
+    "mixed": {
+        "headline": "Your followers are split between doing and watching.",
+        "why": "Two audiences with different reasons to pay, so the tier ladder should "
+               "separate them rather than average them.",
+        "publish": ["Training content for the practitioners",
+                    "Competition narrative and results for the watchers",
+                    "Behind-the-scenes around events", "Occasional deep technical pieces"],
+        "monetise": "Subscription for the base, one-off unlocks around competition moments.",
+        "avoid": "One undifferentiated feed — it under-serves both halves.",
+    },
+    "spectator": {
+        "headline": "Your followers watch your sport; they do not play it.",
+        "why": "They pay for proximity and personality, not for instruction.",
+        "publish": ["Matchday and travel access", "Personality and off-season life",
+                    "Reactions and commentary", "Club and teammate content"],
+        "monetise": "Access-led. Tips and one-off unlocks around fixtures outperform "
+                    "subscriptions; sponsorship is usually the larger engine.",
+        "avoid": "Training plans — this audience does not want them, and low conversion "
+                 "on them will read as low demand when it is a content mismatch.",
+    },
+}
+
+
+# ── Sponsor-facing: tiered visibility ────────────────────────────────────────
+# Lower tiers see the normalised (sport-relative) figure only; the top tier also
+# sees the raw absolute. Normalisation must never hide its basis — the product's
+# whole claim is that a score decomposes.
+
+TIER_VISIBILITY = {
+    "Scout Free": {"normalised": True, "raw": False, "components": False},
+    "Scout Pro": {"normalised": True, "raw": True, "components": False},
+    "Scout Agency": {"normalised": True, "raw": True, "components": True},
+}
+
+
+def table(head: list[str], rows: list[list[str]]) -> str:
     out = ["| " + " | ".join(head) + " |", "|" + "|".join("---" for _ in head) + "|"]
-    out += ["| " + " | ".join(r) + " |" for r in rows]
-    return "\n".join(out)
+    out += ["| " + " | ".join(r) for r in rows]
+    return "\n".join(r if r.endswith("|") else r + " |" for r in out)
 
 
-def ranking() -> list[dict]:
-    return sorted((blended(s.name) for s in SPAIN), key=lambda r: -r["blended"])
+def all_pairs() -> list[dict]:
+    out = []
+    for country, *_ in COUNTRIES:
+        for sport, *_ in SPORTS:
+            s = signals(country, sport)
+            out.append({**s, "score": score(country, sport), "segment": segment(sport)})
+    return out
 
 
 def main() -> None:
-    if "--explain" in sys.argv:
-        name = sys.argv[sys.argv.index("--explain") + 1]
-        s = next(x for x in SPAIN if x.name.startswith(name))
-        c = components(s)
-        print(f"\n{s.name} — Spain\n")
-        print(table(
-            [[k, f"{c[k]:.3f}", f"{WEIGHTS[k]:.2f}", f"{c[k] * WEIGHTS[k] * 100:.1f}"] for k in WEIGHTS],
-            ["Component", "Value", "Weight", "Contribution"]))
-        print(f"\nScore {score(s):.1f} · segment {segment(s)} · agent density {s.agent_density:.0%}")
+    argv = sys.argv[1:]
+
+    if "--coverage" in argv:
+        print("\n## Data confidence\n")
+        print(table(["Confidence", "Countries"],
+                    [[k, str(v)] for k, v in sorted(confidence_summary().items())]))
+        print(f"\n{len(COUNTRIES)} countries x {len(SPORTS)} sports = "
+              f"{len(COUNTRIES) * len(SPORTS)} pairs, from "
+              f"{len(COUNTRIES)} country rows + {len(SPORTS)} sport rows + regional multipliers.")
+        print("\nSources:")
+        for k, v in SOURCES.items():
+            print(f"  {k}: {v}")
         return
 
-    if "--global" in sys.argv:
-        rows = sorted(GLOBAL, key=lambda s: -score(s))
-        print("\n## Global ranking\n")
-        print(table([[s.name, f"{score(s):.1f}", segment(s)] for s in rows],
-                    ["Sport", "Score", "Segment"]))
+    if "--athlete" in argv:
+        country, sport = argv[argv.index("--athlete") + 1], argv[argv.index("--athlete") + 2]
+        s = signals(country, sport)
+        kind = audience_type(s["appetite"])
+        g = GUIDANCE[kind]
+        print(f"\n## {sport} in {country} — audience profile\n")
+        print(f"**{g['headline']}** ({kind}, appetite {s['appetite']:.2f})\n")
+        print(g["why"] + "\n")
+        print("**Publish**")
+        for item in g["publish"]:
+            print(f"  - {item}")
+        print(f"\n**Monetise**  {g['monetise']}")
+        print(f"**Avoid**     {g['avoid']}")
         return
 
-    print("\n## Stride Sport Opportunity Index — Spain\n")
-    rows = []
-    for r in ranking():
-        rows.append([
-            f"**{r['sport']}**" if r["blended"] >= 60 else r["sport"],
-            f"{r['regional']:.1f}",
-            f"{r['global']:.1f}",
-            f"**{r['blended']:.1f}**",
-            r["segment"],
-            r["play"],
-            "sourced" if r["sourced"] else "est",
-        ])
-    print(table(rows, ["Sport", "Spain", "Global", "Blended", "Segment", "Play", "Data"]))
+    if "--sponsor" in argv:
+        country, sport = argv[argv.index("--sponsor") + 1], argv[argv.index("--sponsor") + 2]
+        s = signals(country, sport)
+        print(f"\n## {sport} in {country} — what each sponsor tier sees\n")
+        rows = []
+        for tier, v in TIER_VISIBILITY.items():
+            shown = ["sport-relative percentile"]
+            if v["raw"]:
+                shown.append("raw follower scale")
+            if v["components"]:
+                shown.append("index components + API")
+            rows.append([tier, "yes" if v["normalised"] else "-",
+                         "yes" if v["raw"] else "-", "yes" if v["components"] else "-",
+                         ", ".join(shown)])
+        print(table(["Tier", "Normalised", "Raw", "Components", "Sees"], rows))
+        print(f"\nContext for this pair: appetite {s['appetite']:.2f} "
+              f"({audience_type(s['appetite'])}), agent density {s['agent_density']:.0%}, "
+              f"segment {segment(sport)}.")
+        return
 
-    top = ranking()[:2]
-    print(f"\nTop two: {top[0]['sport']} ({top[0]['blended']:.1f}), "
-          f"{top[1]['sport']} ({top[1]['blended']:.1f})")
+    if "--country" in argv:
+        country = argv[argv.index("--country") + 1]
+        rows = sorted(((sport, score(country, sport)) for sport, *_ in SPORTS),
+                      key=lambda r: -r[1])
+        print(f"\n## {country} — sports ranked\n")
+        print(table(["Sport", "Score", "Segment", "Audience"],
+                    [[s, f"{v:.1f}", segment(s), audience_type(signals(country, s)['appetite'])]
+                     for s, v in rows]))
+        return
 
-    niche = [r for r in ranking() if r["segment"] == "niche"]
-    popular = [r for r in ranking() if r["segment"] == "popular"]
-    print(f"Niche: {len(niche)} sports · Popular: {len(popular)} sports")
-    print(f"Mean score — niche {sum(r['blended'] for r in niche)/len(niche):.1f}, "
-          f"popular {sum(r['blended'] for r in popular)/len(popular):.1f}")
+    if "--sport" in argv:
+        sport = argv[argv.index("--sport") + 1]
+        rows = sorted(((c, score(c, sport)) for c, *_ in COUNTRIES), key=lambda r: -r[1])
+        print(f"\n## {sport} — countries ranked\n")
+        print(table(["Country", "Score", "Confidence"],
+                    [[c, f"{v:.1f}", country_row(c)[4]] for c, v in rows[:15]]))
+        return
 
-    print("\nSources:")
-    for k, v in SOURCES.items():
-        print(f"  {k}: {v}")
+    pairs = sorted(all_pairs(), key=lambda p: -p["score"])
+    print("\n## Top 25 country x sport opportunities\n")
+    print(table(["#", "Sport", "Country", "Score", "Segment", "Audience"],
+                [[str(i + 1), p["sport"], p["country"], f"{p['score']:.1f}",
+                  p["segment"], audience_type(p["appetite"])]
+                 for i, p in enumerate(pairs[:25])]))
+
+    niche = [p for p in pairs if p["segment"] == "niche"]
+    top50 = pairs[:50]
+    print(f"\n{len(pairs)} pairs scored. Niche is {len(niche)/len(pairs):.0%} of all pairs "
+          f"and {len([p for p in top50 if p['segment']=='niche'])/len(top50):.0%} of the top 50.")
+    by_type: dict[str, int] = {}
+    for p in top50:
+        k = audience_type(p["appetite"])
+        by_type[k] = by_type.get(k, 0) + 1
+    print("Audience type in the top 50: " + ", ".join(f"{k} {v}" for k, v in by_type.items()))
 
 
 if __name__ == "__main__":

@@ -84,6 +84,13 @@ quantified argument, and it needs the niche cohort to exist first.
 
 ## Which niche sports, concretely
 
+**There is no launch sport.** The platform is open to all of them, and early
+athletes are judged on everything — audience, consistency, professionalism,
+willingness to publish — with their sport as one input among those. The index in
+[08](08-sport-index.md) scores 714 country x sport pairs so that judgement has a
+basis; it is context, not a gate.
+
+
 Not a decision to make from a spreadsheet, but the filter is:
 
 | Criterion | Why it matters |
