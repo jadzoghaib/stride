@@ -78,33 +78,73 @@ a content platform, with the operational weight that implies.
 
 ---
 
-## Minors
+## The age model
 
-The product already models a **13–17 audience band**, and athletes in the target
-segment — semi-professional, nationally competitive — are frequently under 18.
+**Decision: 16 is the minimum age for an account.** That is defensible, and it
+is forward-compatible with where Spanish law is going. But three constraints do
+not move with it, so the age model has to be tiered rather than a single number.
 
-Paid fan content plus a population that includes minors is the combination that
-has ended platforms. The enforcement usually arrives from **card schemes rather
-than regulators**: Visa and Mastercard can withdraw processing on suspicion
-alone, and a marketplace without a payment rail is not a going concern.
+### What the law actually says
 
-Obligations that apply here:
+| Point | Position | Source |
+|---|---|---|
+| Digital consent age in Spain **today** | **14** — below that, guardian consent required | LOPDGDD Art. 7 |
+| GDPR default | 16, member states may lower to 13 | GDPR Art. 8 |
+| Spain's direction of travel | A draft Organic Law on the Protection of Minors in Digital Environments (Council of Ministers, March 2025) would raise digital consent **back to 16** and impose **mandatory age verification** on platforms | Draft bill, in Parliament |
+| Stripe Express / Custom Connect | **18 minimum.** Sign-up is refused below it | Stripe Connect docs |
+| Stripe Standard Connect | 13+, but a **legal guardian must own the account**, and payouts need a verified bank account in the owner's name | Stripe support |
+| Commercial use of a minor's image | Guardian consent required in Spain | LO 1/1982 — *confirm scope with counsel* |
 
-| Requirement | Source |
-|---|---|
-| Parental consent for under-16s (varies 13–16 by member state) | GDPR Art. 8 |
-| Age assurance proportionate to risk | EU DSA, UK OSA |
-| Payouts to minors require guardian-held accounts | Payment institution rules |
-| Employment/image-rights limits for minors in commercial deals | Spanish labour and image-rights law |
+**Choosing 16 is well-aligned with the draft law**, and if that bill passes, age
+verification becomes a legal obligation rather than a design choice. Building
+age assurance is therefore not optional under either outcome — only the deadline
+is uncertain.
 
-**Recommendation: launch adults-only.** Under-18 athletes may hold a profile and
-analytics — that is the product's original, safe use case — but fan
-monetisation, rate cards and payouts unlock at 18 or with a verified guardian
-account.
+### The distinction that actually matters
 
-This costs some addressable market and removes the risk that ends the company.
-It also makes the anchor-athlete filter in [04](04-capital-and-valuation.md#the-anchor-athlete)
-non-negotiable: **the first partner must be over 18.**
+Not age, but **who is paying and for what**:
+
+| | A sponsor pays for a post | An adult pays for private access |
+|---|---|---|
+| Precedent for minors | Universal — minors sign endorsement deals in every sport | Essentially none on reputable platforms |
+| Counterparty | A company, contractually identified | An individual, pseudonymous |
+| Relationship | Mediated by a contract and a guardian | Direct, recurring, and private |
+| Risk if it goes wrong | Contractual dispute | Safeguarding failure |
+
+A 16-year-old gymnast with a kit sponsor is normal. A 16-year-old selling
+monthly subscriptions with direct messaging to adult subscribers is the pattern
+that has produced litigation against creator platforms. **The content being
+entirely innocent does not change the shape of the risk**, and card schemes act
+on the shape.
+
+### Proposed tiers
+
+| Age | Profile & analytics | Club roster | Sponsorship deals | Fan subscriptions | Direct messaging | Payouts |
+|---|---|---|---|---|---|---|
+| **Under 16** | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| **16–17** | ✓ | ✓ | ✓ *guardian co-signs* | ✗ *(v1)* | ✗ | Guardian-owned Standard Connect |
+| **18+** | ✓ | ✓ | ✓ | ✓ | ✓ | Express Connect, own account |
+
+**The one place I would push back on 16 is fan subscriptions**, and only there.
+Everything else the platform does is safe at 16 and industry-normal.
+
+If you want 16–17 fan monetisation in v1 anyway, the minimum safeguards are:
+no direct-messaging tier at any price, no pay-per-view unlocks, guardian-owned
+payout account, identity-verified subscribers, and human review of every post
+before it goes behind a paywall. That is a materially heavier moderation
+operation than the model budgets, and it is the version I would revisit after
+the platform has a moderation team rather than before.
+
+### Consequences for the plan
+
+- **Age assurance is a P2 build, not optional** — see the sequencing below.
+- The anchor athlete filter in [04](04-capital-and-valuation.md#the-anchor-athlete)
+  stays: **the first partner should be over 18**, because the pre-seed gate tests
+  fan subscriptions and that surface is 18+ in v1.
+- Under-18 athletes are still worth onboarding from day one. They build the
+  analytics pool, they attract sponsors, and they convert to fan monetisation
+  automatically on their eighteenth birthday. **The cohort is an asset that
+  matures on a known date.**
 
 ---
 

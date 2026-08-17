@@ -89,18 +89,83 @@ a deal closing. By Y7 it is €3.36M of the €23.31M — 14% of revenue at clos
 
 ---
 
-## Take-rate positioning
+## Take rate — benchmarked
 
-| Option | Athlete keeps | Argument |
-|---|---|---|
-| 20% (OnlyFans parity) | 80% | Defensible, higher revenue, no positioning advantage |
-| **15% (proposed)** | **85%** | A stated reason to switch; "we take less than OnlyFans" is a headline an athlete repeats |
-| 10% | 90% | Attractive, but the fixed-fee maths breaks below €9.99 tiers |
+Headline rates across the platforms an athlete could plausibly choose instead:
 
-At Y7, each point of take rate on fan GMV is worth **€927k of revenue**. Moving
-15% → 20% adds €4.6M. That is real money, and it is the single biggest lever in
-the model — which is exactly why it should be a positioning decision made
-deliberately rather than a default. See [06](06-open-questions.md).
+| Platform | Headline take | Other creator fees | Effective take, small creator |
+|---|---|---|---|
+| **Passes** | **10%** | **$0.30/txn + $29/mo creator fee** | **~16–25%** |
+| OnlyFans | 20% | — | 20% |
+| Fansly | 20% | — | 20% |
+| Fanfix | 20% | — | 20% |
+| Patreon | 8–12% | Payment fees passed to creator | ~12–15% |
+| **Stride (proposed)** | **15%** | **none — we absorb payment costs** | **15%** |
+
+And the middlemen the athlete is paying *on top* of the platform:
+
+| Intermediary | Takes |
+|---|---|
+| Sports agent, endorsement deal | **10–20%** |
+| Sports agent, playing contract | 4–10% |
+| OnlyFans management agency | **20–50% of net**, on top of the platform's 20% |
+
+### Why 15% beats Passes' 10% for the athletes we serve
+
+Passes is the closest competitor and looks cheaper. It is not, for the long
+tail, because its **$29/month creator fee is regressive** — a fixed cost is
+brutal on a small creator and trivial on a large one.
+
+An athlete earning `R` per month across `N` transactions keeps:
+
+```
+Stride   0.85 × R                          (nothing else deducted)
+Passes   0.90 × R − €0.28×N − €27          (per-transaction + monthly fee)
+```
+
+At an average ticket of €9.20 those cross at **€1,380/month of fan revenue**
+(`27 / (0.05 − 0.28/9.20)`).
+
+| Athlete's monthly fan revenue | Keeps with Stride (15%) | Keeps with Passes (10% + fees) | Better off with |
+|---|---|---|---|
+| €100 | €85 | €60 | **Stride, by 42%** |
+| €275 *(our modelled average)* | €234 | €212 | **Stride, by 10%** |
+| €500 | €425 | €408 | **Stride** |
+| €1,000 | €850 | €843 | **Stride**, barely |
+| €1,380 | €1,173 | €1,173 | — crossover |
+| €2,000 | €1,700 | €1,712 | Passes |
+| €5,000 | €4,250 | €4,321 | Passes |
+
+**Below €1,380/month, Stride's 15% pays the athlete more than Passes' 10%.**
+Our modelled athlete at maturity earns €275/month — comfortably on the left of
+that line, and the entire long tail with them. The athletes on the right are
+the ones who already have an agent.
+
+Note what the crossover means for our own economics: **the athletes for whom
+Stride is the better deal are also the ones whose revenue Passes' pricing is not
+designed to capture.** We are not undercutting a competitor on the same
+customer; we are pricing for a customer they have chosen not to serve.
+
+This is not a pricing trick; it is the opposite bet from Passes. **Their
+pricing is optimised for creators who are already big. Ours is optimised for
+creators who are not.** That is the same bet as serving niche sports, and the
+two decisions have to agree with each other.
+
+### The lever, quantified
+
+At Y7 each point of take on fan GMV is worth **€927k of revenue**; 15% → 20%
+adds €4.6M. It is the single biggest lever in the model.
+
+**Recommendation: hold 15%, and never add a monthly creator fee.** The fee is
+what makes Passes beatable, and copying it would forfeit the only pricing
+argument that survives contact with a long-tail athlete. Revisit the percentage
+at Series A, when the network — not the price — is the reason to stay.
+
+*Sources: [Passes fee structure (Sacra)](https://sacra.com/c/passes/) ·
+[Passes 10% confirmed at 2026 rebrand](https://www.prnewswire.com/news-releases/passes-rebrands-as-the-creator-accelerator-platform-302749690.html) ·
+[Platform comparison](https://www.mexc.com/news/1014749) ·
+[OnlyFans agency commissions 20–50%](https://arunatalent.com/blog/onlyfans-agency-commission-rates/) ·
+[Sports agent endorsement commissions](https://www.oreateai.com/blog/understanding-sports-agents-commission-what-percentage-do-they-take/95c2df506ae450b9b71340b89cfcfece)*
 
 ---
 
