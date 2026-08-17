@@ -62,6 +62,13 @@ export const ERROR_TEXT: Record<string, string> = {
 }
 
 export function errorText(err: unknown): string {
-  if (err instanceof ApiError) return ERROR_TEXT[err.message] ?? err.message
-  return String(err)
+  if (!(err instanceof ApiError)) return String(err)
+  // `requires_role:a|b|c` is generated per route rather than drawn from a fixed
+  // list, so it cannot live in ERROR_TEXT — it needs a prefix rule instead.
+  // Without one the raw code reaches the screen, which is exactly what the
+  // table exists to prevent.
+  if (err.message.startsWith('requires_role:')) {
+    return 'This account type does not have access to that page.'
+  }
+  return ERROR_TEXT[err.message] ?? err.message
 }

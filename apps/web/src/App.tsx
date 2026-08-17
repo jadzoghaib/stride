@@ -1,8 +1,10 @@
 import { useEffect, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Shell from './components/Shell'
+import { PageLoading } from './components/ui'
 import { AuthProvider, roleHome, useAuth } from './lib/auth'
 import { ToastProvider } from './lib/toast'
+import Operations from './views/admin/Operations'
 import AthletePublicView from './views/AthletePublic'
 import AthletesDirectory from './views/AthletesDirectory'
 import Auth from './views/Auth'
@@ -23,7 +25,17 @@ import SponsorPipeline from './views/sponsor/Pipeline'
 
 function Guard({ roles, children }: { roles: string[]; children: ReactNode }) {
   const { me, loading } = useAuth()
-  if (loading) return <div className="p-8 text-ink-3">Checking session…</div>
+  // the session probe uses the same skeleton every other load does, rather than
+  // a bare line of text — the shell is what is loading, so the shell is shown
+  if (loading) {
+    return (
+      <Shell>
+        <div className="pt-8">
+          <PageLoading />
+        </div>
+      </Shell>
+    )
+  }
   if (!me) return <Navigate to="/auth" replace />
   if (!roles.includes(me.role)) return <Navigate to={roleHome(me.role)} replace />
   return <Shell>{children}</Shell>
@@ -74,8 +86,14 @@ export default function App() {
           <Route path="/sponsor/athletes/:slug" element={<Guard roles={['sponsor']}><AthleteEvidence /></Guard>} />
           <Route path="/sponsor/pipeline" element={<Guard roles={['sponsor']}><SponsorPipeline /></Guard>} />
 
+          {/* These two lists mirror the API exactly: /api/discover admits admin,
+              /api/feed does not (a following feed needs follows, which an admin
+              account has none of). A client guard that is more permissive than
+              require_role just routes people to a 403. */}
           <Route path="/discover" element={<Guard roles={['fan', 'athlete', 'sponsor', 'admin']}><Discover /></Guard>} />
-          <Route path="/feed" element={<Guard roles={['fan', 'athlete', 'sponsor', 'admin']}><Feed /></Guard>} />
+          <Route path="/feed" element={<Guard roles={['fan', 'athlete', 'sponsor']}><Feed /></Guard>} />
+
+          <Route path="/admin" element={<Guard roles={['admin']}><Operations /></Guard>} />
 
           <Route path="*" element={<Public><NotFound /></Public>} />
         </Routes>

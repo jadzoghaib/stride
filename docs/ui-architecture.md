@@ -40,7 +40,7 @@ shape — so it is the boundary the filesystem reflects.
 
 ## Information architecture
 
-17 routes. Every one names its access rule at the route, not inside the view.
+18 routes. Every one names its access rule at the route, not inside the view.
 
 | Path | View | Access | Chrome |
 |---|---|---|---|
@@ -59,7 +59,8 @@ shape — so it is the boundary the filesystem reflects.
 | `/sponsor/athletes/:slug` | `sponsor/AthleteEvidence` | sponsor | Shell + Guard |
 | `/sponsor/pipeline` | `sponsor/Pipeline` | sponsor | Shell + Guard |
 | `/discover` | `fan/Discover` | fan · athlete · sponsor · admin | Shell + Guard |
-| `/feed` | `fan/Feed` | fan · athlete · sponsor · admin | Shell + Guard |
+| `/feed` | `fan/Feed` | fan · athlete · sponsor | Shell + Guard |
+| `/admin` | `admin/Operations` | admin | Shell + Guard |
 | `*` | `NotFound` | public | Shell |
 
 **Landing and Auth render outside the Shell, deliberately.** They are the two
@@ -81,7 +82,7 @@ what each audience can reach; adding a destination means editing one object.
 | sponsor | Campaigns · Pipeline · Directory · Clubs | `/sponsor` |
 | club | Club HQ · Directory · Clubs | `/club` |
 | fan | Discover · Following · Clubs | `/discover` |
-| admin | Directory · Clubs · Operations | `/athletes` |
+| admin | Directory · Clubs · Operations | `/admin` |
 
 `roleHome(role)` is the one function that answers "where does this account
 belong?". Guard redirects, the wordmark link, and post-auth landing all call it —
@@ -107,6 +108,12 @@ of the auth wiring.
 **Client guards are for navigation, not security.** They decide what to render;
 the API enforces the boundary with `require_role` on every route. A user who
 edits their way past a Guard reaches a 403, not data.
+
+**But a guard that is *more permissive* than the API is still a bug.** It does
+not leak anything — it strands the user on a 403 instead of redirecting them
+somewhere useful. `/discover` and `/feed` are the pair that differ (admin may
+reach discovery, but a following feed needs follows an admin has none of), and
+`test_admin_reaches_discover_but_not_feed` pins the two lists together.
 
 **One place handles session death.** `lib/api.ts` intercepts any `401` carrying a
 known session-failure code (`not_authenticated`, `invalid_session`,
@@ -139,6 +146,11 @@ introduce a query client there, not in the views.
 codes; `ERROR_TEXT` in `lib/api.ts` is the single table mapping them to human
 sentences, and `errorText(err)` is the only thing views call. An unmapped code
 falls through as itself rather than as a lie.
+
+A code whose text is *generated* rather than drawn from a fixed set cannot live
+in that table — `requires_role:fan|sponsor|athlete` is built per route — so
+`errorText` carries a prefix rule for it. Any future generated code needs the
+same, or the raw string is what the user reads.
 
 ## The view state contract
 
@@ -257,11 +269,25 @@ ignores the CSS guard entirely — that is why both exist.
 - Loading regions announce with `role="status"`.
 - Interactive lanes expose `aria-pressed`; selection state is not colour-only.
 
+## How a view opens
+
+Exactly two options, so no surface falls back to an unstyled heading in the body
+face:
+
+| The view… | Opens with | Examples |
+|---|---|---|
+| reports a headline figure | `Board` (full-bleed, display-scale numeral, closing rule) | athlete dashboard, sponsor campaigns, campaign matches, club HQ, public athlete profile |
+| does not | `PageHeader` (eyebrow, display-face title, tags, lede) | directory, clubs, deals, profile, pipeline, discover, feed, evidence |
+
+**The closing rule must report something true.** When the headline is a 0-100
+score the rule fills to it. When the headline is money or a count it is not a
+percentage of anything, so the view passes `rulePct` explicitly — the club board
+fills it to the share of live packages that have a backer, the sponsor board to
+the accept rate. A rule filled to an arbitrary width would be decoration.
+
 ## Known gaps
 
 | Gap | Impact | Fix |
 |---|---|---|
-| `NAV.admin` links `/admin`, which **has no route** — admins land on NotFound. The API's `/api/admin` router exists and is unused by the client. | Broken navigation for the admin role | Build the Operations view, or drop the nav entry until it exists |
-| `AthletesDirectory` and `fan/Discover` skip the loading/error contract | Two surfaces flash empty instead of showing a skeleton | Adopt `PageLoading` / `LoadError` |
-| `Board` is used in 1 of 17 views | The redesign's signature device carries only the athlete dashboard; other views received the token layer without the structural vocabulary | Extend to the sponsor, club, and public profile surfaces |
 | No client cache | Cross-view navigation refetches | Accepted at this scale; the seam is `lib/api.ts` |
+| Mobile layout is unpolished below ~700px | Tables scroll horizontally inside their own container rather than reflowing | Deliberate non-goal for v0.1 (product.md) |

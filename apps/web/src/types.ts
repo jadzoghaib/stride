@@ -149,8 +149,14 @@ export interface Match {
   country: string
   base_rate_usd: number
   score: number
-  components: Record<string, number>
+  /** null = the dimension could not be measured. It is excluded from the score
+   *  rather than counted as zero, so never render it as a 0. */
+  components: Record<string, number | null>
+  /** The nominal model — what each component is worth when everything is measured. */
   weights: Record<string, number>
+  /** What actually produced this score: `weights` renormalised over the measured
+   *  components. Multiply by the component to get its real contribution. */
+  effective_weights: Record<string, number | null>
   reasons: string[]
   caveats: string[]
   analytics_summary: {
@@ -218,3 +224,16 @@ export const CATEGORIES = ['Sportswear', 'Nutrition', 'Technology', 'Automotive'
 
 export const dealTypeLabel = (key: string) =>
   DEAL_TYPES.find((d) => d.key === key)?.label ?? key.replace(/_/g, ' ')
+
+/** The API computes no athlete-level composite — the only `score` it produces is
+ *  per sponsor campaign. Any headline marketability figure is therefore derived
+ *  here, and every caller must label it as a mean of `n` dimensions so it is
+ *  never mistaken for a stored value. Returns null when nothing is computed. */
+export function meanScore(dimensions: Record<string, number | null> | undefined | null) {
+  if (!dimensions) return { value: null as number | null, n: 0 }
+  const values = DIMENSIONS.map((d) => dimensions[d.key]).filter(
+    (v): v is number => typeof v === 'number',
+  )
+  if (!values.length) return { value: null as number | null, n: 0 }
+  return { value: values.reduce((s, v) => s + v, 0) / values.length, n: values.length }
+}

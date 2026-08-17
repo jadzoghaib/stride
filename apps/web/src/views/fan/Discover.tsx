@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Avatar, CoverageChip, EmptyNote } from '../../components/ui'
+import { Avatar, CoverageChip, EmptyNote, LoadError, PageHeader, PageLoading } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import type { AthletePublic } from '../../types'
@@ -23,8 +23,12 @@ export default function Discover() {
   }, [selected, country])
 
   useEffect(() => {
+    setError('')
     api.get<AthletePublic[]>(`/api/discover?${query}`).then(setAthletes).catch((e) => setError(errorText(e)))
   }, [query])
+
+  // mutation failures report in place; only a failed first load takes the page
+  const firstLoadFailed = !athletes && error
 
   const toggleFollow = async (a: AthletePublic) => {
     if (!me) return
@@ -37,12 +41,17 @@ export default function Discover() {
     }
   }
 
+  if (firstLoadFailed) return <LoadError text={error} />
+
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-ink">Discover athletes</h1>
-      <p className="mt-1 text-sm text-ink-3">Pick your interests — the ranking explains every suggestion.</p>
+      <PageHeader
+        eyebrow="Supporter"
+        title="Discover athletes"
+        lede="Pick your interests — the ranking explains every suggestion."
+      />
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {INTERESTS.map((i) => (
           <button key={i}
                   onClick={() => setSelected((s) => (s.includes(i) ? s.filter((x) => x !== i) : [...s, i]))}
@@ -54,7 +63,13 @@ export default function Discover() {
                value={country} onChange={(e) => setCountry(e.target.value)} />
       </div>
 
-      {error && <div className="mt-4 text-sm text-critical">{error}</div>}
+      {error && (
+        <div className="mt-4 rounded border border-critical/45 bg-critical/10 px-3.5 py-2.5 text-sm text-critical">
+          {error}
+        </div>
+      )}
+
+      {!athletes && <div className="mt-6"><PageLoading rows={2} /></div>}
 
       <div className="mt-6 grid gap-3 md:grid-cols-2">
         {athletes?.map((a) => (

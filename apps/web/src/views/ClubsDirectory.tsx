@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LoadError, PageLoading, Avatar, EmptyNote } from '../components/ui'
+import { LoadError, PageHeader, PageLoading, Avatar, EmptyNote } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import type { Club } from '../types'
 
@@ -16,12 +16,13 @@ export default function ClubsDirectory() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-ink">Clubs</h1>
-      <p className="mt-1 text-sm text-ink-3">
-        Clubs manage rosters of Stride athletes and publish sponsorship packages —
-        including player-direct packages that back an individual athlete through the club.
-      </p>
-      <div className="mt-6 grid gap-3 md:grid-cols-2">
+      <PageHeader
+        eyebrow="Directory"
+        title="Clubs"
+        lede="Clubs manage rosters of Stride athletes and publish sponsorship packages — including player-direct packages that back an individual athlete through the club."
+        aside={<span className="meta">{clubs.length} club{clubs.length === 1 ? '' : 's'}</span>}
+      />
+      <div className="grid gap-3 md:grid-cols-2">
         {clubs.map((c) => (
           <Link key={c.id} to={`/clubs/${c.slug}`} className="panel panel-hover block p-5">
             <div className="flex items-center gap-3">

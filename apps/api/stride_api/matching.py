@@ -34,6 +34,11 @@ WEIGHTS = {
     "category_affinity": 0.05, # sport/topics vs campaign category
 }
 
+# The two groups a component can belong to. Weight is redistributed *within* a
+# group, never across one — see _effective_weights.
+ANALYTICS_KEYS = ("audience_fit", "engagement_quality", "audience_scale", "growth", "consistency")
+COMMERCIAL_KEYS = ("budget_alignment", "deal_type_overlap", "category_affinity")
+
 # Which athlete topics historically convert per sponsor category.
 CATEGORY_TOPICS = {
     "Sportswear": ["fitness", "training", "running", "basketball", "football", "lifestyle"],
@@ -54,7 +59,33 @@ def _budget_alignment(rate: int, lo: int, hi: int) -> tuple[float, str | None]:
         return 0.85, f"Rate card ${rate:,} is under budget - room for a larger package"
     if rate <= hi * 2:
         return 0.4, f"Rate card ${rate:,} exceeds budget - negotiable at reduced scope"
-    return 0.0, None
+    # A genuine measured zero, not missing data — but it still has to say why,
+    # or the decomposition shows an unexplained 0 against a 12% weight.
+    return 0.0, f"Rate card ${rate:,} is more than double the ${hi:,} ceiling"
+
+
+def _effective_weights(components: dict[str, float | None]) -> dict[str, float | None]:
+    """Weights renormalised over the components that were actually measured.
+
+    A dimension CreatorLens could not compute is `None` here, and stays `None` —
+    the engine's rule (missing is not zero) holds all the way to the ranking
+    instead of being flattened at this boundary.
+
+    Redistribution is *within a group*: if growth is unmeasured, the other four
+    analytics dimensions share its weight. If a whole group is unmeasured its
+    weight is forfeited rather than handed to the other group — otherwise an
+    athlete with no analytics at all would be scored purely on commercial fit
+    and could out-rank an athlete who actually has evidence.
+    """
+    effective: dict[str, float | None] = {}
+    for group in (ANALYTICS_KEYS, COMMERCIAL_KEYS):
+        group_weight = sum(WEIGHTS[k] for k in group)
+        measured_weight = sum(WEIGHTS[k] for k in group if components.get(k) is not None)
+        for key in group:
+            effective[key] = (WEIGHTS[key] * group_weight / measured_weight
+                              if components.get(key) is not None and measured_weight > 0
+                              else None)
+    return effective
 
 
 def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -> list[dict]:
@@ -65,7 +96,7 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
     results = []
 
     for athlete in athletes:
-        components: dict[str, float] = {}
+        components: dict[str, float | None] = {}
         reasons: list[str] = []
         caveats: list[str] = []
 
@@ -80,9 +111,14 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
         if analytics:
             dims = analytics["dimensions"]
             cov = analytics["coverage"]["platforms"]
-            for key in ("audience_fit", "engagement_quality", "audience_scale", "growth", "consistency"):
+            for key in ANALYTICS_KEYS:
                 value = dims.get(key)
-                components[key] = (value / 100) if value is not None else 0.0
+                components[key] = (value / 100) if value is not None else None
+            unmeasured = [k for k in ANALYTICS_KEYS if components[k] is None]
+            if unmeasured:
+                caveats.append("Not measured: "
+                               + ", ".join(k.replace("_", " ") for k in unmeasured)
+                               + " - excluded from the score, remaining analytics weighted up")
             if dims.get("audience_fit") is not None and dims["audience_fit"] >= 60:
                 reasons.append(f"Audience fit {dims['audience_fit']:.0f}/100 against this campaign's target")
             if dims.get("engagement_quality") is not None and dims["engagement_quality"] >= 60:
@@ -93,8 +129,8 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
                 caveats.append(f"Analytics coverage {cov['connected']} of {cov['total']} platforms"
                                f" - missing {', '.join(cov['missing'])}")
         else:
-            for key in ("audience_fit", "engagement_quality", "audience_scale", "growth", "consistency"):
-                components[key] = 0.0
+            for key in ANALYTICS_KEYS:
+                components[key] = None
             caveats.append("No connected social analytics - commercial signals only")
 
         # ---- commercial components: Stride's own
@@ -108,7 +144,9 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
 
         athlete_deal_types = set(json.loads(athlete["deal_types"]))
         overlap = campaign_deal_types & athlete_deal_types
-        components["deal_type_overlap"] = len(overlap) / len(campaign_deal_types) if campaign_deal_types else 0.0
+        # a brief that names no formats cannot measure format overlap
+        components["deal_type_overlap"] = (len(overlap) / len(campaign_deal_types)
+                                           if campaign_deal_types else None)
         if overlap:
             reasons.append("Offers " + ", ".join(sorted(t.replace("_", " ") for t in overlap)))
 
@@ -118,7 +156,9 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
         if topic_hits:
             reasons.append(f"Content themes match {campaign['category']}: " + ", ".join(sorted(topic_hits)))
 
-        score = round(100 * sum(WEIGHTS[k] * components[k] for k in WEIGHTS), 1)
+        effective = _effective_weights(components)
+        score = round(100 * sum(effective[k] * components[k]
+                                for k in WEIGHTS if components[k] is not None), 1)
         results.append({
             "athlete_id": athlete["id"],
             "slug": athlete["slug"],
@@ -127,8 +167,13 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
             "country": athlete["country"],
             "base_rate_usd": athlete["base_rate_usd"],
             "score": score,
-            "components": {k: round(v, 3) for k, v in components.items()},
+            # null component = not measured. `weights` is the nominal model;
+            # `effective_weights` is what actually produced this score.
+            "components": {k: (round(v, 3) if v is not None else None)
+                           for k, v in components.items()},
             "weights": WEIGHTS,
+            "effective_weights": {k: (round(v, 4) if v is not None else None)
+                                  for k, v in effective.items()},
             "reasons": reasons,
             "caveats": caveats,
             "analytics_summary": {
@@ -137,7 +182,7 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
             } if analytics else None,
         })
 
-    results.sort(key=lambda r: r["score"], reverse=True)
+    results.sort(key=lambda r: (-r["score"], r["display_name"]))  # ties break A->Z
     return results[:limit]
 
 

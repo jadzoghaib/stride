@@ -1,17 +1,19 @@
 import { Plus, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LoadError, PageLoading, Avatar, EmptyNote, Section, Stat, StatusChip } from '../../components/ui'
+import { Board } from '../../components/Board'
+import { LoadError, Modal, PageLoading, Avatar, EmptyNote, Section, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { useToast } from '../../lib/toast'
 import { fmtDate, fmtMoney } from '../../lib/format'
-import type { ClubWorkspace } from '../../types'
+import type { ClubWorkspace, RosterMember } from '../../types'
 
 export default function ClubDashboard() {
   const [ws, setWs] = useState<ClubWorkspace | null>(null)
   const [error, setError] = useState('')
   const [addingMember, setAddingMember] = useState(false)
   const [creatingPackage, setCreatingPackage] = useState(false)
+  const [removing, setRemoving] = useState<RosterMember | null>(null)
   const toast = useToast()
 
   const load = () => api.get<ClubWorkspace>('/api/club/workspace').then(setWs).catch((e) => setError(errorText(e)))
@@ -32,31 +34,52 @@ export default function ClubDashboard() {
   if (!ws) return error ? <LoadError text={error} /> : <PageLoading />
 
   const activePackages = ws.packages.filter((p) => p.status === 'active')
+  const backed = activePackages.filter((p) => p.active_backers > 0).length
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold text-ink">{ws.club.name}</h1>
-        <span className="tag">{ws.club.sport}</span>
-        <span className="tag">{ws.club.country}</span>
-        <StatusChip status={ws.editable.status} />
-        <Link to={`/clubs/${ws.club.slug}`} className="btn ml-auto px-3 py-1 text-xs">Public page</Link>
-      </div>
+    <>
+      <Board
+        eyebrow="Club"
+        title={ws.club.name}
+        tags={
+          <>
+            <span className="tag">{ws.club.sport}</span>
+            <span className="tag">{ws.club.country}</span>
+            <StatusChip status={ws.editable.status} />
+          </>
+        }
+        score={ws.revenue_active}
+        scoreFormat={(n) => fmtMoney(Math.round(n))}
+        scoreLabel="Active sponsorship revenue"
+        /* the rule reports inventory sold, not the revenue figure — a money
+           headline is not a percentage of anything, so it needs its own source */
+        rulePct={activePackages.length ? (100 * backed) / activePackages.length : 0}
+        deltaNote={`${backed} of ${activePackages.length} live packages backed`}
+        trendEmpty="Sponsors commit to packages from your public page."
+        figures={[
+          { label: 'Roster', value: ws.roster.length, to: '/club#roster' },
+          { label: 'Packages live', value: activePackages.length, to: '/club#packages' },
+          {
+            label: 'Player-direct',
+            value: activePackages.filter((p) => p.package_type === 'player_direct').length,
+            to: '/club#packages',
+          },
+          { label: 'Commitments', value: ws.commitments.length, to: '/club#commitments' },
+        ]}
+        footNote={
+          <Link to={`/clubs/${ws.club.slug}`} className="hover:text-ink-2">
+            View public page →
+          </Link>
+        }
+      />
+
+      <div>
       {ws.editable.status === 'draft' && (
-        <div className="mt-3 rounded border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn">
+        <div className="mt-4 rounded border border-warn/45 bg-warn/10 px-3.5 py-2.5 text-sm text-warn">
           Your club is in draft — set it to listed below to appear in the directory.
         </div>
       )}
-      {error && <div className="mt-4 rounded border border-critical/40 bg-critical/10 px-3 py-2 text-sm text-critical">{error}</div>}
-
-      <div className="mt-6 grid gap-3 md:grid-cols-3">
-        <Stat label="Active sponsorship revenue" value={fmtMoney(ws.revenue_active)} sub="committed packages"
-              to="/club#commitments" />
-        <Stat label="Roster" value={ws.roster.length} sub="active athletes" to="/club#roster" />
-        <Stat label="Packages live" value={activePackages.length}
-              sub={`${activePackages.filter((p) => p.package_type === 'player_direct').length} player-direct`}
-              to="/club#packages" />
-      </div>
+      {error && <div className="mt-4 rounded border border-critical/45 bg-critical/10 px-3.5 py-2.5 text-sm text-critical">{error}</div>}
 
       <Section title="Sponsorship packages" id="packages"
                aside={<button className="btn px-3 py-1 text-xs" onClick={() => setCreatingPackage((v) => !v)}>
@@ -119,11 +142,10 @@ export default function ClubDashboard() {
                 </Link>
                 <div className="text-xs text-ink-3">{m.position || m.sport} · joined {fmtDate(m.joined_at)}</div>
               </div>
-              <button className="ml-auto text-ink-3 hover:text-critical" title="Remove from roster"
-                      onClick={() => {
-                        if (confirm(`Remove ${m.display_name}? Their player-direct packages will be archived.`))
-                          void act(() => api.post(`/api/club/members/${m.athlete_id}/remove`))
-                      }}>
+              <button className="ml-auto text-ink-3 hover:text-critical"
+                      title={`Remove ${m.display_name} from roster`}
+                      aria-label={`Remove ${m.display_name} from roster`}
+                      onClick={() => setRemoving(m)}>
                 <X size={15} />
               </button>
             </div>
@@ -166,7 +188,36 @@ export default function ClubDashboard() {
       <Section title="Club profile">
         <ProfileForm editable={ws.editable} onSaved={load} />
       </Section>
-    </div>
+      </div>
+
+      {removing && (
+        <Modal title={`Remove ${removing.display_name}?`} onClose={() => setRemoving(null)}>
+          {(close) => (
+            <>
+              <p className="text-sm text-ink-2">
+                They come off the active roster, and any player-direct package backing them is archived —
+                ending the sponsor commitments attached to it.
+              </p>
+              <div className="mt-5 flex gap-2">
+                <button
+                  className="btn border-critical text-critical hover:border-critical hover:bg-critical/10 hover:text-critical"
+                  onClick={() => {
+                    const id = removing.athlete_id
+                    close()
+                    void act(() => api.post(`/api/club/members/${id}/remove`))
+                  }}
+                >
+                  Remove from roster
+                </button>
+                <button className="btn" onClick={close}>
+                  Keep on roster
+                </button>
+              </div>
+            </>
+          )}
+        </Modal>
+      )}
+    </>
   )
 }
 
@@ -265,19 +316,20 @@ function ProfileForm({ editable, onSaved }: { editable: ClubWorkspace['editable'
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }))
-  const save = async () => {
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault()
     setError('')
     setStatus('')
     try {
       await api.put('/api/club/profile', form)
       setStatus('Saved.')
       onSaved()
-    } catch (e) {
-      setError(errorText(e))
+    } catch (err) {
+      setError(errorText(err))
     }
   }
   return (
-    <div className="max-w-2xl">
+    <form onSubmit={save} className="max-w-2xl">
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block"><span className="cap">Club name</span>
           <input className="field mt-1" value={form.name} onChange={(e) => set('name', e.target.value)} /></label>
@@ -297,10 +349,10 @@ function ProfileForm({ editable, onSaved }: { editable: ClubWorkspace['editable'
             {s}
           </button>
         ))}
-        <button className="btn-go ml-4" onClick={save}>Save</button>
+        <button className="btn-go ml-4">Save</button>
         {status && <span className="text-sm text-ok">{status}</span>}
         {error && <span className="text-sm text-critical">{error}</span>}
       </div>
-    </div>
+    </form>
   )
 }

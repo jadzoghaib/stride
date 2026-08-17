@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { LoadError, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
+import { LoadError, PageHeader, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDate, fmtMoney } from '../../lib/format'
 import type { AthleteWorkspace, Deal } from '../../types'
@@ -39,8 +39,13 @@ export default function AthleteDeals() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-ink">Deals</h1>
-      {error && <div className="mt-4 rounded border border-critical/40 bg-critical/10 px-3 py-2 text-sm text-critical">{error}</div>}
+      <PageHeader
+        eyebrow="Athlete"
+        title="Deals"
+        lede="Offers waiting on you, and every offer already resolved."
+        aside={<span className="meta">{open.length} awaiting response</span>}
+      />
+      {error && <div className="mb-4 rounded border border-critical/45 bg-critical/10 px-3.5 py-2.5 text-sm text-critical">{error}</div>}
 
       <Section title={`Open offers (${open.length})`}>
         {open.length === 0 && <EmptyNote text="No open offers. Sponsors find you through campaign matching — a complete profile and connected platforms raise your visibility." />}

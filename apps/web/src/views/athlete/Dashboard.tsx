@@ -15,20 +15,9 @@ import {
 import { api, errorText } from '../../lib/api'
 import { fmtDT, fmtMoney, fmtNum } from '../../lib/format'
 import type { AthleteWorkspace } from '../../types'
-import { DIMENSIONS } from '../../types'
+import { DIMENSIONS, meanScore } from '../../types'
 
 const PLATFORMS = ['instagram', 'youtube', 'tiktok']
-
-/** The API returns the five dimensions but no athlete-level composite — the
- *  only `score` it computes is per sponsor campaign. The headline figure is
- *  therefore derived here, and labelled as a mean so it is never mistaken for a
- *  stored value. Returns null when nothing has been computed yet. */
-function meanScore(dimensions: Record<string, number | null> | undefined) {
-  if (!dimensions) return { value: null as number | null, n: 0 }
-  const vals = DIMENSIONS.map((d) => dimensions[d.key]).filter((v): v is number => typeof v === 'number')
-  if (!vals.length) return { value: null as number | null, n: 0 }
-  return { value: vals.reduce((s, v) => s + v, 0) / vals.length, n: vals.length }
-}
 
 export default function AthleteDashboard() {
   const [ws, setWs] = useState<AthleteWorkspace | null>(null)
@@ -97,6 +86,7 @@ export default function AthleteDashboard() {
         deltaNote={computedDims ? `mean of ${computedDims} computed dimension${computedDims === 1 ? '' : 's'}` : 'not yet computed'}
         trend={history}
         trendLabel={history.length > 1 ? `audience scale · last ${history.length} snapshots` : undefined}
+        trendEmpty="A trend line appears once a second sync has been recorded."
         figures={[
           { label: 'Committed', value: fmtMoney(ws.earnings), to: '/athlete/deals#history' },
           { label: 'Open offers', value: openDeals.length, to: '/athlete/deals' },

@@ -24,8 +24,14 @@ export function useReducedMotion() {
   return reduce
 }
 
-/** Numerals roll up and settle, the way a scoreboard resolves. */
-export function useCountUp(to: number | null | undefined, dp = 0, dur = 950) {
+/** Numerals roll up and settle, the way a scoreboard resolves. `format` lets a
+ *  board headline that is not a 0-100 score (money, a count) roll up too. */
+export function useCountUp(
+  to: number | null | undefined,
+  dp = 0,
+  dur = 950,
+  format?: (n: number) => string,
+) {
   const reduce = useReducedMotion()
   const target = to ?? 0
   const [n, setN] = useState(() => (reduce ? target : 0))
@@ -46,7 +52,8 @@ export function useCountUp(to: number | null | undefined, dp = 0, dur = 950) {
     return () => cancelAnimationFrame(frame.current)
   }, [target, dur, reduce])
 
-  return to === null || to === undefined ? '—' : n.toFixed(dp)
+  if (to === null || to === undefined) return '—'
+  return format ? format(n) : n.toFixed(dp)
 }
 
 /** Fades a block in on mount. `delay` staggers siblings into a sequence. */
@@ -75,6 +82,114 @@ export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
     >
       {initials(name)}
     </div>
+  )
+}
+
+/** The page header for views that have no single headline figure.
+ *
+ *  Board.tsx covers the views that do. Between them these are the only two ways
+ *  a view opens, so the board register reaches every surface: a view either
+ *  reports a figure (Board) or it does not (PageHeader), and nothing falls back
+ *  to an unstyled heading in the body face. */
+export function PageHeader({
+  eyebrow,
+  title,
+  lede,
+  tags,
+  aside,
+}: {
+  eyebrow?: ReactNode
+  title: string
+  lede?: ReactNode
+  tags?: ReactNode
+  aside?: ReactNode
+}) {
+  return (
+    <header className="mb-8">
+      {eyebrow && <div className="cap mb-1.5">{eyebrow}</div>}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h1 className="text-[30px] leading-tight tracking-board">{title}</h1>
+        {tags}
+        {aside && <div className="ml-auto">{aside}</div>}
+      </div>
+      {lede && <p className="mt-2 max-w-2xl text-sm text-ink-3">{lede}</p>}
+    </header>
+  )
+}
+
+/** A modal built on the native <dialog>.
+ *
+ *  `showModal()` is what makes this a dialog rather than a floating div: the
+ *  platform moves focus in, traps it, makes the rest of the page inert, closes
+ *  on Escape, and restores focus to the trigger on close. Page scroll is the
+ *  one thing it does not lock, so that is done here.
+ *
+ *  A backdrop click deliberately does NOT close it: these dialogs hold typed
+ *  input, and a stray click outside should not discard an offer someone has
+ *  written. Escape and the explicit Cancel control are the ways out. */
+export function Modal({
+  title,
+  onClose,
+  children,
+}: {
+  title: string
+  /** Called once the dialog has actually closed — unmount it here. */
+  onClose: () => void
+  /** Given the platform close request, so controls inside route through it. */
+  children: (close: () => void) => ReactNode
+}) {
+  const ref = useRef<HTMLDialogElement>(null)
+  const titleId = useRef(`modal-${Math.random().toString(36).slice(2, 9)}`).current
+  // kept current so the `close` listener below can stay bound once
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  })
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (!el.open) el.showModal()
+    // showModal() handles focus, the focus trap and inertness; page scroll is
+    // the one thing it leaves alone. Cleanup clears the property rather than
+    // restoring a captured value: StrictMode runs this effect twice, so the
+    // second run would capture the lock set by the first and never release it.
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [])
+
+  /** Close through the element first, then unmount.
+   *
+   *  `close()` is what returns focus to the control that opened the dialog —
+   *  unmounting an open dialog skips that and drops focus on <body>. The `close`
+   *  event is deliberately not relied on to trigger the unmount: it does not
+   *  bubble, React's synthetic `onClose` does not fire for <dialog>, and this
+   *  browser does not emit it for a scripted `close()` either. Escape routes
+   *  through the same function via onCancel. */
+  const requestClose = () => {
+    ref.current?.close()
+    onCloseRef.current()
+  }
+
+  return (
+    <dialog
+      ref={ref}
+      className="modal"
+      aria-labelledby={titleId}
+      onCancel={(e) => {
+        e.preventDefault() // take the same explicit path as every other close
+        requestClose()
+      }}
+    >
+      <div className="panel p-6">
+        <h2 id={titleId} className="mb-4 text-[21px] leading-tight tracking-board">
+          {title}
+        </h2>
+        {children(requestClose)}
+      </div>
+    </dialog>
   )
 }
 
@@ -127,10 +242,12 @@ export function Meter({ value, height = 6, delay = 0, muted = false }: { value: 
  *  strength, so a weak dimension should not read as an emphasised one. */
 const STRONG_ENOUGH = 65
 
+/** Now that `warn` is its own hue rather than a second amber, confidence can
+ *  read as a real gradient: earned / unremarkable / worth flagging. */
 const CONFIDENCE_TONE: Record<string, string> = {
   high: 'text-ok',
-  medium: 'text-accent-ink',
-  low: 'text-accent-ink',
+  medium: 'text-ink-2',
+  low: 'text-warn',
 }
 
 /** The five marketability dimensions as ranked lanes. The lane number is the
@@ -187,12 +304,16 @@ export function DimensionGrid({
 
 // ── state chips ──────────────────────────────────────────────────────────────
 
+/** Partial coverage is *information*, not a warning — it is the normal state for
+ *  most athletes, and colouring it amber put a caution mark on 19 of 22 rows of
+ *  the directory while amber also meant emphasis. Full coverage earns the
+ *  positive mark; anything less reads as a neutral fact. */
 export function CoverageChip({ coverage }: { coverage: ScoreSummary['coverage'] | null | undefined }) {
   if (!coverage) return <span className="tag">no analytics</span>
   const full = coverage.connected === coverage.total
   return (
     <span
-      className={`tag ${full ? 'border-ok/45 bg-ok/10 text-ok' : 'border-warn/45 bg-warn/10 text-accent-ink'}`}
+      className={`tag ${full ? 'border-ok/45 bg-ok/10 text-ok' : ''}`}
       title={coverage.missing.length ? `Missing: ${coverage.missing.join(', ')}` : 'Full platform coverage'}
     >
       {coverage.connected} of {coverage.total} platforms
@@ -201,7 +322,7 @@ export function CoverageChip({ coverage }: { coverage: ScoreSummary['coverage'] 
 }
 
 const STATUS_STYLE: Record<string, string> = {
-  offered: 'border-warn/45 bg-warn/10 text-accent-ink',
+  offered: 'border-warn/45 bg-warn/10 text-warn',
   accepted: 'border-ok/45 bg-ok/10 text-ok',
   completed: 'border-ok/45 bg-ok/10 text-ok',
   declined: 'border-critical/45 bg-critical/10 text-critical',
@@ -210,7 +331,7 @@ const STATUS_STYLE: Record<string, string> = {
   disconnected: '',
   error: 'border-critical/45 bg-critical/10 text-critical',
   listed: 'border-ok/45 bg-ok/10 text-ok',
-  draft: 'border-warn/45 bg-warn/10 text-accent-ink',
+  draft: 'border-warn/45 bg-warn/10 text-warn',
   active: 'border-ok/45 bg-ok/10 text-ok',
   closed: '',
 }

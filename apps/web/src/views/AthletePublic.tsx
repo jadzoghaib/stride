@@ -1,12 +1,12 @@
-import { Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { Board } from '../components/Board'
 import { AudiencePanel } from '../components/charts'
-import { LoadError, PageLoading, Avatar, CoverageChip, DimensionGrid, Section } from '../components/ui'
+import { LoadError, PageLoading, CoverageChip, DimensionGrid, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { fmtMoney } from '../lib/format'
 import type { AthletePublic as Athlete } from '../types'
-import { dealTypeLabel } from '../types'
+import { dealTypeLabel, meanScore } from '../types'
 
 export default function AthletePublicView() {
   const { slug } = useParams()
@@ -19,36 +19,55 @@ export default function AthletePublicView() {
 
   if (!a) return error ? <LoadError text={error} /> : <PageLoading />
 
+  const { value: overall, n: computedDims } = meanScore(a.score?.dimensions)
+  const history = (a.score_history ?? [])
+    .map((h) => h.audience_scale)
+    .filter((v): v is number => typeof v === 'number')
+
   return (
-    <div>
-      <div className="flex flex-wrap items-center gap-4">
-        <Avatar name={a.display_name} size={56} />
-        <div>
-          <h1 className="text-2xl font-semibold text-ink">{a.display_name}</h1>
-          <div className="text-sm text-ink-3">{a.sport} · {a.country} · {a.region}</div>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          <span className="tag tnum">rate {fmtMoney(a.base_rate_usd)}</span>
-          <CoverageChip coverage={a.score?.coverage ?? null} />
-        </div>
-      </div>
+    <>
+      <Board
+        eyebrow="Athlete"
+        title={a.display_name}
+        tags={
+          <>
+            <span className="tag">{a.sport}</span>
+            <span className="tag">{a.country}</span>
+            <CoverageChip coverage={a.score?.coverage ?? null} />
+            {(a.clubs ?? []).map((c) => (
+              <Link
+                key={c.slug}
+                to={`/clubs/${c.slug}`}
+                className="tag border-accent/50 text-ink transition-colors hover:bg-raised"
+                title={c.position ? `${c.position} — view club` : 'View club'}
+              >
+                {c.name}
+              </Link>
+            ))}
+          </>
+        }
+        score={overall === null ? null : Math.round(overall)}
+        scoreLabel="Marketability"
+        deltaNote={
+          computedDims
+            ? `mean of ${computedDims} computed dimension${computedDims === 1 ? '' : 's'}`
+            : 'not yet computed'
+        }
+        trend={history}
+        trendLabel={history.length > 1 ? `audience scale · last ${history.length} snapshots` : undefined}
+        figures={[
+          { label: 'Rate card', value: fmtMoney(a.base_rate_usd) },
+          { label: 'Region', value: a.region },
+          {
+            label: 'Club',
+            value: (a.clubs ?? []).length ? (a.clubs ?? []).map((c) => c.name).join(', ') : 'Independent',
+          },
+        ]}
+        footNote={a.score ? `computed ${a.score.computed_at.slice(0, 10)}` : undefined}
+      />
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Shield size={13} className="text-ink-3" />
-        {(a.clubs ?? []).length > 0 ? (
-          (a.clubs ?? []).map((c) => (
-            <Link key={c.slug} to={`/clubs/${c.slug}`}
-                  className="tag border-accent text-ink hover:shadow-card"
-                  title={c.position ? `${c.position} — view club` : 'View club'}>
-              {c.name}{c.position ? ` · ${c.position}` : ''}
-            </Link>
-          ))
-        ) : (
-          <span className="text-xs text-ink-3">Independent — no club affiliation</span>
-        )}
-      </div>
-
-      {a.bio && <p className="mt-4 max-w-2xl text-sm text-ink-2">{a.bio}</p>}
+      <div>
+      {a.bio && <p className="mt-6 max-w-2xl text-sm text-ink-2">{a.bio}</p>}
 
       {a.career_highlights.length > 0 && (
         <Section title="Career highlights">
@@ -74,6 +93,7 @@ export default function AthletePublicView() {
           {a.topics.map((t) => <span key={t} className="tag text-ink-3">{t}</span>)}
         </div>
       </Section>
-    </div>
+      </div>
+    </>
   )
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LoadError, PageLoading, Avatar, CoverageChip, EmptyNote, Sparkline } from '../../components/ui'
+import { LoadError, PageHeader, PageLoading, Avatar, CoverageChip, EmptyNote, Sparkline } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import type { AthletePublic } from '../../types'
 
@@ -16,15 +16,19 @@ export default function Feed() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-ink">Following</h1>
-      <p className="mt-1 text-sm text-ink-3">Trajectory of the athletes you follow — audience scale over recent score snapshots.</p>
+      <PageHeader
+        eyebrow="Supporter"
+        title="Following"
+        lede="Trajectory of the athletes you follow — audience scale over recent score snapshots."
+        aside={<span className="meta">{athletes.length} followed</span>}
+      />
 
       {athletes.length === 0 ? (
-        <div className="mt-6">
+        <div>
           <EmptyNote text="You are not following anyone yet." action={<Link className="btn-go" to="/discover">Discover athletes</Link>} />
         </div>
       ) : (
-        <div className="mt-6 space-y-3">
+        <div className="space-y-3">
           {athletes.map((a) => (
             <div key={a.id} className="panel panel-hover flex items-center gap-4 p-4">
               <Avatar name={a.display_name} size={42} />

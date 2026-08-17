@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Board } from '../../components/Board'
 import { AudiencePanel } from '../../components/charts'
-import { LoadError, PageLoading, Avatar, CoverageChip, DimensionGrid, EmptyNote, Section } from '../../components/ui'
+import { LoadError, PageLoading, CoverageChip, DimensionGrid, EmptyNote, Section } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDate, fmtMoney, fmtNum, fmtPct } from '../../lib/format'
 import type { AthletePublic } from '../../types'
+import { meanScore } from '../../types'
 
 interface Evidence {
   athlete: AthletePublic
@@ -35,21 +37,51 @@ export default function AthleteEvidence() {
   const a = data.athlete
   const kpis = data.analytics?.inputs.platform_kpis ?? {}
 
+  // The live figure, not the stored snapshot: with a campaign in scope these
+  // dimensions were recomputed against that campaign's own target, so the mean
+  // is what this sponsor is actually looking at.
+  const { value: overall, n: computedDims } = meanScore(data.analytics?.dimensions)
+  const reach = Object.values(kpis).reduce((s, k) => s + (k.followers ?? 0), 0)
+
   return (
-    <div>
-      <div className="text-xs text-ink-3">
-        <Link to="/sponsor" className="hover:text-ink-2">Campaigns</Link> / athlete analytics
-        {campaignId && <span> · scored against campaign #{campaignId}'s target</span>}
-      </div>
-      <div className="mt-2 flex flex-wrap items-center gap-4">
-        <Avatar name={a.display_name} size={52} />
-        <div>
-          <h1 className="text-2xl font-semibold text-ink">{a.display_name}</h1>
-          <div className="text-sm text-ink-3">{a.sport} · {a.country} · rate {fmtMoney(a.base_rate_usd)}</div>
-        </div>
-        <div className="ml-auto"><CoverageChip coverage={a.score?.coverage ?? null} /></div>
-      </div>
-      {a.bio && <p className="mt-3 max-w-2xl text-sm text-ink-2">{a.bio}</p>}
+    <>
+      <Board
+        eyebrow={
+          <>
+            <Link to="/sponsor" className="hover:text-ink-2">Campaigns</Link> / athlete analytics
+          </>
+        }
+        title={a.display_name}
+        tags={
+          <>
+            <span className="tag">{a.sport}</span>
+            <span className="tag">{a.country}</span>
+            <CoverageChip coverage={data.analytics?.coverage.platforms ?? null} />
+          </>
+        }
+        score={overall === null ? null : Math.round(overall)}
+        scoreLabel="Marketability"
+        deltaNote={
+          computedDims
+            ? `mean of ${computedDims} computed dimension${computedDims === 1 ? '' : 's'}`
+            : 'not computed'
+        }
+        trendEmpty={
+          campaignId
+            ? `Audience fit below is scored against campaign #${campaignId}'s target, not a generic one.`
+            : 'Open this from a campaign to score audience fit against that brief.'
+        }
+        figures={[
+          { label: 'Rate card', value: fmtMoney(a.base_rate_usd) },
+          { label: 'Total reach', value: fmtNum(reach) },
+          { label: 'Posts analysed', value: data.posts.length },
+          { label: 'Platforms', value: `${data.analytics?.coverage.platforms.connected ?? 0} of ${data.analytics?.coverage.platforms.total ?? 3}` },
+        ]}
+        footNote={a.bio ? undefined : 'no bio published'}
+      />
+
+      <div>
+      {a.bio && <p className="mt-6 max-w-2xl text-sm text-ink-2">{a.bio}</p>}
 
       <Section title="Marketability dimensions">
         {data.analytics ? (
@@ -124,6 +156,7 @@ export default function AthleteEvidence() {
           </table>
         </Section>
       )}
-    </div>
+      </div>
+    </>
   )
 }

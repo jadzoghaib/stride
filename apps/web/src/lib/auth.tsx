@@ -50,4 +50,4 @@ export const useAuth = () => useContext(AuthContext)
 
 export const roleHome = (role: string) =>
   role === 'athlete' ? '/athlete' : role === 'sponsor' ? '/sponsor' : role === 'club' ? '/club'
-  : role === 'admin' ? '/athletes' : '/discover'
+  : role === 'admin' ? '/admin' : '/discover'

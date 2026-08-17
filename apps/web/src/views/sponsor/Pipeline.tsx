@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LoadError, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
+import { LoadError, PageHeader, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDate, fmtMoney } from '../../lib/format'
 import type { Commitment, Deal } from '../../types'
@@ -43,8 +43,17 @@ export default function SponsorPipeline() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-ink">Deal pipeline</h1>
-      {error && <div className="mt-3 text-sm text-critical">{error}</div>}
+      <PageHeader
+        eyebrow="Sponsor"
+        title="Deal pipeline"
+        lede="Every offer this organization has sent, by stage, plus the club packages it backs."
+        aside={<span className="meta">{deals.length} deal{deals.length === 1 ? '' : 's'}</span>}
+      />
+      {error && (
+        <div className="mb-4 rounded border border-critical/45 bg-critical/10 px-3.5 py-2.5 text-sm text-critical">
+          {error}
+        </div>
+      )}
       {STAGES.map((stage) => {
         const list = deals.filter((d) => d.status === stage)
         if (!list.length) return null

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { LoadError, PageLoading, Avatar, EmptyNote, Section } from '../components/ui'
+import { LoadError, PageHeader, PageLoading, Avatar, EmptyNote, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { fmtMoney } from '../lib/format'
@@ -40,19 +40,21 @@ export default function ClubPublic() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-4">
-        <Avatar name={club.name} size={56} />
-        <div>
-          <h1 className="text-2xl font-semibold text-ink">{club.name}</h1>
-          <div className="text-sm text-ink-3">{club.sport} · {club.country} · {club.region}</div>
-        </div>
-        <div className="ml-auto flex gap-2">
-          <span className="tag">{club.backer_count} active backers</span>
-        </div>
-      </div>
-      {club.bio && <p className="mt-4 max-w-2xl text-sm text-ink-2">{club.bio}</p>}
-      {notice && <div className="mt-4 rounded border border-ok/40 bg-ok/10 px-3 py-2 text-sm text-ok">{notice}</div>}
-      {error && <div className="mt-4 rounded border border-critical/40 bg-critical/10 px-3 py-2 text-sm text-critical">{error}</div>}
+      <PageHeader
+        eyebrow="Club"
+        title={club.name}
+        lede={club.bio}
+        tags={
+          <>
+            <span className="tag">{club.sport}</span>
+            <span className="tag">{club.country}</span>
+            <span className="tag">{club.region}</span>
+          </>
+        }
+        aside={<span className="meta">{club.backer_count} active backers</span>}
+      />
+      {notice && <div className="mb-4 rounded border border-ok/45 bg-ok/10 px-3.5 py-2.5 text-sm text-ok">{notice}</div>}
+      {error && <div className="mb-4 rounded border border-critical/45 bg-critical/10 px-3.5 py-2.5 text-sm text-critical">{error}</div>}
 
       <Section title="Sponsorship packages">
         {club.packages.length === 0 && <EmptyNote text="No active packages." />}

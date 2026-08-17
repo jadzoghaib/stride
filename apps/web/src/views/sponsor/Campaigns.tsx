@@ -1,7 +1,8 @@
 import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LoadError, PageLoading, EmptyNote, Section, Stat, StatusChip } from '../../components/ui'
+import { Board } from '../../components/Board'
+import { LoadError, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtMoney } from '../../lib/format'
 import type { Campaign, Deal } from '../../types'
@@ -11,6 +12,7 @@ interface Workspace {
   org: { id: number; name: string; industry: string; regions: string[] }
   campaigns: Campaign[]
   deals: Deal[]
+  club_commitments?: { id: number }[]
   spend_committed: number
 }
 
@@ -31,22 +33,35 @@ export default function SponsorCampaigns() {
   if (!ws) return error ? <LoadError text={error} /> : <PageLoading />
 
   const open = ws.deals.filter((d) => d.status === 'offered').length
+  const answered = ws.deals.filter((d) => d.status === 'accepted' || d.status === 'declined')
+  const accepted = answered.filter((d) => d.status === 'accepted').length
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold text-ink">{ws.org.name}</h1>
-        <span className="tag">{ws.org.industry}</span>
-      </div>
+    <>
+      <Board
+        eyebrow="Sponsor"
+        title={ws.org.name}
+        tags={<span className="tag">{ws.org.industry}</span>}
+        score={ws.spend_committed}
+        scoreFormat={(n) => fmtMoney(Math.round(n))}
+        scoreLabel="Committed spend"
+        /* the rule reports the accept rate — the money figure is not a
+           percentage of anything, so the rule has to measure something else */
+        rulePct={answered.length ? (100 * accepted) / answered.length : 0}
+        deltaNote={
+          answered.length
+            ? `${accepted} of ${answered.length} answered offers accepted`
+            : 'no offers answered yet'
+        }
+        trendEmpty="Deals and club packages both count toward committed spend."
+        figures={[
+          { label: 'Active campaigns', value: ws.campaigns.filter((c) => c.status === 'active').length },
+          { label: 'Open offers', value: open, to: '/sponsor/pipeline' },
+          { label: 'Club packages', value: ws.club_commitments?.length ?? 0, to: '/sponsor/pipeline' },
+        ]}
+      />
 
-      <div className="mt-6 grid gap-3 md:grid-cols-3">
-        <Stat label="Active campaigns" value={ws.campaigns.filter((c) => c.status === 'active').length} />
-        <Stat label="Open offers" value={open} sub="awaiting athlete response — track in pipeline"
-              to="/sponsor/pipeline" />
-        <Stat label="Committed spend" value={fmtMoney(ws.spend_committed)} sub="deals + club packages"
-              to="/sponsor/pipeline" />
-      </div>
-
+      <div>
       <Section
         title="Campaigns"
         aside={
@@ -80,7 +95,8 @@ export default function SponsorCampaigns() {
           ))}
         </div>
       </Section>
-    </div>
+      </div>
+    </>
   )
 }
 

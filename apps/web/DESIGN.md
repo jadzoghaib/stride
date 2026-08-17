@@ -49,6 +49,22 @@ whole colour silently breaks every opacity modifier — don't.
 marks state. They never trade places — if a warning turns amber and the accent
 also means "good", the board stops reporting anything.
 
+**`warn` is orange, never amber.** This rule was once broken by the token values
+themselves: `--c-warn` and `--c-accent` were both `255 176 32` in dark, which
+collapsed the distinction the rule exists to protect. If you change either
+value, check they are still visibly different in **both** themes.
+
+**Every semantic colour must clear 4.5:1 on `panel`, in both themes.** The
+accent earned its `accent-ink` split precisely because it could not; `ok` and
+`warn` need the same per-theme darkening in light mode and were shipped at
+3.63:1 and 4.28:1 before it was measured. Measure, don't eyeball.
+
+**Reserve semantic colour for states that are actually exceptional.** Partial
+platform coverage is the *normal* condition for most athletes, so its chip is
+neutral — colouring it amber put a caution mark on 19 of 22 directory rows and
+drowned out the accent it was competing with. Full coverage earns the positive
+mark; anything less is a plain fact.
+
 ## Themes
 
 **Dark is the default.** `data-theme="light"` on `<html>` flips token values;

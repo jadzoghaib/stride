@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { LoadError, PageLoading, Section } from '../../components/ui'
+import { LoadError, PageHeader, PageLoading, Section } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { useToast } from '../../lib/toast'
 import type { AthleteWorkspace } from '../../types'
@@ -36,10 +36,16 @@ export default function AthleteProfile() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-semibold text-ink">Profile</h1>
-      <p className="mt-1 text-sm text-ink-3">
-        Sponsors see this alongside your analytics. Set status to <span className="text-ink-2">listed</span> to appear in matching.
-      </p>
+      <PageHeader
+        eyebrow="Athlete"
+        title="Profile"
+        lede={
+          <>
+            Sponsors see this alongside your analytics. Set status to{' '}
+            <span className="text-ink-2">listed</span> to appear in matching.
+          </>
+        }
+      />
 
       <Section title="Identity">
         <div className="grid gap-4 md:grid-cols-2">

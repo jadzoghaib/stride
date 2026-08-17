@@ -59,18 +59,21 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-ground">
-      <header className="mx-auto flex h-16 max-w-6xl items-center px-5">
+      <header className="mx-auto flex h-16 max-w-[1140px] items-center px-7">
         <Link to="/">
-          <Wordmark size="text-xl" />
+          <Wordmark size="text-[22px]" />
         </Link>
       </header>
-      <div className="mx-auto max-w-md px-5 py-10">
-        <div className="flex gap-1 rounded border border-line bg-panel p-1">
+      <div className="mx-auto max-w-md px-7 py-10">
+        <div className="flex gap-1 rounded-card border border-line bg-panel p-1">
           {(['login', 'register'] as const).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
-              className={`flex-1 rounded-md py-1.5 text-sm ${mode === m ? 'bg-track text-ink' : 'text-ink-3'}`}
+              aria-pressed={mode === m}
+              className={`flex-1 rounded py-2 font-display text-[13px] font-semibold uppercase tracking-micro transition-colors ${
+                mode === m ? 'bg-track text-ink' : 'text-ink-3 hover:text-ink-2'
+              }`}
             >
               {m === 'login' ? 'Sign in' : 'Create account'}
             </button>

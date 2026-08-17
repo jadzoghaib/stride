@@ -61,6 +61,15 @@ def test_rbac_boundaries(client, athlete, fan, clubu):
     assert fan.get("/api/admin/events").status_code == 403
 
 
+def test_admin_reaches_discover_but_not_feed(admin):
+    """The client route guards in apps/web/src/App.tsx mirror these two exactly.
+    They differ on purpose — a following feed needs follows, which an admin has
+    none of — so a client guard that admits admin to /feed only routes them to
+    a 403. Keep the two lists in step."""
+    assert admin.get("/api/discover").status_code == 200
+    assert admin.get("/api/feed").status_code == 403
+
+
 # ---- athlete loop ------------------------------------------------------------
 
 

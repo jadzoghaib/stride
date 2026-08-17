@@ -149,11 +149,52 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
   const H = 270
   const px = (lon: number) => ((lon + 180) / 360) * W
   const py = (lat: number) => ((78 - lat) / 150) * H // crop polar dead space
+  const ranked = Object.entries(data).sort((a, b) => b[1] - a[1])
+  const maxShare = Math.max(
+    ...Object.entries(data).filter(([c]) => c in CENTROIDS).map(([, s]) => s),
+    0.01,
+  )
+
+  /* Bubbles are placed on true centroids, and European centroids are ~15px
+     apart at this projection width. The radius is capped at 16 (it was 29, and
+     the largest bubble swallowed its neighbours' labels whole), then each label
+     is placed only where it can actually be read: inside when the bubble is
+     large enough and its centre is not covered by a bigger one, otherwise
+     outside, pushed along the vector away from the cluster. Draw order is
+     largest-first so small bubbles stay on top. */
   const mapped = Object.entries(data)
     .filter(([code]) => code in CENTROIDS)
     .sort((a, b) => b[1] - a[1])
-  const ranked = Object.entries(data).sort((a, b) => b[1] - a[1])
-  const maxShare = Math.max(...mapped.map(([, s]) => s), 0.01)
+    .map(([code, share]) => ({
+      code,
+      share,
+      x: px(CENTROIDS[code].lon),
+      y: py(CENTROIDS[code].lat),
+      r: 5 + Math.sqrt(share / maxShare) * 11,
+    }))
+
+  /** Where a label can actually be read. Inside the bubble when it is big
+   *  enough and nothing larger covers its centre; otherwise the first of
+   *  below / above / right / left that does not land inside another bubble.
+   *  A fixed candidate order keeps placement stable between renders — a
+   *  direction derived from the cluster's centre of mass just aims the label at
+   *  whichever neighbour happens to be nearest. */
+  const bubbles = mapped.map((b, i) => {
+    const covered = mapped.some((o, j) => j < i && Math.hypot(o.x - b.x, o.y - b.y) < o.r)
+    if (b.r >= 11 && !covered) return { ...b, inside: true, lx: b.x, ly: b.y + 3.5 }
+
+    const gap = b.r + 10
+    const candidates = [
+      [0, gap],
+      [0, -gap],
+      [gap + 4, 0],
+      [-gap - 4, 0],
+    ]
+    const free = candidates.find(([dx, dy]) =>
+      mapped.every((o) => o === b || Math.hypot(b.x + dx - o.x, b.y + dy - o.y) > o.r + 4),
+    ) ?? candidates[0]
+    return { ...b, inside: false, lx: b.x + free[0], ly: b.y + free[1] + 3.5 }
+  })
 
   return (
     <ChartCard title="Countries">
@@ -184,34 +225,34 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
           ))}
           {/* equator hint */}
           <line x1={8} y1={py(0)} x2={W - 8} y2={py(0)} className="stroke-line-strong" strokeWidth={1} strokeDasharray="3 5" />
-          {mapped.map(([code, share]) => {
-            const c = CENTROIDS[code]
-            const radius = 7 + Math.sqrt(share / maxShare) * 22
-            return (
-              <g key={code} className="transition-opacity hover:opacity-85">
-                <title>{`${c.name}: ${pct(share)}`}</title>
-                <circle
-                  cx={px(c.lon)}
-                  cy={py(c.lat)}
-                  r={radius}
-                  className="fill-accent stroke-ground-deep"
-                  fillOpacity={0.9}
-                  strokeWidth={2}
-                />
-                {/* dark on amber in both themes — see --c-accent-on */}
-                <text
-                  x={px(c.lon)}
-                  y={py(c.lat) + 3.5}
-                  textAnchor="middle"
-                  fontSize={radius > 14 ? 11 : 9}
-                  fontWeight={700}
-                  className="fill-accent-on"
-                >
-                  {code}
-                </text>
-              </g>
-            )
-          })}
+          {bubbles.map((b) => (
+            <g key={b.code} className="transition-opacity hover:opacity-85">
+              <title>{`${CENTROIDS[b.code].name}: ${pct(b.share)}`}</title>
+              <circle
+                cx={b.x}
+                cy={b.y}
+                r={b.r}
+                className="fill-accent stroke-ground-deep"
+                fillOpacity={0.85}
+                strokeWidth={1.5}
+              />
+              <text
+                x={b.lx}
+                y={b.ly}
+                textAnchor="middle"
+                fontSize={b.inside ? 10 : 9.5}
+                fontWeight={700}
+                /* inside: dark on amber (--c-accent-on). outside: ink with a
+                   ground-coloured halo, so it stays legible over the graticule
+                   or over another bubble. */
+                className={b.inside ? 'fill-accent-on' : 'fill-ink-2 stroke-ground-deep'}
+                strokeWidth={b.inside ? 0 : 3}
+                paintOrder="stroke"
+              >
+                {b.code}
+              </text>
+            </g>
+          ))}
         </svg>
         <div className="space-y-1.5 self-center text-xs">
           {ranked.slice(0, 6).map(([code, share]) => (

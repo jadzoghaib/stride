@@ -17,7 +17,7 @@ the fonts, which they load from `apps/web/public/fonts`.
 
 ```
 apps/web   React 18 + Vite + TS + Tailwind SPA (nginx in prod, /api proxied)
-           17 routes, role-guarded; httpOnly cookie session; one aggregate
+           18 routes, role-guarded; httpOnly cookie session; one aggregate
            `workspace` endpoint per role composes each dashboard server-side
            -> docs/ui-architecture.md
 apps/api   FastAPI — auth, RBAC, athletes, sponsors, campaigns, deals, discovery,
@@ -40,6 +40,7 @@ data       one database holds both Stride product tables and CreatorLens
 | Own JWT auth | full account flows today without external accounts | Supabase Auth; users table already mirrors the profile-on-auth.users pattern, RLS policies written |
 | Mock platform connectors | first iteration mandate: simulated data | live IG/YouTube/TikTok connectors behind the same 3-method interface (creatorlens docs/real-api-mapping.md) |
 | Matching computed on request | 24 athletes -> milliseconds; always fresh | persisted match snapshots + nightly batch when the pool grows |
+| Unmeasured components excluded, not zeroed | a dimension CreatorLens cannot compute is `None` all the way to the ranking; weight is redistributed *within* its group (analytics / commercial), and a wholly unmeasured group forfeits its weight so a no-analytics athlete cannot out-rank a measured one on commercial fit alone | learned weights trained on deal outcomes (Phase 4) |
 | Monolith API | one bounded deployable; routers are already bounded contexts | split ingestion/scoring into a worker when sync volume demands it |
 | Hand-rolled metrics | zero deps, scrape-ready | prometheus-client / OpenTelemetry drop into the same middleware |
 
@@ -82,8 +83,9 @@ adopted only when metric volume hurts — not before.
 
 ## Tradeoffs accepted
 - SQLite single-writer vs. zero-ops draft: accepted, migration path written.
-- Session revocation requires token expiry (stateless JWT): accepted for 72h TTL;
-  Supabase Auth brings refresh/revoke.
+- Session revocation requires token expiry (stateless JWT): accepted for the 12h
+  TTL (`STRIDE_TOKEN_TTL_HOURS`, `config.py`), and `users.token_version` gives an
+  immediate global revoke in the meantime; Supabase Auth brings refresh/revoke.
 - Matching recompute cost grows linearly with athlete pool: fine to ~10³ athletes,
   then batch + cache.
 - Mock connectors mean analytics are simulated end-to-end — but through the real
