@@ -140,7 +140,9 @@ export function Modal({
 }) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useRef(`modal-${Math.random().toString(36).slice(2, 9)}`).current
-  // kept current so the `close` listener below can stay bound once
+  // `requestClose` is handed to children and to onCancel, both of which can be
+  // called after a re-render, so read `onClose` through a ref rather than
+  // capturing the first one.
   const onCloseRef = useRef(onClose)
   useEffect(() => {
     onCloseRef.current = onClose
@@ -443,31 +445,11 @@ export function Delta({ value, suffix = '%', dp = 1 }: { value: number | null | 
 
 // ── figures ──────────────────────────────────────────────────────────────────
 
-export function Stat({ label, value, sub, to }: { label: string; value: ReactNode; sub?: string; to?: string }) {
-  const body = (
-    <>
-      <div className="flex items-start justify-between">
-        <div className="cap">{label}</div>
-        {to && (
-          <ArrowUpRight
-            size={14}
-            className="text-ink-3 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
-          />
-        )}
-      </div>
-      <div className="tnum mt-1.5 font-display text-[32px] font-bold leading-none text-ink">{value}</div>
-      {sub && <div className="mt-1.5 text-xs text-ink-3">{sub}</div>}
-    </>
-  )
-  if (to) {
-    return (
-      <Link to={to} className="panel panel-hover group block px-5 py-4" title={`Go to ${label.toLowerCase()}`}>
-        {body}
-      </Link>
-    )
-  }
-  return <div className="panel px-5 py-4">{body}</div>
-}
+/* `Stat` — a panel card carrying one figure — lived here until the board
+   header replaced its two callers (sponsor campaigns, club HQ). Its role is now
+   the Board's `figures` strip, so it was removed rather than left as a second,
+   unused way to render the same thing. Recover it from git if a view ever wants
+   stat cards without a board above them. */
 
 /** Compact label/value pair for the board footer strip. Given `to`, it becomes
  *  a deep link — the board is a readout, but the readouts are the fastest route

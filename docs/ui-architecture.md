@@ -230,7 +230,7 @@ theme directly — they use tokens, and the tokens flip.
 
 | Module | Holds |
 |---|---|
-| `components/ui.tsx` | Primitives: `Stat` `KV` `Section` `Meter` `DimensionGrid` `ShareBar` `Sparkline` `Delta` `Avatar` `CoverageChip` `StatusChip` `Rise`, the three state components, and the `useCountUp` / `useReducedMotion` hooks |
+| `components/ui.tsx` | Primitives: `PageHeader` `Modal` `KV` `Section` `Meter` `DimensionGrid` `ShareBar` `Sparkline` `Delta` `Avatar` `CoverageChip` `StatusChip` `Rise`, the three state components, and the `useCountUp` / `useReducedMotion` hooks |
 | `components/Board.tsx` | The full-bleed board header — identity, one display-scale figure, signed delta, trend, secondary figures |
 | `components/charts.tsx` | Audience visualization: `AgeBars` `GenderDonut` `CountryMap` `AudiencePanel` |
 | `components/Shell.tsx` | Board bar, `NAV`, `Wordmark`, `ThemeToggle` |
