@@ -6,7 +6,7 @@ import { LoadError, PageLoading, CoverageChip, DimensionGrid, EmptyNote, Section
 import { api, errorText } from '../../lib/api'
 import { fmtDate, fmtMoney, fmtNum, fmtPct } from '../../lib/format'
 import type { AthletePublic } from '../../types'
-import { meanScore } from '../../types'
+import { meanScore, platformLabel } from '../../types'
 
 interface Evidence {
   athlete: AthletePublic
@@ -109,7 +109,7 @@ export default function AthleteEvidence() {
               <tbody>
                 {Object.entries(kpis).map(([platform, k]) => (
                   <tr key={platform}>
-                    <td className="table-cell capitalize text-ink">{platform}</td>
+                    <td className="table-cell text-ink">{platformLabel(platform)}</td>
                     <td className="table-cell tnum text-right">{fmtNum(k.followers)}</td>
                     <td className="table-cell tnum text-right">{fmtNum(k.median_reach)}</td>
                     <td className="table-cell tnum text-right">{fmtPct(k.median_er, 2)}</td>
@@ -146,7 +146,7 @@ export default function AthleteEvidence() {
               {data.posts.map((p, i) => (
                 <tr key={i}>
                   <td className="table-cell text-xs text-ink-3">{fmtDate(p.published_at)}</td>
-                  <td className="table-cell capitalize">{p.platform}</td>
+                  <td className="table-cell">{platformLabel(p.platform)}</td>
                   <td className="table-cell max-w-64 truncate text-ink">{p.title}</td>
                   <td className="table-cell tnum text-right">{fmtNum(p.reach)}</td>
                   <td className="table-cell tnum text-right">{fmtPct(p.engagement_rate, 2)}</td>

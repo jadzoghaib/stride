@@ -158,6 +158,12 @@ export function Modal({
     // second run would capture the lock set by the first and never release it.
     document.body.style.overflow = 'hidden'
     return () => {
+      // Defensive: a caller that unmounts this component while the dialog is
+      // still open skips the platform close, which is what restores focus and
+      // clears the top layer. Closing here makes that misuse degrade instead of
+      // silently stranding focus on <body> — the correct path is still
+      // `close()` from the render prop.
+      if (el.open) el.close()
       document.body.style.overflow = ''
     }
   }, [])

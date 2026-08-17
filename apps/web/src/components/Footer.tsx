@@ -23,7 +23,11 @@ const LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="mt-20 border-t border-line">
+    /* No top margin: inside the Shell, `.stride-main` already reserves 76px
+       below the content, and on the landing page the block above brings its
+       own spacing. Adding margin here stacked the two into ~156px of dead
+       band. */
+    <footer className="border-t border-line">
       <div className="mx-auto flex max-w-[1140px] flex-wrap items-center gap-x-6 gap-y-3 px-7 py-7">
         <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
           {LINKS.map((l) => (

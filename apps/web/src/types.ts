@@ -225,6 +225,18 @@ export const CATEGORIES = ['Sportswear', 'Nutrition', 'Technology', 'Automotive'
 export const dealTypeLabel = (key: string) =>
   DEAL_TYPES.find((d) => d.key === key)?.label ?? key.replace(/_/g, ' ')
 
+/** Platforms are stored lowercase. CSS `capitalize` renders "Youtube" and
+ *  "Tiktok", which are not the brands' names — these are, so use this anywhere
+ *  a platform is shown in sentence case. (Uppercase table cells are unaffected.) */
+const PLATFORM_LABELS: Record<string, string> = {
+  instagram: 'Instagram',
+  youtube: 'YouTube',
+  tiktok: 'TikTok',
+}
+
+export const platformLabel = (key: string) =>
+  PLATFORM_LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1)
+
 /** The API computes no athlete-level composite — the only `score` it produces is
  *  per sponsor campaign. Any headline marketability figure is therefore derived
  *  here, and every caller must label it as a mean of `n` dimensions so it is

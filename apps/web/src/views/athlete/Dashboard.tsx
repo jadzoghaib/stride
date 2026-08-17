@@ -17,7 +17,7 @@ import { api, errorText } from '../../lib/api'
 import { fmtDT, fmtMoney, fmtNum } from '../../lib/format'
 import { POLICY_VERSION } from '../../lib/legal'
 import type { AthleteWorkspace } from '../../types'
-import { DIMENSIONS, meanScore } from '../../types'
+import { DIMENSIONS, meanScore, platformLabel } from '../../types'
 
 const PLATFORMS = ['instagram', 'youtube', 'tiktok']
 
@@ -146,7 +146,11 @@ export default function AthleteDashboard() {
         <div className="mt-10 grid items-start gap-6 lg:grid-cols-[1.85fr_1fr]">
           <div>
             <div className="mb-4 flex items-baseline justify-between gap-4 border-b border-line-strong pb-2.5">
-              <h2 className="cap" id="platforms">
+              {/* tabIndex -1 so focus can land here after a connect completes:
+                  the button that opened the consent dialog is gone by then
+                  (that platform is no longer available), so the platform's own
+                  focus restoration has nothing to return to. */}
+              <h2 className="cap" id="platforms" tabIndex={-1}>
                 Connected platforms
               </h2>
               <span className="meta">
@@ -276,16 +280,16 @@ export default function AthleteDashboard() {
           platform={connecting}
           busy={busy}
           onClose={() => setConnecting(null)}
-          onGrant={() => {
-            const platform = connecting
-            setConnecting(null)
-            void act(() =>
+          onGrant={async (platform) => {
+            await act(() =>
               api.post('/api/athlete/platforms/connect', {
                 platform,
                 consent: true,
                 policy_version: POLICY_VERSION,
               }),
             )
+            // the trigger no longer exists — put the keyboard somewhere useful
+            document.getElementById('platforms')?.focus()
           }}
         />
       )}
@@ -305,17 +309,20 @@ function ConsentDialog({
 }: {
   platform: string
   busy: boolean
-  onGrant: () => void
+  /** Runs after the dialog has closed through the platform, so focus lands back
+   *  on the control that opened it. Never unmount the Modal directly instead —
+   *  that skips the close and drops focus on <body>. */
+  onGrant: (platform: string) => void
   onClose: () => void
 }) {
   const [agreed, setAgreed] = useState(false)
   return (
-    <Modal title={`Connect ${platform}`} onClose={onClose}>
+    <Modal title={`Connect ${platformLabel(platform)}`} onClose={onClose}>
       {(close) => (
         <>
           <p className="text-sm text-ink-2">
-            Stride will read the following from your {platform} account and use it to compute your
-            marketability analytics. Sponsors see the result and the evidence behind it.
+            Stride will read the following from your {platformLabel(platform)} account and use it to
+            compute your marketability analytics. Sponsors see the result and the evidence behind it.
           </p>
           <ul className="mt-4 space-y-2 text-sm text-ink-2">
             {[
@@ -351,8 +358,15 @@ function ConsentDialog({
             </span>
           </label>
           <div className="mt-5 flex gap-2">
-            <button className="btn-go" disabled={!agreed || busy} onClick={onGrant}>
-              Connect {platform}
+            <button
+              className="btn-go"
+              disabled={!agreed || busy}
+              onClick={() => {
+                close() // through the platform, so focus returns to the trigger
+                onGrant(platform)
+              }}
+            >
+              Connect {platformLabel(platform)}
             </button>
             <button className="btn" onClick={close}>
               Cancel

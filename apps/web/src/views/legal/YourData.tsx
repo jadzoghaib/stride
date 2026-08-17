@@ -100,7 +100,16 @@ export default function YourData() {
         </div>
       </Section>
 
-      <Section title="Your controls" aside={<span className="meta">3 of 6 live today</span>}>
+      {/* derived, not typed in — a hand-written count silently goes stale the
+          first time a control ships */}
+      <Section
+        title="Your controls"
+        aside={
+          <span className="meta">
+            {CONTROLS.filter((c) => c.status === 'live').length} of {CONTROLS.length} live today
+          </span>
+        }
+      >
         <div className="panel overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

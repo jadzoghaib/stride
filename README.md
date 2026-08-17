@@ -108,7 +108,8 @@ against their own analytics is the point of the product.
 ## How it works
 
 ```
-apps/web/            React 18 · Vite · TS · Tailwind — 20 role-guarded routes
+apps/web/            React 18 · Vite · TS · Tailwind — 20 routes, each naming
+                     its own access rule (public, or guarded by role)
 apps/api/            FastAPI — auth + RBAC, routers per bounded context,
                      matching engine, JSON logs, /metrics, probes, chaos layer
 packages/creatorlens/  the analytics engine, built first and vendored:

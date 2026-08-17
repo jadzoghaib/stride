@@ -103,9 +103,14 @@
   --c-accent-on: 20 16 10;
   /* ok and warn get the same per-theme darkening the accent already had: the
      previous 18 153 106 / 176 106 0 measured 3.63:1 and 4.28:1 on `panel`. */
-  --c-ok: 15 125 87;
-  --c-warn: 168 67 10;
-  --c-critical: 206 47 53;
+  /* All three are measured against a `bg-<token>/10` tint, not just a flat
+     panel. Chips and banners paint the semantic colour over a tint of itself,
+     which costs ~1.3-1.6 points of contrast — enough to drop the earlier
+     values (15 125 87, 168 67 10, 206 47 53) to 3.79 / 4.40 / 3.74 and under
+     AA on the very surfaces they are most used on. */
+  --c-ok: 11 99 68;
+  --c-warn: 150 58 6;
+  --c-critical: 170 32 38;
 
   --line: rgba(16, 18, 22, 0.1);
   --line-strong: rgba(16, 18, 22, 0.22);
