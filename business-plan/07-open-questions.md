@@ -15,7 +15,7 @@
 
 Each was the right call, and each closed off something worth naming:
 
-- **15% flat** forfeits €4.6M of Y7 revenue versus 20%. Bought: a pricing
+- **15% flat** forfeits €5.3M of Y7 revenue versus 20%. Bought: a pricing
   argument that survives contact with the exact athlete we target.
 - **18+ for fan subscriptions** forfeits the 16–17 cohort's fan revenue for the
   first year or two. Bought: distance from the risk that has produced litigation
@@ -86,7 +86,7 @@ in popular sports. The honest reconciliation is that we disintermediate the
 *deal-finding*, not the *representation* — an agent still negotiates, we just
 make the introduction on evidence instead of on their contact list.
 
-### D1 — Raise €777k, or the €2.4M the rounds imply?
+### D1 — Raise €558k, or the €2.4M the rounds imply?
 
 **Recommendation: non-dilutive stack first** (ENISA + Neotec, €300–500k), then a
 smaller pre-seed. Every grant euro is equity retained.
@@ -99,8 +99,8 @@ sustainability. **Worth deciding deliberately rather than by default.**
 
 ### D3 — Which valuation do we present?
 
-**Recommendation: lead with the exit multiple discounted back (€20–32M), present
-the DCF (€7.9M) as the conservative floor**, and explain why they differ. An
+**Recommendation: lead with the exit multiple discounted back (€24–39M), present
+the DCF (€11.4M) as the conservative floor**, and explain why they differ. An
 examiner who spots a perpetuity-growth DCF applied to a 57%-growth company will
 discount everything else.
 
@@ -121,12 +121,16 @@ The filter is in [06](06-market-strategy.md#which-niche-sports-concretely);
 endurance and padel score highest. **This is the one call where your knowledge
 of which federations will take a meeting beats any analysis I can do.**
 
-### F3 — Does the model need segmenting?
+### F3 — Should the sport index ship *inside the product*?
 
-`model.py` blends all athletes into one cohort. A niche/popular split would show
-lower CAC and lower ARPU early, converging later — more honest, and more work.
-**Worth doing before an investor sees it**; not worth doing before you have
-picked the sports.
+`model.py` is now segmented and `sport_index.py` classifies sports — so the
+business question is answered. The **product** question is not: today
+`audience_scale` is `logband(followers, 2, 7)` with no sport input at all, so a
+trail runner with 25k followers scores identically to a footballer with 25k.
+The engine currently under-rates exactly the athletes the strategy targets.
+Fixing it means a sport-relative percentile alongside the absolute score — see
+[05](05-product-gaps.md). **My view: yes, and it is the highest-leverage product
+change in the plan**, because it makes the algorithm agree with the strategy.
 
 ### F4 — What happens to the sponsorship marketplace if fans don't pay?
 

@@ -84,7 +84,7 @@ raising the take rate by a point, without asking athletes for anything.
 
 SaaS matters disproportionately: it is **100% margin** (no GMV, no payment
 rail), and it converts the analytics engine into revenue that does not depend on
-a deal closing. By Y7 it is €3.36M of the €23.31M — 14% of revenue at close to
+a deal closing. By Y7 it is €3.36M of the €28.62M — 12% of revenue at close to
 100% gross margin, which is roughly 20% of gross profit.
 
 ---
@@ -129,7 +129,7 @@ At an average ticket of €9.20 those cross at **€1,380/month of fan revenue**
 | Athlete's monthly fan revenue | Keeps with Stride (15%) | Keeps with Passes (10% + fees) | Better off with |
 |---|---|---|---|
 | €100 | €85 | €60 | **Stride, by 42%** |
-| €275 *(our modelled average)* | €234 | €212 | **Stride, by 10%** |
+| €313 *(modelled niche athlete, Y7)* | €266 | €245 | **Stride, by 9%** |
 | €500 | €425 | €408 | **Stride** |
 | €1,000 | €850 | €843 | **Stride**, barely |
 | €1,380 | €1,173 | €1,173 | — crossover |
@@ -137,7 +137,7 @@ At an average ticket of €9.20 those cross at **€1,380/month of fan revenue**
 | €5,000 | €4,250 | €4,321 | Passes |
 
 **Below €1,380/month, Stride's 15% pays the athlete more than Passes' 10%.**
-Our modelled athlete at maturity earns €275/month — comfortably on the left of
+Our modelled niche athlete at maturity earns ~€313/month — comfortably on the left of
 that line, and the entire long tail with them. The athletes on the right are
 the ones who already have an agent.
 
@@ -153,8 +153,8 @@ two decisions have to agree with each other.
 
 ### The lever, quantified
 
-At Y7 each point of take on fan GMV is worth **€927k of revenue**; 15% → 20%
-adds €4.6M. It is the single biggest lever in the model.
+At Y7 each point of take on fan GMV is worth **€1.06M of revenue**; 15% → 20%
+adds €5.3M. It is the single biggest lever in the model.
 
 **Recommendation: hold 15%, and never add a monthly creator fee.** The fee is
 what makes Passes beatable, and copying it would forfeit the only pricing
@@ -173,10 +173,10 @@ at Series A, when the network — not the price — is the reason to stay.
 
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| Fan take | €29k (74%) | €738k (66%) | €5.29M (64%) | €13.91M (60%) |
-| Sponsorship take | €5k (12%) | €191k (17%) | €1.90M (23%) | €6.04M (26%) |
-| Sponsor SaaS | €6k (14%) | €180k (16%) | €1.15M (14%) | €3.36M (14%) |
-| **Total** | **€39k** | **€1.11M** | **€8.33M** | **€23.31M** |
+| Fan take | €43k (84%) | €977k (74%) | €6.15M (63%) | €15.88M (55%) |
+| Sponsorship take | €3k (6%) | €166k (13%) | €2.48M (25%) | €9.38M (33%) |
+| Sponsor SaaS | €6k (11%) | €180k (14%) | €1.15M (12%) | €3.36M (12%) |
+| **Total** | **€51k** | **€1.32M** | **€9.78M** | **€28.62M** |
 
 The mix shifts deliberately. Fans fund the early years because they can be
 acquired at near-zero cost — **athletes bring their own audience**. Sponsorship

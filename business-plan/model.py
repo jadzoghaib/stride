@@ -25,23 +25,65 @@ YEARS = list(range(1, 8))  # Y1 = 2027
 # ─────────────────────────────────────────────────────────────────────────────
 
 @dataclass
+class Segment:
+    """One market segment. The two differ in kind, not just in size — see
+    business-plan/06-market-strategy.md and sport_index.py.
+
+    NICHE (market creation): no agent exists. Fans are usually participants in
+    the same sport, so conversion is high and they pay for knowledge. Smaller
+    followings, cheaper to acquire, smaller sponsorship deals.
+
+    POPULAR (disintermediation): an agent already takes 10-20%. Larger
+    followings but lower conversion — a football fan follows a club, not a
+    training plan. Expensive to acquire because there is a relationship to
+    displace, but the deals are much larger.
+    """
+    name: str
+    monetise_rate: list[float]      # share of athletes who turn on fan monetisation
+    fans_per_athlete: list[int]     # paying fans per monetising athlete
+    fan_arpu_month: list[float]
+    deal_rate: list[float]          # share of athletes landing >=1 deal a year
+    deals_per_athlete: list[float]
+    avg_deal_eur: list[int]
+    cac_eur: list[int]
+
+
+NICHE = Segment(
+    name="niche",
+    monetise_rate=[0.28, 0.32, 0.37, 0.41, 0.44, 0.46, 0.48],
+    fans_per_athlete=[20, 22, 25, 28, 30, 32, 34],
+    fan_arpu_month=[8.00, 8.30, 8.60, 8.80, 9.00, 9.10, 9.20],
+    deal_rate=[0.05, 0.07, 0.09, 0.11, 0.13, 0.15, 0.16],
+    deals_per_athlete=[1.1, 1.2, 1.3, 1.5, 1.6, 1.7, 1.8],
+    avg_deal_eur=[900, 1_050, 1_200, 1_350, 1_500, 1_600, 1_700],
+    cac_eur=[16, 18, 21, 24, 27, 30, 32],
+)
+
+POPULAR = Segment(
+    name="popular",
+    monetise_rate=[0.14, 0.17, 0.20, 0.23, 0.26, 0.28, 0.30],
+    fans_per_athlete=[26, 29, 32, 35, 38, 41, 44],
+    fan_arpu_month=[7.00, 7.20, 7.40, 7.60, 7.80, 7.90, 8.00],
+    deal_rate=[0.14, 0.17, 0.20, 0.24, 0.27, 0.29, 0.30],
+    deals_per_athlete=[1.3, 1.5, 1.7, 1.9, 2.1, 2.3, 2.4],
+    avg_deal_eur=[2_200, 2_500, 2_800, 3_100, 3_400, 3_700, 4_000],
+    cac_eur=[40, 46, 53, 60, 67, 73, 78],
+)
+
+
+@dataclass
 class Assumptions:
     # ---- demand side -------------------------------------------------------
     athletes: list[int] = field(default_factory=lambda: [400, 1_800, 5_500, 13_000, 25_000, 38_000, 52_000])
-    # share of athletes who actually turn on fan monetisation
-    monetise_rate: list[float] = field(default_factory=lambda: [0.22, 0.26, 0.30, 0.34, 0.37, 0.39, 0.40])
-    # paying fans per monetising athlete (power law: most have few, a tail carries it)
-    fans_per_athlete: list[int] = field(default_factory=lambda: [18, 20, 23, 26, 28, 30, 32])
-    fan_arpu_month: list[float] = field(default_factory=lambda: [7.50, 7.80, 8.00, 8.20, 8.40, 8.50, 8.60])
+    # Niche first (no incumbent, acute need), popular entering from Y3 once the
+    # niche cohort's earnings make the disintermediation pitch quantified.
+    niche_share: list[float] = field(default_factory=lambda: [0.95, 0.92, 0.80, 0.68, 0.58, 0.50, 0.45])
+    segments: list[Segment] = field(default_factory=lambda: [NICHE, POPULAR])
+
     fan_churn_month: list[float] = field(default_factory=lambda: [0.11, 0.10, 0.09, 0.085, 0.08, 0.075, 0.07])
 
     # one-off fan spend (unlocks + tips) as a multiple of subscription GMV
     ppv_tips_multiple: float = 0.35
-
-    # ---- sponsorship -------------------------------------------------------
-    deal_rate: list[float] = field(default_factory=lambda: [0.08, 0.11, 0.14, 0.17, 0.19, 0.21, 0.22])
-    deals_per_athlete: list[float] = field(default_factory=lambda: [1.2, 1.3, 1.5, 1.7, 1.9, 2.0, 2.2])
-    avg_deal_eur: list[int] = field(default_factory=lambda: [1_200, 1_400, 1_650, 1_900, 2_100, 2_250, 2_400])
 
     # ---- sponsor SaaS ------------------------------------------------------
     sponsors: list[int] = field(default_factory=lambda: [25, 110, 340, 800, 1_500, 2_400, 3_500])
@@ -75,7 +117,6 @@ class Assumptions:
     # ---- operating costs ---------------------------------------------------
     headcount: list[float] = field(default_factory=lambda: [1.5, 3.0, 7.0, 14.0, 24.0, 36.0, 50.0])
     loaded_salary_eur: list[int] = field(default_factory=lambda: [38_000, 52_000, 60_000, 64_000, 66_000, 68_000, 70_000])
-    athlete_cac_eur: list[int] = field(default_factory=lambda: [22, 26, 30, 34, 38, 42, 45])
     sponsor_cac_eur: list[int] = field(default_factory=lambda: [900, 1_050, 1_200, 1_400, 1_600, 1_750, 1_900])
     legal_compliance_eur: list[int] = field(default_factory=lambda: [18_000, 45_000, 90_000, 150_000, 200_000, 235_000, 270_000])
     other_opex_pct_of_revenue: float = 0.08
@@ -100,23 +141,40 @@ def i(n: int) -> int:
 # Model
 # ─────────────────────────────────────────────────────────────────────────────
 
+def segment_year(seg: Segment, athlete_count: float, i_: int) -> dict:
+    """One segment's contribution in one year."""
+    monetising = athlete_count * seg.monetise_rate[i_]
+    paying_fans = monetising * seg.fans_per_athlete[i_]
+    sub_gmv = paying_fans * seg.fan_arpu_month[i_] * 12
+    fan_gmv = sub_gmv * (1 + A.ppv_tips_multiple)
+    deals = athlete_count * seg.deal_rate[i_] * seg.deals_per_athlete[i_]
+    sponsorship_gmv = deals * seg.avg_deal_eur[i_]
+    return dict(
+        name=seg.name, athletes=athlete_count, paying_fans=paying_fans,
+        deals=deals, fan_gmv=fan_gmv, sponsorship_gmv=sponsorship_gmv,
+        revenue=fan_gmv * A.take_fan + sponsorship_gmv * A.take_sponsorship,
+    )
+
+
+def split(i_: int) -> dict[str, float]:
+    """Athletes per segment in a given year."""
+    total = A.athletes[i_]
+    n = total * A.niche_share[i_]
+    return {"niche": n, "popular": total - n}
+
+
 def build() -> list[dict]:
     rows = []
     for y in YEARS:
         i_ = i(y)
         athletes = A.athletes[i_]
-        monetising = athletes * A.monetise_rate[i_]
-        paying_fans = monetising * A.fans_per_athlete[i_]
+        counts = split(i_)
+        segs = [segment_year(s, counts[s.name], i_) for s in A.segments]
 
-        # --- GMV --------------------------------------------------------
-        sub_gmv = paying_fans * A.fan_arpu_month[i_] * 12
-        ppv_gmv = sub_gmv * A.ppv_tips_multiple
-        fan_gmv = sub_gmv + ppv_gmv
-
-        deal_athletes = athletes * A.deal_rate[i_]
-        deals = deal_athletes * A.deals_per_athlete[i_]
-        sponsorship_gmv = deals * A.avg_deal_eur[i_]
-
+        paying_fans = sum(s["paying_fans"] for s in segs)
+        deals = sum(s["deals"] for s in segs)
+        fan_gmv = sum(s["fan_gmv"] for s in segs)
+        sponsorship_gmv = sum(s["sponsorship_gmv"] for s in segs)
         gmv = fan_gmv + sponsorship_gmv
 
         # --- net revenue ------------------------------------------------
@@ -144,9 +202,13 @@ def build() -> list[dict]:
 
         # --- opex -------------------------------------------------------
         people = A.headcount[i_] * A.loaded_salary_eur[i_]
+        # CAC is per segment: displacing an agent costs more than reaching an
+        # athlete who has no representation at all.
+        prev = split(i_ - 1) if y > 1 else {"niche": 0.0, "popular": 0.0}
+        marketing = sum(max(counts[s.name] - prev[s.name], 0) * s.cac_eur[i_] for s in A.segments)
         new_athletes = athletes - (A.athletes[i_ - 1] if y > 1 else 0)
         new_sponsors = A.sponsors[i_] - (A.sponsors[i_ - 1] if y > 1 else 0)
-        marketing = max(new_athletes, 0) * A.athlete_cac_eur[i_] + max(new_sponsors, 0) * A.sponsor_cac_eur[i_]
+        marketing += max(new_sponsors, 0) * A.sponsor_cac_eur[i_]
         legal = A.legal_compliance_eur[i_]
         other = revenue * A.other_opex_pct_of_revenue
         opex = people + marketing + legal + other
@@ -165,6 +227,8 @@ def build() -> list[dict]:
             marketing=marketing, legal=legal, other=other, opex=opex,
             ebitda=ebitda, tax=tax, fcf=fcf,
             headcount=A.headcount[i_],
+            segs={s["name"]: s for s in segs},
+            niche_share=A.niche_share[i_],
         ))
     return rows
 
@@ -285,8 +349,22 @@ def render(rows: list[dict]) -> dict[str, str]:
         ["First EBITDA-positive year", f"Y{next((r['year'] for r in rows if r['ebitda'] > 0), 0)}"],
     ])
 
+    seg_rows = []
+    for key, label in (("niche", "Niche (market creation)"), ("popular", "Popular (disintermediation)")):
+        seg_rows.append([f"**{label}**"] + ["" for _ in rows])
+        seg_rows.append(["  Athletes"] + [num(r["segs"][key]["athletes"]) for r in rows])
+        seg_rows.append(["  Paying fans"] + [num(r["segs"][key]["paying_fans"]) for r in rows])
+        seg_rows.append(["  Deals"] + [num(r["segs"][key]["deals"]) for r in rows])
+        seg_rows.append(["  Net revenue"] + [eur(r["segs"][key]["revenue"]) for r in rows])
+    seg_rows.append(["**Niche share of athletes**"] + [f"{r['niche_share']:.0%}" for r in rows])
+    seg_rows.append(["**Niche share of revenue**"] + [
+        f"{r['segs']['niche']['revenue'] / (r['segs']['niche']['revenue'] + r['segs']['popular']['revenue']):.0%}"
+        for r in rows])
+    segments = table(["Segment"] + ys, seg_rows)
+
     return dict(drivers=drivers, gmv=gmv, revenue=revenue, pl=pl, egress=egress,
-                valuation=val, multiples=mult, cash=cash, funding=funding)
+                valuation=val, multiples=mult, cash=cash, funding=funding,
+                segments=segments)
 
 
 def unit_economics() -> str:
@@ -313,6 +391,7 @@ def main() -> None:
     rows = build()
     r = render(rows)
     print("\n## Drivers\n\n" + r["drivers"])
+    print("\n## Segments\n\n" + r["segments"])
     print("\n## GMV\n\n" + r["gmv"])
     print("\n## Net revenue\n\n" + r["revenue"])
     print("\n## P&L\n\n" + r["pl"])

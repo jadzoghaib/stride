@@ -48,15 +48,16 @@ python business-plan/model.py
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
 | Active athletes | 400 | 5,500 | 25,000 | 52,000 |
-| Paying fans | 1,584 | 37,950 | 259,000 | 665,600 |
-| Marketplace GMV | €239k | €6.82M | €54.20M | €153.13M |
-| **Net revenue** | **€39k** | **€1.11M** | **€8.33M** | **€23.31M** |
-| Gross margin | 58% | 64% | 65% | 66% |
-| EBITDA | −€87k | −€280k | €1.35M | €6.94M |
+| Niche share of revenue | 95% | 80% | 54% | 38% |
+| Paying fans | 2,201 | 47,740 | 295,140 | 759,408 |
+| Marketplace GMV | €311k | €8.18M | €65.78M | €199.67M |
+| **Net revenue** | **€51k** | **€1.32M** | **€9.78M** | **€28.62M** |
+| Gross margin | 58% | 63% | 64% | 66% |
+| EBITDA | −€79k | −€168k | €2.02M | €9.71M |
 | Headcount | 1.5 | 7 | 24 | 50 |
 
-**Capital required to fund it: €777k**, against a deepest cumulative cash
-position of −€555k in Y3. EBITDA turns positive in Y4.
+**Capital required to fund it: €558k**, against a deepest cumulative cash
+position of −€399k in Y3. EBITDA turns positive in Y4.
 
 ---
 
@@ -71,7 +72,7 @@ change. See [02](02-cost-model.md#the-fixed-fee-problem).
 **2. Media egress, not compute.** The current product is deterministic
 analytics: compute is a rounding error, which `docs/costs.md` correctly says.
 The moment fans pay for video, that stops being true. Served naively from
-CloudFront, egress alone costs **€963k more in Y7** than the same bytes behind
+CloudFront, egress alone costs **€1.1M more in Y7** than the same bytes behind
 a zero-egress CDN. This is an architecture decision with a seven-figure price
 tag.
 

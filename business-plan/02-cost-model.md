@@ -30,7 +30,7 @@ Three responses, in order of impact:
 3. **Renegotiate at volume.** Above ~€5M/yr processed, interchange-plus pricing
    is available; assume 2.4% + €0.20 from Y5. Not modelled — upside.
 
-At Y7 the payment rail costs **€6.97M against €23.31M of revenue** — 30% of
+At Y7 the payment rail costs **€8.68M against €28.62M of revenue** — 30% of
 revenue, our largest single cost line, larger than all salaries combined.
 
 ---
@@ -46,16 +46,16 @@ price aggressively.
 
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| AWS + zero-egress CDN | €2k | €32k | €177k | **€403k** |
-| AWS + CloudFront list price | €5k | €87k | €552k | **€1.37M** |
-| **Annual difference** | €2k | €55k | €375k | **€963k** |
+| AWS + zero-egress CDN | €3k | €33k | €183k | **€419k** |
+| AWS + CloudFront list price | €6k | €103k | €610k | **€1.52M** |
+| **Annual difference** | €3k | €69k | €427k | **€1.10M** |
 
-At 1.8 GB per paying fan per month and 665k paying fans, Y7 moves ~14 PB. At
-CloudFront list (~€0.075/GB after volume tiers) that is €1.37M. Behind an
+At 1.8 GB per paying fan per month and 759k paying fans, Y7 moves ~16 PB. At
+CloudFront list (~€0.075/GB after volume tiers) that is €1.52M. Behind an
 object store with free egress (Cloudflare R2, Backblaze B2 + Bunny) it is
-€403k.
+€419k.
 
-**€963k a year is a Series A's worth of runway, decided by one architectural
+**€1.1M a year is a Series A's worth of runway, decided by one architectural
 choice.** The recommendation is AWS for compute and database — where its
 managed services genuinely earn their premium — and a zero-egress provider for
 media delivery. Hybrid, deliberately.
@@ -189,16 +189,16 @@ roster.
 
 | Line | Amount | % of revenue |
 |---|---|---|
-| Payment processing | €6.97M | 30% |
-| People | €3.50M | 15% |
-| Marketing / CAC | €2.72M | 12% |
-| Other opex | €1.86M | 8% |
-| Payouts | €475k | 2% |
-| Infrastructure | €403k | **1.7%** |
-| Legal & compliance | €270k | 1.2% |
-| Moderation | €165k | 0.7% |
-| **EBITDA** | **€6.94M** | **30%** |
+| Payment processing | €8.68M | 30% |
+| People | €3.50M | 12% |
+| Marketing / CAC | €2.98M | 10% |
+| Other opex | €2.29M | 8% |
+| Payouts | €608k | 2% |
+| Infrastructure | €419k | **1.5%** |
+| Legal & compliance | €270k | 0.9% |
+| Moderation | €165k | 0.6% |
+| **EBITDA** | **€9.71M** | **34%** |
 
-Infrastructure is 1.7% of revenue. **Payments are eighteen times larger.** Any
+Infrastructure is 1.5% of revenue. **Payments are twenty times larger.** Any
 optimisation effort belongs there — tier pricing, annual billing, processor
 negotiation — not in the AWS bill.
