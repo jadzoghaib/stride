@@ -226,10 +226,49 @@ def test_registration_creates_analytics_identity(client):
 
     ws = reg.get("/api/athlete/workspace").json()
     assert ws["analytics"] is None  # nothing connected yet — no fabricated numbers
+
+    # consent is the lawful basis for the ingest, so the server refuses without it
     assert reg.post("/api/athlete/platforms/connect",
-                    json={"platform": "instagram"}).status_code == 200
+                    json={"platform": "instagram"}).status_code == 422
+    assert reg.get("/api/athlete/workspace").json()["analytics"] is None
+
+    assert reg.post("/api/athlete/platforms/connect",
+                    json={"platform": "instagram", "consent": True,
+                          "policy_version": "2026-08-17"}).status_code == 200
     ws = reg.get("/api/athlete/workspace").json()
     assert ws["analytics"] is not None
+
+
+def test_platform_consent_and_withdrawal_are_both_recorded(admin):
+    """A consent trail that records only the grant is not a trail (Art. 7(3)).
+
+    Self-contained: registers its own athlete so it never disturbs the shared
+    demo sessions other tests assert against.
+    """
+    from fastapi.testclient import TestClient
+    from stride_api.main import app
+    athlete = TestClient(app)
+    assert athlete.post("/api/auth/register", json={
+        "email": "consent-test@stride.test", "password": "longenough1",
+        "display_name": "Consent Athlete", "role": "athlete",
+        "sport": "Judo", "country": "Spain"}).status_code == 201
+
+    connected = athlete.post("/api/athlete/platforms/connect",
+                             json={"platform": "tiktok", "consent": True,
+                                   "policy_version": "2026-08-17"})
+    assert connected.status_code == 200
+    account_id = connected.json()["account"]["id"]
+    assert athlete.post(f"/api/athlete/platforms/{account_id}/disconnect").status_code == 200
+
+    # NB: the events table names these object_type / object_id, not entity_*
+    events = admin.get("/api/admin/events?limit=1000").json()
+    mine = {e["event_type"]: e["detail"] for e in events
+            if e["object_id"] == account_id and e["event_type"].startswith("consent.")}
+
+    assert "consent.platform_granted" in mine, "granting must leave a record"
+    assert "consent.platform_withdrawn" in mine, "withdrawing must leave one too"
+    assert mine["consent.platform_granted"]["policy_version"] == "2026-08-17"
+    assert "aggregate_demographics" in mine["consent.platform_granted"]["scopes"]
 
 
 def test_duplicate_email_rejected(client):

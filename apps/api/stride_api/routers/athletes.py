@@ -198,16 +198,30 @@ def update_profile(body: ProfileIn, user: dict = Depends(require_role("athlete")
 
 class ConnectIn(BaseModel):
     platform: str
+    # Consent is the lawful basis for every platform metric Stride ingests
+    # (GDPR Art. 6(1)(a)), so it is a required field of the request rather than
+    # an assumption made by the server. The client shows the scopes first.
+    consent: bool = False
+    policy_version: str = Field(default="", max_length=32)
 
 
 @router.post("/athlete/platforms/connect")
 def connect_account(body: ConnectIn, user: dict = Depends(require_role("athlete")),
                     conn: sqlite3.Connection = Depends(get_db)):
     profile = _own_profile(conn, user)
+    if not body.consent:
+        raise HTTPException(422, "consent_required")
     try:
         account = connect_platform(conn, profile["creatorlens_creator_id"], body.platform, actor="user")
     except ActionRejected as exc:
         raise HTTPException(409, exc.reason)
+    # The consent record IS the audit event: who, what, when, under which
+    # version of the policy — the four things a supervisory authority asks for.
+    log_event(conn, "user", "consent.platform_granted", "platform_account", account["id"],
+              {"platform": body.platform, "athlete_id": profile["id"],
+               "policy_version": body.policy_version,
+               "scopes": ["profile_metrics", "post_metrics", "aggregate_demographics"]})
+    conn.commit()
     sync = sync_account(conn, account["id"], trigger="manual")
     try:
         store_scores(conn, profile["creatorlens_creator_id"], target_id=1, actor="user")
@@ -241,9 +255,15 @@ def disconnect(account_id: int, user: dict = Depends(require_role("athlete")),
     if account is None:
         raise HTTPException(404, "unknown_account")
     try:
-        return disconnect_platform(conn, account_id, actor="user")
+        result = disconnect_platform(conn, account_id, actor="user")
     except ActionRejected as exc:
         raise HTTPException(409, exc.reason)
+    # Withdrawal is logged as deliberately as the grant (Art. 7(3)) — a consent
+    # trail that records only the yes is not a trail.
+    log_event(conn, "user", "consent.platform_withdrawn", "platform_account", account_id,
+              {"platform": account["platform"], "athlete_id": profile["id"]})
+    conn.commit()
+    return result
 
 
 # ---- deals (athlete side) ----------------------------------------------------

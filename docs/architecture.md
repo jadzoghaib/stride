@@ -17,7 +17,7 @@ the fonts, which they load from `apps/web/public/fonts`.
 
 ```
 apps/web   React 18 + Vite + TS + Tailwind SPA (nginx in prod, /api proxied)
-           18 routes, role-guarded; httpOnly cookie session; one aggregate
+           20 routes, role-guarded; httpOnly cookie session; one aggregate
            `workspace` endpoint per role composes each dashboard server-side
            -> docs/ui-architecture.md
 apps/api   FastAPI — auth, RBAC, athletes, sponsors, campaigns, deals, discovery,

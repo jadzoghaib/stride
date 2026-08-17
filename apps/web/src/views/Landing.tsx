@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react'
 import { Link, Navigate } from 'react-router-dom'
+import Footer from '../components/Footer'
 import { ThemeToggle, Wordmark } from '../components/Shell'
 import { Meter } from '../components/ui'
 import { roleHome, useAuth } from '../lib/auth'
@@ -100,9 +101,12 @@ export default function Landing() {
         ))}
       </section>
 
-      <footer className="border-t border-line py-7 text-center">
-        <p className="meta">Stride — first product draft. Simulated athlete and sponsor data for evaluation.</p>
-      </footer>
+      <div className="mx-auto max-w-[1140px] px-7">
+        <p className="meta border-t border-line py-6 text-center">
+          Stride — first product draft. Simulated athlete and sponsor data for evaluation.
+        </p>
+      </div>
+      <Footer />
     </div>
   )
 }

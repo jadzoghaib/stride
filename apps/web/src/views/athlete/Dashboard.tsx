@@ -8,12 +8,14 @@ import {
   DimensionGrid,
   EmptyNote,
   LoadError,
+  Modal,
   PageLoading,
   Section,
   StatusChip,
 } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDT, fmtMoney, fmtNum } from '../../lib/format'
+import { POLICY_VERSION } from '../../lib/legal'
 import type { AthleteWorkspace } from '../../types'
 import { DIMENSIONS, meanScore } from '../../types'
 
@@ -24,6 +26,7 @@ export default function AthleteDashboard() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [evidence, setEvidence] = useState<string | null>(null)
+  const [connecting, setConnecting] = useState<string | null>(null)
 
   const load = () => api.get<AthleteWorkspace>('/api/athlete/workspace').then(setWs).catch((e) => setError(errorText(e)))
   useEffect(() => {
@@ -202,12 +205,7 @@ export default function AthleteDashboard() {
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="cap">Connect</span>
                 {available.map((p) => (
-                  <button
-                    key={p}
-                    className="btn"
-                    disabled={busy}
-                    onClick={() => act(() => api.post('/api/athlete/platforms/connect', { platform: p }))}
-                  >
+                  <button key={p} className="btn" disabled={busy} onClick={() => setConnecting(p)}>
                     {p}
                   </button>
                 ))}
@@ -272,7 +270,97 @@ export default function AthleteDashboard() {
           )}
         </Section>
       </div>
+
+      {connecting && (
+        <ConsentDialog
+          platform={connecting}
+          busy={busy}
+          onClose={() => setConnecting(null)}
+          onGrant={() => {
+            const platform = connecting
+            setConnecting(null)
+            void act(() =>
+              api.post('/api/athlete/platforms/connect', {
+                platform,
+                consent: true,
+                policy_version: POLICY_VERSION,
+              }),
+            )
+          }}
+        />
+      )}
     </>
+  )
+}
+
+/** Consent is the lawful basis for everything ingested from a platform, so it is
+ *  taken here — specifically, before the connection — rather than inferred from
+ *  a click on a button labelled with a platform name. The scopes listed are the
+ *  scopes the server records. */
+function ConsentDialog({
+  platform,
+  busy,
+  onGrant,
+  onClose,
+}: {
+  platform: string
+  busy: boolean
+  onGrant: () => void
+  onClose: () => void
+}) {
+  const [agreed, setAgreed] = useState(false)
+  return (
+    <Modal title={`Connect ${platform}`} onClose={onClose}>
+      {(close) => (
+        <>
+          <p className="text-sm text-ink-2">
+            Stride will read the following from your {platform} account and use it to compute your
+            marketability analytics. Sponsors see the result and the evidence behind it.
+          </p>
+          <ul className="mt-4 space-y-2 text-sm text-ink-2">
+            {[
+              ['Profile metrics', 'Follower count and its history over time'],
+              ['Post performance', 'Reach, engagement and posting cadence for recent posts'],
+              ['Aggregated audience', 'Age bands, gender split and country shares — never who your followers are'],
+            ].map(([h, d]) => (
+              <li key={h} className="flex gap-2.5">
+                <span className="mt-2 h-px w-3 shrink-0 bg-accent" aria-hidden />
+                <span>
+                  <b className="text-ink">{h}</b> — {d}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="meta mt-4 leading-relaxed">
+            You can disconnect at any time, which stops collection and removes this platform from
+            future scores. Your consent and any withdrawal are recorded in the audit log. See the{' '}
+            <Link to="/legal/privacy" className="text-accent-ink hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+          <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-sm text-ink-2">
+            <input
+              type="checkbox"
+              className="mt-1 accent-[rgb(var(--c-accent))]"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+            />
+            <span>
+              This is my account, and I consent to Stride collecting the data listed above.
+            </span>
+          </label>
+          <div className="mt-5 flex gap-2">
+            <button className="btn-go" disabled={!agreed || busy} onClick={onGrant}>
+              Connect {platform}
+            </button>
+            <button className="btn" onClick={close}>
+              Cancel
+            </button>
+          </div>
+        </>
+      )}
+    </Modal>
   )
 }
 

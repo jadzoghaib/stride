@@ -7,6 +7,7 @@ import type { ReactNode } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { roleHome, useAuth } from '../lib/auth'
 import { useTheme } from '../lib/theme'
+import Footer from './Footer'
 import { Avatar } from './ui'
 
 const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]> = {
@@ -122,6 +123,7 @@ export default function Shell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main className="stride-main">{children}</main>
+      <Footer />
     </div>
   )
 }

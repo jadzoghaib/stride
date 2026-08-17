@@ -5,6 +5,8 @@ import { PageLoading } from './components/ui'
 import { AuthProvider, roleHome, useAuth } from './lib/auth'
 import { ToastProvider } from './lib/toast'
 import Operations from './views/admin/Operations'
+import Legal from './views/legal/Legal'
+import YourData from './views/legal/YourData'
 import AthletePublicView from './views/AthletePublic'
 import AthletesDirectory from './views/AthletesDirectory'
 import Auth from './views/Auth'
@@ -94,6 +96,11 @@ export default function App() {
           <Route path="/feed" element={<Guard roles={['fan', 'athlete', 'sponsor']}><Feed /></Guard>} />
 
           <Route path="/admin" element={<Guard roles={['admin']}><Operations /></Guard>} />
+
+          {/* Public on purpose: someone deciding whether to hand over their
+              social data must be able to read the terms before signing up. */}
+          <Route path="/legal/data" element={<Public><YourData /></Public>} />
+          <Route path="/legal/:doc" element={<Public><Legal /></Public>} />
 
           <Route path="*" element={<Public><NotFound /></Public>} />
         </Routes>

@@ -10,13 +10,17 @@ import { api, errorText } from '../../lib/api'
 import { useToast } from '../../lib/toast'
 import { fmtDT } from '../../lib/format'
 
+/** Mirrors the `events` table columns exactly — they are `object_*`, not
+ *  `entity_*`. A mismatch here is invisible to the typechecker (the response is
+ *  an unchecked assertion at the fetch boundary) and shows up only as a column
+ *  full of em-dashes, which is how the first version of this view shipped. */
 interface AuditEvent {
   id: number
   ts: string
   actor: string
   event_type: string
-  entity_type: string | null
-  entity_id: number | null
+  object_type: string | null
+  object_id: number | null
   detail: Record<string, unknown>
 }
 
@@ -177,7 +181,7 @@ export default function Operations() {
                       {e.event_type}
                     </td>
                     <td className="table-cell meta">
-                      {e.entity_type ? `${e.entity_type}#${e.entity_id}` : '—'}
+                      {e.object_type ? `${e.object_type}#${e.object_id}` : '—'}
                     </td>
                     <td className="table-cell meta max-w-md truncate" title={JSON.stringify(e.detail)}>
                       {JSON.stringify(e.detail)}

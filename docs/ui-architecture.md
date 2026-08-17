@@ -40,7 +40,7 @@ shape — so it is the boundary the filesystem reflects.
 
 ## Information architecture
 
-18 routes. Every one names its access rule at the route, not inside the view.
+20 routes. Every one names its access rule at the route, not inside the view.
 
 | Path | View | Access | Chrome |
 |---|---|---|---|
@@ -61,7 +61,13 @@ shape — so it is the boundary the filesystem reflects.
 | `/discover` | `fan/Discover` | fan · athlete · sponsor · admin | Shell + Guard |
 | `/feed` | `fan/Feed` | fan · athlete · sponsor | Shell + Guard |
 | `/admin` | `admin/Operations` | admin | Shell + Guard |
+| `/legal/data` | `legal/YourData` | public | Shell |
+| `/legal/:doc` | `legal/Legal` | public | Shell |
 | `*` | `NotFound` | public | Shell |
+
+**The legal routes are public deliberately.** Someone deciding whether to hand
+over their social data has to be able to read the terms *before* creating an
+account, so these sit outside the Guard.
 
 **Landing and Auth render outside the Shell, deliberately.** They are the two
 surfaces where navigation would be wrong: one is the only marketing page, the
