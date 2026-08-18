@@ -34,6 +34,7 @@ are no agents at all, and the athlete's alternative to Stride is nothing. See
 | 06 | [Market strategy](06-market-strategy.md) | Two segments: disintermediation in popular sports, market creation in niche sports |
 | 07 | [Open questions](07-open-questions.md) | What is settled, and what still needs a founder |
 | 08 | [Sport index](08-sport-index.md) | 714 country x sport pairs, the classification method, and its three product uses |
+| 09 | [Analytics strategy](09-analytics-strategy.md) | How the data function phases in — and the one thing that is urgent now |
 
 Every number in 03 and 04 is produced by [`model.py`](model.py). Change an
 assumption there and rerun — nothing is hand-typed:
@@ -50,15 +51,18 @@ python business-plan/model.py
 |---|---|---|---|---|
 | Active athletes | 400 | 5,500 | 25,000 | 52,000 |
 | Niche share of revenue | 95% | 80% | 54% | 38% |
-| Paying fans | 2,201 | 47,740 | 295,140 | 759,408 |
-| Marketplace GMV | €311k | €8.18M | €65.78M | €199.67M |
-| **Net revenue** | **€51k** | **€1.32M** | **€9.78M** | **€28.62M** |
-| Gross margin | 58% | 63% | 64% | 66% |
-| EBITDA | −€79k | −€168k | €2.02M | €9.71M |
+| Paying fans (year end) | 2,201 | 47,740 | 295,140 | 759,408 |
+| Marketplace GMV | €217k | €6.63M | €57.9M | €187.4M |
+| **Net revenue** | **€36k** | **€1.06M** | **€8.55M** | **€26.57M** |
+| Gross margin | 56% | 62% | 64% | 65% |
+| EBITDA | −€87k | −€318k | €1.26M | €8.20M |
 | Headcount | 1.5 | 7 | 24 | 50 |
 
-**Capital required to fund it: €558k**, against a deepest cumulative cash
-position of −€399k in Y3. EBITDA turns positive in Y4.
+**Capital required to fund it: €952k**, against a deepest cumulative cash
+position of −€680k in Y4. EBITDA turns positive in Y5.
+
+Both figures rose sharply once churn was modelled as cohort decay rather than
+assumed away — see [03](03-financial-model.md#retention-and-acquisition).
 
 ---
 

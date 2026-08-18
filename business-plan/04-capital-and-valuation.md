@@ -36,7 +36,7 @@ loss. At a 70% failure probability, the surviving case must return roughly
 **€1.5–2M to the founder** for the decision to have been rational ex ante.
 
 The model delivers that: at the base case, a founder retaining ~45% after two
-rounds owns ~€17M of a €39.0M enterprise value at Y7. **The venture clears its
+rounds owns ~€16M of a €36.2M enterprise value at Y7. **The venture clears its
 own hurdle by roughly 7×, which is the honest justification for doing it at
 all.**
 
@@ -54,7 +54,7 @@ fact you can demonstrate, not a milestone you can assert.
 | **Seed** | €2.0M | €10M | €80k MRR · fan churn < 8%/mo · CAC payback < 9mo · 2nd market opened · 30+ paying sponsors | Team to 24, second and third market, moderation infrastructure |
 | **Series A** | €8.0M | €40M | €300k MRR · net revenue retention > 110% · sponsorship take > 25% of revenue · unit economics stable across 3 markets | EU-wide, sales org, managed services |
 
-**The plan needs €558k. The rounds above raise €2.4M before Series A.** The
+**The plan needs €952k. The rounds above raise €2.4M before Series A.** The
 difference is deliberate: raising only what the model needs leaves no room for
 the assumption that turns out wrong, and a company that runs out of cash in Y3
 at the trough dies with a working product. Raise the buffer; do not spend it
@@ -87,7 +87,7 @@ Taking dilution before exhausting these is leaving money on the table.
 | **Ley de Startups** tax regime | — | **15% corporate tax** for first 4 profitable years vs 25% | Modelled — worth €209k across Y4–Y7 |
 | Beckham Law | — | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
 
-**A realistic non-dilutive stack is €300–500k**, which covers most of the €399k
+**A realistic non-dilutive stack is €300–500k**, which covers most of the €680k
 trough. Combined with a smaller pre-seed, the founder could reach the Seed gate
 holding materially more equity.
 
@@ -103,25 +103,30 @@ Two methods, because they answer different questions and disagree for a reason.
 
 ### Discounted cash flow
 
-| | Value |
+<!-- MODEL:valuation -->
+| Valuation (DCF) | Value |
 |---|---|
-| PV of explicit FCF, Y1–Y7 | €3.31M |
-| Terminal value (g = 3%) | €38.63M |
-| PV of terminal value | €8.10M |
-| **Enterprise value at WACC 25%** | **€11.42M** |
+| PV of explicit FCF, Y1–Y7 | €2.34M |
+| Terminal value (g=3%) | €32.65M |
+| PV of terminal value | €6.85M |
+| **Enterprise value (WACC 25%)** | **€9.19M** |
+<!-- /MODEL:valuation -->
 
 ### Exit multiple
 
-| Method | Multiple | Value at Y7 | Discounted to today |
+
+<!-- MODEL:multiples -->
+| Exit method (Y7) | Multiple | Value AT Y7 | Discounted to today |
 |---|---|---|---|
-| Marketplace comparables | 4.0× revenue | €114.48M | €24.01M |
-| Blended marketplace + SaaS | 6.5× revenue | €186.02M | €39.01M |
-| High-growth SaaS mix | 9.0× revenue | €257.57M | €54.02M |
-| EBITDA multiple | 14× EBITDA | €135.92M | €28.50M |
+| Marketplace comparables | 4.0x revenue | €106.30M | €22.29M |
+| Blended marketplace + SaaS | 6.5x revenue | €172.74M | €36.23M |
+| High-growth SaaS mix | 9.0x revenue | €239.17M | €50.16M |
+| EBITDA multiple | 14x EBITDA | €114.86M | €24.09M |
+<!-- /MODEL:multiples -->
 
 ### Why they disagree, and which to believe
 
-The DCF says €11.4M; the blended exit multiple says €39.0M. **This is not an
+The DCF says €9.2M; the blended exit multiple says €36.2M. **This is not an
 error in either — it is the standard failure of perpetuity-growth DCF applied to
 a company still compounding at 60%.**
 
@@ -134,7 +139,7 @@ drives the answer.
 **For a venture-stage company, the exit-multiple method discounted back is the
 more informative number.** The DCF is worth presenting precisely because it is
 the conservative floor: *even if growth stops dead in Y7*, the business is worth
-€11.4M today.
+€9.2M today.
 
 | Sensitivity — enterprise value | WACC 20% | WACC 25% | WACC 30% |
 |---|---|---|---|
@@ -142,8 +147,8 @@ the conservative floor: *even if growth stops dead in Y7*, the business is worth
 | Terminal growth 3% | €17.1M | €11.4M | €8.2M |
 | Terminal growth 4% | €19.0M | €12.3M | €8.7M |
 
-**Defensible headline: €24–39M enterprise value at Y7 discounted to today**,
-with an €11.4M floor under a no-growth-after-Y7 assumption.
+**Defensible headline: €22–36M enterprise value at Y7 discounted to today**,
+with a €9.2M floor under a no-growth-after-Y7 assumption.
 
 ---
 

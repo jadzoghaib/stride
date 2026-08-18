@@ -40,8 +40,10 @@ class Segment:
     """
     name: str
     monetise_rate: list[float]      # share of athletes who turn on fan monetisation
-    fans_per_athlete: list[int]     # paying fans per monetising athlete
+    fans_per_athlete: list[int]     # paying fans per monetising athlete, at YEAR END
     fan_arpu_month: list[float]
+    fan_churn_month: list[float]    # monthly, compounds — see fan_path()
+    athlete_churn_year: list[float]  # annual; drives gross adds, and therefore CAC
     deal_rate: list[float]          # share of athletes landing >=1 deal a year
     deals_per_athlete: list[float]
     avg_deal_eur: list[int]
@@ -53,6 +55,10 @@ NICHE = Segment(
     monetise_rate=[0.28, 0.32, 0.37, 0.41, 0.44, 0.46, 0.48],
     fans_per_athlete=[20, 22, 25, 28, 30, 32, 34],
     fan_arpu_month=[8.00, 8.30, 8.60, 8.80, 9.00, 9.10, 9.20],
+    # Niche fans churn less: they subscribed for knowledge, and training is a
+    # habit rather than an impulse. Seasons also create natural renewal points.
+    fan_churn_month=[0.090, 0.085, 0.080, 0.075, 0.070, 0.065, 0.060],
+    athlete_churn_year=[0.30, 0.27, 0.24, 0.22, 0.20, 0.19, 0.18],
     deal_rate=[0.05, 0.07, 0.09, 0.11, 0.13, 0.15, 0.16],
     deals_per_athlete=[1.1, 1.2, 1.3, 1.5, 1.6, 1.7, 1.8],
     avg_deal_eur=[900, 1_050, 1_200, 1_350, 1_500, 1_600, 1_700],
@@ -64,6 +70,10 @@ POPULAR = Segment(
     monetise_rate=[0.14, 0.17, 0.20, 0.23, 0.26, 0.28, 0.30],
     fans_per_athlete=[26, 29, 32, 35, 38, 41, 44],
     fan_arpu_month=[7.00, 7.20, 7.40, 7.60, 7.80, 7.90, 8.00],
+    # Popular-sport fans churn harder: an impulse follow after a result, with
+    # many competing ways to consume the same athlete for free.
+    fan_churn_month=[0.130, 0.125, 0.120, 0.110, 0.105, 0.100, 0.090],
+    athlete_churn_year=[0.35, 0.32, 0.30, 0.27, 0.25, 0.23, 0.22],
     deal_rate=[0.14, 0.17, 0.20, 0.24, 0.27, 0.29, 0.30],
     deals_per_athlete=[1.3, 1.5, 1.7, 1.9, 2.1, 2.3, 2.4],
     avg_deal_eur=[2_200, 2_500, 2_800, 3_100, 3_400, 3_700, 4_000],
@@ -79,8 +89,6 @@ class Assumptions:
     # niche cohort's earnings make the disintermediation pitch quantified.
     niche_share: list[float] = field(default_factory=lambda: [0.95, 0.92, 0.80, 0.68, 0.58, 0.50, 0.45])
     segments: list[Segment] = field(default_factory=lambda: [NICHE, POPULAR])
-
-    fan_churn_month: list[float] = field(default_factory=lambda: [0.11, 0.10, 0.09, 0.085, 0.08, 0.075, 0.07])
 
     # one-off fan spend (unlocks + tips) as a multiple of subscription GMV
     ppv_tips_multiple: float = 0.35
@@ -141,16 +149,69 @@ def i(n: int) -> int:
 # Model
 # ─────────────────────────────────────────────────────────────────────────────
 
-def segment_year(seg: Segment, athlete_count: float, i_: int) -> dict:
-    """One segment's contribution in one year."""
+def fan_path(start: float, target_end: float, churn: float) -> dict:
+    """Twelve months of cohort decay, solved for the gross adds that land on the
+    target year-end count.
+
+        fans[t+1] = fans[t] * (1 - churn) + adds
+
+    so after 12 months, with r = 1 - churn:
+
+        end = start * r^12 + adds * (1 - r^12) / (1 - r)
+
+    Two things fall out of this that a net-stock model cannot see:
+
+    1.  **Revenue accrues on the AVERAGE fan count, not the year-end count.**
+        Charging twelve months at the December number overstates revenue by
+        roughly a third during fast growth. The previous version did exactly
+        that.
+    2.  **Gross adds are far larger than net adds.** At 9%/month, a cohort
+        retains 0.91^12 = 32% over a year, so most of next year's fans are
+        replacements for this year's. That is the real acquisition load, and it
+        is invisible until churn is modelled explicitly.
+    """
+    r = 1.0 - churn
+    stock_survivors = start * r ** 12
+    denom = (1 - r ** 12) / (1 - r) if churn > 0 else 12.0
+    monthly_adds = max(0.0, (target_end - stock_survivors) / denom)
+
+    fans, total, churned = start, 0.0, 0.0
+    for _ in range(12):
+        churned += fans * churn
+        fans = fans * r + monthly_adds
+        total += fans
+    return {
+        "avg": total / 12, "end": fans,
+        "gross_adds": monthly_adds * 12, "churned": churned,
+        "retained_share": (stock_survivors / start) if start else 0.0,
+    }
+
+
+def segment_year(seg: Segment, athlete_count: float, prev_athletes: float,
+                 prev_fans: float, i_: int) -> dict:
+    """One segment's contribution in one year, with cohort churn on both sides."""
     monetising = athlete_count * seg.monetise_rate[i_]
-    paying_fans = monetising * seg.fans_per_athlete[i_]
-    sub_gmv = paying_fans * seg.fan_arpu_month[i_] * 12
+    target_fans = monetising * seg.fans_per_athlete[i_]
+    fans = fan_path(prev_fans, target_fans, seg.fan_churn_month[i_])
+
+    # Revenue on the AVERAGE fan count — the honest basis.
+    sub_gmv = fans["avg"] * seg.fan_arpu_month[i_] * 12
     fan_gmv = sub_gmv * (1 + A.ppv_tips_multiple)
+
     deals = athlete_count * seg.deal_rate[i_] * seg.deals_per_athlete[i_]
     sponsorship_gmv = deals * seg.avg_deal_eur[i_]
+
+    # Athletes churn too, so acquisition must replace them before it grows the
+    # base. Gross adds, not net, are what marketing actually pays for.
+    churn_a = seg.athlete_churn_year[i_]
+    athlete_gross_adds = max(0.0, athlete_count - prev_athletes * (1 - churn_a))
+    athletes_lost = prev_athletes * churn_a
+
     return dict(
-        name=seg.name, athletes=athlete_count, paying_fans=paying_fans,
+        name=seg.name, athletes=athlete_count, paying_fans=fans["end"],
+        avg_fans=fans["avg"], fan_gross_adds=fans["gross_adds"],
+        fans_churned=fans["churned"], fan_retained_share=fans["retained_share"],
+        athlete_gross_adds=athlete_gross_adds, athletes_lost=athletes_lost,
         deals=deals, fan_gmv=fan_gmv, sponsorship_gmv=sponsorship_gmv,
         revenue=fan_gmv * A.take_fan + sponsorship_gmv * A.take_sponsorship,
     )
@@ -165,11 +226,15 @@ def split(i_: int) -> dict[str, float]:
 
 def build() -> list[dict]:
     rows = []
+    prev_fans = {s.name: 0.0 for s in A.segments}
     for y in YEARS:
         i_ = i(y)
         athletes = A.athletes[i_]
         counts = split(i_)
-        segs = [segment_year(s, counts[s.name], i_) for s in A.segments]
+        prev_counts = split(i_ - 1) if y > 1 else {s.name: 0.0 for s in A.segments}
+        segs = [segment_year(s, counts[s.name], prev_counts[s.name],
+                             prev_fans[s.name], i_) for s in A.segments]
+        prev_fans = {s["name"]: s["paying_fans"] for s in segs}
 
         paying_fans = sum(s["paying_fans"] for s in segs)
         deals = sum(s["deals"] for s in segs)
@@ -204,9 +269,11 @@ def build() -> list[dict]:
         people = A.headcount[i_] * A.loaded_salary_eur[i_]
         # CAC is per segment: displacing an agent costs more than reaching an
         # athlete who has no representation at all.
-        prev = split(i_ - 1) if y > 1 else {"niche": 0.0, "popular": 0.0}
-        marketing = sum(max(counts[s.name] - prev[s.name], 0) * s.cac_eur[i_] for s in A.segments)
-        new_athletes = athletes - (A.athletes[i_ - 1] if y > 1 else 0)
+        # GROSS adds, not net: churned athletes must be replaced before the base
+        # grows at all, and that replacement is paid for at full CAC.
+        by_name = {s["name"]: s for s in segs}
+        marketing = sum(by_name[s.name]["athlete_gross_adds"] * s.cac_eur[i_] for s in A.segments)
+        new_athletes = sum(by_name[s.name]["athlete_gross_adds"] for s in A.segments)
         new_sponsors = A.sponsors[i_] - (A.sponsors[i_ - 1] if y > 1 else 0)
         marketing += max(new_sponsors, 0) * A.sponsor_cac_eur[i_]
         legal = A.legal_compliance_eur[i_]
@@ -229,6 +296,11 @@ def build() -> list[dict]:
             headcount=A.headcount[i_],
             segs={s["name"]: s for s in segs},
             niche_share=A.niche_share[i_],
+            avg_fans=sum(s["avg_fans"] for s in segs),
+            fan_gross_adds=sum(s["fan_gross_adds"] for s in segs),
+            fans_churned=sum(s["fans_churned"] for s in segs),
+            athlete_gross_adds=sum(s["athlete_gross_adds"] for s in segs),
+            athletes_lost=sum(s["athletes_lost"] for s in segs),
         ))
     return rows
 
@@ -349,6 +421,15 @@ def render(rows: list[dict]) -> dict[str, str]:
         ["First EBITDA-positive year", f"Y{next((r['year'] for r in rows if r['ebitda'] > 0), 0)}"],
     ])
 
+    churn = table(["Retention & acquisition"] + ys, [
+        line("Paying fans, year end", "paying_fans", num),
+        line("Paying fans, average", "avg_fans", num),
+        line("Fans acquired (gross)", "fan_gross_adds", num),
+        line("Fans lost to churn", "fans_churned", num),
+        line("Athletes acquired (gross)", "athlete_gross_adds", num),
+        line("Athletes lost to churn", "athletes_lost", num),
+    ])
+
     seg_rows = []
     for key, label in (("niche", "Niche (market creation)"), ("popular", "Popular (disintermediation)")):
         seg_rows.append([f"**{label}**"] + ["" for _ in rows])
@@ -364,7 +445,7 @@ def render(rows: list[dict]) -> dict[str, str]:
 
     return dict(drivers=drivers, gmv=gmv, revenue=revenue, pl=pl, egress=egress,
                 valuation=val, multiples=mult, cash=cash, funding=funding,
-                segments=segments)
+                segments=segments, churn=churn)
 
 
 def unit_economics() -> str:
@@ -387,10 +468,43 @@ def unit_economics() -> str:
     )
 
 
+DOC_TABLES = {
+    "03-financial-model.md": ["drivers", "churn", "segments", "gmv", "revenue", "pl", "cash", "funding"],
+    "04-capital-and-valuation.md": ["valuation", "multiples"],
+}
+
+
+def write_docs(rendered: dict[str, str]) -> None:
+    """Replace the content between <!-- MODEL:key --> and <!-- /MODEL:key -->.
+
+    The narrative stays hand-written and in control of what is shown; only the
+    tables are generated. Three rounds of propagating numbers by hand was
+    enough — a figure that appears in a document should come from the model that
+    produced it.
+    """
+    import pathlib
+    here = pathlib.Path(__file__).parent
+    for filename, keys in DOC_TABLES.items():
+        path = here / filename
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for key in keys:
+            start, end = f"<!-- MODEL:{key} -->", f"<!-- /MODEL:{key} -->"
+            if start not in text or end not in text:
+                continue
+            head, _, rest = text.partition(start)
+            _, _, tail = rest.partition(end)
+            text = head + start + "\n" + rendered[key] + "\n" + end + tail
+        path.write_text(text, encoding="utf-8")
+        print(f"wrote {filename}")
+
+
 def main() -> None:
     rows = build()
     r = render(rows)
     print("\n## Drivers\n\n" + r["drivers"])
+    print("\n## Retention & acquisition\n\n" + r["churn"])
     print("\n## Segments\n\n" + r["segments"])
     print("\n## GMV\n\n" + r["gmv"])
     print("\n## Net revenue\n\n" + r["revenue"])
@@ -403,8 +517,8 @@ def main() -> None:
     print("\n" + r["multiples"])
 
     if "--write" in sys.argv:
-        print("\n(--write is a placeholder: tables above are pasted into the docs by hand "
-              "so the narrative stays in control of what is shown.)")
+        print()
+        write_docs(r)
 
 
 if __name__ == "__main__":
