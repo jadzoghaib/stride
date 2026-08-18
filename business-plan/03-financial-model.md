@@ -11,13 +11,13 @@ python business-plan/model.py
 ## Drivers
 
 <!-- MODEL:drivers -->
-| Driver | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
-|---|---|---|---|---|---|---|---|
-| Active athletes | 400 | 1,800 | 5,500 | 13,000 | 25,000 | 38,000 | 52,000 |
-| Paying fans | 2,201 | 12,368 | 47,740 | 134,971 | 295,140 | 497,800 | 759,408 |
-| Sponsorship deals | 25 | 176 | 889 | 3,356 | 8,970 | 17,518 | 27,331 |
-| Paying sponsors (SaaS) | 2 | 15 | 58 | 152 | 300 | 480 | 700 |
-| Headcount (FTE) | 1.5 | 3.0 | 7.0 | 14.0 | 24.0 | 36.0 | 50.0 |
+| Driver | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Active athletes | 400 | 1,800 | 5,500 | 13,000 | 25,000 | 38,000 | 52,000 | 65,000 | 76,000 | 85,000 |
+| Paying fans | 2,058 | 12,217 | 46,333 | 130,165 | 285,069 | 490,646 | 759,408 | 1,007,675 | 1,237,523 | 1,415,029 |
+| Sponsorship deals | 25 | 176 | 889 | 3,356 | 8,970 | 17,518 | 27,331 | 37,742 | 44,472 | 54,271 |
+| Paying sponsors (SaaS) | 0 | 14 | 58 | 152 | 300 | 480 | 700 | 920 | 1,120 | 1,280 |
+| Headcount (FTE) | 1.5 | 3.0 | 7.0 | 14.0 | 24.0 | 36.0 | 50.0 | 62.0 | 72.0 | 80.0 |
 <!-- /MODEL:drivers -->
 
 ---
@@ -29,14 +29,14 @@ than asserting a year-end stock. Two consequences that a net-stock model cannot
 show:
 
 <!-- MODEL:churn -->
-| Retention & acquisition | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
-|---|---|---|---|---|---|---|---|
-| Paying fans, year end | 2,201 | 12,368 | 47,740 | 134,971 | 295,140 | 497,800 | 759,408 |
-| Paying fans, average | 1,397 | 8,614 | 34,667 | 102,593 | 235,646 | 422,401 | 660,345 |
-| Fans acquired (gross) | 3,532 | 18,304 | 67,927 | 182,316 | 377,646 | 589,445 | 831,446 |
-| Fans lost to churn | 1,331 | 8,136 | 32,555 | 95,085 | 217,477 | 386,785 | 569,838 |
-| Athletes acquired (gross) | 400 | 1,509 | 4,141 | 8,765 | 14,808 | 18,170 | 21,600 |
-| Athletes lost to churn | 0 | 109 | 441 | 1,265 | 2,808 | 5,170 | 7,600 |
+| Retention & acquisition | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Paying fans, year end | 2,058 | 12,217 | 46,333 | 130,165 | 285,069 | 490,646 | 759,408 | 1,007,675 | 1,237,523 | 1,415,029 |
+| Paying fans, average | 1,306 | 8,461 | 33,681 | 98,964 | 227,425 | 414,208 | 657,722 | 913,140 | 1,149,376 | 1,346,877 |
+| Fans acquired (gross) | 3,298 | 18,093 | 65,403 | 174,501 | 362,576 | 582,238 | 835,123 | 1,035,072 | 1,206,017 | 1,316,405 |
+| Fans lost to churn | 1,241 | 7,934 | 31,287 | 90,668 | 207,672 | 376,662 | 566,362 | 786,805 | 976,169 | 1,138,899 |
+| Athletes acquired (gross) | 400 | 1,509 | 4,141 | 8,765 | 14,808 | 18,170 | 21,600 | 22,984 | 23,252 | 22,923 |
+| Athletes lost to churn | 0 | 109 | 441 | 1,265 | 2,808 | 5,170 | 7,600 | 9,984 | 12,252 | 13,923 |
 <!-- /MODEL:churn -->
 
 **Revenue accrues on the average fan count, not the year-end count.** Charging
@@ -104,11 +104,11 @@ is the point of splitting them.
 ## Marketplace volume (GMV)
 
 <!-- MODEL:gmv -->
-| Marketplace volume | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
-|---|---|---|---|---|---|---|---|
-| Fan GMV (subs + unlocks) | €180k | €1.15M | €4.73M | €14.15M | €32.82M | €58.82M | €92.21M |
-| Sponsorship GMV | €27k | €238k | €1.66M | €7.85M | €24.77M | €54.64M | €93.82M |
-| **Total GMV** | €207k | €1.39M | €6.40M | €22.00M | €57.59M | €113.46M | €186.04M |
+| Marketplace volume | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Fan GMV (subs + unlocks) | €169k | €1.13M | €4.62M | €13.71M | €31.78M | €57.77M | €91.87M | €128.38M | €163.11M | €193.09M |
+| Sponsorship GMV | €27k | €238k | €1.66M | €7.85M | €24.77M | €54.64M | €93.82M | €136.85M | €169.90M | €217.03M |
+| **Total GMV** | €195k | €1.37M | €6.28M | €21.56M | €56.55M | €112.42M | €185.70M | €265.23M | €333.01M | €410.11M |
 <!-- /MODEL:gmv -->
 
 GMV is the number a marketplace is judged on by investors; net revenue is the
@@ -120,12 +120,12 @@ other.
 ## Net revenue
 
 <!-- MODEL:revenue -->
-| Net revenue | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
-|---|---|---|---|---|---|---|---|
-| Fan take (15%) | €27k | €172k | €710k | €2.12M | €4.92M | €8.82M | €13.83M |
-| Sponsorship take (10%) | €3k | €24k | €166k | €785k | €2.48M | €5.46M | €9.38M |
-| Sponsor SaaS | €6k | €42k | €180k | €529k | €1.15M | €2.07M | €3.36M |
-| **Total net revenue** | €36k | €239k | €1.06M | €3.44M | €8.55M | €16.36M | €26.57M |
+| Net revenue | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Fan take (15%) | €25k | €170k | €692k | €2.06M | €4.77M | €8.67M | €13.78M | €19.26M | €24.47M | €28.96M |
+| Sponsorship take (10%) | €3k | €24k | €166k | €785k | €2.48M | €5.46M | €9.38M | €13.68M | €16.99M | €21.70M |
+| Sponsor SaaS | €1k | €38k | €180k | €529k | €1.15M | €2.07M | €3.36M | €4.75M | €6.12M | €7.30M |
+| **Total net revenue** | €29k | €231k | €1.04M | €3.37M | €8.40M | €16.20M | €26.52M | €37.69M | €47.57M | €57.96M |
 <!-- /MODEL:revenue -->
 
 Growth: Y2 +516%, Y3 +321%, Y4 +210%, Y5 +139%, Y6 +83%, Y7 +60%. A decelerating
@@ -136,22 +136,22 @@ curve that stays above 50% through Y7 is what a Series B buyer wants to see.
 ## Profit and loss
 
 <!-- MODEL:pl -->
-| P&L | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
-|---|---|---|---|---|---|---|---|
-| Net revenue | €36k | €239k | €1.06M | €3.44M | €8.55M | €16.36M | €26.57M |
-| Payment processing | €11k | €71k | €314k | €1.02M | €2.57M | €4.90M | €7.91M |
-| Payouts | €685 | €5k | €21k | €69k | €177k | €345k | €562k |
-| Infrastructure (AWS) | €3k | €10k | €33k | €88k | €183k | €290k | €419k |
-| Moderation | €1k | €6k | €17k | €41k | €79k | €120k | €165k |
-| **Gross profit** | €20k | €147k | €671k | €2.21M | €5.55M | €10.71M | €17.52M |
-| Gross margin | 57% | 62% | 63% | 64% | 65% | 65% | 66% |
-| People | €57k | €156k | €420k | €896k | €1.58M | €2.45M | €3.50M |
-| Marketing / CAC | €29k | €120k | €395k | €975k | €1.82M | €2.59M | €3.42M |
-| Legal & compliance | €18k | €45k | €90k | €150k | €200k | €235k | €270k |
-| Other opex | €3k | €19k | €85k | €275k | €684k | €1.31M | €2.13M |
-| **EBITDA** | €-87k | €-193k | €-318k | €-81k | €1.26M | €4.13M | €8.20M |
-| Tax | €0 | €0 | €0 | €0 | €190k | €619k | €1.23M |
-| **Free cash flow** | €-87k | €-193k | €-318k | €-81k | €1.07M | €3.51M | €6.97M |
+| P&L | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Net revenue | €29k | €231k | €1.04M | €3.37M | €8.40M | €16.20M | €26.52M | €37.69M | €47.57M | €57.96M |
+| Payment processing | €10k | €70k | €308k | €999k | €2.51M | €4.84M | €7.89M | €11.20M | €14.11M | €17.17M |
+| Payouts | €645 | €4k | €20k | €67k | €174k | €341k | €561k | €798k | €1.00M | €1.23M |
+| Infrastructure (AWS) | €3k | €10k | €33k | €87k | €181k | €289k | €419k | €534k | €634k | €713k |
+| Moderation | €1k | €6k | €17k | €41k | €79k | €120k | €165k | €206k | €241k | €269k |
+| **Gross profit** | €14k | €141k | €661k | €2.18M | €5.45M | €10.62M | €17.48M | €24.95M | €31.58M | €38.58M |
+| Gross margin | 50% | 61% | 64% | 65% | 65% | 66% | 66% | 66% | 66% | 67% |
+| People | €57k | €156k | €420k | €896k | €1.58M | €2.45M | €3.50M | €4.46M | €5.33M | €6.08M |
+| Marketing / CAC | €29k | €120k | €395k | €975k | €1.82M | €2.59M | €3.42M | €3.68M | €3.65M | €3.36M |
+| Legal & compliance | €18k | €45k | €90k | €150k | €200k | €235k | €270k | €300k | €325k | €345k |
+| Other opex | €2k | €19k | €83k | €270k | €672k | €1.30M | €2.12M | €3.02M | €3.81M | €4.64M |
+| **EBITDA** | €-92k | €-199k | €-327k | €-116k | €1.18M | €4.05M | €8.18M | €13.50M | €18.47M | €24.16M |
+| Tax | €0 | €0 | €0 | €0 | €178k | €607k | €1.23M | €2.02M | €2.77M | €3.62M |
+| **Free cash flow** | €-92k | €-199k | €-327k | €-116k | €1.01M | €3.44M | €6.95M | €11.47M | €15.70M | €20.53M |
 <!-- /MODEL:pl -->
 
 **Gross margin of 58–66% is the honest number for a payments-heavy marketplace.**
@@ -168,23 +168,26 @@ parent (~85% at a 20% take on far larger tickets).
 <!-- MODEL:cash -->
 | Year | Free cash flow | Cumulative |
 |---|---|---|
-| Y1 | €-87k | €-87k |
-| Y2 | €-193k | €-280k |
-| Y3 | €-318k | €-599k |
-| Y4 | €-81k | €-680k |
-| Y5 | €1.07M | €394k |
-| Y6 | €3.51M | €3.90M |
-| Y7 | €6.97M | €10.88M |
+| Y1 | €-92k | €-92k |
+| Y2 | €-199k | €-291k |
+| Y3 | €-327k | €-618k |
+| Y4 | €-116k | €-734k |
+| Y5 | €1.01M | €273k |
+| Y6 | €3.44M | €3.71M |
+| Y7 | €6.95M | €10.66M |
+| Y8 | €11.47M | €22.14M |
+| Y9 | €15.70M | €37.83M |
+| Y10 | €20.53M | €58.37M |
 <!-- /MODEL:cash -->
 
 | Capital requirement | Value |
 <!-- MODEL:funding -->
 | Capital requirement | Value |
 |---|---|
-| Deepest cumulative cash position | €-680k |
+| Deepest cumulative cash position | €-734k |
 | Year it occurs | Y4 |
-| Buffer at 40% (hiring slips, churn worse) | €272k |
-| **Total capital to fund the plan** | **€952k** |
+| Buffer at 40% (hiring slips, churn worse) | €294k |
+| **Total capital to fund the plan** | **€1.03M** |
 | First EBITDA-positive year | Y5 |
 <!-- /MODEL:funding -->
 

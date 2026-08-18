@@ -106,10 +106,10 @@ Two methods, because they answer different questions and disagree for a reason.
 <!-- MODEL:valuation -->
 | Valuation (DCF) | Value |
 |---|---|
-| PV of explicit FCF, Y1–Y7 | €2.34M |
-| Terminal value (g=3%) | €32.65M |
-| PV of terminal value | €6.85M |
-| **Enterprise value (WACC 25%)** | **€9.19M** |
+| PV of explicit FCF, Y1–Y7 | €8.51M |
+| Terminal value (g=3%) | €96.14M |
+| PV of terminal value | €10.32M |
+| **Enterprise value (WACC 25%)** | **€18.83M** |
 <!-- /MODEL:valuation -->
 
 ### Exit multiple
@@ -118,10 +118,10 @@ Two methods, because they answer different questions and disagree for a reason.
 <!-- MODEL:multiples -->
 | Exit method (Y7) | Multiple | Value AT Y7 | Discounted to today |
 |---|---|---|---|
-| Marketplace comparables | 4.0x revenue | €106.30M | €22.29M |
-| Blended marketplace + SaaS | 6.5x revenue | €172.74M | €36.23M |
-| High-growth SaaS mix | 9.0x revenue | €239.17M | €50.16M |
-| EBITDA multiple | 14x EBITDA | €114.86M | €24.09M |
+| Marketplace comparables | 4.0x revenue | €231.85M | €24.89M |
+| Blended marketplace + SaaS | 6.5x revenue | €376.75M | €40.45M |
+| High-growth SaaS mix | 9.0x revenue | €521.65M | €56.01M |
+| EBITDA multiple | 14x EBITDA | €338.21M | €36.31M |
 <!-- /MODEL:multiples -->
 
 ### Why they disagree, and which to believe

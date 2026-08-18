@@ -47,22 +47,28 @@ python business-plan/model.py
 
 ## The plan in one table
 
-| | Y1 | Y3 | Y5 | Y7 |
-|---|---|---|---|---|
-| Active athletes | 400 | 5,500 | 25,000 | 52,000 |
-| Niche share of revenue | 95% | 80% | 54% | 38% |
-| Paying fans (year end) | 2,201 | 47,740 | 295,140 | 759,408 |
-| Marketplace GMV | €217k | €6.63M | €57.9M | €187.4M |
-| **Net revenue** | **€36k** | **€1.06M** | **€8.55M** | **€26.57M** |
-| Gross margin | 56% | 62% | 64% | 65% |
-| EBITDA | −€87k | −€318k | €1.26M | €8.20M |
-| Headcount | 1.5 | 7 | 24 | 50 |
+| | Y1 | Y3 | Y5 | Y7 | Y10 |
+|---|---|---|---|---|---|
+| Active athletes | 400 | 5,500 | 25,000 | 52,000 | 85,000 |
+| Paying fans (year end) | 2k | 46k | 285k | 759k | 1,415k |
+| **Net revenue** | **€0.03M** | **€1.04M** | **€8.40M** | **€26.52M** | **€57.96M** |
+| EBITDA | −€0.09M | −€0.33M | €1.18M | €8.18M | €24.16M |
+| Headcount | 1.5 | 7 | 24 | 50 | 80 |
 
-**Capital required to fund it: €952k**, against a deepest cumulative cash
-position of −€680k in Y4. EBITDA turns positive in Y5.
+**Capital required to fund it: €1.03M.** EBITDA turns positive in **Y5**.
 
-Both figures rose sharply once churn was modelled as cohort decay rather than
-assumed away — see [03](03-financial-model.md#retention-and-acquisition).
+**Ten years, not seven** — at Y7 the business is still compounding above 50%, so
+a terminal value placed there does most of the valuation work and does it badly.
+
+A live Excel model is generated alongside these documents:
+**[`Stride_Financial_Model.xlsx`](Stride_Financial_Model.xlsx)** — three
+statements, DCF/NPV/IRR, and every cell outside Assumptions is a formula, so any
+number can be traced back to the inputs that produced it.
+
+```bash
+uv run python business-plan/build_workbook.py    # regenerate the workbook
+python business-plan/model.py --write            # regenerate the doc tables
+```
 
 ---
 
