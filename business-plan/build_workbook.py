@@ -49,14 +49,36 @@ FIRST = 3                      # column C = Y1
 COLS = [get_column_letter(FIRST + k) for k in range(N)]
 
 # ── styling ──────────────────────────────────────────────────────────────────
-INPUT = Font(color="1F5FBF", name="Calibri", size=10)
-FORMULA = Font(color="1A1A1A", name="Calibri", size=10)
-LINK = Font(color="107C41", name="Calibri", size=10)
+# Cell FILL carries the meaning, in light tints so a dense sheet stays readable.
+# Font colour follows the banking convention as a second signal.
+#
+#   LIGHT BLUE    an input you may change
+#   LIGHT AMBER   sourced external fact (Stripe pricing, Spanish tax law, AWS
+#                 list price, Eurobarometer) — change only if the source changed
+#   WHITE         a formula computed on this sheet
+#   LIGHT GREEN   a formula pulling from another sheet
+#   LIGHT GREY    a subtotal or total
+#   LIGHT RED     a check that must read zero
+FILL_INPUT = PatternFill("solid", fgColor="DCE9F7")
+FILL_HARD  = PatternFill("solid", fgColor="FDF0D5")
+FILL_CALC  = PatternFill("solid", fgColor="FFFFFF")
+FILL_LINK  = PatternFill("solid", fgColor="E4F2E4")
+FILL_TOTAL = PatternFill("solid", fgColor="EDF0F5")
+FILL_CHECK = PatternFill("solid", fgColor="FBE3E3")
+
+FONT_INPUT = Font(color="1F4E9C", name="Calibri", size=10)
+FONT_HARD  = Font(color="8A5200", name="Calibri", size=10)
+FONT_CALC  = Font(color="1A1A1A", name="Calibri", size=10)
+FONT_LINK  = Font(color="1E7A3C", name="Calibri", size=10)
+
+INPUT = FONT_INPUT
+FORMULA = FONT_CALC
+LINK = FONT_LINK
 BOLD = Font(bold=True, name="Calibri", size=10)
 TITLE = Font(bold=True, size=13, color="14100A", name="Calibri")
 HEAD = Font(bold=True, color="FFFFFF", name="Calibri", size=10)
 HEAD_FILL = PatternFill("solid", fgColor="14181F")
-BAND = PatternFill("solid", fgColor="F2F4F7")
+BAND = FILL_TOTAL
 ACCENT = PatternFill("solid", fgColor="FFB020")
 MONEY = '#,##0;[Red](#,##0)'
 MONEY2 = '#,##0.00;[Red](#,##0.00)'
@@ -64,6 +86,26 @@ PCT = '0.0%'
 NUM = '#,##0'
 THIN = Side(style="thin", color="D0D5DD")
 TOPLINE = Border(top=Side(style="medium", color="14181F"))
+EDGE = Border(left=Side(style="thin", color="D8DEE7"), right=Side(style="thin", color="D8DEE7"),
+              top=Side(style="thin", color="D8DEE7"), bottom=Side(style="thin", color="D8DEE7"))
+
+LEGEND = [("Input — change me", FILL_INPUT, FONT_INPUT),
+          ("Sourced fact", FILL_HARD, FONT_HARD),
+          ("Formula (this sheet)", FILL_CALC, FONT_CALC),
+          ("Formula (other sheet)", FILL_LINK, FONT_LINK),
+          ("Total", FILL_TOTAL, BOLD)]
+
+
+def legend(ws, row_ix=2):
+    """A compact key on every sheet, so the colours never need explaining."""
+    col = 3
+    for text, fill, font in LEGEND:
+        c = ws.cell(row_ix, col, text)
+        rgb = font.color.rgb if font.color is not None else "1A1A1A"
+        c.fill, c.font, c.border = fill, Font(size=8, color=rgb, name="Calibri", bold=True), EDGE
+        c.alignment = Alignment(horizontal="center")
+        ws.merge_cells(start_row=row_ix, start_column=col, end_row=row_ix, end_column=col + 1)
+        col += 2
 
 
 def sheet(wb, name, title):
@@ -75,6 +117,7 @@ def sheet(wb, name, title):
     for c in COLS:
         ws.column_dimensions[c].width = 13
     ws.freeze_panes = "C4"
+    legend(ws)
     r = 3
     ws.cell(r, 1, "Line").font = HEAD
     ws.cell(r, 1).fill = HEAD_FILL
@@ -87,35 +130,59 @@ def sheet(wb, name, title):
 
 
 def row(ws, r, label, unit="", *, values=None, formula=None, fmt=MONEY,
-        bold=False, font=None, band=False, top=False, indent=0):
-    """Write one line. `values` writes inputs; `formula` writes a template with
-    {c} substituted for the column letter and {p} for the previous column."""
+        bold=False, font=None, band=False, top=False, indent=0,
+        hard=False, const=False, check=False):
+    """Write one line.
+
+    `values`   writes inputs (light blue, or amber when `hard`)
+    `formula`  writes a template: {c} = this column, {p} = previous, {k} = year
+    `const`    a single input in Y1 that later years link to, so a global
+               assumption is entered once and visibly propagates
+    `hard`     an externally sourced fact rather than one of our estimates
+
+    Fill is chosen from the content: a formula touching another sheet is green,
+    a local formula white, a total grey. That way the colour coding cannot drift
+    from what the cell actually does.
+    """
     lab = ws.cell(r, 1, ("    " * indent) + label)
     lab.font = BOLD if bold else Font(name="Calibri", size=10)
     ws.cell(r, 2, unit).font = Font(name="Calibri", size=9, color="6B7480")
+
     for k, c in enumerate(COLS):
         cell = ws.cell(r, FIRST + k)
+        fill = FILL_CALC
+        base = font or FORMULA
+
         if values is not None:
-            cell.value = values[k] if k < len(values) else None
-            cell.font = font or INPUT
+            if const and k > 0:
+                cell.value = f"={COLS[0]}{r}"          # links back to the one input
+                fill, base = FILL_LINK, FONT_LINK
+            else:
+                cell.value = values[k] if k < len(values) else None
+                fill = FILL_HARD if hard else FILL_INPUT
+                base = FONT_HARD if hard else FONT_INPUT
         elif formula is not None:
             prev = COLS[k - 1] if k > 0 else None
             f = formula.format(c=c, p=prev or c, k=k + 1, y=YEARS[k])
-            if k == 0 and "{p}" in formula and prev is None:
-                pass
             cell.value = f
-            cell.font = font or FORMULA
+            fill = FILL_LINK if "!" in f else FILL_CALC
+            base = FONT_LINK if "!" in f else (font or FONT_CALC)
+
+        if band or bold:
+            fill = FILL_TOTAL
+        if check:
+            fill = FILL_CHECK
+        cell.fill = fill
+        cell.border = EDGE
         cell.number_format = fmt
-        if bold:
-            cell.font = Font(bold=True, name="Calibri", size=10,
-                             color=(font.color.rgb if font and font.color else "1A1A1A"))
-        if band:
-            cell.fill = BAND
+        cell.font = Font(bold=bold, name="Calibri", size=10,
+                         color=(base.color.rgb if base.color else "1A1A1A"))
         if top:
             cell.border = TOPLINE
-    if band:
-        lab.fill = BAND
-        ws.cell(r, 2).fill = BAND
+
+    if band or bold:
+        lab.fill = FILL_TOTAL
+        ws.cell(r, 2).fill = FILL_TOTAL
     if top:
         lab.border = TOPLINE
     return r + 1
@@ -149,10 +216,21 @@ def build() -> pathlib.Path:
         ("Every non-input cell is a formula, so you can trace any number back to the inputs", None),
         ("that produced it — select a cell and use Formulas > Trace Precedents.", None),
         ("", None),
-        ("COLOURS", BOLD),
-        ("  BLUE    an input. These are the only cells you should type into.", None),
-        ("  BLACK   a formula on this sheet.", None),
-        ("  GREEN   a reference to another sheet.", None),
+        ("COLOURS — the fill tells you what a cell is", BOLD),
+        ("  LIGHT BLUE    an input. Change these. Blue is our estimate or plan.", None),
+        ("  LIGHT AMBER   a sourced fact — Stripe pricing, Spanish tax law, AWS list,", None),
+        ("                Eurobarometer. Change only if the source changed.", None),
+        ("  WHITE         a formula computed on this sheet.", None),
+        ("  LIGHT GREEN   a formula pulling a value from another sheet.", None),
+        ("  LIGHT GREY    a subtotal or total.", None),
+        ("  LIGHT RED     a check that must read zero.", None),
+        ("", None),
+        ("A global assumption is entered once, in the Y1 column, and later years link", None),
+        ("back to it in green — so you change one cell and the whole row follows. Where", None),
+        ("a row genuinely varies year by year, every cell is blue.", None),
+        ("", None),
+        ("The workbook is set to recalculate on open, so every figure you see was", None),
+        ("computed from the inputs rather than pasted.", None),
         ("", None),
         ("SHEETS", BOLD),
         ("  Assumptions    every input, grouped, with units and provenance", None),
@@ -188,10 +266,13 @@ def build() -> pathlib.Path:
     r = 4
     A_ROW = {}
 
-    def put(label, unit, values, fmt=NUM, key=None):
+    def put(label, unit, values, fmt=NUM, key=None, hard=False, const=False, note=""):
         nonlocal r
         A_ROW[key or label] = r
-        r = row(a, r, label, unit, values=values, fmt=fmt)
+        r = row(a, r, label, unit, values=values, fmt=fmt, hard=hard, const=const)
+        if note:
+            c = a.cell(r - 1, FIRST + N + 1, note)
+            c.font = Font(size=8, italic=True, color="6B7480", name="Calibri")
 
     r = section(a, r, "MARKET — the plan's shape")
     put("Active athletes (year end)", "count", A.athletes, NUM, "athletes")
@@ -219,50 +300,64 @@ def build() -> pathlib.Path:
     r += 1
 
     r = section(a, r, "TAKE RATES & PAYMENT RAILS")
-    put("Take rate — fan revenue", "%", [A.take_fan] * N, PCT, "take_fan")
-    put("Take rate — sponsorship", "%", [A.take_sponsorship] * N, PCT, "take_sp")
-    put("PPV & tips as multiple of subs", "x", [A.ppv_tips_multiple] * N, '0.00', "ppv_mult")
-    put("PSP percentage fee", "%", [A.psp_pct] * N, '0.00%', "psp_pct")
-    put("PSP fixed fee per transaction", "EUR", [A.psp_fixed_eur] * N, MONEY2, "psp_fix")
-    put("Payout percentage fee", "%", [A.payout_pct] * N, '0.00%', "payout_pct")
-    put("Payout fixed fee", "EUR", [A.payout_fixed_eur] * N, MONEY2, "payout_fix")
-    put("Average fan transaction", "EUR", [A.avg_fan_txn_eur] * N, MONEY2, "fan_txn")
-    put("Average deal transaction", "EUR", [A.avg_deal_txn_eur] * N, MONEY, "deal_txn")
+    put("Take rate — fan revenue", "%", [A.take_fan] * N, PCT, "take_fan", const=True,
+        note="Our pricing decision. OnlyFans/Fansly/Fanfix 20%, Passes 10% + $29/mo")
+    put("Take rate — sponsorship", "%", [A.take_sponsorship] * N, PCT, "take_sp", const=True,
+        note="Agents take 10-20% of an endorsement")
+    put("PPV & tips as multiple of subs", "x", [A.ppv_tips_multiple] * N, '0.00', "ppv_mult", const=True)
+    put("PSP percentage fee", "%", [A.psp_pct] * N, '0.00%', "psp_pct", hard=True, const=True,
+        note="Stripe published pricing")
+    put("PSP fixed fee per transaction", "EUR", [A.psp_fixed_eur] * N, MONEY2, "psp_fix", hard=True, const=True,
+        note="Stripe. The single most damaging cost at small ticket sizes")
+    put("Payout percentage fee", "%", [A.payout_pct] * N, '0.00%', "payout_pct", hard=True, const=True,
+        note="Stripe Connect")
+    put("Payout fixed fee", "EUR", [A.payout_fixed_eur] * N, MONEY2, "payout_fix", hard=True, const=True,
+        note="Stripe Connect")
+    put("Average fan transaction", "EUR", [A.avg_fan_txn_eur] * N, MONEY2, "fan_txn", const=True)
+    put("Average deal transaction", "EUR", [A.avg_deal_txn_eur] * N, MONEY, "deal_txn", const=True)
     r += 1
 
     r = section(a, r, "INFRASTRUCTURE & CONTENT COSTS")
     put("AWS base cost per month", "EUR", A.aws_base_month, MONEY, "aws")
-    put("Media GB per paying fan per month", "GB", [A.gb_per_fan_month] * N, '0.0', "gb")
-    put("Egress cost per GB (zero-egress CDN)", "EUR", [A.egress_eur_per_gb] * N, '0.000', "egress")
-    put("Egress cost per GB (CloudFront list)", "EUR", [A.egress_eur_per_gb_naive] * N, '0.000', "egress_naive")
-    put("Moderation cost per 1,000 items", "EUR", [A.moderation_eur_per_1k_items] * N, MONEY2, "mod_rate")
-    put("Items per athlete per month", "count", [A.items_per_athlete_month] * N, '0.0', "items")
+    put("Media GB per paying fan per month", "GB", [A.gb_per_fan_month] * N, '0.0', "gb", const=True)
+    put("Egress cost per GB (zero-egress CDN)", "EUR", [A.egress_eur_per_gb] * N, '0.000', "egress", hard=True, const=True,
+        note="Cloudflare R2 / Backblaze B2 list")
+    put("Egress cost per GB (CloudFront list)", "EUR", [A.egress_eur_per_gb_naive] * N, '0.000', "egress_naive", hard=True, const=True,
+        note="AWS CloudFront list price — the EUR 1.1M/yr trap")
+    put("Moderation cost per 1,000 items", "EUR", [A.moderation_eur_per_1k_items] * N, MONEY2, "mod_rate", const=True)
+    put("Items per athlete per month", "count", [A.items_per_athlete_month] * N, '0.0', "items", const=True)
     r += 1
 
     r = section(a, r, "PEOPLE & OVERHEAD")
     put("Headcount", "FTE", A.headcount, '0.0', "headcount")
     put("Loaded salary (incl. ~31% employer SS)", "EUR", A.loaded_salary_eur, MONEY, "salary")
     put("Legal & compliance", "EUR", A.legal_compliance_eur, MONEY, "legal")
-    put("Other opex as % of revenue", "%", [A.other_opex_pct_of_revenue] * N, PCT, "other_pct")
+    put("Other opex as % of revenue", "%", [A.other_opex_pct_of_revenue] * N, PCT, "other_pct", const=True)
     r += 1
 
     r = section(a, r, "WORKING CAPITAL, CAPEX & TAX")
-    put("Athlete payout float", "days", [15] * N, NUM, "float_days")
-    put("Sponsor receivable days", "days", [45] * N, NUM, "ar_days")
-    put("Trade payable days", "days", [30] * N, NUM, "ap_days")
-    put("Capitalised development", "% of people cost", [0.30] * N, PCT, "capex_pct")
-    put("Amortisation period", "years", [3] * N, '0', "amort_years")
-    put("Corporate tax — startup rate", "%", [0.15] * N, PCT, "tax_low")
-    put("Corporate tax — standard rate", "%", [0.25] * N, PCT, "tax_high")
-    put("Years at startup rate (from first profit)", "years", [4] * N, '0', "tax_low_years")
+    put("Athlete payout float", "days", [15] * N, NUM, "float_days", const=True,
+        note="We hold fan money before paying athletes — a cash benefit")
+    put("Sponsor receivable days", "days", [45] * N, NUM, "ar_days", const=True)
+    put("Trade payable days", "days", [30] * N, NUM, "ap_days", const=True)
+    put("Capitalised development", "% of people cost", [0.30] * N, PCT, "capex_pct", const=True)
+    put("Amortisation period", "years", [3] * N, '0', "amort_years", const=True)
+    put("Corporate tax — startup rate", "%", [0.15] * N, PCT, "tax_low", hard=True, const=True,
+        note="Spanish Startup Law, first 4 profitable years")
+    put("Corporate tax — standard rate", "%", [0.25] * N, PCT, "tax_high", hard=True, const=True,
+        note="Spanish corporate income tax")
+    put("Years at startup rate (from first profit)", "years", [4] * N, '0', "tax_low_years", hard=True, const=True)
     r += 1
 
     r = section(a, r, "VALUATION")
-    put("WACC / discount rate", "%", [A.wacc] * N, PCT, "wacc")
-    put("Terminal growth", "%", [A.terminal_growth] * N, PCT, "tg")
-    put("Exit revenue multiple", "x", [6.5] * N, '0.0', "exit_mult")
-    put("Risk-free rate (Spanish 10Y)", "%", [A.risk_free] * N, PCT, "rf")
-    put("Founder alternative return", "%", [A.founder_alt_return] * N, PCT, "alt")
+    put("WACC / discount rate", "%", [A.wacc] * N, PCT, "wacc", const=True,
+        note="Early-stage venture hurdle")
+    put("Terminal growth", "%", [A.terminal_growth] * N, PCT, "tg", const=True)
+    put("Exit revenue multiple", "x", [6.5] * N, '0.0', "exit_mult", const=True,
+        note="Blended marketplace + SaaS comparables")
+    put("Risk-free rate (Spanish 10Y)", "%", [A.risk_free] * N, PCT, "rf", hard=True, const=True,
+        note="Spanish 10Y government bond, mid-2026")
+    put("Founder alternative return", "%", [A.founder_alt_return] * N, PCT, "alt", const=True)
 
     def AR(key, col):
         return f"Assumptions!${col}${A_ROW[key]}"
@@ -656,19 +751,35 @@ def build() -> pathlib.Path:
         r += 1
 
     # ══ CHECK ═══════════════════════════════════════════════════════════════
-    ck = sheet(wb, "Check", "Check — the Python model's figures for comparison")
+    ck = sheet(wb, "Check", "Check — Excel's own answers against the Python model")
     r = 4
-    ck.cell(2, 1, "If the workbook's formulas are right, these match the sheets. "
-                  "Generated by business-plan/model.py.").font = Font(italic=True, size=9)
-    for label, key, fmt in [
-        ("Athletes", "athletes", NUM), ("Paying fans (year end)", "paying_fans", NUM),
-        ("Average paying fans", "avg_fans", NUM), ("Deals", "deals", NUM),
-        ("Total GMV", "gmv", MONEY), ("Net revenue", "revenue", MONEY),
-        ("Cost of sales", "cogs", MONEY), ("Gross profit", "gross", MONEY),
-        ("Operating costs", "opex", MONEY), ("EBITDA", "ebitda", MONEY),
-    ]:
-        r = row(ck, r, label, "python", values=[x[key] for x in rows], fmt=fmt,
-                font=Font(name="Calibri", size=10, color="6B7480"))
+    ck.cell(2, 1, "Each pair is the Python model's figure and the workbook's own calculation. "
+                  "VARIANCE must be zero — if a formula is wrong, it shows up here on open.").font =         Font(italic=True, size=9, color="6B7480")
+
+    CHECKS = [
+        ("Net revenue", "revenue", f"=Revenue!{{c}}{R['NET REVENUE']}", MONEY),
+        ("Cost of sales", "cogs", f"=Costs!{{c}}{C['TOTAL COST OF SALES']}", MONEY),
+        ("Gross profit", "gross", f"=P&L!{{c}}{P['GROSS PROFIT']}", MONEY),
+        ("Operating costs", "opex", f"=Costs!{{c}}{C['TOTAL OPERATING COSTS']}", MONEY),
+        ("EBITDA", "ebitda", f"=P&L!{{c}}{P['EBITDA']}", MONEY),
+        ("Paying fans (year end)", "paying_fans", f"=Drivers!{{c}}{D['Paying fans (year end)']}", NUM),
+        ("Average paying fans", "avg_fans", f"=Drivers!{{c}}{D['Average paying fans']}", NUM),
+        ("Total GMV", "gmv", f"=Revenue!{{c}}{R['TOTAL GMV']}", MONEY),
+        ("Deals", "deals", f"=Drivers!{{c}}{D['Total deals']}", NUM),
+    ]
+    for label, key, formula, fmt in CHECKS:
+        r = section(ck, r, label.upper())
+        py = r
+        r = row(ck, r, "  Python model", "model.py", values=[x[key] for x in rows], fmt=fmt)
+        xl = r
+        r = row(ck, r, "  This workbook", "recalculated", formula=formula, fmt=fmt)
+        r = row(ck, r, "  VARIANCE", "must be 0", fmt=fmt, check=True, bold=True,
+                formula=f"=ROUND({{c}}{xl}-{{c}}{py},0)")
+        r += 1
+
+    ck.cell(r, 1, "Balance sheet check (from BalanceSheet, must be zero):").font = BOLD
+    r = row(ck, r + 1, "  Assets less liabilities and equity", "must be 0", check=True, bold=True,
+            formula=f"=BalanceSheet!{{c}}{B['BALANCE CHECK']}", fmt=MONEY)
 
     out = pathlib.Path(__file__).parent / "Stride_Financial_Model.xlsx"
     wb.save(out)
