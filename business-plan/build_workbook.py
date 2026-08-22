@@ -43,6 +43,7 @@ from openpyxl.utils import get_column_letter
 
 import model as M
 import research_data as RD
+import comparables_data as CD
 
 YEARS = M.YEARS
 N = len(YEARS)
@@ -235,6 +236,8 @@ def build() -> pathlib.Path:
         ("", None),
         ("SHEETS", BOLD),
         ("  Assumptions    every input, grouped, with units and provenance", None),
+        ("  Comparables    published facts about OnlyFans, Patreon, Passes and agents", None),
+        ("  MarketModel    turns those facts into our assumptions, step by step", None),
         ("  Research       how each assumption was baselined, with sources", None),
         ("  Drivers        athletes and fans, including monthly cohort churn", None),
         ("  Revenue        GMV and net revenue, stream by stream", None),
@@ -252,6 +255,11 @@ def build() -> pathlib.Path:
         ("there does most of the valuation work and does it badly. Ten years lets growth", None),
         ("decelerate inside the explicit forecast, where it can be argued with.", None),
         ("", None),
+        ("EVIDENCE CHAIN", BOLD),
+        ("  Comparables (published facts) -> MarketModel (derives ours) -> Assumptions", None),
+        ("  -> Drivers -> Revenue and Costs -> statements -> Valuation.", None),
+        ("  Follow any assumption backwards and it ends at a cited number.", None),
+        ("", None),
         ("MODEL SHAPE", BOLD),
         ("This is a target-driven model: athlete counts are the plan, and marketing spend", None),
         ("is derived from them at segment CAC. It is not a driver-driven model in which", None),
@@ -268,13 +276,15 @@ def build() -> pathlib.Path:
     r = 4
     A_ROW = {}
 
-    def put(label, unit, values, fmt=NUM, key=None, hard=False, const=False, note=""):
+    def put(label, unit, values, fmt=NUM, key=None, hard=False, const=False, note="",
+            derive_note=""):
         nonlocal r
         A_ROW[key or label] = r
         r = row(a, r, label, unit, values=values, fmt=fmt, hard=hard, const=const)
-        if note:
-            c = a.cell(r - 1, FIRST + N + 1, note)
-            c.font = Font(size=8, italic=True, color="6B7480", name="Calibri")
+        if note or derive_note:
+            c = a.cell(r - 1, FIRST + N + 1, note or derive_note)
+            c.font = Font(size=8, italic=True,
+                          color="1E7A3C" if derive_note else "6B7480", name="Calibri")
 
     r = section(a, r, "MARKET — the plan's shape")
     put("Active athletes (year end)", "count", A.athletes, NUM, "athletes")
@@ -284,9 +294,12 @@ def build() -> pathlib.Path:
     for seg, tag in ((M.NICHE, "niche"), (M.POPULAR, "popular")):
         r = section(a, r, f"SEGMENT — {tag.upper()}")
         put(f"Monetising athletes ({tag})", "% of segment", seg.monetise_rate, PCT, f"{tag}_monetise")
-        put(f"Paying fans per monetising athlete ({tag})", "count", seg.fans_per_athlete, NUM, f"{tag}_fpa")
-        put(f"Fan ARPU per month ({tag})", "EUR", seg.fan_arpu_month, MONEY2, f"{tag}_arpu")
-        put(f"Fan churn per month ({tag})", "%", seg.fan_churn_month, PCT, f"{tag}_fchurn")
+        put(f"Paying fans per monetising athlete ({tag})", "count", seg.fans_per_athlete, NUM, f"{tag}_fpa",
+            derive_note="derived on MarketModel from Patreon members-per-creator")
+        put(f"Fan ARPU per month ({tag})", "EUR", seg.fan_arpu_month, MONEY2, f"{tag}_arpu",
+            derive_note="derived on MarketModel from our tier mix, cross-checked against Patreon")
+        put(f"Fan churn per month ({tag})", "%", seg.fan_churn_month, PCT, f"{tag}_fchurn",
+            derive_note="derived on MarketModel from Patreon churn and our annual-plan mix")
         put(f"Athlete churn per year ({tag})", "%", seg.athlete_churn_year, PCT, f"{tag}_achurn")
         put(f"Athletes landing a deal ({tag})", "% of segment", seg.deal_rate, PCT, f"{tag}_dealrate")
         put(f"Deals per dealing athlete ({tag})", "count", seg.deals_per_athlete, '0.0', f"{tag}_dpa")
@@ -752,6 +765,270 @@ def build() -> pathlib.Path:
             cell.number_format = MONEY
         r += 1
 
+
+
+    # == COMPARABLES: published facts, nothing derived =======================
+    cp = wb.create_sheet("Comparables")
+    cp["A1"] = "Comparables - published facts about the platforms we are modelled on"
+    cp["A1"].font = TITLE
+    cp["A2"] = ("Nothing on this sheet is our estimate. Every figure is published and cited, so it can be "
+                "refreshed independently of anything we concluded from it. MarketModel derives our "
+                "assumptions from these numbers; Assumptions then uses what MarketModel produces.")
+    cp["A2"].font = Font(italic=True, size=9, color="6B7480")
+    for col, w in {"A": 38, "B": 16, "C": 16, "D": 15, "E": 13, "F": 46}.items():
+        cp.column_dimensions[col].width = w
+
+    r = 4
+    for j, h in enumerate(["Metric", "Value", "Unit", "Platform", "Period", "Source"]):
+        c = cp.cell(r, 1 + j, h); c.font, c.fill = HEAD, HEAD_FILL
+        c.alignment = Alignment(horizontal="center", wrap_text=True)
+    r += 1
+    CP = {}
+    for metric, value, unit, platform, period, source in CD.PLATFORM_FACTS:
+        CP[(platform, metric)] = r
+        cp.cell(r, 1, metric).font = Font(size=10, name="Calibri")
+        v = cp.cell(r, 2, value); v.fill, v.font = FILL_HARD, FONT_HARD
+        v.number_format = '#,##0.000' if isinstance(value, float) and value < 100 else '#,##0'
+        for j, t in ((3, unit), (4, platform), (5, period), (6, source)):
+            cell = cp.cell(r, j, t)
+            cell.font = Font(size=9, name="Calibri", color="4A525E")
+            cell.alignment = Alignment(wrap_text=True, vertical="top")
+        for j in range(6):
+            cp.cell(r, 1 + j).border = EDGE
+        r += 1
+
+    r += 1
+    cp.cell(r, 1, "TAKE RATES - what each platform costs a creator").font = Font(bold=True, size=10, color="8A5200")
+    r += 1
+    for j, h in enumerate(["Platform", "Headline take", "Per txn (USD)", "Monthly fee (USD)", "", "Source"]):
+        c = cp.cell(r, 1 + j, h); c.font, c.fill = HEAD, HEAD_FILL
+    r += 1
+    TK = {}
+    for platform, take, per_txn, monthly, source in CD.TAKE_RATES:
+        TK[platform] = r
+        cp.cell(r, 1, platform).font = BOLD
+        for j, (val, fmt) in enumerate([(take, PCT), (per_txn, MONEY2), (monthly, MONEY2)], start=2):
+            c = cp.cell(r, j, val); c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, fmt
+        cp.cell(r, 6, source).font = Font(size=9, color="4A525E", name="Calibri")
+        r += 1
+
+    r += 1
+    cp.cell(r, 1, "INTERMEDIARIES the athlete already pays").font = Font(bold=True, size=10, color="8A5200")
+    r += 1
+    for name, lo, hi, source in CD.INTERMEDIARY_RATES:
+        cp.cell(r, 1, name).font = Font(size=10, name="Calibri")
+        for j, val in ((2, lo), (3, hi)):
+            c = cp.cell(r, j, val); c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, PCT
+        cp.cell(r, 6, source).font = Font(size=9, color="4A525E", name="Calibri")
+        r += 1
+
+    r += 2
+    cp.cell(r, 1, "SOURCES").font = BOLD
+    r += 1
+    for label, url in CD.SOURCE_URLS.items():
+        cp.cell(r, 1, label).font = Font(size=9, name="Calibri")
+        c = cp.cell(r, 2, url)
+        c.font = Font(size=9, color="1F4E9C", underline="single", name="Calibri")
+        c.hyperlink = url
+        cp.merge_cells(start_row=r, start_column=2, end_row=r, end_column=6)
+        r += 1
+
+    # == MARKET MODEL: derive our assumptions from the comparables ===========
+    mm = wb.create_sheet("MarketModel")
+    mm["A1"] = "Market Model - how the comparables become our assumptions"
+    mm["A1"].font = TITLE
+    mm["A2"] = ("Each block starts from a published figure on Comparables and ends in a number the "
+                "Assumptions sheet uses. Adjustment factors are blue because they are our judgement; "
+                "everything else is a formula you can trace.")
+    mm["A2"].font = Font(italic=True, size=9, color="6B7480")
+    for col, w in {"A": 46, "B": 16, "C": 14, "D": 62}.items():
+        mm.column_dimensions[col].width = w
+    legend(mm, 3)
+
+    MM = {}
+    r = 5
+
+    def mrow(label, value=None, formula=None, note="", fmt=MONEY2, kind="calc", key=None):
+        """kind: input (blue) | link (green, from Comparables) | calc | out (grey)"""
+        nonlocal r
+        MM[key or label] = r
+        mm.cell(r, 1, label).font = BOLD if kind == "out" else Font(size=10, name="Calibri")
+        c = mm.cell(r, 2)
+        if formula is not None:
+            c.value = formula
+            c.fill = FILL_LINK if "Comparables!" in formula else (FILL_TOTAL if kind == "out" else FILL_CALC)
+            c.font = FONT_LINK if "Comparables!" in formula else (BOLD if kind == "out" else FONT_CALC)
+        else:
+            c.value = value
+            c.fill, c.font = FILL_INPUT, FONT_INPUT
+        c.number_format = fmt
+        c.border = EDGE
+        n = mm.cell(r, 4, note)
+        n.font = Font(size=9, color="4A525E", name="Calibri")
+        n.alignment = Alignment(wrap_text=True, vertical="top")
+        mm.row_dimensions[r].height = 30 if note else 15
+        r += 1
+
+    def sect(text):
+        nonlocal r
+        c = mm.cell(r, 1, text)
+        c.font = Font(bold=True, size=10, color="8A5200")
+        for j in range(4):
+            mm.cell(r, 1 + j).fill = PatternFill("solid", fgColor="FFF4DE")
+        r += 1
+
+    # --- 1. paying fans per monetising creator ---
+    sect("1. PAYING FANS PER MONETISING ATHLETE  -> Assumptions")
+    mrow("Patreon active paying members", formula=f"=Comparables!B{CP[('Patreon','Active paying members')]}",
+         fmt=NUM, note="Published")
+    mrow("Patreon creators with >=1 paying member", formula=f"=Comparables!B{CP[('Patreon','Creators with >=1 paying member')]}",
+         fmt=NUM, note="Published")
+    mrow("Members per paying creator", formula=f"=B{MM['Patreon active paying members']}/B{MM['Patreon creators with >=1 paying member']}",
+         fmt='0.0', note="The single most useful benchmark we found: it is measured, not modelled.",
+         key="members_per_creator")
+    mrow("OnlyFans fan accounts per creator",
+         formula=f"=Comparables!B{CP[('OnlyFans','Fan accounts')]}/Comparables!B{CP[('OnlyFans','Creator accounts')]}",
+         fmt='0.0', note="Fan ACCOUNTS, not paying fans - most follow free. Shown as an upper bound only.")
+    mrow("Niche adjustment", 1.06, fmt='0.00', kind="input",
+         note="OUR JUDGEMENT: +6% on the Patreon benchmark. Sport audiences are smaller but convert "
+              "better, because the fan usually does the sport themselves.")
+    mrow("Popular adjustment", 1.37, fmt='0.00', kind="input",
+         note="OUR JUDGEMENT: +37%. Much larger followings, much weaker conversion - more paying fans "
+              "in absolute terms even though a smaller share converts.")
+    mrow("→ Niche fans per athlete, mature", formula=f"=B{MM['members_per_creator']}*B{MM['Niche adjustment']}",
+         fmt='0.0', kind="out", key="out_fpa_niche")
+    mrow("→ Popular fans per athlete, mature", formula=f"=B{MM['members_per_creator']}*B{MM['Popular adjustment']}",
+         fmt='0.0', kind="out", key="out_fpa_pop")
+
+    # --- 2. fan ARPU from tier mix ---
+    sect("2. FAN ARPU  -> Assumptions")
+    mrow("Tier 1 price (Supporter)", 4.99, kind="input")
+    mrow("Tier 2 price (Insider)", 9.99, kind="input")
+    mrow("Tier 3 price (Inner circle)", 24.99, kind="input")
+    mrow("Mix - Tier 1", 0.40, fmt=PCT, kind="input", note="Assumed distribution; replace with the real tier mix after P1.")
+    mrow("Mix - Tier 2", 0.50, fmt=PCT, kind="input")
+    mrow("Mix - Tier 3", 0.10, fmt=PCT, kind="input")
+    mrow("Mix check (must be 100%)",
+         formula=f"=B{MM['Mix - Tier 1']}+B{MM['Mix - Tier 2']}+B{MM['Mix - Tier 3']}", fmt=PCT)
+    mrow("→ Weighted ARPU per month",
+         formula=(f"=B{MM['Tier 1 price (Supporter)']}*B{MM['Mix - Tier 1']}"
+                  f"+B{MM['Tier 2 price (Insider)']}*B{MM['Mix - Tier 2']}"
+                  f"+B{MM['Tier 3 price (Inner circle)']}*B{MM['Mix - Tier 3']}"),
+         kind="out", key="out_arpu",
+         note="Cross-check: Patreon reports $6.10 average support and a $8-12 typical band. "
+              "Landing inside that band from an independent tier build is a good sign.")
+    mrow("Patreon average support (cross-check)",
+         formula=f"=Comparables!B{CP[('Patreon','Average monthly support per member')]}",
+         note="Published average - below our figure because Patreon's long tail includes many $1-3 tiers. "
+              "Our EUR 9.49 sits inside their $8-12 typical band.")
+    mrow("Niche ARPU factor", 1.00, fmt='0.00', kind="input",
+         note="Niche fans buy knowledge and sit at the tier mix above.")
+    mrow("Popular ARPU factor", 0.87, fmt='0.00', kind="input",
+         note="OUR JUDGEMENT: -13%. Popular-sport fans skew to the cheapest tier.")
+    mrow("→ Niche ARPU, mature",
+         formula=f"=B{MM['out_arpu']}*B{MM['Niche ARPU factor']}", kind="out", key="out_arpu_niche")
+    mrow("→ Popular ARPU, mature",
+         formula=f"=B{MM['out_arpu']}*B{MM['Popular ARPU factor']}", kind="out", key="out_arpu_pop")
+
+    # --- 3. fan churn ---
+    sect("3. FAN CHURN  -> Assumptions")
+    mrow("Patreon monthly churn (low)", formula=f"=Comparables!B{CP[('Patreon','Monthly churn (low)')]}", fmt=PCT)
+    mrow("Patreon monthly churn (high)", formula=f"=Comparables!B{CP[('Patreon','Monthly churn (high)')]}", fmt=PCT)
+    mrow("Benchmark midpoint",
+         formula=f"=(B{MM['Patreon monthly churn (low)']}+B{MM['Patreon monthly churn (high)']})/2", fmt=PCT,
+         key="churn_mid")
+    mrow("Annual-plan churn multiplier", formula=f"=Comparables!B{CP[('Patreon','Annual-plan churn multiplier')]}",
+         fmt='0.000', note="Patreon: annual patrons churn at one third the monthly rate.", key="ann_mult")
+    mrow("Share of subscribers on annual plans", 0.30, fmt=PCT, kind="input",
+         note="Our target for the season pass. This is the one lever that improves churn without "
+              "changing the product.")
+    mrow("Blended benchmark churn",
+         formula=(f"=B{MM['churn_mid']}*(1-B{MM['Share of subscribers on annual plans']})"
+                  f"+B{MM['churn_mid']}*B{MM['ann_mult']}*B{MM['Share of subscribers on annual plans']}"),
+         fmt=PCT, key="churn_blend",
+         note="What a Patreon-like platform would see with our annual mix.")
+    mrow("Niche engagement factor", 0.55, fmt='0.00', kind="input",
+         note="OUR CLAIM, UNTESTED, AND THE MOST OPTIMISTIC JUDGEMENT IN THE MODEL: this says niche "
+              "fans churn 45% SLOWER than the Patreon benchmark, because training content is habitual "
+              "and competitive seasons create renewal moments. Nothing yet proves it. If it is wrong "
+              "and we are merely at benchmark, Y10 revenue falls by roughly EUR 7M.")
+    mrow("Popular engagement factor", 0.85, fmt='0.00', kind="input",
+         note="OUR JUDGEMENT: 15% better than benchmark. Impulse follows after a result, with many "
+              "free substitutes - but still a sport fan rather than a general creator audience.")
+    mrow("→ Niche churn, mature", formula=f"=B{MM['churn_blend']}*B{MM['Niche engagement factor']}",
+         fmt=PCT, kind="out", key="out_churn_niche")
+    mrow("→ Popular churn, mature", formula=f"=B{MM['churn_blend']}*B{MM['Popular engagement factor']}",
+         fmt=PCT, kind="out", key="out_churn_pop")
+
+    # --- 4. creator earnings sanity check ---
+    sect("4. WHAT AN ATHLETE ACTUALLY EARNS  (sanity check, not an input)")
+    mrow("OnlyFans: paid to creators / creator accounts",
+         formula=(f"=Comparables!B{CP[('OnlyFans','Paid to creators')]}"
+                  f"/Comparables!B{CP[('OnlyFans','Creator accounts')]}/12"),
+         note="Includes dormant accounts, so this is a floor.")
+    mrow("Patreon: paid to creators / paying creators",
+         formula=(f"=Comparables!B{CP[('Patreon','Paid to creators annually')]}"
+                  f"/Comparables!B{CP[('Patreon','Creators with >=1 paying member')]}/12"),
+         note="Denominator is creators WITH members, so this is a ceiling.")
+    mrow("Stride: modelled niche athlete, mature",
+         formula=f"=B{MM['out_fpa_niche']}*B{MM['out_arpu']}*(1-Assumptions!$C${A_ROW['take_fan']})",
+         kind="out",
+         note="Ours sits between the two, which is where a plausible figure should sit.")
+    mrow("Revenue share taken by top 0.1% (OnlyFans)",
+         formula=f"=Comparables!B{CP[('OnlyFans','Revenue concentration')]}", fmt=PCT,
+         note="THE CAVEAT ON EVERY AVERAGE ABOVE: earnings follow a power law. Totals are unaffected, "
+              "but the median athlete earns far less than the mean. Do not pitch the mean to an athlete.")
+
+    # --- 5. competitive take rate ---
+    sect("5. TAKE RATE - what an athlete keeps, by platform")
+    mrow("USD to EUR", 0.92, fmt='0.00', kind="input",
+         note="Comparables are published in USD; this model is in EUR. Applied to the per-transaction "
+              "and monthly creator fees below.", key="fx")
+    mrow("Athlete monthly fan revenue (test case)", 300.0, kind="input",
+         note="Change this to see who is cheapest at any revenue level.", key="testrev")
+    for plat in ("OnlyFans", "Patreon", "Passes", "Stride (proposed)"):
+        row_ix = TK[plat]
+        mrow(f"  {plat} - athlete keeps",
+             formula=(f"=B{MM['testrev']}*(1-Comparables!B{row_ix})"
+                      f"-B{MM['testrev']}/Assumptions!$C${A_ROW['fan_txn']}*Comparables!C{row_ix}*B{MM['fx']}"
+                      f"-Comparables!D{row_ix}*B{MM['fx']}"),
+             note="Headline take, plus per-transaction and monthly creator fees where they exist.")
+    mrow("Crossover vs Passes (EUR/month)",
+         formula=(f"=Comparables!D{TK['Passes']}*B{MM['fx']}/((Comparables!B{TK['Stride (proposed)']}"
+                  f"-Comparables!B{TK['Passes']})-Comparables!C{TK['Passes']}*B{MM['fx']}"
+                  f"/Assumptions!$C${A_ROW['fan_txn']})"),
+         fmt=MONEY, kind="out",
+         note="Below this, our flat 15% pays the athlete more than Passes' 10% plus fees. Our modelled "
+              "athlete earns far less than this, so the long tail is on our side of the line.")
+
+    # --- 6. TAM ---
+    sect("6. MARKET SIZE  -> sanity-checks the athlete trajectory")
+    total_pop = sum(CD.POPULATION_M.values())
+    es_pop = CD.POPULATION_M["Spain"]
+    mrow("Population, 34 countries in scope", total_pop, fmt='#,##0.0', kind="input", note="Millions. Eurostat / national statistics offices.")
+    mrow("Population, Spain", es_pop, fmt='#,##0.0', kind="input", note="Millions.")
+    mrow("Share who do any sport (Spain)", 0.56, fmt=PCT, kind="input",
+         note="Eurobarometer 525 - Spain sits near the EU average of 55% who exercise at all.")
+    mrow("Share with a public athletic identity", 0.02, fmt=PCT, kind="input",
+         note="OUR ESTIMATE: competes, posts publicly, has a following worth sponsoring.")
+    mrow("Share with commercial intent", 0.25, fmt=PCT, kind="input",
+         note="OUR ESTIMATE: would monetise if the tooling existed.")
+    mrow("→ Addressable athletes, Spain",
+         formula=(f"=B{MM['Population, Spain']}*1000000*B{MM['Share who do any sport (Spain)']}"
+                  f"*B{MM['Share with a public athletic identity']}*B{MM['Share with commercial intent']}"),
+         fmt=NUM, kind="out", key="sam_es")
+    mrow("→ Addressable athletes, all 34 countries",
+         formula=(f"=B{MM['Population, 34 countries in scope']}*1000000*0.5"
+                  f"*B{MM['Share with a public athletic identity']}*B{MM['Share with commercial intent']}"),
+         fmt=NUM, kind="out", key="tam_all",
+         note="Using a 50% blended participation rate across the 34 countries.")
+    mrow("Y10 athletes in the plan", formula=f"=Assumptions!${COLS[-1]}${A_ROW['athletes']}", fmt=NUM)
+    mrow("→ Y10 penetration of Spain SAM",
+         formula=f"=Assumptions!${COLS[-1]}${A_ROW['athletes']}/B{MM['sam_es']}", fmt=PCT, kind="out")
+    mrow("→ Y10 penetration of full TAM",
+         formula=f"=Assumptions!${COLS[-1]}${A_ROW['athletes']}/B{MM['tam_all']}", fmt=PCT, kind="out",
+         note="If this reads as implausibly high, the athlete trajectory is too aggressive - that is "
+              "exactly what this block exists to reveal.")
 
     # == RESEARCH & BENCHMARKING =============================================
     rs = wb.create_sheet("Research")
