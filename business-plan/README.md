@@ -35,6 +35,7 @@ are no agents at all, and the athlete's alternative to Stride is nothing. See
 | 07 | [Open questions](07-open-questions.md) | What is settled, and what still needs a founder |
 | 08 | [Sport index](08-sport-index.md) | 714 country x sport pairs, the classification method, and its three product uses |
 | 09 | [Analytics strategy](09-analytics-strategy.md) | How the data function phases in — and the one thing that is urgent now |
+| — | **Research tab** in the workbook | How every assumption was baselined, with sources and confidence |
 
 Every number in 03 and 04 is produced by [`model.py`](model.py). Change an
 assumption there and rerun — nothing is hand-typed:
@@ -74,11 +75,12 @@ python business-plan/model.py --write            # regenerate the doc tables
 
 ## The four things that decide whether this works
 
-**1. The fixed payment fee, not the take rate.** At a €4.99 tier we keep 47% of
+**1. The fixed payment fee, not the take rate.** At a €4.99 tier we keep 54% of
 our own commission because Stripe's €0.25 lands on a €0.75 take. At €9.99 we
-keep 64%. This single mechanic should set the minimum tier price and push hard
-toward annual billing — it moves more margin than any plausible take-rate
-change. See [02](02-cost-model.md#the-fixed-fee-problem).
+keep 71%. This single mechanic should set the minimum tier price and push hard
+toward annual billing — Patreon reports annual patrons churn at **one third**
+the rate of monthly ones, so the retention gain compounds the fee saving. See
+[02](02-cost-model.md#the-fixed-fee-problem).
 
 **2. Media egress, not compute.** The current product is deterministic
 analytics: compute is a rounding error, which `docs/costs.md` correctly says.

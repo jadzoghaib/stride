@@ -121,7 +121,12 @@ class Assumptions:
     take_sponsorship: float = 0.10
 
     # ---- payment rails (charged on GMV, not on our net revenue) ------------
-    psp_pct: float = 0.029
+    # Blended card rate for a SPANISH entity, not the US headline. Stripe EEA
+    # domestic is 1.5% + EUR 0.25; UK cards 2.5%; non-EEA 3.25%. Assuming a
+    # mostly-European fan base with some international tail, 1.9% is the blend.
+    # An earlier version of this model used the US 2.9% and overstated the
+    # largest cost line in the business by roughly a third.
+    psp_pct: float = 0.019
     psp_fixed_eur: float = 0.25
     payout_pct: float = 0.0025
     payout_fixed_eur: float = 0.25

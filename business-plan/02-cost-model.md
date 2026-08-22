@@ -6,31 +6,33 @@ Two costs decide whether this business works. Neither is engineering salary.
 
 ## The fixed-fee problem
 
-Stripe charges **2.9% + €0.25**. On small subscriptions the fixed component is
+Stripe charges a Spanish entity **1.5% + €0.25** on EEA cards, 2.5% on UK cards and 3.25%
+on non-EEA — blended to **1.9% + €0.25** here. On small subscriptions the fixed component is
 most of the cost, and it lands on our commission, not on the athlete's share.
 
 | Fan pays (monthly) | Our take (15%) | Payment cost | We keep | % of take retained |
 |---|---|---|---|---|
-| €4.99 | €0.75 | €0.39 | €0.35 | **47%** |
-| €9.99 | €1.50 | €0.54 | €0.96 | **64%** |
-| €14.99 | €2.25 | €0.68 | €1.56 | 70% |
-| €24.99 | €3.75 | €0.97 | €2.77 | 74% |
-| €89.00 (annual) | €13.35 | €2.83 | €10.52 | **79%** |
+| €4.99 | €0.75 | €0.34 | €0.40 | **54%** |
+| €9.99 | €1.50 | €0.44 | €1.06 | **71%** |
+| €14.99 | €2.25 | €0.53 | €1.71 | 76% |
+| €24.99 | €3.75 | €0.72 | €3.02 | 81% |
+| €89.00 (annual) | €13.35 | €1.94 | €11.41 | **85%** |
 
-**Read that first row again.** At a €4.99 tier, more than half our commission
-goes to the payment processor. We would be running a marketplace where Stripe
-earns almost as much as we do.
+**Read that first row again.** At a €4.99 tier, nearly half our commission goes to the
+payment processor — almost all of it the fixed €0.25, not the percentage. The tier floor
+matters more than any rate negotiation.
 
 Three responses, in order of impact:
 
 1. **Anchor the default tier at €9.99.** Costs nothing, worth 17 points of
    retained take.
-2. **Push annual billing.** One fixed fee instead of twelve. Worth ~€2.75 per
-   subscriber per year.
-3. **Renegotiate at volume.** Above ~€5M/yr processed, interchange-plus pricing
-   is available; assume 2.4% + €0.20 from Y5. Not modelled — upside.
+2. **Push annual billing.** One fixed fee instead of twelve — worth ~€2.75 per subscriber
+   per year. Patreon reports annual patrons churn at **one third** the rate of monthly ones,
+   so the retention gain is larger than the fee saving.
+3. **Renegotiate at volume.** Above ~€5M/yr processed, interchange-plus pricing is
+   available. Not modelled — upside.
 
-At Y7 the payment rail costs **€8.68M against €28.62M of revenue** — 30% of
+At Y7 the payment rail costs **€13.07M against €57.96M of revenue** — 23% of
 revenue, our largest single cost line, larger than all salaries combined.
 
 ---

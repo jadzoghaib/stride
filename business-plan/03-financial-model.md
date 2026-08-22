@@ -139,19 +139,19 @@ curve that stays above 50% through Y7 is what a Series B buyer wants to see.
 | P&L | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Net revenue | €29k | €231k | €1.04M | €3.37M | €8.40M | €16.20M | €26.52M | €37.69M | €47.57M | €57.96M |
-| Payment processing | €10k | €70k | €308k | €999k | €2.51M | €4.84M | €7.89M | €11.20M | €14.11M | €17.17M |
+| Payment processing | €8k | €57k | €245k | €783k | €1.94M | €3.71M | €6.04M | €8.55M | €10.78M | €13.07M |
 | Payouts | €645 | €4k | €20k | €67k | €174k | €341k | €561k | €798k | €1.00M | €1.23M |
 | Infrastructure (AWS) | €3k | €10k | €33k | €87k | €181k | €289k | €419k | €534k | €634k | €713k |
 | Moderation | €1k | €6k | €17k | €41k | €79k | €120k | €165k | €206k | €241k | €269k |
-| **Gross profit** | €14k | €141k | €661k | €2.18M | €5.45M | €10.62M | €17.48M | €24.95M | €31.58M | €38.58M |
-| Gross margin | 50% | 61% | 64% | 65% | 65% | 66% | 66% | 66% | 66% | 67% |
+| **Gross profit** | €16k | €155k | €723k | €2.39M | €6.02M | €11.74M | €19.34M | €27.60M | €34.91M | €42.68M |
+| Gross margin | 56% | 67% | 70% | 71% | 72% | 72% | 73% | 73% | 73% | 74% |
 | People | €57k | €156k | €420k | €896k | €1.58M | €2.45M | €3.50M | €4.46M | €5.33M | €6.08M |
 | Marketing / CAC | €29k | €120k | €395k | €975k | €1.82M | €2.59M | €3.42M | €3.68M | €3.65M | €3.36M |
 | Legal & compliance | €18k | €45k | €90k | €150k | €200k | €235k | €270k | €300k | €325k | €345k |
 | Other opex | €2k | €19k | €83k | €270k | €672k | €1.30M | €2.12M | €3.02M | €3.81M | €4.64M |
-| **EBITDA** | €-92k | €-199k | €-327k | €-116k | €1.18M | €4.05M | €8.18M | €13.50M | €18.47M | €24.16M |
-| Tax | €0 | €0 | €0 | €0 | €178k | €607k | €1.23M | €2.02M | €2.77M | €3.62M |
-| **Free cash flow** | €-92k | €-199k | €-327k | €-116k | €1.01M | €3.44M | €6.95M | €11.47M | €15.70M | €20.53M |
+| **EBITDA** | €-90k | €-185k | €-265k | €100k | €1.75M | €5.17M | €10.03M | €16.15M | €21.80M | €28.26M |
+| Tax | €0 | €0 | €0 | €15k | €262k | €776k | €1.51M | €2.42M | €3.27M | €4.24M |
+| **Free cash flow** | €-90k | €-185k | €-265k | €85k | €1.49M | €4.40M | €8.53M | €13.73M | €18.53M | €24.02M |
 <!-- /MODEL:pl -->
 
 **Gross margin of 58–66% is the honest number for a payments-heavy marketplace.**
@@ -168,27 +168,27 @@ parent (~85% at a 20% take on far larger tickets).
 <!-- MODEL:cash -->
 | Year | Free cash flow | Cumulative |
 |---|---|---|
-| Y1 | €-92k | €-92k |
-| Y2 | €-199k | €-291k |
-| Y3 | €-327k | €-618k |
-| Y4 | €-116k | €-734k |
-| Y5 | €1.01M | €273k |
-| Y6 | €3.44M | €3.71M |
-| Y7 | €6.95M | €10.66M |
-| Y8 | €11.47M | €22.14M |
-| Y9 | €15.70M | €37.83M |
-| Y10 | €20.53M | €58.37M |
+| Y1 | €-90k | €-90k |
+| Y2 | €-185k | €-275k |
+| Y3 | €-265k | €-540k |
+| Y4 | €85k | €-455k |
+| Y5 | €1.49M | €1.03M |
+| Y6 | €4.40M | €5.43M |
+| Y7 | €8.53M | €13.96M |
+| Y8 | €13.73M | €27.68M |
+| Y9 | €18.53M | €46.21M |
+| Y10 | €24.02M | €70.23M |
 <!-- /MODEL:cash -->
 
 | Capital requirement | Value |
 <!-- MODEL:funding -->
 | Capital requirement | Value |
 |---|---|
-| Deepest cumulative cash position | €-734k |
-| Year it occurs | Y4 |
-| Buffer at 40% (hiring slips, churn worse) | €294k |
-| **Total capital to fund the plan** | **€1.03M** |
-| First EBITDA-positive year | Y5 |
+| Deepest cumulative cash position | €-540k |
+| Year it occurs | Y3 |
+| Buffer at 40% (hiring slips, churn worse) | €216k |
+| **Total capital to fund the plan** | **€756k** |
+| First EBITDA-positive year | Y4 |
 <!-- /MODEL:funding -->
 
 **€952k is a small number for a plan that reaches €26.6M of revenue,

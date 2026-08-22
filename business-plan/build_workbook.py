@@ -42,6 +42,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 import model as M
+import research_data as RD
 
 YEARS = M.YEARS
 N = len(YEARS)
@@ -234,6 +235,7 @@ def build() -> pathlib.Path:
         ("", None),
         ("SHEETS", BOLD),
         ("  Assumptions    every input, grouped, with units and provenance", None),
+        ("  Research       how each assumption was baselined, with sources", None),
         ("  Drivers        athletes and fans, including monthly cohort churn", None),
         ("  Revenue        GMV and net revenue, stream by stream", None),
         ("  Costs          COGS and operating costs, line by line", None),
@@ -748,6 +750,70 @@ def build() -> pathlib.Path:
             tv = (f"CashFlow!{lastc}{F['FREE CASH FLOW']}*(1+{g})/({w}-{g})/(1+{w})^{N}")
             cell = va.cell(r, 3 + j, f"={terms}+{tv}")
             cell.number_format = MONEY
+        r += 1
+
+
+    # == RESEARCH & BENCHMARKING =============================================
+    rs = wb.create_sheet("Research")
+    rs["A1"] = "Research & Benchmarking - where every assumption came from"
+    rs["A1"].font = TITLE
+    for col, w in {"A": 38, "B": 12, "C": 14, "D": 54, "E": 44, "F": 11, "G": 44}.items():
+        rs.column_dimensions[col].width = w
+    rs["A2"] = ("SOURCED = published figure | BENCHMARKED = set against named comparables | "
+                "DERIVED = computed from other assumptions | ESTIMATE = judgement, no benchmark yet")
+    rs["A2"].font = Font(italic=True, size=9, color="6B7480")
+
+    for j, h in enumerate(["Assumption", "Model value", "Method", "Benchmark / comparable",
+                           "Source", "Confidence", "What would replace the estimate"]):
+        c = rs.cell(4, 1 + j, h)
+        c.font, c.fill = HEAD, HEAD_FILL
+        c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    rs.freeze_panes = "A5"
+
+    conf_fill = {"High": FILL_LINK, "Medium": FILL_HARD, "Low": FILL_CHECK}
+    method_col = {"SOURCED": "1E7A3C", "BENCHMARKED": "1F4E9C",
+                  "DERIVED": "1A1A1A", "ESTIMATE": "B3272D"}
+
+    r = 5
+    for entry in RD.ROWS:
+        if len(entry) == 1:
+            c = rs.cell(r, 1, entry[0])
+            c.font = Font(bold=True, size=10, color="8A5200")
+            for j in range(7):
+                rs.cell(r, 1 + j).fill = PatternFill("solid", fgColor="FFF4DE")
+            r += 1
+            continue
+        label, key, method, bench, source, conf, improve = entry
+        rs.cell(r, 1, label).font = BOLD
+        if key and key in A_ROW:
+            cell = rs.cell(r, 2, "=Assumptions!$C$%d" % A_ROW[key])
+            cell.fill, cell.font, cell.number_format = FILL_LINK, FONT_LINK, "0.000"
+        else:
+            rs.cell(r, 2, "see model").font = Font(size=9, italic=True, color="6B7480")
+        m = rs.cell(r, 3, method)
+        m.font = Font(bold=True, size=9, color=method_col[method])
+        for j, text in ((4, bench), (5, source), (7, improve)):
+            c = rs.cell(r, j, text)
+            c.font = Font(size=9, name="Calibri")
+            c.alignment = Alignment(wrap_text=True, vertical="top")
+        cf = rs.cell(r, 6, conf)
+        cf.fill, cf.font = conf_fill[conf], Font(bold=True, size=9)
+        cf.alignment = Alignment(horizontal="center")
+        for j in range(7):
+            rs.cell(r, 1 + j).border = EDGE
+        rs.row_dimensions[r].height = 58
+        r += 1
+
+    r += 1
+    c = rs.cell(r, 1, "THE THREE ASSUMPTIONS MOST LIKELY TO BE WRONG")
+    c.font = Font(bold=True, size=11, color="B3272D")
+    r += 1
+    for text in RD.MOST_LIKELY_WRONG:
+        cell = rs.cell(r, 1, text)
+        cell.font = Font(size=9, italic=not text[:2].strip().rstrip(".").isdigit())
+        cell.alignment = Alignment(wrap_text=True, vertical="top")
+        rs.merge_cells(start_row=r, start_column=1, end_row=r, end_column=7)
+        rs.row_dimensions[r].height = 30
         r += 1
 
     # ══ CHECK ═══════════════════════════════════════════════════════════════

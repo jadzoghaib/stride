@@ -63,8 +63,8 @@ uneconomic bottom end (see [02](02-cost-model.md#the-fixed-fee-problem)).
 | Season pass | €89/yr | Insider for a competitive season | One payment fee instead of twelve |
 
 **Recommendation: suggest €9.99 as the anchor and make €4.99 opt-in rather than
-default.** The €4.99 tier retains 47% of our take after payment costs; €9.99
-retains 64%. The same content at double the price is not twice as hard to sell
+default.** The €4.99 tier retains 54% of our take after payment costs; €9.99
+retains 71%. The same content at double the price is not twice as hard to sell
 when the buyer is a fan of a specific athlete.
 
 **Annual billing is worth more than a take-rate increase.** A €89 season pass
