@@ -50,6 +50,7 @@ Ordered by what blocks revenue soonest.
 | 9 | **Notifications** | Conversion | S | Email exists as a cost line, not as code |
 | 10 | **Refunds & disputes** | Operations | M | Chargeback handling, partial refunds, deal disputes |
 | 11 | **Athlete churn tracking** | The model itself | S | The weakest assumption in `model.py` is unmeasurable today |
+| 12 | **Campaign measurement** | Sponsor renewal; learned matching | **M** | See below — mostly a join table, because the metrics already exist |
 
 **Effort: S ≈ days · M ≈ 2–4 weeks · L ≈ 1–2 months · XL ≈ 3+ months**, at the
 Y2 team size of three.
@@ -75,6 +76,73 @@ greenfield codebase:
 integration. Media is where the cost model, the moderation obligation and the
 egress decision all converge — and it is the one that turns a data product into
 a content platform, with the operational weight that implies.
+
+---
+
+## Campaign measurement — the gap TEKTA made table stakes
+
+A deal can reach `status = 'completed'`, and nothing anywhere records **what the
+sponsor got**. There is no `completed_at`, no deliverable, and no row linking a
+deal to the content that fulfilled it.
+
+This matters more since TEKTA launched selling "identify, activate and
+**measure**" ([10](10-competitor-tekta.md)). Stride does the first and half the
+second.
+
+**It is cheaper than it sounds, because the measurement layer already exists.**
+`posts` and `post_metrics` already hold reach, likes, comments, shares and watch
+time per post per capture, and `engagement_rate()` already computes from them.
+What is missing is the link.
+
+### The change
+
+```sql
+ALTER TABLE deals ADD COLUMN completed_at      TEXT;
+ALTER TABLE deals ADD COLUMN projected_reach   INTEGER;   -- stored at offer time
+
+CREATE TABLE deal_deliverables (
+    id         INTEGER PRIMARY KEY,
+    deal_id    INTEGER NOT NULL REFERENCES deals(id),
+    post_id    INTEGER NOT NULL REFERENCES posts(id),
+    added_at   TEXT NOT NULL,
+    UNIQUE (deal_id, post_id)
+);
+```
+
+| Endpoint | Who | Does |
+|---|---|---|
+| `POST /api/athlete/deals/{id}/deliverables` | athlete | Attaches the post that fulfilled the deal |
+| `POST /api/athlete/deals/{id}/complete` | athlete | Sets `completed_at`; requires ≥1 deliverable |
+| `GET /api/sponsor/deals/{id}/performance` | sponsor | Delivered reach, engagement, cost per engagement, actual vs projected |
+
+`projected_reach` is captured **when the offer is sent**, from the athlete's
+median reach × the number of deliverables. Without it there is nothing to
+measure against, and it cannot be reconstructed later once the athlete's
+following has moved.
+
+### Why this is the highest-value product change in the plan
+
+1. **Sponsors renew on evidence.** Today a sponsor's second campaign is a leap
+   of faith. Renewal rate is the difference between the base and conservative
+   cases.
+2. **It is the Phase-2 analytics dataset.** Learned matching weights need deal
+   outcomes ([09](09-analytics-strategy.md)); today there are none to learn
+   from, so the weights can never stop being a guess.
+3. **It is the decomposable version of what an agency asserts.** TEKTA's "fan
+   intelligence" is a claim. Ours would open to the posts behind it — the same
+   discipline already applied to marketability scores.
+
+### Two smaller changes from the same reading
+
+**Time to first offer.** TEKTA advertises 50–70% faster than a traditional
+agency. Both timestamps already exist (`campaigns.created_at`,
+`deals.created_at`), so this is a query and a stat tile, not a feature. Measure
+it before claiming it.
+
+**Disclosure text per deal.** Paid posts must be disclosed, and the duty is the
+athlete's. Generating the correct tag for the market (`#ad`, `#publicidad`) on
+the deal card is trivial, removes a real legal risk from the athlete, and is the
+kind of thing that makes a platform feel like it is on their side.
 
 ---
 
