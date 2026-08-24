@@ -35,6 +35,7 @@ are no agents at all, and the athlete's alternative to Stride is nothing. See
 | 07 | [Open questions](07-open-questions.md) | What is settled, and what still needs a founder |
 | 08 | [Sport index](08-sport-index.md) | 714 country x sport pairs, the classification method, and its three product uses |
 | 09 | [Analytics strategy](09-analytics-strategy.md) | How the data function phases in — and the one thing that is urgent now |
+| 10 | [Competitor: TEKTA](10-competitor-tekta.md) | Publicis/Kelce's NIL venture — what it validates, and the market its economics exclude |
 | — | **Research tab** in the workbook | How every assumption was baselined, with sources and confidence |
 
 Every number in 03 and 04 is produced by [`model.py`](model.py). Change an
