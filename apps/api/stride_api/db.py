@@ -26,6 +26,7 @@ _PG_SCHEMA = Path(__file__).with_name("schema_pg.sql")
 
 # Every table the app owns, child-first, for a clean Postgres reset.
 _ALL_TABLES = (
+    "deal_deliverables",
     "package_commitments", "club_packages", "club_members", "clubs",
     "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
     "events", "score_snapshots", "sponsor_targets", "audience_demographics",
@@ -134,9 +135,25 @@ CREATE TABLE IF NOT EXISTS deals (
     status       TEXT NOT NULL DEFAULT 'offered'
                  CHECK (status IN ('offered','accepted','declined','withdrawn','completed')),
     created_at   TEXT NOT NULL,
-    responded_at TEXT
+    responded_at TEXT,
+    completed_at TEXT,
+    -- Captured when the OFFER is sent, not at completion: once the athlete's
+    -- following moves there is nothing left to measure delivery against.
+    projected_reach INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_deals_athlete ON deals(athlete_id, status);
+
+-- What actually fulfilled a deal. Everything needed to measure a campaign
+-- already exists in posts/post_metrics; this is the missing link between the
+-- commercial record and the content.
+CREATE TABLE IF NOT EXISTS deal_deliverables (
+    id       INTEGER PRIMARY KEY,
+    deal_id  INTEGER NOT NULL REFERENCES deals(id),
+    post_id  INTEGER NOT NULL REFERENCES posts(id),
+    added_at TEXT NOT NULL,
+    UNIQUE (deal_id, post_id)
+);
+CREATE INDEX IF NOT EXISTS idx_deliverables_deal ON deal_deliverables(deal_id);
 CREATE INDEX IF NOT EXISTS idx_deals_org ON deals(org_id, status);
 
 CREATE TABLE IF NOT EXISTS follows (
@@ -197,12 +214,37 @@ CREATE INDEX IF NOT EXISTS idx_commitments_org ON package_commitments(org_id, st
 """
 
 
+# Columns added to a table that had already shipped. The schema above is
+# written with CREATE TABLE IF NOT EXISTS, which is a no-op against a database
+# that already has the table — so a column added later never reaches an existing
+# one, and the first request to read it fails with "no such column" while a
+# fresh database (every test run) passes. Keep this list append-only and
+# additive: it is a column backfill, not a migration framework, and anything
+# that rewrites or drops data needs a real one.
+_ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
+    ("deals", "completed_at", "TEXT"),
+    ("deals", "projected_reach", "INTEGER"),
+)
+
+
+def _add_missing_columns(conn) -> None:
+    if settings.db_backend == "postgres":
+        for table, column, decl in _ADDED_COLUMNS:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {decl}")
+        return
+    # SQLite has no ADD COLUMN IF NOT EXISTS, so ask first.
+    for table, column, decl in _ADDED_COLUMNS:
+        if column not in {c["name"] for c in rows(conn, f"PRAGMA table_info({table})")}:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
+
+
 def init_db(conn) -> None:
     if settings.db_backend == "postgres":
         conn.executescript(_PG_SCHEMA.read_text(encoding="utf-8"))
     else:
         conn.executescript(CREATORLENS_SCHEMA)  # analytics tables + shared events audit log
         conn.executescript(STRIDE_SCHEMA)
+    _add_missing_columns(conn)
     conn.commit()
 
 

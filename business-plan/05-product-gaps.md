@@ -50,7 +50,7 @@ Ordered by what blocks revenue soonest.
 | 9 | **Notifications** | Conversion | S | Email exists as a cost line, not as code |
 | 10 | **Refunds & disputes** | Operations | M | Chargeback handling, partial refunds, deal disputes |
 | 11 | **Athlete churn tracking** | The model itself | S | The weakest assumption in `model.py` is unmeasurable today |
-| 12 | **Campaign measurement** | Sponsor renewal; learned matching | **M** | See below — mostly a join table, because the metrics already exist |
+| ~~12~~ | ~~**Campaign measurement**~~ | ~~Sponsor renewal; learned matching~~ | — | **Shipped** — see below |
 
 **Effort: S ≈ days · M ≈ 2–4 weeks · L ≈ 1–2 months · XL ≈ 3+ months**, at the
 Y2 team size of three.
@@ -79,70 +79,98 @@ a content platform, with the operational weight that implies.
 
 ---
 
-## Campaign measurement — the gap TEKTA made table stakes
+## Campaign measurement — shipped
 
-A deal can reach `status = 'completed'`, and nothing anywhere records **what the
-sponsor got**. There is no `completed_at`, no deliverable, and no row linking a
-deal to the content that fulfilled it.
+Until this shipped, a deal could reach `status = 'completed'` with nothing
+anywhere recording **what the sponsor got**. That mattered more once TEKTA
+launched selling "identify, activate and **measure**"
+([10](10-competitor-tekta.md)): Stride did the first and half the second.
 
-This matters more since TEKTA launched selling "identify, activate and
-**measure**" ([10](10-competitor-tekta.md)). Stride does the first and half the
-second.
+It was cheaper than it sounded, because the measurement layer already existed.
+`posts` and `post_metrics` already held reach, likes, comments, shares and watch
+time per post per capture, and `engagement_rate()` already computed from them.
+What was missing was the link.
 
-**It is cheaper than it sounds, because the measurement layer already exists.**
-`posts` and `post_metrics` already hold reach, likes, comments, shares and watch
-time per post per capture, and `engagement_rate()` already computes from them.
-What is missing is the link.
-
-### The change
+### What was built
 
 ```sql
-ALTER TABLE deals ADD COLUMN completed_at      TEXT;
-ALTER TABLE deals ADD COLUMN projected_reach   INTEGER;   -- stored at offer time
+ALTER TABLE deals ADD COLUMN completed_at    TEXT;
+ALTER TABLE deals ADD COLUMN projected_reach INTEGER;   -- stored at offer time
 
 CREATE TABLE deal_deliverables (
-    id         INTEGER PRIMARY KEY,
-    deal_id    INTEGER NOT NULL REFERENCES deals(id),
-    post_id    INTEGER NOT NULL REFERENCES posts(id),
-    added_at   TEXT NOT NULL,
+    id       INTEGER PRIMARY KEY,
+    deal_id  INTEGER NOT NULL REFERENCES deals(id),
+    post_id  INTEGER NOT NULL REFERENCES posts(id),
+    added_at TEXT NOT NULL,
     UNIQUE (deal_id, post_id)
 );
 ```
 
 | Endpoint | Who | Does |
 |---|---|---|
+| `GET /api/athlete/posts` | athlete | Their own recent posts, to pick a deliverable from |
 | `POST /api/athlete/deals/{id}/deliverables` | athlete | Attaches the post that fulfilled the deal |
-| `POST /api/athlete/deals/{id}/complete` | athlete | Sets `completed_at`; requires ≥1 deliverable |
-| `GET /api/sponsor/deals/{id}/performance` | sponsor | Delivered reach, engagement, cost per engagement, actual vs projected |
+| `POST /api/athlete/deals/{id}/complete` | athlete | Sets `completed_at`; **requires ≥1 deliverable** |
+| `GET /api/deals/{id}/performance` | sponsor | Delivered reach and engagement, cost per 1k reach, cost per engagement, actual vs projected, and the posts behind each |
+
+Two guards carry the weight. **Attribution**: an athlete can only attach a post
+from one of their own connected accounts, checked against
+`platform_accounts.creator_id` — without it an athlete could claim someone
+else's reach, which would poison the one dataset sponsors are asked to trust.
+**Completeness**: `complete` refuses with `no_deliverables` when nothing is
+attached, so a `completed` deal always has something a sponsor can open.
 
 `projected_reach` is captured **when the offer is sent**, from the athlete's
-median reach × the number of deliverables. Without it there is nothing to
-measure against, and it cannot be reconstructed later once the athlete's
-following has moved.
+median reach across platforms. Without it there is nothing to measure against,
+and it cannot be reconstructed later once the athlete's following has moved.
+Deals that predate the column read as `—` rather than as a zero variance —
+unmeasured, not free, the same rule the cost figures follow.
 
-### Why this is the highest-value product change in the plan
+**Interface.** The athlete's Deals page gains a *Delivering* lane between open
+offers and history; the sponsor's pipeline gains an inline performance panel on
+any accepted or completed deal, where every headline figure decomposes to the
+posts underneath it — the discipline already applied to marketability scores.
 
-1. **Sponsors renew on evidence.** Today a sponsor's second campaign is a leap
+### Why this was the highest-value product change in the plan
+
+1. **Sponsors renew on evidence.** A sponsor's second campaign used to be a leap
    of faith. Renewal rate is the difference between the base and conservative
    cases.
 2. **It is the Phase-2 analytics dataset.** Learned matching weights need deal
-   outcomes ([09](09-analytics-strategy.md)); today there are none to learn
-   from, so the weights can never stop being a guess.
+   outcomes ([09](09-analytics-strategy.md)); there were none to learn from, so
+   the weights could never stop being a guess. They now accumulate per deal.
 3. **It is the decomposable version of what an agency asserts.** TEKTA's "fan
-   intelligence" is a claim. Ours would open to the posts behind it — the same
-   discipline already applied to marketability scores.
+   intelligence" is a claim. This one opens.
 
-### Two smaller changes from the same reading
+### The two companions from the same reading — also shipped
 
 **Time to first offer.** TEKTA advertises 50–70% faster than a traditional
-agency. Both timestamps already exist (`campaigns.created_at`,
-`deals.created_at`), so this is a query and a stat tile, not a feature. Measure
-it before claiming it.
+agency. Both timestamps already existed (`campaigns.created_at`,
+`deals.created_at`), so this is a query and a stat tile. It now reports the
+median wait on the sponsor's campaign board — **and the number of campaigns that
+have produced no offer at all**, because a median taken only over the campaigns
+that worked is a survivorship figure. Measured before it is claimed.
 
-**Disclosure text per deal.** Paid posts must be disclosed, and the duty is the
-athlete's. Generating the correct tag for the market (`#ad`, `#publicidad`) on
-the deal card is trivial, removes a real legal risk from the athlete, and is the
-kind of thing that makes a platform feel like it is on their side.
+**Disclosure text per deal.** Paid posts must be disclosed and the duty is the
+athlete's — the Terms already said Stride surfaces it in the deal flow, and now
+it does. The *Delivering* lane and the deliverable dialog both carry the wording
+for the athlete's market (`#ad`, `#publicidad`, `#werbung`, `#publicité`…),
+falling back to `#ad` with an explicit note when the country is unmapped. It
+costs nothing, removes a real legal risk from the athlete, and is the kind of
+thing that makes a platform feel like it is on their side.
+
+### What this deliberately does not do yet
+
+- **Reach is captured at the latest metric, not at a fixed window.** A post that
+  keeps accruing views keeps improving the deal's number. Honest, but not the
+  same as a 30-day campaign measurement, and the difference should be named
+  before it is sold to a sponsor.
+- **Nothing verifies the attached post is actually the sponsored one.** The
+  attribution guard proves the post is the athlete's, not that it mentions the
+  brand. Verifying that needs the disclosure tag or a campaign hashtag matched
+  against post text — cheap, and the obvious next increment.
+- **No aggregate view.** Performance is per deal. A sponsor with forty deals
+  wants a campaign roll-up, which is a query over the same table.
 
 ---
 

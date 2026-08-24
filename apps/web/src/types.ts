@@ -115,6 +115,12 @@ export interface Deal {
   status: 'offered' | 'accepted' | 'declined' | 'withdrawn' | 'completed'
   created_at: string
   responded_at: string | null
+  completed_at?: string | null
+  projected_reach?: number | null
+  /** Posts the athlete has already attached as proof of delivery. Present on
+   *  the athlete's own workspace only — a sponsor reads these through
+   *  `DealPerformance` instead. */
+  deliverable_post_ids?: number[]
   campaign_name?: string
   category?: string
   org_name?: string
@@ -163,6 +169,46 @@ export interface Match {
     dimensions: Record<string, number | null>
     coverage: { connected: number; total: number; missing: string[] }
   } | null
+}
+
+/** A post the athlete can attach to a deal as proof of delivery. */
+export interface AthletePost {
+  post_id: number
+  platform: string
+  title: string
+  published_at: string
+  reach: number | null
+}
+
+/** What the sponsor actually got. Every headline figure decomposes to
+ *  `deliverables` — the same rule the marketability scores follow. */
+export interface DealPerformance {
+  deal: {
+    id: number
+    status: Deal['status']
+    deal_type: string
+    amount_usd: number
+    created_at: string
+    responded_at: string | null
+    completed_at: string | null
+    athlete_name: string
+    athlete_slug: string
+    campaign_name: string
+  }
+  deliverables: {
+    post_id: number
+    platform: string
+    title: string
+    published_at: string
+    permalink: string
+    reach: number
+    engagement_rate: number | null
+  }[]
+  delivered: { posts: number; reach: number; engagements: number }
+  projected: { reach: number | null }
+  variance_pct: number | null
+  cost_per_1k_reach: number | null
+  cost_per_engagement: number | null
 }
 
 export interface PlatformAccount {

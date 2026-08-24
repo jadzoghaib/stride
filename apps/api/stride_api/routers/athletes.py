@@ -11,7 +11,7 @@ import json
 import sqlite3
 
 from creatorlens.actions import ActionRejected, connect_platform, disconnect_platform
-from creatorlens.analytics.kpis import creator_kpis
+from creatorlens.analytics.kpis import creator_kpis, latest_post_metrics
 from creatorlens.analytics.scoring import (InsufficientData, _combined_demographics,
                                            latest_score, store_scores)
 from creatorlens.events import log_event
@@ -269,15 +269,114 @@ def disconnect(account_id: int, user: dict = Depends(require_role("athlete")),
 # ---- deals (athlete side) ----------------------------------------------------
 
 def _deals_for_athlete(conn, athlete_id: int) -> list[dict]:
-    return rows(conn, """
+    deals = rows(conn, """
         SELECT d.*, c.name AS campaign_name, c.category, o.name AS org_name
         FROM deals d JOIN campaigns c ON c.id = d.campaign_id
                      JOIN sponsor_orgs o ON o.id = d.org_id
         WHERE d.athlete_id = ? ORDER BY d.created_at DESC, d.id DESC""", (athlete_id,))
+    # What is already attached, so the athlete is never offered a post they have
+    # submitted before. One grouped query rather than one per deal.
+    attached: dict[int, list[int]] = {}
+    for link in rows(conn, """
+            SELECT dd.deal_id, dd.post_id FROM deal_deliverables dd
+            JOIN deals d ON d.id = dd.deal_id
+            WHERE d.athlete_id = ? ORDER BY dd.id""", (athlete_id,)):
+        attached.setdefault(link["deal_id"], []).append(link["post_id"])
+    for deal in deals:
+        deal["deliverable_post_ids"] = attached.get(deal["id"], [])
+    return deals
 
 
 class RespondIn(BaseModel):
     action: str  # accept | decline
+
+
+@router.get("/athlete/posts")
+def own_posts(user: dict = Depends(require_role("athlete")),
+              conn: sqlite3.Connection = Depends(get_db)):
+    """The athlete's recent posts, for attaching to a deal as a deliverable."""
+    profile = _own_profile(conn, user)
+    creator_id = profile["creatorlens_creator_id"]
+    if not creator_id:
+        return []
+    out = []
+    for account in rows(conn, "SELECT * FROM platform_accounts WHERE creator_id = ?",
+                        (creator_id,)):
+        for post in latest_post_metrics(conn, account["id"])[:15]:
+            out.append({"post_id": post["post_id"], "platform": account["platform"],
+                        "title": post["title"], "published_at": post["published_at"],
+                        "reach": post["reach"]})
+    out.sort(key=lambda p: p["published_at"], reverse=True)
+    return out[:40]
+
+
+class DeliverableIn(BaseModel):
+    post_id: int
+
+
+@router.post("/athlete/deals/{deal_id}/deliverables", status_code=201)
+def add_deliverable(deal_id: int, body: DeliverableIn,
+                    user: dict = Depends(require_role("athlete")),
+                    conn: sqlite3.Connection = Depends(get_db)):
+    """Attach the post that fulfilled a deal.
+
+    Guarded twice over: the deal must be the athlete's, and so must the post —
+    otherwise an athlete could attribute someone else's reach to their own
+    campaign, which would poison the one dataset sponsors are meant to trust.
+    """
+    profile = _own_profile(conn, user)
+    deal = row(conn, "SELECT * FROM deals WHERE id = ? AND athlete_id = ?",
+               (deal_id, profile["id"]))
+    if deal is None:
+        raise HTTPException(404, "unknown_deal")
+    if deal["status"] not in ("accepted", "completed"):
+        raise HTTPException(409, "deal_not_accepted")
+
+    post = row(conn, """
+        SELECT p.id FROM posts p
+        JOIN platform_accounts pa ON pa.id = p.account_id
+        WHERE p.id = ? AND pa.creator_id = ?""",
+        (body.post_id, profile["creatorlens_creator_id"]))
+    if post is None:
+        raise HTTPException(404, "unknown_post")
+
+    existing = row(conn, "SELECT id FROM deal_deliverables WHERE deal_id = ? AND post_id = ?",
+                   (deal_id, body.post_id))
+    if existing:
+        raise HTTPException(409, "already_attached")
+
+    conn.execute("INSERT INTO deal_deliverables (deal_id, post_id, added_at) VALUES (?, ?, ?)",
+                 (deal_id, body.post_id, now_iso()))
+    log_event(conn, "user", "deal.deliverable_added", "deal", deal_id,
+              {"post_id": body.post_id, "athlete_id": profile["id"]})
+    conn.commit()
+    return {"ok": True, "deal_id": deal_id, "post_id": body.post_id}
+
+
+@router.post("/athlete/deals/{deal_id}/complete")
+def complete_deal(deal_id: int, user: dict = Depends(require_role("athlete")),
+                  conn: sqlite3.Connection = Depends(get_db)):
+    """Mark a deal delivered. Requires at least one deliverable, so a completed
+    deal always has something a sponsor can inspect."""
+    profile = _own_profile(conn, user)
+    deal = row(conn, "SELECT * FROM deals WHERE id = ? AND athlete_id = ?",
+               (deal_id, profile["id"]))
+    if deal is None:
+        raise HTTPException(404, "unknown_deal")
+    if deal["status"] != "accepted":
+        raise HTTPException(409, "deal_not_accepted")
+    count = row(conn, "SELECT COUNT(*) AS n FROM deal_deliverables WHERE deal_id = ?",
+                (deal_id,))["n"]
+    if not count:
+        raise HTTPException(409, "no_deliverables")
+
+    conn.execute("UPDATE deals SET status = 'completed', completed_at = ? WHERE id = ?",
+                 (now_iso(), deal_id))
+    log_event(conn, "user", "deal.completed", "deal", deal_id,
+              {"athlete_id": profile["id"], "deliverables": count,
+               "amount_usd": deal["amount_usd"]})
+    conn.commit()
+    return row(conn, "SELECT * FROM deals WHERE id = ?", (deal_id,))
 
 
 @router.post("/athlete/deals/{deal_id}/respond")

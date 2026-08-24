@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from datetime import datetime
+from statistics import median
 
 from creatorlens.analytics.kpis import creator_kpis, engagement_rate, latest_post_metrics
 from creatorlens.analytics.scoring import (InsufficientData, _combined_demographics,
@@ -38,6 +40,43 @@ def _campaign_view(c: dict) -> dict:
     return out
 
 
+def _speed_to_first_offer(conn, org_id: int) -> dict:
+    """How long a campaign waits before its first offer goes out.
+
+    TEKTA sells "50-70% faster than a traditional agency process". This is the
+    same claim measured rather than asserted, from timestamps the schema
+    already keeps. Campaigns that have produced nothing are reported alongside
+    the median rather than dropped: a median taken only over the campaigns that
+    worked is a survivorship figure, and this product does not ship those.
+    """
+    waits: list[float] = []
+    pending = 0
+    # One grouped query, not one per campaign: this runs on every workspace load.
+    # MIN() over an ISO-8601 TEXT timestamp is chronological because the format
+    # is fixed-width and zero-padded.
+    for campaign in rows(conn, """
+            SELECT c.id, c.created_at, MIN(d.created_at) AS first_offer_at
+            FROM campaigns c LEFT JOIN deals d ON d.campaign_id = c.id
+            WHERE c.org_id = ?
+            GROUP BY c.id, c.created_at""", (org_id,)):
+        if not campaign["first_offer_at"]:
+            pending += 1
+            continue
+        delta = _parse_ts(campaign["first_offer_at"]) - _parse_ts(campaign["created_at"])
+        waits.append(max(0.0, delta.total_seconds() / 3600))
+    return {
+        # None, not 0: no campaign has produced an offer, so there is no wait to
+        # report — which is a different statement from an instant one.
+        "median_hours": round(median(waits), 1) if waits else None,
+        "campaigns_measured": len(waits),
+        "campaigns_without_offer": pending,
+    }
+
+
+def _parse_ts(ts: str) -> datetime:
+    return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+
+
 @router.get("/sponsor/workspace")
 def workspace(user: dict = Depends(require_role("sponsor")),
               conn: sqlite3.Connection = Depends(get_db)):
@@ -68,6 +107,7 @@ def workspace(user: dict = Depends(require_role("sponsor")),
                                if d["status"] in ("accepted", "completed"))
                            + sum(x["amount_usd"] for x in club_commitments
                                  if x["status"] == "active"),
+        "speed": _speed_to_first_offer(conn, org["id"]),
     }
 
 
@@ -110,6 +150,20 @@ def create_campaign(body: CampaignIn, user: dict = Depends(require_role("sponsor
     return _campaign_view(row(conn, "SELECT * FROM campaigns WHERE id = ?", (cur.lastrowid,)))
 
 
+def _projected_reach(conn, creator_id: int | None) -> int | None:
+    """Expected reach of one post, taken at OFFER time.
+
+    The athlete's best channel by median reach, not the sum across platforms: a
+    single deliverable lands on one feed, and summing would flatter the
+    projection that delivery is later judged against.
+    """
+    if not creator_id:
+        return None
+    reaches = [k["median_reach"] for k in creator_kpis(conn, creator_id).values()
+               if k["median_reach"]]
+    return max(reaches) if reaches else None
+
+
 def _own_campaign(conn, org, campaign_id: int) -> dict:
     c = row(conn, "SELECT * FROM campaigns WHERE id = ? AND org_id = ?", (campaign_id, org["id"]))
     if c is None:
@@ -149,11 +203,12 @@ def send_offer(campaign_id: int, body: OfferIn, user: dict = Depends(require_rol
                     " AND status = 'offered'", (campaign_id, body.athlete_id))
     if open_deal:
         raise HTTPException(409, "offer_already_open")
+    projected = _projected_reach(conn, athlete["creatorlens_creator_id"])
     cur = conn.execute(
         "INSERT INTO deals (campaign_id, org_id, athlete_id, deal_type, amount_usd, message,"
-        " status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'offered', ?)",
+        " status, created_at, projected_reach) VALUES (?, ?, ?, ?, ?, ?, 'offered', ?, ?)",
         (campaign_id, org["id"], body.athlete_id, body.deal_type, body.amount_usd,
-         body.message, now_iso()))
+         body.message, now_iso(), projected))
     log_event(conn, "user", "deal.created", "deal", cur.lastrowid,
               {"campaign_id": campaign_id, "athlete_id": body.athlete_id,
                "amount_usd": body.amount_usd, "org_id": org["id"]})
@@ -175,6 +230,67 @@ def withdraw_offer(deal_id: int, user: dict = Depends(require_role("sponsor")),
     log_event(conn, "user", "deal.withdrawn", "deal", deal_id, {"org_id": org["id"]})
     conn.commit()
     return {"ok": True}
+
+
+@router.get("/deals/{deal_id}/performance")
+def deal_performance(deal_id: int, user: dict = Depends(require_role("sponsor")),
+                     conn: sqlite3.Connection = Depends(get_db)):
+    """What the sponsor actually got: delivered reach and engagement against the
+    projection captured when the offer was sent.
+
+    Every figure decomposes to the posts listed in `deliverables` — the same
+    rule the marketability scores follow. A number a sponsor cannot open is a
+    number they have to take on trust, which is the thing this product exists
+    not to ask of them.
+    """
+    org = _own_org(conn, user)
+    deal = row(conn, """
+        SELECT d.*, a.display_name AS athlete_name, a.slug AS athlete_slug,
+               a.creatorlens_creator_id, c.name AS campaign_name
+        FROM deals d JOIN athlete_profiles a ON a.id = d.athlete_id
+                     JOIN campaigns c ON c.id = d.campaign_id
+        WHERE d.id = ? AND d.org_id = ?""", (deal_id, org["id"]))
+    if deal is None:
+        raise HTTPException(404, "unknown_deal")
+
+    deliverables, reach, engagements = [], 0, 0.0
+    for link in rows(conn, "SELECT * FROM deal_deliverables WHERE deal_id = ? ORDER BY id",
+                     (deal_id,)):
+        post = row(conn, """
+            SELECT p.*, pa.platform FROM posts p
+            JOIN platform_accounts pa ON pa.id = p.account_id
+            WHERE p.id = ?""", (link["post_id"],))
+        if post is None:
+            continue
+        metric = row(conn, "SELECT * FROM post_metrics WHERE post_id = ?"
+                     " ORDER BY captured_at DESC, id DESC LIMIT 1", (post["id"],))
+        er = engagement_rate(post["platform"], metric) if metric else None
+        post_reach = (metric or {}).get("reach") or 0
+        reach += post_reach
+        engagements += post_reach * (er or 0)
+        deliverables.append({
+            "post_id": post["id"], "platform": post["platform"], "title": post["title"],
+            "published_at": post["published_at"], "permalink": post["permalink"],
+            "reach": post_reach, "engagement_rate": round(er, 5) if er is not None else None,
+        })
+
+    amount = deal["amount_usd"]
+    projected = deal["projected_reach"]
+    return {
+        "deal": {k: deal[k] for k in ("id", "status", "deal_type", "amount_usd",
+                                      "created_at", "responded_at", "completed_at",
+                                      "athlete_name", "athlete_slug", "campaign_name")},
+        "deliverables": deliverables,
+        "delivered": {"posts": len(deliverables), "reach": reach,
+                      "engagements": round(engagements)},
+        "projected": {"reach": projected},
+        # None rather than 0 when there is nothing to divide by — an unmeasurable
+        # campaign should read as unmeasured, not as free.
+        "variance_pct": round(100 * (reach - projected) / projected, 1)
+                        if projected else None,
+        "cost_per_1k_reach": round(amount / (reach / 1000), 2) if reach else None,
+        "cost_per_engagement": round(amount / engagements, 2) if engagements >= 1 else None,
+    }
 
 
 @router.get("/sponsor/athletes/{slug}/analytics")

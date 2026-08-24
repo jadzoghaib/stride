@@ -199,7 +199,17 @@ CREATE TABLE IF NOT EXISTS deals (
     status       TEXT NOT NULL DEFAULT 'offered'
                  CHECK (status IN ('offered','accepted','declined','withdrawn','completed')),
     created_at   TEXT NOT NULL,
-    responded_at TEXT
+    responded_at TEXT,
+    completed_at TEXT,
+    projected_reach INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS deal_deliverables (
+    id       BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    deal_id  BIGINT NOT NULL REFERENCES deals(id),
+    post_id  BIGINT NOT NULL REFERENCES posts(id),
+    added_at TEXT NOT NULL,
+    UNIQUE (deal_id, post_id)
 );
 CREATE INDEX IF NOT EXISTS idx_deals_athlete ON deals(athlete_id, status);
 CREATE INDEX IF NOT EXISTS idx_deals_org ON deals(org_id, status);

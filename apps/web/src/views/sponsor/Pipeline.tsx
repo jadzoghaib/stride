@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LoadError, PageHeader, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
+import { Delta, KV, LoadError, Meter, PageHeader, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
-import { fmtDate, fmtMoney } from '../../lib/format'
-import type { Commitment, Deal } from '../../types'
-import { dealTypeLabel } from '../../types'
+import { fmtDate, fmtMoney, fmtNum, fmtPct } from '../../lib/format'
+import type { Commitment, Deal, DealPerformance } from '../../types'
+import { dealTypeLabel, platformLabel } from '../../types'
 
 const STAGES: Deal['status'][] = ['offered', 'accepted', 'completed', 'declined', 'withdrawn']
 
@@ -12,6 +12,7 @@ export default function SponsorPipeline() {
   const [deals, setDeals] = useState<Deal[] | null>(null)
   const [commitments, setCommitments] = useState<Commitment[]>([])
   const [error, setError] = useState('')
+  const [openPerf, setOpenPerf] = useState<number | null>(null)
 
   const load = () =>
     api.get<{ deals: Deal[]; club_commitments: Commitment[] }>('/api/sponsor/workspace')
@@ -72,23 +73,43 @@ export default function SponsorPipeline() {
               </thead>
               <tbody>
                 {list.map((d) => (
-                  <tr key={d.id}>
-                    <td className="table-cell">
-                      <Link to={`/sponsor/athletes/${d.athlete_slug}`} className="text-ink hover:text-accent">
-                        {d.athlete_name}
-                      </Link>
-                      <span className="ml-2 text-xs text-ink-3">{d.sport}</span>
-                    </td>
-                    <td className="table-cell">{d.campaign_name}</td>
-                    <td className="table-cell">{dealTypeLabel(d.deal_type)}</td>
-                    <td className="table-cell tnum text-right">{fmtMoney(d.amount_usd)}</td>
-                    <td className="table-cell text-xs text-ink-3">{fmtDate(d.created_at)}</td>
-                    <td className="table-cell text-right">
-                      {d.status === 'offered' && (
-                        <button className="btn px-2.5 py-1 text-xs" onClick={() => withdraw(d.id)}>Withdraw</button>
-                      )}
-                    </td>
-                  </tr>
+                  <Fragment key={d.id}>
+                    <tr>
+                      <td className="table-cell">
+                        <Link to={`/sponsor/athletes/${d.athlete_slug}`} className="text-ink hover:text-accent">
+                          {d.athlete_name}
+                        </Link>
+                        <span className="ml-2 text-xs text-ink-3">{d.sport}</span>
+                      </td>
+                      <td className="table-cell">{d.campaign_name}</td>
+                      <td className="table-cell">{dealTypeLabel(d.deal_type)}</td>
+                      <td className="table-cell tnum text-right">{fmtMoney(d.amount_usd)}</td>
+                      <td className="table-cell text-xs text-ink-3">{fmtDate(d.created_at)}</td>
+                      <td className="table-cell text-right">
+                        {d.status === 'offered' && (
+                          <button className="btn px-2.5 py-1 text-xs" onClick={() => withdraw(d.id)}>Withdraw</button>
+                        )}
+                        {(d.status === 'accepted' || d.status === 'completed') && (
+                          <button
+                            className="btn px-2.5 py-1 text-xs"
+                            aria-expanded={openPerf === d.id}
+                            onClick={() => setOpenPerf(openPerf === d.id ? null : d.id)}
+                          >
+                            {openPerf === d.id
+                              ? 'Hide'
+                              : d.status === 'completed' ? 'What we got' : 'Delivery status'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {openPerf === d.id && (
+                      <tr>
+                        <td className="table-cell" colSpan={6}>
+                          <Performance dealId={d.id} />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
@@ -135,6 +156,91 @@ export default function SponsorPipeline() {
           </table>
         )}
       </Section>
+    </div>
+  )
+}
+
+/** What the campaign actually delivered, against the projection captured when
+ *  the offer was sent.
+ *
+ *  Every headline figure opens to the posts underneath it — the same rule the
+ *  marketability scores follow. A figure a sponsor cannot decompose is one they
+ *  have to take on trust, and taking marketing numbers on trust is the thing
+ *  this product exists not to ask of them. */
+function Performance({ dealId }: { dealId: number }) {
+  const [perf, setPerf] = useState<DealPerformance | null>(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    api.get<DealPerformance>(`/api/deals/${dealId}/performance`)
+      .then(setPerf)
+      .catch((e) => setError(errorText(e)))
+  }, [dealId])
+
+  if (error) return <p className="py-2 text-sm text-critical">{error}</p>
+  if (!perf) return <p className="meta py-2">Loading result…</p>
+
+  const { delivered, projected } = perf
+  const hit = projected.reach ? (100 * delivered.reach) / projected.reach : null
+
+  return (
+    <div className="py-3">
+      <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2.5">
+        <KV label="Delivered reach" value={fmtNum(delivered.reach)} />
+        <KV label="Projected at offer" value={fmtNum(projected.reach)} />
+        <KV label="Engagements" value={fmtNum(delivered.engagements)} />
+        {/* None, not zero: an unmeasured campaign must not read as a free one */}
+        <KV label="Cost / 1k reach" value={perf.cost_per_1k_reach === null ? '—' : fmtMoney(perf.cost_per_1k_reach)} />
+        <KV label="Cost / engagement" value={perf.cost_per_engagement === null ? '—' : fmtMoney(perf.cost_per_engagement)} />
+        <div className="flex items-baseline gap-2.5">
+          <span className="cap">vs projection</span>
+          <Delta value={perf.variance_pct} />
+        </div>
+      </div>
+
+      {hit !== null && (
+        <div className="mt-3 max-w-md">
+          <Meter value={hit} height={6} muted={hit < 100} />
+          <span className="meta mt-1 block">
+            {fmtPct(hit / 100, 0)} of the reach projected when the offer was sent
+          </span>
+        </div>
+      )}
+
+      {perf.deliverables.length === 0 ? (
+        <p className="meta mt-3">
+          {perf.deal.status === 'completed'
+            ? 'Marked complete with nothing attached — there is no measurement to show.'
+            : 'The athlete has not attached a post yet. Figures appear here as soon as they do.'}
+        </p>
+      ) : (
+        <table className="mt-4 w-full text-xs">
+          <thead>
+            <tr>
+              <th className="table-head">Platform</th>
+              <th className="table-head">Post</th>
+              <th className="table-head">Published</th>
+              <th className="table-head text-right">Reach</th>
+              <th className="table-head text-right">Engagement</th>
+            </tr>
+          </thead>
+          <tbody>
+            {perf.deliverables.map((d) => (
+              <tr key={d.post_id}>
+                <td className="table-cell">{platformLabel(d.platform)}</td>
+                <td className="table-cell max-w-72 truncate text-ink">
+                  <a href={d.permalink} target="_blank" rel="noreferrer" className="hover:text-accent">
+                    {d.title}
+                  </a>
+                </td>
+                <td className="table-cell text-ink-3">{fmtDate(d.published_at)}</td>
+                <td className="table-cell tnum text-right">{fmtNum(d.reach)}</td>
+                <td className="table-cell tnum text-right">{fmtPct(d.engagement_rate, 2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   )
 }

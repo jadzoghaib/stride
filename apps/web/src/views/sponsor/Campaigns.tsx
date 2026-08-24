@@ -14,6 +14,18 @@ interface Workspace {
   deals: Deal[]
   club_commitments?: { id: number }[]
   spend_committed: number
+  speed?: { median_hours: number | null; campaigns_measured: number; campaigns_without_offer: number }
+}
+
+/** Brief to first offer, in the coarsest unit that still says something. The
+ *  agencies this competes with sell speed as a claim; a marketplace can show
+ *  the clock instead. `null` stays a dash — no campaign has produced an offer,
+ *  which is not the same statement as an instant one. */
+const fmtWait = (hours: number | null | undefined) => {
+  if (hours === null || hours === undefined) return '—'
+  if (hours < 1) return '<1h'
+  if (hours < 48) return `${Math.round(hours)}h`
+  return `${Math.round(hours / 24)}d`
 }
 
 const AGE_BUCKETS = ['13-17', '18-24', '25-34', '35-44', '45-54', '55+']
@@ -58,7 +70,16 @@ export default function SponsorCampaigns() {
           { label: 'Active campaigns', value: ws.campaigns.filter((c) => c.status === 'active').length },
           { label: 'Open offers', value: open, to: '/sponsor/pipeline' },
           { label: 'Club packages', value: ws.club_commitments?.length ?? 0, to: '/sponsor/pipeline' },
+          { label: 'Brief to first offer', value: fmtWait(ws.speed?.median_hours) },
         ]}
+        footNote={
+          ws.speed?.campaigns_measured
+            ? `median over ${ws.speed.campaigns_measured} campaign${ws.speed.campaigns_measured === 1 ? '' : 's'}` +
+              (ws.speed.campaigns_without_offer
+                ? ` · ${ws.speed.campaigns_without_offer} still without an offer`
+                : '')
+            : 'no campaign has produced an offer yet'
+        }
       />
 
       <div>

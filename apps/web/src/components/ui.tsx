@@ -130,11 +130,15 @@ export function PageHeader({
 export function Modal({
   title,
   onClose,
+  wide = false,
   children,
 }: {
   title: string
   /** Called once the dialog has actually closed — unmount it here. */
   onClose: () => void
+  /** Widen for tabular content. The width belongs on the dialog element; a
+   *  child that sets its own overflows the parent instead of resizing it. */
+  wide?: boolean
   /** Given the platform close request, so controls inside route through it. */
   children: (close: () => void) => ReactNode
 }) {
@@ -184,7 +188,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      className="modal"
+      className={wide ? 'modal modal-wide' : 'modal'}
       aria-labelledby={titleId}
       onCancel={(e) => {
         e.preventDefault() // take the same explicit path as every other close

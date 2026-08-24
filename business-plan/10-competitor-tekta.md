@@ -60,18 +60,21 @@ threatening as competition.
 
 ## What Stride should take from this
 
-### 1. Build measurement. This is the real gap. — HIGH
+### 1. Build measurement. This was the real gap. — DONE
 
-TEKTA's headline to brands is identify → activate → **measure**. Stride does
-identify (matching) and half of activate (offers). It does **not** measure:
-`deals` records an amount and a status, and nothing about what the sponsor
+TEKTA's headline to brands is identify → activate → **measure**. Stride did
+identify (matching) and half of activate (offers). It did **not** measure:
+`deals` recorded an amount and a status, and nothing about what the sponsor
 actually got.
 
-Ship a **campaign outcome record**: reach delivered, engagement, cost per
-engagement, actual versus projected — pulled from the same connectors that
-already produce the analytics.
+**Now shipped** — a campaign outcome record: reach delivered, engagement, cost
+per 1k reach, cost per engagement, actual versus projected, pulled from the same
+connectors that already produce the analytics. The athlete attaches the post
+that fulfilled the deal (guarded so it must be their own), completion is refused
+until they do, and the sponsor's pipeline opens every figure to the posts behind
+it. Build detail in [05](05-product-gaps.md#campaign-measurement--shipped).
 
-Three things follow from it, which is why it is first:
+Three things follow from it, which is why it was first:
 
 - **It closes the loop.** A sponsor renews on evidence, not on hope.
 - **It is the Phase-2 analytics dataset.** Learned matching weights need deal
@@ -81,12 +84,17 @@ Three things follow from it, which is why it is first:
   is an agency claim. Stride's would decompose to the posts behind it — the same
   discipline already applied to marketability scores.
 
-### 2. Make speed the quantified claim — MEDIUM
+### 2. Make speed the quantified claim — DONE
 
 TEKTA advertises **"50–70% faster speed to market"** against a traditional
 agency process. Stride's self-serve path is minutes, not weeks. That is a
-sharper claim than theirs and it is measurable today: **time from brief created
-to first offer sent.** Instrument it and publish it.
+sharper claim than theirs and it was measurable already: **time from brief
+created to first offer sent.**
+
+**Now instrumented**, on the sponsor's campaign board — reported with the count
+of campaigns that have produced no offer at all, so the median cannot quietly
+become a survivorship number. Measured before it is claimed, which is the whole
+difference between this and an agency's brochure.
 
 ### 3. Use clubs the way they use universities — HIGH
 
@@ -125,8 +133,8 @@ is a better outcome than competing with one.
 
 | Integration | Why | Effort |
 |---|---|---|
-| **Post-campaign measurement** via existing IG/YouTube/TikTok connectors | Closes the loop; feeds learned matching | L |
-| **Automatic disclosure tagging** (#ad / #publicidad) on sponsored deliverables | FTC/ASA/Spanish rules are the athlete's duty; making it automatic is trust and a compliance moat | S |
+| ~~**Post-campaign measurement** via existing IG/YouTube/TikTok connectors~~ | ~~Closes the loop; feeds learned matching~~ | **Shipped** |
+| ~~**Automatic disclosure tagging** (#ad / #publicidad) on sponsored deliverables~~ | ~~FTC/ASA/Spanish rules are the athlete's duty; surfacing it is trust and a compliance moat~~ | **Shipped** — surfaced per market in the deal flow; auto-insertion into the post itself still needs write access |
 | **Federation / club membership import** | Bulk onboarding, the cheapest supply channel | M |
 | **Agency workspace** (multi-client, saved searches, API) | Turns competitors into distribution | M |
 | **Ad-platform read** (Meta / TikTok) for paid amplification of sponsored posts | Measures the full campaign, not just organic | L |
