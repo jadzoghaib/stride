@@ -57,6 +57,16 @@ PLATFORM_FACTS: list[tuple] = [
      "Patreon 2024 Transparency Report — annual patrons churn at 1/3 the rate"),
     ("Creators with >2,000 patrons", 0.003, "share", "Patreon", "2026",
      "Graphtreon — power-law distribution"),
+
+    # TEKTA — Publicis Sports + 3 Arts Sports + Travis Kelce, launched Aug 2026.
+    # An agency, not a platform: the network is addressable supply it can broker,
+    # not a user base. Included to size the NIL comparable, not to model it.
+    ("Division I athletes in network", 45_000, "count", "TEKTA", "Aug 2026",
+     "Publicis Groupe press release, 19 Aug 2026"),
+    ("Power Four universities", 68, "count", "TEKTA", "Aug 2026",
+     "Publicis Groupe press release"),
+    ("Claimed speed-to-market gain", 0.60, "share faster", "TEKTA", "Aug 2026",
+     "Publicis — stated 50-70% vs a traditional agency process"),
 ]
 
 # ── Take rates: what each platform actually costs a creator ──────────────────
@@ -101,5 +111,6 @@ SOURCE_URLS = {
     "Eurobarometer 525": "https://europa.eu/eurobarometer/surveys/detail/2668",
     "FIP World Padel Report 2025": "https://www.padelfip.com/2025/12/online-the-fip-world-padel-report-2025-a-comprehensive-analysis-of-a-sport-in-constant-growth/",
     "Stripe EU pricing": "https://stripe.com/es/pricing",
+    "TEKTA launch": "https://www.publicisgroupe.com/en/news/press-releases/publicis-sports-and-travis-kelce-s-tekta-join-forces-to-reimagine-the-future-of-nil-marketing",
     "Stripe Connect age": "https://support.stripe.com/questions/age-requirement-to-create-a-stripe-account",
 }
