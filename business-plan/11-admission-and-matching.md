@@ -367,11 +367,45 @@ constant should not be retuned without re-running the sweep.
 
 | | State |
 |---|---|
-| Credibility, legitimacy, nomination, decisions | **Built** — `admission.py`, 84 tests |
+| Credibility, legitimacy, nomination, decisions | **Built** — `admission.py` |
 | Applications, review queue, proof review, revocation | **Built** — `routers/admission.py` |
 | Hard retrieval filters, congestion, slate logging | **Built** — `matching.py` |
 | Adversarial sweep | **Built** — `scripts/admission_stress.py` |
-| Application form, review-queue UI, club dashboard | **Not built** — the engine is reachable only by API |
+| Athlete eligibility, club eligibility + nomination, ops review queue | **Built** — see below |
 | Automated proof-link checking | **Specified** — needs live HTTP; see above |
 | Learned ranker | **Deliberately deferred** — no labels yet |
 | Topic embeddings for narrative fit | **Deferred** — needs real post text and a model dependency |
+
+---
+
+## The interface
+
+Three surfaces, and one rule holding them together: **show the working.** The
+scorer returns components, weights, the evidence multiplier and a
+machine-readable `rule` precisely so the interface can turn a verdict into
+something the applicant can act on. A gate that returns a number without the
+arithmetic behind it is a gate nobody can appeal, and refusing to ship that is
+the same discipline the marketability scores already follow.
+
+| Route | Who | Shows |
+|---|---|---|
+| `/athlete/application` | athlete | Credibility as the headline figure, the verdict in plain words, where it sits against the admit line, what counted for and against, and the component-by-component arithmetic |
+| `/club/eligibility` | club | The same for legitimacy, plus nomination against the declared roster |
+| `/admin/review` | ops | The queue, built around one action: open the link, say whether it names the applicant |
+
+Three things the interface is deliberate about:
+
+- **Rule codes become sentences.** `evidence_not_checked` reads "Your claim
+  clears the bar — we just have not opened your proof link yet." The wording
+  lives in the client so it can change without touching policy.
+- **The nomination panel says what a nomination cannot do**, before the club
+  spends its budget: nominees sit at `pending` until they complete their own
+  form, because no club can supply someone else's date of birth. Without that,
+  a club nominates twenty people and wonders why none are listed.
+- **The threshold markers sit at their real positions** on the 0–100 rule rather
+  than flush left and right. Flushing them told an applicant at 15 that 55 was
+  the end of the bar.
+
+Body copy on the tinted verdict panels is `ink-2`, not the semantic colour:
+measured against its own 10% tint it reads 6.67–7.64:1 across both themes, where
+`ink-3` would have been 4.00–4.59 and failed AA on all three tones.

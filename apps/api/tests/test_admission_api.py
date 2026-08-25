@@ -291,3 +291,23 @@ def test_a_rejected_proof_cannot_be_laundered_by_resubmitting(athlete, admin, db
         "proof_url": "https://fcf.example/plantilla", "proof_kind": "roster"})
     assert _application(db)["proof_status"] == "pending"
     assert retried.json()["decision"] == "review"
+
+
+def test_the_club_queue_is_navigable(clubu, admin, db):
+    """Building the review interface is what exposed this: an admin could record
+    a check against a club but had no way to find which clubs were waiting for
+    one. An endpoint nobody can navigate to is a workflow that does not exist.
+    """
+    assert clubu.post("/api/club/application", json=STRONG_CLUB).status_code == 201
+    queued = admin.get("/api/admin/club-queue", params={"decision": "review"}).json()
+    mine = next(c for c in queued if c["name"])
+    assert mine["scored"]["legitimacy"] > 0
+    assert mine["roster_url"]                 # there is something to open
+    assert mine["club_id"]                    # and somewhere to record the answer
+
+    checked = admin.post(f"/api/admin/clubs/{mine['club_id']}/proof",
+                         json={"proof_status": "verified"})
+    assert checked.status_code == 200
+    assert checked.json()["decision"] == "verified"
+    assert not [c for c in admin.get("/api/admin/club-queue").json()
+                if c["club_id"] == mine["club_id"]]

@@ -346,6 +346,14 @@ const STATUS_STYLE: Record<string, string> = {
   draft: 'border-warn/45 bg-warn/10 text-warn',
   active: 'border-ok/45 bg-ok/10 text-ok',
   closed: '',
+  // admission verdicts. `pending` stays neutral on purpose: it is the absence
+  // of a decision rather than a warning about one, and colouring it amber would
+  // tell an applicant something is wrong when nothing has been judged yet.
+  admitted: 'border-ok/45 bg-ok/10 text-ok',
+  verified: 'border-ok/45 bg-ok/10 text-ok',
+  review: 'border-warn/45 bg-warn/10 text-warn',
+  rejected: 'border-critical/45 bg-critical/10 text-critical',
+  pending: '',
 }
 
 export function StatusChip({ status }: { status: string }) {

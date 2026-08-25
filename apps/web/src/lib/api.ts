@@ -50,6 +50,17 @@ export const ERROR_TEXT: Record<string, string> = {
   no_deliverables: 'Attach at least one post before marking this delivered.',
   already_attached: 'That post is already attached to this deal.',
   unknown_post: 'That post is not on one of your connected accounts.',
+  club_not_verified: 'Your club has to be verified before it can nominate athletes.',
+  nomination_budget_exhausted:
+    'You have nominated as many athletes as your declared roster allows. Update the roster size in your club application.',
+  already_nominated: 'You have already nominated this athlete.',
+  unknown_application: 'That application no longer exists.',
+  unknown_club_application: 'That club has not applied yet.',
+  unknown_competition_level: 'Pick one of the listed competition levels.',
+  unknown_proof_kind: 'Pick one of the listed kinds of proof.',
+  unknown_proof_status: 'Unknown proof status.',
+  no_athlete_profile: 'This account has no athlete profile yet.',
+  no_club: 'This account has no club yet.',
   already_connected: 'This platform is already connected.',
   consent_required: 'Connecting a platform needs your explicit consent to the data listed.',
   chaos_injected_failure: 'A simulated failure was injected (chaos drill in progress).',
@@ -63,7 +74,7 @@ export const ERROR_TEXT: Record<string, string> = {
   athlete_not_on_roster: 'Player-direct packages must name an athlete on your active roster.',
   player_direct_requires_athlete: 'Choose which roster athlete this package backs.',
   not_on_roster: 'This athlete is not on your active roster.',
-  unknown_athlete: 'No listed athlete found with that handle.',
+  unknown_athlete: 'No athlete found with that handle.',
 }
 
 export function errorText(err: unknown): string {

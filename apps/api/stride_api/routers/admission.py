@@ -335,6 +335,27 @@ def review_queue(decision: str = Query("review"), limit: int = Query(100, le=500
     return queued
 
 
+@router.get("/admin/club-queue")
+def club_queue(decision: str = Query("review"), limit: int = Query(100, le=500),
+               user: dict = Depends(require_role("admin")),
+               conn: sqlite3.Connection = Depends(get_db)):
+    """Clubs waiting on a look, with the reason each is waiting.
+
+    Building the review interface is what exposed the need for this: an admin
+    could already record a check against a club, but had no way to discover
+    which clubs were waiting for one. An endpoint nobody can navigate to is a
+    workflow that does not exist.
+    """
+    queued = rows(conn, """
+        SELECT ca.*, c.slug, c.name, c.sport, c.country
+        FROM club_applications ca JOIN clubs c ON c.id = ca.club_id
+        WHERE ca.decision = ? ORDER BY ca.legitimacy DESC, ca.id LIMIT ?""",
+        (decision, limit))
+    for item in queued:
+        item["scored"] = club_legitimacy(item)
+    return queued
+
+
 class ProofIn(BaseModel):
     proof_status: str
 
