@@ -19,7 +19,7 @@ from creatorlens.actions import create_target
 
 from ..auth import get_db, require_role
 from ..db import now_iso, row, rows
-from ..matching import sponsor_matches
+from ..matching import MODEL_VERSION, WEIGHTS, slate, sponsor_matches
 from .athletes import athlete_public
 
 router = APIRouter(prefix="/api", tags=["sponsors"])
@@ -122,6 +122,10 @@ class CampaignIn(BaseModel):
     target_genders: list[str] = Field(default=[], max_length=3)
     target_countries: list[str] = Field(default=[], max_length=20)
     target_topics: list[str] = Field(default=[], max_length=12)
+    # A hard filter, applied in retrieval — see matching.candidates(). Stated as
+    # a requirement rather than a preference precisely so no other signal can
+    # outweigh it.
+    require_verified_athletes: bool = False
 
 
 @router.post("/campaigns", status_code=201)
@@ -138,12 +142,15 @@ def create_campaign(body: CampaignIn, user: dict = Depends(require_role("sponsor
     cur = conn.execute(
         "INSERT INTO campaigns (org_id, name, objective, category, deal_types, budget_usd_min,"
         " budget_usd_max, target_age_buckets, target_genders, target_countries, target_topics,"
-        " sponsor_target_id, status, created_at)"
-        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)",
+        " sponsor_target_id, require_verified_athletes, status, created_at)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)",
         (org["id"], body.name, body.objective, body.category, json.dumps(body.deal_types),
          body.budget_usd_min, body.budget_usd_max, json.dumps(body.target_age_buckets),
          json.dumps(body.target_genders), json.dumps(body.target_countries),
-         json.dumps(body.target_topics), target["id"], now_iso()))
+         json.dumps(body.target_topics), target["id"],
+         # the bool itself, not int(): Postgres will not implicitly cast an
+         # integer into a boolean column, and SQLite stores a bool as 0/1 anyway
+         body.require_verified_athletes, now_iso()))
     log_event(conn, "user", "campaign.created", "campaign", cur.lastrowid,
               {"name": body.name, "org_id": org["id"]})
     conn.commit()
@@ -177,8 +184,14 @@ def campaign_matches(campaign_id: int, user: dict = Depends(require_role("sponso
     org = _own_org(conn, user)
     campaign = _own_campaign(conn, org, campaign_id)
     matches = sponsor_matches(conn, campaign)
+    # The slate, not just the count. A label without the candidate set it came
+    # from cannot train or evaluate a ranker, and the missing candidates are not
+    # reconstructable after the fact — see matching.slate().
     log_event(conn, "user", "matching.ran", "campaign", campaign_id,
-              {"org_id": org["id"], "results": len(matches)})
+              {"org_id": org["id"], "results": len(matches),
+               "model_version": MODEL_VERSION, "weights": WEIGHTS,
+               "require_verified_athletes": bool(campaign.get("require_verified_athletes")),
+               "slate": slate(matches)})
     conn.commit()
     return {"campaign": _campaign_view(campaign), "matches": matches}
 

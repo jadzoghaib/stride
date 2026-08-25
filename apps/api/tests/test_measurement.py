@@ -32,6 +32,12 @@ def test_a_column_added_later_reaches_a_database_that_already_exists():
     assert "completed_at" in _columns(conn, "deals")
     init_db(conn)  # and again: the backfill has to be idempotent
     assert "completed_at" in _columns(conn, "deals")
+
+    # every entry in the list, not just the first — a column added later is
+    # exactly as invisible to CREATE TABLE as the one that taught us this
+    conn.execute("ALTER TABLE campaigns DROP COLUMN require_verified_athletes")
+    init_db(conn)
+    assert "require_verified_athletes" in _columns(conn, "campaigns")
     conn.close()
 
 def _fresh_campaign(sponsor, name):

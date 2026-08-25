@@ -26,7 +26,7 @@ _PG_SCHEMA = Path(__file__).with_name("schema_pg.sql")
 
 # Every table the app owns, child-first, for a clean Postgres reset.
 _ALL_TABLES = (
-    "deal_deliverables",
+    "deal_deliverables", "athlete_applications", "club_applications",
     "package_commitments", "club_packages", "club_members", "clubs",
     "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
     "events", "score_snapshots", "sponsor_targets", "audience_demographics",
@@ -119,6 +119,10 @@ CREATE TABLE IF NOT EXISTS campaigns (
     target_countries   TEXT NOT NULL DEFAULT '[]',
     target_topics      TEXT NOT NULL DEFAULT '[]',
     sponsor_target_id  INTEGER,                                    -- creatorlens sponsor_targets.id
+    -- a hard retrieval filter, not a weighted term: see matching.candidates().
+    -- BOOLEAN rather than INTEGER so the fresh and migrated forms of this column
+    -- agree on both backends — SQLite gives it NUMERIC affinity and stores 0/1.
+    require_verified_athletes BOOLEAN NOT NULL DEFAULT FALSE,
     status             TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('draft','active','closed')),
     created_at         TEXT NOT NULL
 );
@@ -187,6 +191,65 @@ CREATE TABLE IF NOT EXISTS club_members (
     UNIQUE (club_id, athlete_id)
 );
 
+-- Admission. Structured applications are the only cold-start evidence the
+-- platform has, so they are stored whole: the decision is reproducible from the
+-- row that produced it, and `policy_version` says which rules were in force.
+CREATE TABLE IF NOT EXISTS athlete_applications (
+    id                INTEGER PRIMARY KEY,
+    athlete_id        INTEGER NOT NULL UNIQUE REFERENCES athlete_profiles(id),
+    discipline        TEXT NOT NULL DEFAULT '',
+    club_name         TEXT NOT NULL DEFAULT '',
+    league_name       TEXT NOT NULL DEFAULT '',
+    competition_level TEXT NOT NULL DEFAULT '',
+    years_competing   INTEGER,
+    birth_year        INTEGER,
+    proof_url         TEXT NOT NULL DEFAULT '',
+    proof_kind        TEXT NOT NULL DEFAULT 'none'
+                      CHECK (proof_kind IN ('none','roster','results','licence')),
+    proof_status      TEXT NOT NULL DEFAULT 'unverified'
+                      CHECK (proof_status IN ('unverified','pending','verified','rejected')),
+    -- set when a verified club vouched for them; the pair with `admitted_via` is
+    -- what makes de-verifying that club a reversible act rather than a wish
+    nominated_by_club INTEGER REFERENCES clubs(id),
+    credibility       REAL,
+    decision          TEXT NOT NULL DEFAULT 'pending'
+                      CHECK (decision IN ('pending','admitted','review','rejected')),
+    decision_rule     TEXT NOT NULL DEFAULT '',
+    admitted_via      TEXT NOT NULL DEFAULT ''
+                      CHECK (admitted_via IN ('','self','club_nomination','manual')),
+    policy_version    TEXT NOT NULL DEFAULT '',
+    submitted_at      TEXT NOT NULL,
+    decided_at        TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_applications_decision ON athlete_applications(decision);
+CREATE INDEX IF NOT EXISTS idx_applications_club ON athlete_applications(nominated_by_club);
+
+CREATE TABLE IF NOT EXISTS club_applications (
+    id                  INTEGER PRIMARY KEY,
+    club_id             INTEGER NOT NULL UNIQUE REFERENCES clubs(id),
+    legal_name          TEXT NOT NULL DEFAULT '',
+    registration_id     TEXT NOT NULL DEFAULT '',
+    federation_name     TEXT NOT NULL DEFAULT '',
+    federation_id       TEXT NOT NULL DEFAULT '',
+    founded_year        INTEGER,
+    competition_level   TEXT NOT NULL DEFAULT '',
+    teams_count         INTEGER,
+    -- the roster size the club declares, which is also its nomination budget:
+    -- inflating it to mint more nominations makes the inflation itself checkable
+    registered_athletes INTEGER NOT NULL DEFAULT 0,
+    roster_url          TEXT NOT NULL DEFAULT '',
+    proof_kind          TEXT NOT NULL DEFAULT 'none'
+                        CHECK (proof_kind IN ('none','roster','results','licence')),
+    proof_status        TEXT NOT NULL DEFAULT 'unverified'
+                        CHECK (proof_status IN ('unverified','pending','verified','rejected')),
+    legitimacy          REAL,
+    decision            TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (decision IN ('pending','verified','review','rejected')),
+    policy_version      TEXT NOT NULL DEFAULT '',
+    submitted_at        TEXT NOT NULL,
+    decided_at          TEXT
+);
+
 CREATE TABLE IF NOT EXISTS club_packages (
     id           INTEGER PRIMARY KEY,
     club_id      INTEGER NOT NULL REFERENCES clubs(id),
@@ -224,6 +287,7 @@ CREATE INDEX IF NOT EXISTS idx_commitments_org ON package_commitments(org_id, st
 _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     ("deals", "completed_at", "TEXT"),
     ("deals", "projected_reach", "INTEGER"),
+    ("campaigns", "require_verified_athletes", "BOOLEAN NOT NULL DEFAULT FALSE"),
 )
 
 
