@@ -49,8 +49,8 @@ connect a platform. Gate on legitimacy, tier on value.
 **1. Evidence multiplies, it does not add.** In the original rubric proof links
 were a required field worth zero points, so a self-declared `international`
 claim with a dead link outscored a verified `regional` one. As a multiplier it
-cannot: the strongest possible unevidenced application scores **22.3** and is
-rejected.
+cannot: the strongest possible unevidenced application scores **24.0** and is
+rejected — just under the 25 review floor, by construction.
 
 **2. Missing is zero here — the opposite of `matching.py`, on purpose.** That
 module renormalises weights over the analytics it could measure, because the
