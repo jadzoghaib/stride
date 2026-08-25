@@ -99,8 +99,8 @@ runs last and only ever moves a case towards a human.
 ```
 checked = own proof verified  OR  nominated by a verified club
 
-proof rejected                          → rejected
-age < 16                                → rejected
+proof rejected                          → rejected     ┐ hard disqualifications,
+age < 16                                → rejected     ┘ and they run first
 competition level missing               → pending      (not a decision at all)
 max(C, club_floor) ≥ 55, age known:
         and checked                     → admitted
@@ -109,6 +109,10 @@ max(C, club_floor) ≥ 55, age known:
 S ≥ 70 and C ≥ 25                       → review       (never higher)
 otherwise                               → rejected
 ```
+
+The order of the first three lines is load-bearing. `pending` used to sit above
+the age gate, so a known 15-year-old who left one box blank was held on file
+rather than refused (stress finding 6).
 
 Nothing auto-admits on evidence nobody has opened. `pending` means a link was
 supplied, not that it says what the applicant says it says — and at 0.70 a large
@@ -235,16 +239,28 @@ with.
 
 `scripts/admission_stress.py` sweeps the discrete input space exhaustively
 rather than spot-checking: 8,960 applications × the questions below. It found
-two failures that the hand-written test cases did not — and two more turned up
-only by driving the running API, which is the honest argument for doing both.
+two failures that the hand-written test cases did not — two more turned up only
+by driving the running API, and a sixth appeared the moment the harness itself
+was widened to cover what those escapees had exposed. The honest reading is that
+sweeps, live runs and hand-written cases each catch a different class, and none
+of the three substitutes for the others.
 
 | Sweep | Checks | Result |
 |---|---|---|
 | Monotonicity | 21,120 ordered pairs | more evidence, a higher level or a longer career never lowers a score |
 | Withholding | 89,600 blanked variants | no field, alone or in pairs, is better left blank |
+| Clubs | 35,840 applications and variants | monotonic, withholding-proof, and no club verifies itself |
+| Decision surface | 7,200 joint points | every invariant holds across credibility × proof × age × social × floor |
+| Bounds | 8,960 scores | in range, and stable across repeated evaluation |
 | Forgery cost | 8,960 applications | **0** admitted on anything short of a *checked* proof |
 | Nomination | floors, laundering, compounding | a club's word never compounds and never admits alone |
 | Social score | 8,960 applications | never turns a non-admission into an admission |
+
+The middle three rows were added *after* findings 3 and 4, because a harness
+that misses the class of bug it exists to find is itself the defect. Clubs had
+six hand-picked cases where athletes had thousands, and the decision function
+was only ever swept one axis at a time — which is exactly where both escapees
+lived. Widening it immediately produced finding 6.
 
 ### Finding 1 — an incomplete form was a softer landing than an honest one
 
@@ -291,6 +307,26 @@ A fifth defect, found the same way: there was no ops endpoint to record a check
 against a *club's* roster page, so the verified state was unreachable — a club
 re-submitting its own form resets the proof to `pending` by design, which is
 correct, and left no forward path at all.
+
+### Finding 6 — an unfinished form outranked a legal disqualification
+
+Found by the widened sweep, on its first run. `incomplete_application` was
+checked *before* the age gate, so a known 15-year-old who left the competition
+level blank landed in `pending` rather than being refused. The function's own
+docstring promised that disqualifications run first; the code did not. Holding a
+minor on file in a pending state, inviting them to finish a form they can never
+pass, is the opposite of what the age model exists for.
+
+**Fix:** both hard disqualifications — a failed proof check and being under 16 —
+now run above the incompleteness check. An adult with the same unfinished form is
+still simply unfinished, and an applicant whose age is unknown still cannot be
+disqualified on age.
+
+A seventh report in that run was **not** a defect: 594 "credibility exceeds claim
+× max multiplier" failures were the harness comparing two independently rounded
+figures. The tolerance now accounts for the display precision, and the check is
+stated against the multiplier constant rather than a literal. Worth recording,
+because a stress harness that cries wolf gets switched off.
 
 ---
 

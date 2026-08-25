@@ -286,3 +286,30 @@ def test_a_club_cannot_verify_itself_on_its_own_say_so():
 
     checked = club_legitimacy(fabricated | {"proof_status": "verified"}, today_year=YEAR)
     assert checked["decision"] == "verified"
+
+
+def test_a_hard_disqualification_is_not_outranked_by_an_unfinished_form():
+    """Found by sweeping the decision function's inputs *jointly* rather than one
+    axis at a time — the earlier under-age test used a complete application, so
+    the ordering bug hid behind it.
+
+    `incomplete_application` used to run before the age gate, so a known
+    15-year-old who left the competition level blank landed in `pending` instead
+    of being refused. Holding a minor on file in a pending state, inviting them
+    to finish a form they can never pass, is the opposite of what the age model
+    is for.
+    """
+    minor_incomplete = decide({"birth_year": YEAR - 15, "competition_level": "",
+                               "years_competing": None})
+    assert minor_incomplete["decision"] == "rejected"
+    assert minor_incomplete["rule"] == "under_minimum_age"
+
+    # an adult with the same unfinished form is still simply unfinished
+    adult_incomplete = decide({"birth_year": YEAR - 24, "competition_level": "",
+                               "years_competing": None})
+    assert adult_incomplete["decision"] == "pending"
+
+    # and an unknown age cannot be disqualified on age — only held back from admission
+    unknown_age = decide({"birth_year": None, "competition_level": "",
+                          "years_competing": None})
+    assert unknown_age["decision"] == "pending"

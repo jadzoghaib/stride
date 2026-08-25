@@ -195,12 +195,21 @@ def test_a_verified_only_campaign_sees_only_checked_athletes(sponsor, athlete, a
         "budget_usd_min": 1000, "budget_usd_max": 20000, "target_countries": ["US"],
         "target_topics": ["running"]}).json()
 
-    strict_slugs = {m["slug"] for m in
-                    sponsor.get(f"/api/campaigns/{strict['id']}/matches").json()["matches"]}
+    strict_matches = sponsor.get(f"/api/campaigns/{strict['id']}/matches").json()["matches"]
     open_slugs = {m["slug"] for m in
                   sponsor.get(f"/api/campaigns/{open_brief['id']}/matches").json()["matches"]}
+    strict_slugs = {m["slug"] for m in strict_matches}
     assert strict_slugs == {"kaia-mercer"}
     assert strict_slugs < open_slugs
+
+    # stated as an invariant rather than as a slug list: whatever the filter
+    # returns, every one of them must actually be admitted on checked evidence.
+    # A specific expected set only catches the leak somebody predicted.
+    for match in strict_matches:
+        application = _application(db, match["slug"])
+        assert application is not None, f"{match['slug']} has no application at all"
+        assert application["decision"] == "admitted"
+        assert application["proof_status"] == "verified"
 
 
 def test_matching_logs_the_slate_it_showed_not_just_the_count(sponsor, admin):

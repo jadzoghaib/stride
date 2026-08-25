@@ -257,6 +257,14 @@ def admission_decision(credibility: float, *, proof_status: str = "unverified",
     if proof_status == "rejected":
         return _decision("rejected", "proof_rejected", effective,
                          ["Proof of participation was checked and did not support the claim"])
+    if age is not None and age < MIN_AGE:
+        # Above the incompleteness check, not below it. The docstring promises
+        # disqualifications run first and this is one: when the date of birth is
+        # on the form, the applicant is refused whatever else is missing.
+        # Holding a known minor in `pending` would keep their data on file and
+        # invite them to finish a form they can never pass.
+        return _decision("rejected", "under_minimum_age", effective,
+                         [f"Under the {MIN_AGE} minimum age for an account"])
     if not scoreable:
         # `pending`, not `review` — and the distinction was found by the stress
         # sweep, not by hand. Routing an unanswerable form into the review queue
@@ -267,9 +275,6 @@ def admission_decision(credibility: float, *, proof_status: str = "unverified",
         # It consumes no reviewer and confers nothing, so stalling gains nothing.
         return _decision("pending", "incomplete_application", effective,
                          notes + ["Competition level missing — nothing to score yet"])
-    if age is not None and age < MIN_AGE:
-        return _decision("rejected", "under_minimum_age", effective,
-                         [f"Under the {MIN_AGE} minimum age for an account"])
     if age is None:
         notes.append("Date of birth not supplied — cannot confirm the age gate, so this "
                      "cannot auto-admit")
