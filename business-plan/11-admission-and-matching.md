@@ -97,14 +97,22 @@ Order matters — disqualifications cannot be outscored, and the social score
 runs last and only ever moves a case towards a human.
 
 ```
+checked = own proof verified  OR  nominated by a verified club
+
 proof rejected                          → rejected
 age < 16                                → rejected
 competition level missing               → pending      (not a decision at all)
-max(C, club_floor) ≥ 55 and age known   → admitted
+max(C, club_floor) ≥ 55, age known:
+        and checked                     → admitted
+        and not checked                 → review       (evidence_not_checked)
                                   ≥ 25  → review
 S ≥ 70 and C ≥ 25                       → review       (never higher)
 otherwise                               → rejected
 ```
+
+Nothing auto-admits on evidence nobody has opened. `pending` means a link was
+supplied, not that it says what the applicant says it says — and at 0.70 a large
+enough claim clears the line unaided (see stress finding 3).
 
 ### Club legitimacy
 
@@ -116,9 +124,14 @@ package pricing.
 w = { registration .30, federation .30, longevity .15, structure .15, roster_proof .10 }
 L = min(100, 100 × Σ wᵢ·vᵢ × E)
 
-verified ≥ 65 · review ≥ 35 · else rejected
+verified ≥ 65 AND own proof checked · review ≥ 35 · else rejected
 nomination_floor = 0.75 × L, and only when verified
 ```
+
+The `AND` is load-bearing. Every field on a club application is a self-reported
+string; filled in perfectly they reach claim 100, which at the `pending`
+multiplier is 70 — over the bar. Without it a fabricated club verifies itself and
+starts nominating (stress finding 4).
 
 ### Nomination — a floor, not a bypass
 
@@ -222,13 +235,14 @@ with.
 
 `scripts/admission_stress.py` sweeps the discrete input space exhaustively
 rather than spot-checking: 8,960 applications × the questions below. It found
-two failures that the hand-written test cases did not.
+two failures that the hand-written test cases did not — and two more turned up
+only by driving the running API, which is the honest argument for doing both.
 
 | Sweep | Checks | Result |
 |---|---|---|
 | Monotonicity | 21,120 ordered pairs | more evidence, a higher level or a longer career never lowers a score |
 | Withholding | 89,600 blanked variants | no field, alone or in pairs, is better left blank |
-| Forgery cost | 8,960 applications | **0** admitted without a checked proof link |
+| Forgery cost | 8,960 applications | **0** admitted on anything short of a *checked* proof |
 | Nomination | floors, laundering, compounding | a club's word never compounds and never admits alone |
 | Social score | 8,960 applications | never turns a non-admission into an admission |
 
@@ -255,6 +269,28 @@ then delete the evidence" a strictly better move than never having lied.
 inside the scoring function itself, and a failed check is sticky across
 re-submission. A failed verification is a finding about the applicant, not about
 the URL, so only a reviewer can clear it.
+
+### Findings 3 and 4 — nothing required the evidence to have been *looked at*
+
+These two came from driving the running API rather than from the sweep, which
+had missed them because its own definition of "unevidenced" wrongly counted a
+queued link as evidence.
+
+- An unchecked `international` claim scored **62.4** at the `pending` multiplier
+  and was admitted outright.
+- A fully fabricated club — plausible registration number, federation id,
+  founding year, team count, roster URL, none of them opened — scored **70**,
+  cleared the 65 bar, and could verify itself and begin nominating.
+
+**Fix:** admission requires one *checked* source, either the applicant's own
+proof or a verified club whose paperwork was itself checked; and `verified` on
+the club side now requires that somebody verified something. The sweep's
+definition was corrected too, so it would now catch this class on its own.
+
+A fifth defect, found the same way: there was no ops endpoint to record a check
+against a *club's* roster page, so the verified state was unreachable — a club
+re-submitting its own form resets the proof to `pending` by design, which is
+correct, and left no forward path at all.
 
 ---
 
