@@ -43,7 +43,7 @@ Ordered by what blocks revenue soonest.
 | 2 | **Currency: EUR** | Everything | S | Schema is `amount_usd`, `base_rate_usd`, `price_usd`, `budget_usd`. Spain launch is EUR |
 | 3 | **Subscriptions + tiers** | Streams 1–3 | L | Tier entity, recurring billing, entitlement checks, grace/dunning |
 | 4 | **Content + media** | Streams 1–2 | XL | Posts, upload, transcode, storage, CDN, paywalled delivery |
-| 5 | **Age verification** | Legal launch | M | Hard blocker — see below |
+| 5 | **Age assurance** | Legal launch | M | Partly delivered: admission collects a date of birth and refuses under-16s outright, and cannot auto-admit without one. Nothing *verifies* the date, and the 16/18 tiering below is designed but unbuilt |
 | 6 | **Moderation** | Legal launch | L | Automated classification + human review queue + appeals |
 | 7 | **Sponsor billing** | Stream 6 | M | Plan entity, entitlements, seat management |
 | 8 | **DAC7 reporting** | EU legal | M | Platforms must report seller income to tax authorities |

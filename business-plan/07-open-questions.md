@@ -15,7 +15,7 @@
 
 Each was the right call, and each closed off something worth naming:
 
-- **15% flat** forfeits €5.3M of Y7 revenue versus 20%. Bought: a pricing
+- **15% flat** forfeits €4.6M of Y7 revenue versus 20%. Bought: a pricing
   argument that survives contact with the exact athlete we target.
 - **18+ for fan subscriptions** forfeits the 16–17 cohort's fan revenue for the
   first year or two. Bought: distance from the risk that has produced litigation
@@ -40,8 +40,8 @@ are pricing against. **This is close to settled; flag it if you disagree.**
 
 ### A3 — Minimum tier price and annual billing
 
-€4.99 retains 47% of our take after payment costs; €9.99 retains 64%; a €89
-season pass retains 79%.
+€4.99 retains 54% of our take after payment costs; €9.99 retains 71%; a €89
+season pass retains 85%.
 
 **Recommendation: €9.99 default, €4.99 available but unsuggested, and push the
 season pass hard.** Worth more than a take-rate change and costs nothing.
@@ -99,10 +99,10 @@ sustainability. **Worth deciding deliberately rather than by default.**
 
 ### D3 — Which valuation do we present?
 
-**Recommendation: lead with the exit multiple discounted back (€24–39M), present
-the DCF (€11.4M) as the conservative floor**, and explain why they differ. An
-examiner who spots a perpetuity-growth DCF applied to a 57%-growth company will
-discount everything else.
+**Recommendation: lead with the exit multiple discounted back (€25–56M), present
+the DCF (€22.5M) as the conservative floor**, and explain why they differ. An
+examiner who spots a perpetuity-growth DCF applied to a company still growing
+22% in the terminal year will discount everything else.
 
 ---
 

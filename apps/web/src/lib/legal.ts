@@ -173,10 +173,14 @@ const privacy: LegalDoc = {
       h: 'Children',
       p: [
         'Athletes under 18 are common in this market, which is exactly why it is called out rather than ' +
-          'assumed away. Stride does not knowingly create accounts for anyone under 16 without verified ' +
-          'parental consent, and commercial features — rate cards, offers, payouts — are gated behind ' +
-          'adulthood or a verified guardian. This gate is specified and not yet implemented; it blocks ' +
-          'public launch, not this draft.',
+          'assumed away. Admission asks for your year of birth and refuses anyone under 16 outright: it ' +
+          'is a hard rule that no other part of the assessment can outweigh, and an application that ' +
+          'leaves the date blank cannot be admitted automatically either.',
+        'What that is not, yet, is age *assurance*. The date is self-declared and nothing verifies it, ' +
+          'and the tiering described in our plan — sponsorship at 16 with a guardian co-signing, fan ' +
+          'subscriptions at 18 — is designed but not built. Both block public launch, not this draft. ' +
+          'We would rather say exactly where the line currently sits than imply a stronger check than ' +
+          'the one running.',
       ],
     },
     {

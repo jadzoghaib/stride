@@ -487,6 +487,39 @@ def render(rows: list[dict]) -> dict[str, str]:
         ["EBITDA multiple", "14x EBITDA", eur(max(last["ebitda"], 0) * 14), eur(max(last["ebitda"], 0) * 14 / df)],
     ])
 
+    # Cost structure at maturity. Hand-written until it drifted: the table
+    # survived the Stripe rate correction unchanged and went on claiming EUR
+    # 8.68M of payment processing against a model saying EUR 6.04M. Generated
+    # now, ordered by size, so it restates itself whenever an input moves.
+    mat = rows[6]
+    mat_lines = [("Payment processing", "psp"), ("People", "people"),
+                 ("Marketing / CAC", "marketing"), ("Other opex", "other"),
+                 ("Payouts", "payouts"), ("Infrastructure", "infra"),
+                 ("Legal & compliance", "legal"), ("Moderation", "moderation"),
+                 ("Athlete verification", "verification")]
+    costs_y7 = table(["Line", f"Y{mat['year']} amount", "% of revenue"],
+                     [[label, eur(mat[key]), f"{mat[key] / mat['revenue']:.1%}"]
+                      for label, key in sorted(mat_lines, key=lambda x: -mat[x[1]])]
+                     + [["**EBITDA**", f"**{eur(mat['ebitda'])}**",
+                         f"**{mat['ebitda'] / mat['revenue']:.1%}**"]])
+
+    # Blended athlete CAC is the cost of a GROSS add, which is neither segment's
+    # headline number — the mix shifts towards the expensive popular segment as
+    # the plan matures, so a single hand-written pair of figures goes stale fast.
+    def blended_cac(r):
+        adds = r["athlete_gross_adds"]
+        return (r["cac_per_application"] * r["applications"] / adds) if adds else 0.0
+
+    cac = table(["", "Athlete", "Fan", "Sponsor"], [
+        ["Y1 CAC", f"€{blended_cac(rows[0]):,.0f}", "~€0", f"€{A.sponsor_cac_eur[0]:,}"],
+        ["Y7 CAC", f"€{blended_cac(rows[6]):,.0f}", "~€0", f"€{A.sponsor_cac_eur[6]:,}"],
+        ["Applications behind one athlete",
+         f"{1 / rows[0]['admit_rate']:.1f}x in Y1, {1 / rows[6]['admit_rate']:.1f}x in Y7",
+         "—", "—"],
+        ["Channel", "Clubs, federations, ambassador referral",
+         "**Brought by the athlete**", "Outbound, events, agency partnerships"],
+    ])
+
     # cumulative funding need = deepest point of cumulative FCF
     cum, trough, trough_year = 0.0, 0.0, 1
     cash_rows = []
@@ -529,7 +562,8 @@ def render(rows: list[dict]) -> dict[str, str]:
 
     return dict(drivers=drivers, gmv=gmv, revenue=revenue, pl=pl, egress=egress,
                 valuation=val, multiples=mult, cash=cash, funding=funding,
-                segments=segments, churn=churn)
+                segments=segments, churn=churn,
+                costs_y7=costs_y7, cac=cac)
 
 
 def unit_economics() -> str:
@@ -553,6 +587,7 @@ def unit_economics() -> str:
 
 
 DOC_TABLES = {
+    "02-cost-model.md": ["costs_y7", "cac"],
     "03-financial-model.md": ["drivers", "churn", "segments", "gmv", "revenue", "pl", "cash", "funding"],
     "04-capital-and-valuation.md": ["valuation", "multiples"],
 }

@@ -84,8 +84,8 @@ raising the take rate by a point, without asking athletes for anything.
 
 SaaS matters disproportionately: it is **100% margin** (no GMV, no payment
 rail), and it converts the analytics engine into revenue that does not depend on
-a deal closing. By Y7 it is €3.36M of the €28.62M — 12% of revenue at close to
-100% gross margin, which is roughly 20% of gross profit.
+a deal closing. By Y7 it is €3.36M of the €26.52M — 13% of revenue at close to
+100% gross margin, which is roughly 17% of gross profit.
 
 ---
 

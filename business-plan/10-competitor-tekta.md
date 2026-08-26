@@ -78,8 +78,9 @@ Three things follow from it, which is why it was first:
 
 - **It closes the loop.** A sponsor renews on evidence, not on hope.
 - **It is the Phase-2 analytics dataset.** Learned matching weights need deal
-  outcomes; today there are none to learn from
-  ([09](09-analytics-strategy.md)).
+  outcomes, and before this there were none. They now accumulate per deal, and
+  the candidate slate behind every offer is logged alongside them — which is
+  what makes a later ranker trainable at all ([09](09-analytics-strategy.md)).
 - **It is the honest version of what TEKTA asserts.** Their "fan intelligence"
   is an agency claim. Stride's would decompose to the posts behind it — the same
   discipline already applied to marketability scores.

@@ -199,12 +199,14 @@ matter more than the line item:
 
 ## Customer acquisition
 
-| | Athlete | Fan | Sponsor |
+<!-- MODEL:cac -->
+|  | Athlete | Fan | Sponsor |
 |---|---|---|---|
-| Y1 CAC | €22 | ~€0 | €900 |
-| Y7 CAC | €45 | ~€0 | €1,900 |
+| Y1 CAC | €17 | ~€0 | €900 |
+| Y7 CAC | €61 | ~€0 | €1,900 |
+| Applications behind one athlete | 5.0x in Y1, 3.3x in Y7 | — | — |
 | Channel | Clubs, federations, ambassador referral | **Brought by the athlete** | Outbound, events, agency partnerships |
-| Payback | ~7 months | Immediate | ~5 months at Scout Pro |
+<!-- /MODEL:cac -->
 
 **Fan CAC is approximately zero, and that is the whole economic argument for
 this model.** We do not buy the audience — the athlete already has it on
@@ -219,18 +221,21 @@ roster.
 
 ## Cost structure at maturity (Y7)
 
-| Line | Amount | % of revenue |
+<!-- MODEL:costs_y7 -->
+| Line | Y7 amount | % of revenue |
 |---|---|---|
-| Payment processing | €8.68M | 30% |
-| People | €3.50M | 12% |
-| Marketing / CAC | €2.98M | 10% |
-| Other opex | €2.29M | 8% |
-| Payouts | €608k | 2% |
-| Infrastructure | €419k | **1.5%** |
-| Legal & compliance | €270k | 0.9% |
+| Payment processing | €6.04M | 22.8% |
+| People | €3.50M | 13.2% |
+| Marketing / CAC | €3.42M | 12.9% |
+| Other opex | €2.12M | 8.0% |
+| Payouts | €561k | 2.1% |
+| Infrastructure | €419k | 1.6% |
+| Legal & compliance | €270k | 1.0% |
 | Moderation | €165k | 0.6% |
-| **EBITDA** | **€9.71M** | **34%** |
+| Athlete verification | €43k | 0.2% |
+| **EBITDA** | **€9.99M** | **37.7%** |
+<!-- /MODEL:costs_y7 -->
 
-Infrastructure is 1.5% of revenue. **Payments are twenty times larger.** Any
+Infrastructure is under 2% of revenue. **Payments are fourteen times larger.** Any
 optimisation effort belongs there — tier pricing, annual billing, processor
 negotiation — not in the AWS bill.
