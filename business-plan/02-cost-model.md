@@ -154,6 +154,7 @@ This is the line most creator-platform plans underestimate.
 |---|---|---|---|---|
 | Legal & compliance | €18k | €90k | €200k | €270k |
 | Moderation (variable) | €1k | €17k | €79k | €165k |
+| Athlete verification (variable) | €0.7k | €9k | €30k | €43k |
 
 Legal covers entity formation, policies reviewed by counsel (`docs/costs.md`
 budgets €1–5k for the first pass), the DPO function, DAC7 reporting, platform
@@ -164,6 +165,35 @@ It is a hybrid: automated classification first, human review on flags. **The
 cost is not the issue — the liability is.** Paid content plus a population that
 includes minors is the combination that has ended platforms, usually via card
 schemes rather than regulators.
+
+Verification is the same obligation on the supply side: vetting *who* is on the
+platform rather than *what* they post, which is why it sits beside moderation in
+cost of sales rather than in overhead. It is priced off the funnel the admission
+gate creates — an athlete is the survivor of several applications, and a share of
+those applications need a human to open a link
+([11](11-admission-and-matching.md)).
+
+| | Y1 | Y3 | Y5 | Y7 | Y10 |
+|---|---|---|---|---|---|
+| Applications behind the athlete plan | 2,000 | 16,563 | 51,958 | 70,820 | 72,199 |
+| Manual reviews | 500 | 3,909 | 11,753 | 15,623 | 15,674 |
+| Blended admission rate | 20% | 25% | 29% | 31% | 32% |
+| **Reviewer FTE implied** | **0.02** | **0.15** | **0.46** | **0.61** | **0.61** |
+
+**The euros are not the point and the model says so.** Verification peaks at
+€47k a year and 0.64 of one person, and the whole discounted stream is worth
+€63k against a €22.5M enterprise value — 0.28%. Two things follow, and they
+matter more than the line item:
+
+- **The admission rate is a real driver of marketing efficiency.** It climbs
+  from 20% to 32% purely because club nominations grow as a share of applicants,
+  and a nominated applicant arrives with a verified club's credibility floor
+  behind them. Club partnerships are not just a cheaper channel; they are a
+  *higher-yielding* one, and the model now shows the difference.
+- **The reason to automate the check is latency, not labour.** An athlete
+  sitting in the queue is not listed, not matchable and not earning. At 0.6 FTE
+  nobody automates to save the salary; you automate so supply goes live the day
+  it applies.
 
 ---
 

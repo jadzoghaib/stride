@@ -143,15 +143,16 @@ curve that stays above 50% through Y7 is what a Series B buyer wants to see.
 | Payouts | €645 | €4k | €20k | €67k | €174k | €341k | €561k | €798k | €1.00M | €1.23M |
 | Infrastructure (AWS) | €3k | €10k | €33k | €87k | €181k | €289k | €419k | €534k | €634k | €713k |
 | Moderation | €1k | €6k | €17k | €41k | €79k | €120k | €165k | €206k | €241k | €269k |
-| **Gross profit** | €16k | €155k | €723k | €2.39M | €6.02M | €11.74M | €19.34M | €27.60M | €34.91M | €42.68M |
-| Gross margin | 56% | 67% | 70% | 71% | 72% | 72% | 73% | 73% | 73% | 74% |
+| Athlete verification | €745 | €3k | €9k | €19k | €30k | €37k | €43k | €46k | €47k | €47k |
+| **Gross profit** | €16k | €151k | €714k | €2.37M | €5.99M | €11.70M | €19.30M | €27.56M | €34.86M | €42.63M |
+| Gross margin | 54% | 65% | 69% | 70% | 71% | 72% | 73% | 73% | 73% | 74% |
 | People | €57k | €156k | €420k | €896k | €1.58M | €2.45M | €3.50M | €4.46M | €5.33M | €6.08M |
 | Marketing / CAC | €29k | €120k | €395k | €975k | €1.82M | €2.59M | €3.42M | €3.68M | €3.65M | €3.36M |
 | Legal & compliance | €18k | €45k | €90k | €150k | €200k | €235k | €270k | €300k | €325k | €345k |
 | Other opex | €2k | €19k | €83k | €270k | €672k | €1.30M | €2.12M | €3.02M | €3.81M | €4.64M |
-| **EBITDA** | €-90k | €-185k | €-265k | €100k | €1.75M | €5.17M | €10.03M | €16.15M | €21.80M | €28.26M |
-| Tax | €0 | €0 | €0 | €15k | €262k | €776k | €1.51M | €2.42M | €3.27M | €4.24M |
-| **Free cash flow** | €-90k | €-185k | €-265k | €85k | €1.49M | €4.40M | €8.53M | €13.73M | €18.53M | €24.02M |
+| **EBITDA** | €-91k | €-188k | €-274k | €81k | €1.72M | €5.13M | €9.99M | €16.10M | €21.75M | €28.21M |
+| Tax | €0 | €0 | €0 | €12k | €258k | €770k | €1.50M | €2.42M | €3.26M | €4.23M |
+| **Free cash flow** | €-91k | €-188k | €-274k | €69k | €1.46M | €4.36M | €8.49M | €13.69M | €18.49M | €23.98M |
 <!-- /MODEL:pl -->
 
 **Gross margin of 58–66% is the honest number for a payments-heavy marketplace.**
@@ -168,26 +169,26 @@ parent (~85% at a 20% take on far larger tickets).
 <!-- MODEL:cash -->
 | Year | Free cash flow | Cumulative |
 |---|---|---|
-| Y1 | €-90k | €-90k |
-| Y2 | €-185k | €-275k |
-| Y3 | €-265k | €-540k |
-| Y4 | €85k | €-455k |
-| Y5 | €1.49M | €1.03M |
-| Y6 | €4.40M | €5.43M |
-| Y7 | €8.53M | €13.96M |
-| Y8 | €13.73M | €27.68M |
-| Y9 | €18.53M | €46.21M |
-| Y10 | €24.02M | €70.23M |
+| Y1 | €-91k | €-91k |
+| Y2 | €-188k | €-279k |
+| Y3 | €-274k | €-553k |
+| Y4 | €69k | €-484k |
+| Y5 | €1.46M | €977k |
+| Y6 | €4.36M | €5.34M |
+| Y7 | €8.49M | €13.83M |
+| Y8 | €13.69M | €27.52M |
+| Y9 | €18.49M | €46.01M |
+| Y10 | €23.98M | €69.99M |
 <!-- /MODEL:cash -->
 
 | Capital requirement | Value |
 <!-- MODEL:funding -->
 | Capital requirement | Value |
 |---|---|
-| Deepest cumulative cash position | €-540k |
+| Deepest cumulative cash position | €-553k |
 | Year it occurs | Y3 |
-| Buffer at 40% (hiring slips, churn worse) | €216k |
-| **Total capital to fund the plan** | **€756k** |
+| Buffer at 40% (hiring slips, churn worse) | €221k |
+| **Total capital to fund the plan** | **€774k** |
 | First EBITDA-positive year | Y4 |
 <!-- /MODEL:funding -->
 

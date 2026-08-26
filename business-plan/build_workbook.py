@@ -364,6 +364,26 @@ def build() -> pathlib.Path:
     put("Years at startup rate (from first profit)", "years", [4] * N, '0', "tax_low_years", hard=True, const=True)
     r += 1
 
+    r = section(a, r, "ADMISSION — the gate between an applicant and an athlete")
+    put("Admission rate — direct applicants", "% admitted", [A.admission_rate_direct] * N, PCT,
+        "admit_direct", const=True,
+        derive_note="ops-load output of scripts/admission_stress.py")
+    put("Review rate — direct applicants", "% needing a human", [A.review_rate_direct] * N, PCT,
+        "review_direct", const=True,
+        derive_note="ops-load output of scripts/admission_stress.py")
+    put("Admission rate — club-nominated", "% admitted", [A.admission_rate_club] * N, PCT,
+        "admit_club", const=True,
+        note="ESTIMATE — a verified club's floor carries more of them past the bar")
+    put("Review rate — club-nominated", "% needing a human", [A.review_rate_club] * N, PCT,
+        "review_club", const=True, note="ESTIMATE")
+    put("Applicants arriving via a club", "% of applicants", A.club_sourced_share, PCT, "club_share",
+        note="Grows as federation and club partnerships land")
+    put("Minutes per manual review", "min", [A.review_minutes] * N, '0.0', "review_min", const=True,
+        note="Open the link, decide whether it names the applicant")
+    put("Productive hours per reviewer-year", "h", [A.ops_hours_per_year] * N, NUM, "ops_hours",
+        const=True, note="Prices review time off the same loaded salary line")
+    r += 1
+
     r = section(a, r, "VALUATION")
     put("WACC / discount rate", "%", [A.wacc] * N, PCT, "wacc", const=True,
         note="Early-stage venture hurdle")
@@ -453,6 +473,23 @@ def build() -> pathlib.Path:
          formula=f"=Assumptions!{{c}}{A_ROW['sponsors']}*Assumptions!{{c}}{A_ROW['sponsor_paid']}")
     drow("Sponsors acquired (gross)",
          formula=f"=MAX(0,Assumptions!{{c}}{A_ROW['sponsors']}-IF({{k}}=1,0,Assumptions!{{p}}{A_ROW['sponsors']}))")
+    r += 1
+
+    r = section(d, r, "ADMISSION FUNNEL")
+    drow("Blended admission rate", unit="weighted by channel", fmt=PCT,
+         formula=(f"=Assumptions!{{c}}{A_ROW['club_share']}*Assumptions!{{c}}{A_ROW['admit_club']}"
+                  f"+(1-Assumptions!{{c}}{A_ROW['club_share']})*Assumptions!{{c}}{A_ROW['admit_direct']}"))
+    drow("Blended review rate", unit="weighted by channel", fmt=PCT,
+         formula=(f"=Assumptions!{{c}}{A_ROW['club_share']}*Assumptions!{{c}}{A_ROW['review_club']}"
+                  f"+(1-Assumptions!{{c}}{A_ROW['club_share']})*Assumptions!{{c}}{A_ROW['review_direct']}"))
+    drow("Applications required", unit="gross adds / admission rate",
+         formula=(f"={{c}}{D['Athletes acquired (gross)']}"
+                  f"/{{c}}{D['Blended admission rate']}"))
+    drow("Manual reviews", unit="applications x review rate",
+         formula=f"={{c}}{D['Applications required']}*{{c}}{D['Blended review rate']}")
+    drow("Reviewer FTE implied", unit="the real constraint, not the euros", fmt='0.00',
+         formula=(f"={{c}}{D['Manual reviews']}*Assumptions!{{c}}{A_ROW['review_min']}/60"
+                  f"/Assumptions!{{c}}{A_ROW['ops_hours']}"))
 
     # ══ REVENUE ═════════════════════════════════════════════════════════════
     v = sheet(wb, "Revenue", "Revenue — GMV built stream by stream, then our take")
@@ -536,9 +573,14 @@ def build() -> pathlib.Path:
          formula=(f"=Drivers!{{c}}{D['Total athletes (year end)']}"
                   f"*Assumptions!{{c}}{A_ROW['items']}*12/1000"
                   f"*Assumptions!{{c}}{A_ROW['mod_rate']}"))
+    crow("Athlete verification", unit="reviews x minutes x hourly",
+         formula=(f"=Drivers!{{c}}{D['Manual reviews']}"
+                  f"*Assumptions!{{c}}{A_ROW['review_min']}/60"
+                  f"*(Assumptions!{{c}}{A_ROW['salary']}/Assumptions!{{c}}{A_ROW['ops_hours']})"))
     crow("TOTAL COST OF SALES", bold=True, top=True, band=True,
          formula=(f"={{c}}{C['Payment processing']}+{{c}}{C['Payouts to athletes']}"
-                  f"+{{c}}{C['Infrastructure (AWS + CDN)']}+{{c}}{C['Moderation']}"))
+                  f"+{{c}}{C['Infrastructure (AWS + CDN)']}+{{c}}{C['Moderation']}"
+                  f"+{{c}}{C['Athlete verification']}"))
     r += 1
 
     r = section(co, r, "OPERATING COSTS")
@@ -555,6 +597,14 @@ def build() -> pathlib.Path:
                   f"*Assumptions!{{c}}{A_ROW['sponsor_cac']}"))
     crow("Total marketing / CAC", bold=True,
          formula=f"=SUM({{c}}{r-3}:{{c}}{r-1})")
+    # The ambiguity worth surfacing rather than resolving silently: segment CAC
+    # is priced per athlete ADMITTED, so multiplying it by the funnel would
+    # double-count. This memo is what the same money works out to per
+    # application — the figure to hold against what a channel actually charges.
+    crow("  memo: athlete marketing per application", unit="CAC is per ADMITTED athlete",
+         fmt=MONEY2, font=Font(color="6B7480", name="Calibri", size=10, italic=True),
+         formula=(f"=({{c}}{C['Athlete acquisition — niche']}+{{c}}{C['Athlete acquisition — popular']})"
+                  f"/Drivers!{{c}}{D['Applications required']}"))
     crow("Legal & compliance", formula=f"=Assumptions!{{c}}{A_ROW['legal']}", font=LINK)
     crow("Other opex", unit="% of revenue",
          formula=f"=Revenue!{{c}}{R['NET REVENUE']}*Assumptions!{{c}}{A_ROW['other_pct']}")
@@ -1109,6 +1159,8 @@ def build() -> pathlib.Path:
         ("Average paying fans", "avg_fans", f"=Drivers!{{c}}{D['Average paying fans']}", NUM),
         ("Total GMV", "gmv", f"=Revenue!{{c}}{R['TOTAL GMV']}", MONEY),
         ("Deals", "deals", f"=Drivers!{{c}}{D['Total deals']}", NUM),
+        ("Applications required", "applications", f"=Drivers!{{c}}{D['Applications required']}", NUM),
+        ("Athlete verification", "verification", f"=Costs!{{c}}{C['Athlete verification']}", MONEY),
     ]
     for label, key, formula, fmt in CHECKS:
         r = section(ck, r, label.upper())

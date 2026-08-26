@@ -406,6 +406,31 @@ def ops_load(admit_at: float | None = None) -> dict:
         policy.ADMIT_AT = original
 
 
+def check_financial_model_is_in_step() -> None:
+    """The financial model prices reviewer time off these very numbers.
+
+    business-plan/model.py carries `admission_rate_direct` and
+    `review_rate_direct`, and its Research sheet tells a reader they are "the
+    ops-load output of scripts/admission_stress.py". That claim is only true
+    while the two agree — retune a threshold here and the workbook would quietly
+    keep costing an old funnel. So the sweep asserts it.
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "business-plan"))
+    try:
+        from model import A as FIN
+    except Exception as exc:                      # the sweep still runs without it
+        note("financial", f"could not import the financial model: {exc}")
+        return
+    mix = ops_load()
+    for label, measured, carried in (
+            ("admission_rate_direct", mix["admitted"], FIN.admission_rate_direct),
+            ("review_rate_direct", mix["review"], FIN.review_rate_direct)):
+        if abs(measured - carried) > 0.005:
+            note("financial", f"business-plan/model.py carries {label}={carried:.0%} but this "
+                              f"sweep now measures {measured:.0%} — the workbook is costing a "
+                              f"funnel that no longer exists")
+
+
 def main() -> int:
     print("STRIDE — admission policy stress test")
     print(f"thresholds: admit {ADMIT_AT}, review {REVIEW_AT}   "
@@ -424,6 +449,7 @@ def main() -> int:
     forgery = check_forgery_cost()
     check_nomination_laundering()
     check_social_cannot_lift()
+    check_financial_model_is_in_step()
     print(f"6. forgery cost     unevidenced admissions: {forgery['unevidenced_admits']}")
     cheapest = forgery["cheapest_admitted"]
     if cheapest:
@@ -457,7 +483,8 @@ def main() -> int:
         if len(failures) > 20:
             print(f"  ... and {len(failures) - 20} more")
         return 1
-    print("No monotonicity, withholding, forgery or nomination failures found.")
+    print("No monotonicity, withholding, forgery or nomination failures found,")
+    print("and business-plan/model.py is costing the same funnel this sweep measures.")
     return 0
 
 

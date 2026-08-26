@@ -130,6 +130,38 @@ ROWS: list[tuple] = [
      "comparable exists for athlete acquisition in this segment.",
      "None found",
      "Low", "Measured CAC by channel from the first federation partnership."),
+    ("Admission rate, direct applicants", "admit_direct", "DERIVED",
+     "20% of direct applicants are admitted, 25% go to a human, 40% are refused and 15% never "
+     "finish the form. Not a judgement: it is the ops-load output of "
+     "scripts/admission_stress.py run over the admission policy itself, so retuning a threshold "
+     "moves this figure. The sweep asserts the model and the policy stay in step and fails if "
+     "they drift.",
+     "scripts/admission_stress.py, section 7 — over a modelled applicant mix",
+     "Medium", "Real intake data. The mix the sweep assumes is the soft part, not the arithmetic."),
+    ("Admission rate, club-nominated", "admit_club", "ESTIMATE",
+     "45% admitted against 20% direct. A verified club's nomination confers a credibility floor "
+     "of 0.75 x its own legitimacy score, which carries a completed application over the admit "
+     "line that would otherwise have gone to review. It cannot carry an empty one — no club can "
+     "supply someone else's date of birth — so the uplift is real but bounded.",
+     "None — the mechanism is built and tested, the conversion is not yet measured",
+     "Low", "The first federation partnership: nominated applicants are tagged, so this is "
+            "measurable from day one of it."),
+    ("Athlete verification cost", "review_min", "DERIVED",
+     "Four minutes per manual review, priced at the same loaded salary the People line uses, "
+     "over 1,700 productive hours. Peaks at EUR 47k and 0.64 reviewer-FTE in Y10, which is the "
+     "finding rather than the cost: verification is not a money problem at this scale. The "
+     "reason to automate it is latency — an athlete sitting in the queue is not listed, not "
+     "matchable and not earning.",
+     "Derived from the sweep's review volume and the model's own salary line",
+     "Medium", "Timing real reviews. Four minutes is an estimate of a mechanical task."),
+    ("Athlete CAC vs the funnel", "niche_cac", "ESTIMATE",
+     "Deliberately NOT multiplied by the admission funnel. Segment CAC is defined as the cost of "
+     "landing one athlete ON the platform, so scaling it by 1/admission-rate would charge the "
+     "same money twice. The Costs sheet carries a memo line showing what that CAC works out to "
+     "per application (EUR 3.40 in Y1 rising to EUR 22) — the figure to hold against what a "
+     "channel actually charges per name reached.",
+     "None — this is a definitional choice, made explicit so it is not silently reversed",
+     "Low", "Channel-level spend against applications, which the funnel now records."),
     ("Loaded salary, Spain", "salary", "BENCHMARKED",
      "EUR 38k-76k loaded. Spanish employer social security adds roughly 31% on top of gross, so "
      "a senior engineer at ~EUR 55k gross costs ~EUR 72k — around half the London equivalent, "

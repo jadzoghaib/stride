@@ -145,6 +145,31 @@ class Assumptions:
     moderation_eur_per_1k_items: float = 22.0
     items_per_athlete_month: float = 12.0
 
+    # ---- admission (the gate — business-plan/11-admission-and-matching.md) --
+    # Applicants are not athletes. The gate admits a share of them and sends a
+    # share to a human, and neither cost existed before admission was built.
+    # Note what is NOT changed here: segment `cac_eur` stays as it is, because
+    # it was always defined as the cost of landing one athlete ON the platform
+    # (see research_data.py). Multiplying it by the funnel would double-count
+    # the same money. What is genuinely new is the review labour, which is paid
+    # per APPLICATION rather than per athlete.
+    #
+    # The direct rates are not hand-set: they are the ops-load output of
+    # scripts/admission_stress.py under its modelled applicant mix. Retune a
+    # threshold in the policy and these move with it.
+    admission_rate_direct: float = 0.20
+    review_rate_direct: float = 0.25
+    # A verified club's nomination lifts an applicant's credibility floor, so
+    # more clear on the first pass and fewer need a look. ESTIMATE — no intake
+    # data exists; the first federation partnership is what measures it.
+    admission_rate_club: float = 0.45
+    review_rate_club: float = 0.18
+    club_sourced_share: list[float] = field(default_factory=lambda: [0.00, 0.10, 0.20, 0.28, 0.34, 0.38, 0.42, 0.44, 0.46, 0.47])
+    review_minutes: float = 4.0
+    # Reviewer time is priced off the same loaded salary line the rest of the
+    # model uses, rather than a second hand-set wage that could drift from it.
+    ops_hours_per_year: int = 1_700
+
     # ---- operating costs ---------------------------------------------------
     headcount: list[float] = field(default_factory=lambda: [1.5, 3.0, 7.0, 14.0, 24.0, 36.0, 50.0, 62.0, 72.0, 80.0])
     loaded_salary_eur: list[int] = field(default_factory=lambda: [38_000, 52_000, 60_000, 64_000, 66_000, 68_000, 70_000, 72_000, 74_000, 76_000])
@@ -293,7 +318,31 @@ def build() -> list[dict]:
         items = athletes * A.items_per_athlete_month * 12
         moderation = items / 1000 * A.moderation_eur_per_1k_items
 
-        cogs = psp + payouts + infra + moderation
+        # --- admission: applications behind each athlete, and the review bill -
+        # Sits in cost of sales beside moderation on purpose. The two are the
+        # same obligation on opposite sides of the marketplace — vetting who is
+        # on it, and vetting what they post — so splitting them across the
+        # gross-margin line would be arbitrary.
+        club_share = A.club_sourced_share[i_]
+        athlete_gross_adds = sum(s_["athlete_gross_adds"] for s_ in segs)
+        marketing_athletes = sum(s_["athlete_gross_adds"] * seg.cac_eur[i_]
+                                 for seg, s_ in zip(A.segments, segs))
+        admit_rate = (club_share * A.admission_rate_club
+                      + (1 - club_share) * A.admission_rate_direct)
+        review_rate = (club_share * A.review_rate_club
+                       + (1 - club_share) * A.review_rate_direct)
+        applications = athlete_gross_adds / admit_rate if admit_rate else 0.0
+        reviews = applications * review_rate
+        review_hourly = A.loaded_salary_eur[i_] / A.ops_hours_per_year
+        verification = reviews * (A.review_minutes / 60) * review_hourly
+        review_fte = reviews * (A.review_minutes / 60) / A.ops_hours_per_year
+        # Memo, not a cost: segment CAC is priced per athlete ADMITTED, so this
+        # is what the same money works out to per application. It is the figure
+        # to hold against what a channel actually charges — if a federation
+        # mailing costs more per name than this, the CAC line is understated.
+        cac_per_application = (marketing_athletes / applications) if applications else 0.0
+
+        cogs = psp + payouts + infra + moderation + verification
         gross = revenue - cogs
 
         # --- opex -------------------------------------------------------
@@ -304,7 +353,6 @@ def build() -> list[dict]:
         # grows at all, and that replacement is paid for at full CAC.
         by_name = {s["name"]: s for s in segs}
         marketing = sum(by_name[s.name]["athlete_gross_adds"] * s.cac_eur[i_] for s in A.segments)
-        new_athletes = sum(by_name[s.name]["athlete_gross_adds"] for s in A.segments)
         new_sponsors = A.sponsors[i_] - (A.sponsors[i_ - 1] if y > 1 else 0)
         marketing += max(new_sponsors, 0) * A.sponsor_cac_eur[i_]
         legal = A.legal_compliance_eur[i_]
@@ -321,7 +369,11 @@ def build() -> list[dict]:
             sponsorship_gmv=sponsorship_gmv, rev_fan=rev_fan,
             rev_sponsorship=rev_sponsorship, rev_saas=rev_saas, revenue=revenue,
             psp=psp, payouts=payouts, infra=infra, infra_naive=infra_naive,
-            moderation=moderation, cogs=cogs, gross=gross, people=people,
+            moderation=moderation, verification=verification,
+            applications=applications, reviews=reviews, admit_rate=admit_rate,
+            review_fte=review_fte, cac_per_application=cac_per_application,
+            review_rate=review_rate, review_hourly=review_hourly,
+            cogs=cogs, gross=gross, people=people,
             marketing=marketing, legal=legal, other=other, opex=opex,
             ebitda=ebitda, tax=tax, fcf=fcf,
             headcount=A.headcount[i_],
@@ -400,6 +452,7 @@ def render(rows: list[dict]) -> dict[str, str]:
         line("Payouts", "payouts"),
         line("Infrastructure (AWS)", "infra"),
         line("Moderation", "moderation"),
+        line("Athlete verification", "verification"),
         line("**Gross profit**", "gross"),
         ["Gross margin"] + [f"{(r['gross']/r['revenue']*100 if r['revenue'] else 0):,.0f}%" for r in rows],
         line("People", "people"),

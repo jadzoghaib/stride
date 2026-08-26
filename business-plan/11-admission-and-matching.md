@@ -332,6 +332,11 @@ because a stress harness that cries wolf gets switched off.
 
 ## What the policy costs in humans
 
+> The rates below are consumed by `business-plan/model.py`, which prices
+> reviewer time off them. The sweep asserts the two stay in step and fails if a
+> retuned threshold leaves the workbook costing a funnel that no longer exists.
+
+
 Under an assumed applicant mix — an assumption, not a measurement; replace it
 with real intake data the moment it exists:
 
@@ -349,12 +354,25 @@ waiting for a proof link to be looked at, not because anyone is unsure about the
 athlete.** A `pending` link caps credibility at 0.70×, which structurally holds a
 genuine regional athlete below the admit line until a human opens a URL.
 
-That makes the highest-leverage ops investment obvious and small: **fetch the
-roster or results page and look for the applicant's name.** Automating that one
-step converts most of the review queue directly into admissions and leaves
-humans only the genuinely ambiguous cases. It is also the only part of this
-design that needs the public internet, which is why it is specified rather than
-built here — every connector in this codebase is mocked.
+That points at one obvious automation: **fetch the roster or results page and
+look for the applicant's name.** It converts most of the queue directly into
+admissions and leaves humans only the ambiguous cases. It is the only part of
+this design that needs the public internet, which is why it is specified rather
+than built here — every connector in this codebase is mocked.
+
+**A correction to the earlier framing, now that the financial model carries the
+funnel.** This was described as the highest-leverage *ops* investment, which
+implied cost. It is not: verification peaks at €47k a year and 0.64 of one
+reviewer, and the whole discounted stream is 0.28% of enterprise value
+([02](02-cost-model.md#compliance-and-moderation)). Nobody automates a 0.6-FTE
+task to save the salary. **The leverage is latency** — an athlete sitting in the
+queue is not listed, not matchable and not earning, so the automation buys
+time-to-supply rather than headcount.
+
+The cheaper lever the model *does* show is the club channel: the blended
+admission rate climbs from 20% to 32% purely because nominated applicants arrive
+with a verified club's credibility floor behind them. Club partnerships are a
+higher-yielding channel, not merely a cheaper one.
 
 The threshold is otherwise on a plateau between 45 and 60, which is a comfortable
 place to sit. The nearest edge is verified regional football at **60.2**; raising
@@ -374,6 +392,7 @@ constant should not be retuned without re-running the sweep.
 | Athlete eligibility, club eligibility + nomination, ops review queue | **Built** — see below |
 | Automated proof-link checking | **Specified** — needs live HTTP; see above |
 | Learned ranker | **Deliberately deferred** — no labels yet |
+| The funnel in the financial model | **Built** — `model.py`, `Stride_Financial_Model.xlsx` |
 | Topic embeddings for narrative fit | **Deferred** — needs real post text and a model dependency |
 
 ---
