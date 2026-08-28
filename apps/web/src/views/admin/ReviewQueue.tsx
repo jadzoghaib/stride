@@ -95,7 +95,16 @@ export default function ReviewQueue() {
 
   /** Only a supplied link can be checked — the server refuses `verified`
    *  without one, so the control says so rather than returning an error. */
-  const openable = (url: string) => /^https?:\/\//i.test((url || '').trim())
+  const openable = (url: string) => {
+    // A scheme is not a link. `http://` passes /^https?:\/\//, enabling the
+    // verify button on an application with nothing to open behind it.
+    try {
+      const parsed = new URL((url || '').trim())
+      return (parsed.protocol === 'http:' || parsed.protocol === 'https:') && !!parsed.hostname
+    } catch {
+      return false
+    }
+  }
 
   return (
     <div>

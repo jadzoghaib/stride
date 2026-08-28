@@ -460,3 +460,16 @@ def test_admission_speed_counts_the_applications_still_waiting(athlete, admin, d
     # nothing has been admitted in this fixture, and that reads as None
     assert "median_hours_to_listed" in speed
     assert "waiting_on_an_unopened_link" in speed
+
+
+def test_a_bare_scheme_cannot_be_marked_checked(athlete, admin, db):
+    """The guard was "non-empty", which `http://` satisfies. There is nothing at
+    that address for a reviewer to have opened."""
+    athlete.post("/api/athlete/application", json={
+        "competition_level": "national", "years_competing": 6, "birth_year": 2002,
+        "proof_url": "http://", "proof_kind": "roster"})
+    application = _application(db)
+    refused = admin.post(f"/api/admin/applications/{application['id']}/proof",
+                         json={"proof_status": "verified"})
+    assert refused.status_code == 409
+    assert refused.json()["detail"] == "no_proof_to_check"

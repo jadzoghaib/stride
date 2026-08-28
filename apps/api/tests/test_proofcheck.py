@@ -117,3 +117,21 @@ def test_redirects_are_re_checked_rather_than_trusted_once():
     import inspect
     body = inspect.getsource(proofcheck.fetch)
     assert body.index("for _ in range") < body.index("safe_url(url)")
+
+
+# ── a scheme is not a link ──────────────────────────────────────────────────
+
+@pytest.mark.parametrize("url,openable", [
+    ("http://", False),          # passes a naive scheme test and has nothing behind it
+    ("https://", False),
+    ("http:///path", False),
+    ("   ", False),
+    ("", False),
+    ("ftp://example.com/x", False),
+    ("http://club.example/roster", True),
+    ("https://club.example/roster", True),
+])
+def test_looks_openable_requires_a_host_not_just_a_scheme(url, openable):
+    """`http://` used to reach `verified`: non-empty, correctly prefixed, and
+    with no page behind it for anyone to have looked at."""
+    assert proofcheck.looks_openable(url) is openable

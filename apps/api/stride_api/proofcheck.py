@@ -99,6 +99,19 @@ def name_on_page(name: str, text: str) -> str | None:
     return None
 
 
+def looks_openable(url: str) -> bool:
+    """Is there a page here at all?
+
+    Structural only — scheme and host — with no DNS lookup, because this also
+    guards the *human* path where a reviewer has already opened the link and a
+    resolution failure on our side is not evidence about theirs. `"http://"` is
+    the case that matters: it passes a naive scheme test, passes a non-empty
+    test, and there is nothing behind it to look at.
+    """
+    parsed = urlparse((url or "").strip())
+    return parsed.scheme in ("http", "https") and bool(parsed.hostname)
+
+
 def _address_is_public(host: str) -> bool:
     """Resolve and reject anything that is not a public unicast address.
 

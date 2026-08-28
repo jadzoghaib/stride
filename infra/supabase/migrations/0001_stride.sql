@@ -172,29 +172,52 @@ alter table deals     add column if not exists completed_at              text;
 alter table deals     add column if not exists projected_reach           integer;
 alter table campaigns add column if not exists require_verified_athletes boolean not null default false;
 
--- row-level security for the tables added since this file was written
-alter table if exists deal_deliverables    enable row level security;
-alter table if exists athlete_applications enable row level security;
-alter table if exists club_applications    enable row level security;
+-- Row-level security for the tables added since this file was written.
+--
+-- Wrapped in a guard because `alter table if exists` protects the enable but
+-- NOT the policy statements below it: `drop policy if exists x on missing_table`
+-- raises rather than skipping, so on a database that predates these tables the
+-- whole migration failed at this point instead of no-opping past it.
+--
+-- The policies are `for select` only, deliberately. An applicant owning their
+-- row does not mean they may write every column of it: `decision`,
+-- `proof_status`, `credibility` and `admitted_via` are the reviewer's, and a
+-- `for all` policy handed the applicant UPDATE and DELETE on all of them —
+-- self-admission, one statement long, the moment the app connects per-user
+-- rather than through the service role. Writes stay server-mediated, where the
+-- admission policy can actually be applied.
+do $$
+begin
+  if to_regclass('public.athlete_applications') is not null then
+    alter table athlete_applications enable row level security;
+    drop policy if exists application_owner on athlete_applications;
+    drop policy if exists application_owner_read on athlete_applications;
+    create policy application_owner_read on athlete_applications
+      for select using (athlete_id in (select id from athlete_profiles
+                                        where user_id = current_app_user_id()));
+  end if;
 
--- an athlete sees and writes their own application; nobody else reads it
-drop policy if exists application_owner on athlete_applications;
-create policy application_owner on athlete_applications
-  for all using (athlete_id in (select id from athlete_profiles
-                                 where user_id = current_app_user_id()));
+  if to_regclass('public.club_applications') is not null then
+    alter table club_applications enable row level security;
+    drop policy if exists club_application_owner on club_applications;
+    drop policy if exists club_application_owner_read on club_applications;
+    create policy club_application_owner_read on club_applications
+      for select using (club_id in (select id from clubs
+                                     where user_id = current_app_user_id()));
+  end if;
 
--- a club sees its own application
-drop policy if exists club_application_owner on club_applications;
-create policy club_application_owner on club_applications
-  for all using (club_id in (select id from clubs where user_id = current_app_user_id()));
-
--- a deliverable is visible to the two parties to the deal it belongs to
-drop policy if exists deliverable_parties on deal_deliverables;
-create policy deliverable_parties on deal_deliverables
-  for select using (
-    deal_id in (
-      select d.id from deals d
-      where d.org_id in (select id from sponsor_orgs where user_id = current_app_user_id())
-         or d.athlete_id in (select id from athlete_profiles where user_id = current_app_user_id())
-    )
-  );
+  if to_regclass('public.deal_deliverables') is not null then
+    alter table deal_deliverables enable row level security;
+    drop policy if exists deliverable_parties on deal_deliverables;
+    create policy deliverable_parties on deal_deliverables
+      for select using (
+        deal_id in (
+          select d.id from deals d
+          where d.org_id in (select id from sponsor_orgs
+                              where user_id = current_app_user_id())
+             or d.athlete_id in (select id from athlete_profiles
+                                  where user_id = current_app_user_id())
+        )
+      );
+  end if;
+end $$;
