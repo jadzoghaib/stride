@@ -453,3 +453,21 @@ export const proofStatusLabel = (status: string) =>
     verified: 'checked',
     rejected: 'checked — did not stand up',
   })[status] ?? status
+
+
+/** The directory is paged: a keyset cursor, not an offset, because the listed
+ *  set shifts every time an athlete is admitted or delisted. */
+export interface AthletePage {
+  athletes: AthletePublic[]
+  next_cursor: string | null
+  limit: number
+}
+
+export interface MatchesResponse {
+  campaign: Campaign
+  matches: Match[]
+  ranked_total: number
+  slate_id: string
+  duration_ms: number
+  recorded?: boolean
+}

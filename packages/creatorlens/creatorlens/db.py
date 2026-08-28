@@ -167,6 +167,8 @@ CREATE TABLE IF NOT EXISTS events (
     detail_json TEXT NOT NULL DEFAULT '{}'
 );
 CREATE INDEX IF NOT EXISTS idx_events_ts ON events(ts);
+-- the admin audit filter and the slate queries both select by type
+CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type, ts);
 """
 
 

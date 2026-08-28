@@ -356,6 +356,22 @@ const STATUS_STYLE: Record<string, string> = {
   pending: '',
 }
 
+/** Every connector in this build is a mock (`connectors/base.py` refuses any
+ *  source but "mock"), so every reach, engagement and delivery figure a sponsor
+ *  sees is generated. Saying so on the surface where the numbers are read is
+ *  cheaper than a caveat in a document nobody opens, and it is the difference
+ *  between a demo and a misrepresentation. */
+export function SimulatedChip({ what = 'data' }: { what?: string }) {
+  return (
+    <span
+      className="tag border-warn/45 bg-warn/10 text-ink-2"
+      title="Platform connectors are mocked in this build — these figures are generated, not measured from a live account."
+    >
+      simulated {what}
+    </span>
+  )
+}
+
 export function StatusChip({ status }: { status: string }) {
   return <span className={`tag ${STATUS_STYLE[status] ?? ''}`}>{status}</span>
 }

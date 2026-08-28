@@ -26,6 +26,8 @@ claim rather than free headroom.
 from __future__ import annotations
 
 import sqlite3
+from datetime import datetime
+from statistics import median
 
 from creatorlens.analytics.scoring import latest_score
 from creatorlens.events import log_event
@@ -36,6 +38,7 @@ from ..admission import (ADMIT_AT, COMPETITION_LEVELS, PROOF_KINDS, PROOF_STATUS
                          POLICY_VERSION, admission_decision, age_from,
                          athlete_credibility, club_legitimacy)
 from ..auth import get_db, require_role
+from .. import proofcheck
 from ..db import now_iso, row, rows
 
 router = APIRouter(prefix="/api", tags=["admission"])
@@ -320,6 +323,53 @@ def nominate(body: NominationIn, user: dict = Depends(require_role("club")),
 
 
 # ── ops ─────────────────────────────────────────────────────────────────────
+def _hours(a: str, b: str) -> float:
+    return max(0.0, (datetime.fromisoformat(b.replace("Z", "+00:00"))
+                     - datetime.fromisoformat(a.replace("Z", "+00:00"))).total_seconds() / 3600)
+
+
+@router.get("/admin/admission-speed")
+def admission_speed(user: dict = Depends(require_role("admin")),
+                    conn: sqlite3.Connection = Depends(get_db)):
+    """How long supply waits, measured the same way sponsor speed is.
+
+    Campaign measurement and time-to-first-offer are instrumented; the wait on
+    the other side of the marketplace was not, even though the model says manual
+    proof review is what holds a genuine athlete below the listing line.
+
+    Same anti-survivorship rule as `_speed_to_first_offer`: the applications
+    still waiting are reported beside the median rather than dropped out of it.
+    A median over the ones that got through is a statement about the ones that
+    got through, and reads fastest exactly when the queue is worst.
+    """
+    applications = rows(conn, "SELECT decision, decision_rule, submitted_at, decided_at"
+                        " FROM athlete_applications")
+    to_decision, to_listed = [], []
+    waiting = unchecked = pending = 0
+    for a in applications:
+        if a["decision"] == "review":
+            waiting += 1
+            if a["decision_rule"] == "evidence_not_checked":
+                unchecked += 1
+        elif a["decision"] == "pending":
+            pending += 1
+        if a["decided_at"] and a["submitted_at"]:
+            to_decision.append(_hours(a["submitted_at"], a["decided_at"]))
+            if a["decision"] == "admitted":
+                to_listed.append(_hours(a["submitted_at"], a["decided_at"]))
+    return {
+        # None, not 0: nothing has been decided yet is a different statement
+        # from everything being decided instantly.
+        "median_hours_to_decision": round(median(to_decision), 1) if to_decision else None,
+        "median_hours_to_listed": round(median(to_listed), 1) if to_listed else None,
+        "decided": len(to_decision),
+        "listed": len(to_listed),
+        "still_waiting": waiting,
+        "waiting_on_an_unopened_link": unchecked,
+        "never_submitted": pending,
+    }
+
+
 @router.get("/admin/review-queue")
 def review_queue(decision: str = Query("review"), limit: int = Query(100, le=500),
                  user: dict = Depends(require_role("admin")),
@@ -387,9 +437,89 @@ def set_proof(application_id: int, body: ProofIn,
                   (application["athlete_id"],))
     log_event(conn, "user", "admission.proof_checked", "athlete", profile["id"],
               {"application_id": application_id, "proof_status": body.proof_status,
-               "reviewer": user["id"]})
+               "source": "admin", "reviewer": user["id"]})
     via = "club_nomination" if application["nominated_by_club"] else "self"
     return _evaluate(conn, application, profile, via=via)
+
+
+def _auto_check(conn, *, url: str, name: str, fetcher=None) -> proofcheck.ProofResult:
+    return proofcheck.check(url, name, fetcher or proofcheck.fetch)
+
+
+@router.post("/admin/applications/{application_id}/auto-check")
+def auto_check_application(application_id: int,
+                           user: dict = Depends(require_role("admin")),
+                           conn: sqlite3.Connection = Depends(get_db)):
+    """Open the applicant's link and decide, where the answer is unambiguous.
+
+    Deliberately a separate endpoint rather than something that runs on submit:
+    a network fetch on a user's request path buys them a six-second wait for a
+    result they cannot act on, and it puts the SSRF surface on an unauthenticated
+    form. A cron or an ops sweep calls this; anything it cannot conclude stays
+    exactly where it was, in the human queue.
+    """
+    application = row(conn, "SELECT ap.*, a.display_name FROM athlete_applications ap"
+                      " JOIN athlete_profiles a ON a.id = ap.athlete_id WHERE ap.id = ?",
+                      (application_id,))
+    if application is None:
+        raise HTTPException(404, "unknown_application")
+    if application["proof_status"] == "rejected":
+        # a failed check is a finding about the applicant; a crawler does not
+        # get to clear it, only a reviewer does
+        raise HTTPException(409, "proof_already_rejected")
+
+    result = _auto_check(conn, url=application["proof_url"],
+                         name=application["display_name"])
+    log_event(conn, "system", "admission.proof_checked", "athlete", application["athlete_id"],
+              {"application_id": application_id, "source": "auto",
+               "outcome": result.status, "reason": result.reason,
+               "matched": result.matched, "url": application["proof_url"]})
+    if not result.conclusive:
+        conn.commit()
+        return {"checked": False, "reason": result.reason, "detail": result.detail,
+                "decision": application["decision"]}
+
+    conn.execute("UPDATE athlete_applications SET proof_status = 'verified' WHERE id = ?",
+                 (application_id,))
+    application = row(conn, "SELECT * FROM athlete_applications WHERE id = ?", (application_id,))
+    profile = row(conn, "SELECT * FROM athlete_profiles WHERE id = ?",
+                  (application["athlete_id"],))
+    via = "club_nomination" if application["nominated_by_club"] else "self"
+    verdict = _evaluate(conn, application, profile, via=via)
+    return {"checked": True, "reason": result.reason, "detail": result.detail, **verdict}
+
+
+@router.post("/admin/auto-check")
+def auto_check_queue(limit: int = Query(25, le=100),
+                     user: dict = Depends(require_role("admin")),
+                     conn: sqlite3.Connection = Depends(get_db)):
+    """Sweep the queue. Reports what it could not conclude as well as what it
+    could — a sweep that only counted its successes would make the queue look
+    like it was emptying when it was not."""
+    queued = rows(conn, """
+        SELECT ap.id, ap.proof_url, ap.athlete_id, a.display_name
+        FROM athlete_applications ap JOIN athlete_profiles a ON a.id = ap.athlete_id
+        WHERE ap.decision = 'review' AND ap.proof_status = 'pending'
+        ORDER BY ap.id LIMIT ?""", (limit,))
+    verified, inconclusive = [], {}
+    for item in queued:
+        result = _auto_check(conn, url=item["proof_url"], name=item["display_name"])
+        log_event(conn, "system", "admission.proof_checked", "athlete", item["athlete_id"],
+                  {"application_id": item["id"], "source": "auto",
+                   "outcome": result.status, "reason": result.reason})
+        if not result.conclusive:
+            inconclusive[result.reason] = inconclusive.get(result.reason, 0) + 1
+            continue
+        conn.execute("UPDATE athlete_applications SET proof_status = 'verified' WHERE id = ?",
+                     (item["id"],))
+        application = row(conn, "SELECT * FROM athlete_applications WHERE id = ?", (item["id"],))
+        profile = row(conn, "SELECT * FROM athlete_profiles WHERE id = ?", (item["athlete_id"],))
+        _evaluate(conn, application, profile,
+                  via="club_nomination" if application["nominated_by_club"] else "self")
+        verified.append(item["id"])
+    conn.commit()
+    return {"considered": len(queued), "verified": len(verified),
+            "still_for_a_human": inconclusive}
 
 
 @router.post("/admin/clubs/{club_id}/proof")

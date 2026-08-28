@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { Avatar, CoverageChip, EmptyNote, LoadError, Meter, PageHeader, PageLoading } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { fmtMoney } from '../lib/format'
-import type { AthletePublic } from '../types'
+import type { AthletePage, AthletePublic } from '../types'
 import { meanScore } from '../types'
 
 type SortKey = 'display_name' | 'score' | 'base_rate_eur'
@@ -24,19 +24,53 @@ export default function AthletesDirectory() {
   const [sort, setSort] = useState<SortKey>('score')
   const [desc, setDesc] = useState(true)
   const [error, setError] = useState('')
+  const [cursor, setCursor] = useState<string | null>(null)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   useEffect(() => {
     api.get<{ sports: string[]; countries: string[] }>('/api/athletes/facets').then(setFacets).catch(() => {})
   }, [])
 
+  /** Typing is not a query. Every keystroke used to be a request that ran a
+   *  LIKE across the directory and a score lookup per row; the search box now
+   *  settles first. 250ms is below the threshold where a filter feels laggy and
+   *  well above a typing cadence. */
+  const [typed, setTyped] = useState('')
   useEffect(() => {
+    const t = setTimeout(() => setQ(typed), 250)
+    return () => clearTimeout(t)
+  }, [typed])
+
+  const params = (cursor?: string) => {
     const p = new URLSearchParams()
     if (sport) p.set('sport', sport)
     if (country) p.set('country', country)
     if (q) p.set('q', q)
+    if (cursor) p.set('cursor', cursor)
+    return p
+  }
+
+  useEffect(() => {
     setError('')
-    api.get<AthletePublic[]>(`/api/athletes?${p}`).then(setAthletes).catch((e) => setError(errorText(e)))
+    setAthletes(null)
+    api.get<AthletePage>(`/api/athletes?${params()}`)
+      .then((page) => { setAthletes(page.athletes); setCursor(page.next_cursor) })
+      .catch((e) => setError(errorText(e)))
   }, [sport, country, q])
+
+  const loadMore = async () => {
+    if (!cursor) return
+    setLoadingMore(true)
+    try {
+      const page = await api.get<AthletePage>(`/api/athletes?${params(cursor)}`)
+      setAthletes((a) => [...(a ?? []), ...page.athletes])
+      setCursor(page.next_cursor)
+    } catch (e) {
+      setError(errorText(e))
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   /** The directory is the browse surface for a product that measures
    *  marketability, so it shows the measurement. The API already returns the
@@ -158,6 +192,13 @@ export default function AthletesDirectory() {
             ))}
           </tbody>
         </table>
+        {cursor && (
+          <div className="mt-4 flex justify-center">
+            <button className="btn" disabled={loadingMore} onClick={loadMore}>
+              {loadingMore ? 'Loading…' : 'Show more athletes'}
+            </button>
+          </div>
+        )}
       </div>
       <p className="meta mt-3">
         Marketability is the mean of the dimensions computed for that athlete — a derived figure, not a

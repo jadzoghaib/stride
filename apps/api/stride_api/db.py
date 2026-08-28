@@ -94,6 +94,8 @@ CREATE TABLE IF NOT EXISTS athlete_profiles (
     created_at              TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_athletes_sport ON athlete_profiles(sport);
+-- the directory and every matching run filter on status before anything else
+CREATE INDEX IF NOT EXISTS idx_athletes_status ON athlete_profiles(status);
 
 CREATE TABLE IF NOT EXISTS sponsor_orgs (
     id          INTEGER PRIMARY KEY,
@@ -159,6 +161,8 @@ CREATE TABLE IF NOT EXISTS deal_deliverables (
 );
 CREATE INDEX IF NOT EXISTS idx_deliverables_deal ON deal_deliverables(deal_id);
 CREATE INDEX IF NOT EXISTS idx_deals_org ON deals(org_id, status);
+-- _speed_to_first_offer groups deals by campaign
+CREATE INDEX IF NOT EXISTS idx_deals_campaign ON deals(campaign_id);
 
 CREATE TABLE IF NOT EXISTS follows (
     id         INTEGER PRIMARY KEY,
@@ -249,6 +253,7 @@ CREATE TABLE IF NOT EXISTS club_applications (
     submitted_at        TEXT NOT NULL,
     decided_at          TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_club_applications_decision ON club_applications(decision);
 
 CREATE TABLE IF NOT EXISTS club_packages (
     id           INTEGER PRIMARY KEY,

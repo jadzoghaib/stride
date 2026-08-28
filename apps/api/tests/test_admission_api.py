@@ -212,26 +212,53 @@ def test_a_verified_only_campaign_sees_only_checked_athletes(sponsor, athlete, a
         assert application["proof_status"] == "verified"
 
 
-def test_matching_logs_the_slate_it_showed_not_just_the_count(sponsor, admin):
+def test_matching_records_the_slate_once_per_exposure_and_only_on_intent(sponsor, admin):
     """Offers alone are a biased sample. Without the candidate set behind them a
     later ranker has nothing to learn from and no way to be evaluated
-    off-policy — and the missing candidates never come back."""
+    off-policy — and the missing candidates never come back.
+
+    Reading the ranking is not an exposure, though. This used to log and commit
+    on every GET, so a sponsor refreshing the page manufactured duplicate
+    training rows; recording is now an explicit POST, idempotent on the slate's
+    own fingerprint so that re-opening an unchanged ranking is not counted twice.
+    """
     campaign = sponsor.post("/api/campaigns", json={
         "name": "Slate brief", "category": "Sportswear", "deal_types": ["social_post"],
         "budget_eur_min": 1000, "budget_eur_max": 20000, "target_countries": ["US"],
         "target_topics": ["running"]}).json()
-    shown = sponsor.get(f"/api/campaigns/{campaign['id']}/matches").json()["matches"]
 
-    logged = admin.get("/api/admin/events", params={"event_type": "matching.ran"}).json()
-    entry = next(e for e in logged if e["object_id"] == campaign["id"])
-    slate = entry["detail"]["slate"]
-    assert len(slate) == len(shown)
-    assert [s["rank"] for s in slate] == list(range(1, len(shown) + 1))
-    assert slate[0]["athlete_id"] == shown[0]["athlete_id"]
-    # the weights are logged with it: a label without the policy that produced
-    # it cannot be compared against a label from a later policy
-    assert entry["detail"]["model_version"] and entry["detail"]["weights"]
-    assert "audience_fit" in slate[0]["components"]
+    def slates():
+        return [e for e in admin.get("/api/admin/events",
+                                     params={"event_type": "matching.ran"}).json()
+                if e["object_id"] == campaign["id"]]
+
+    # reading it twice writes nothing
+    first = sponsor.get(f"/api/campaigns/{campaign['id']}/matches").json()
+    sponsor.get(f"/api/campaigns/{campaign['id']}/matches")
+    assert slates() == []
+    assert first["duration_ms"] >= 0 and first["slate_id"]
+
+    recorded = sponsor.post(f"/api/campaigns/{campaign['id']}/matches").json()
+    assert recorded["recorded"] is True
+    assert len(slates()) == 1
+
+    # the same ranking again is the same exposure, not a new one
+    again = sponsor.post(f"/api/campaigns/{campaign['id']}/matches").json()
+    assert again["recorded"] is False
+    assert again["slate_id"] == recorded["slate_id"]
+    assert len(slates()) == 1
+
+    detail = slates()[0]["detail"]
+    shown = recorded["matches"]
+    assert detail["duration_ms"] >= 0
+    assert detail["model_version"] and detail["weights"]
+    assert len(detail["slate"]) == recorded["ranked_total"] > len(shown),         "the whole ranking is recorded, not only the page that was rendered"
+    assert [s["rank"] for s in detail["slate"]] == list(range(1, len(detail["slate"]) + 1))
+    assert "audience_fit" in detail["slate"][0]["components"]
+
+    # everything past the fold is the negatives, kept cheap
+    tail = detail["slate"][len(shown):]
+    assert tail and all(e["truncated"] and "components" not in e for e in tail)
 
 
 def test_congestion_is_surfaced_rather_than_silently_reranked(sponsor, db):
@@ -346,3 +373,90 @@ def test_verified_clubs_are_listed_so_revocation_is_reachable(clubu, admin, db):
     assert club["id"] not in [c["club_id"] for c in waiting]
     assert club["id"] in [c["club_id"] for c in verified]
     assert next(c for c in verified if c["club_id"] == club["id"])["scored"]["nomination_floor"] > 0
+
+
+# ── auto-verification, end to end ───────────────────────────────────────────
+
+def test_auto_check_verifies_a_real_roster_and_admits(athlete, admin, db, monkeypatch):
+    """The queue exists because nobody had opened the link. When the name is
+    plainly on the page there is nothing for a human to decide."""
+    from stride_api import proofcheck
+
+    athlete.post("/api/athlete/application", json={
+        "competition_level": "national", "years_competing": 6, "birth_year": 2002,
+        "proof_url": "https://baytrack.example/roster", "proof_kind": "roster"})
+    application = _application(db)
+    assert application["decision"] == "review"
+
+    monkeypatch.setattr(proofcheck, "fetch",
+                        lambda url: ("<li>7 — Kaia Mercer — 800m</li>", "ok"))
+    res = admin.post(f"/api/admin/applications/{application['id']}/auto-check")
+    assert res.status_code == 200, res.text
+    assert res.json()["checked"] is True
+    assert res.json()["decision"] == "admitted"
+    assert _application(db)["proof_status"] == "verified"
+
+
+def test_auto_check_leaves_an_absent_name_for_a_human(athlete, admin, db, monkeypatch):
+    from stride_api import proofcheck
+    athlete.post("/api/athlete/application", json={
+        "competition_level": "national", "years_competing": 6, "birth_year": 2002,
+        "proof_url": "https://baytrack.example/roster", "proof_kind": "roster"})
+    application = _application(db)
+
+    monkeypatch.setattr(proofcheck, "fetch", lambda url: ("<p>Somebody else</p>", "ok"))
+    res = admin.post(f"/api/admin/applications/{application['id']}/auto-check").json()
+    assert res["checked"] is False and res["reason"] == "name_not_found"
+    assert _application(db)["decision"] == "review"
+    assert _application(db)["proof_status"] == "pending"
+
+
+def test_a_fetch_that_fails_never_admits_anybody(athlete, admin, db, monkeypatch):
+    """Silence is not consent. A timeout leaves the application exactly where
+    it was rather than resolving it in the applicant's favour."""
+    from stride_api import proofcheck
+    athlete.post("/api/athlete/application", json={
+        "competition_level": "international", "years_competing": 10, "birth_year": 1998,
+        "proof_url": "https://unreachable.example/roster", "proof_kind": "roster"})
+    application = _application(db)
+
+    monkeypatch.setattr(proofcheck, "fetch", lambda url: (None, "timeout"))
+    res = admin.post(f"/api/admin/applications/{application['id']}/auto-check").json()
+    assert res["checked"] is False and res["reason"] == "timeout"
+    assert _application(db)["decision"] != "admitted"
+
+
+def test_a_crawler_cannot_clear_a_rejected_proof(athlete, admin, db, monkeypatch):
+    """A failed check is a finding about the applicant. Only a reviewer clears
+    it — otherwise re-running the sweep launders it."""
+    from stride_api import proofcheck
+    athlete.post("/api/athlete/application", json={
+        "competition_level": "national", "years_competing": 6, "birth_year": 2002,
+        "proof_url": "https://forged.example/roster", "proof_kind": "roster"})
+    application = _application(db)
+    admin.post(f"/api/admin/applications/{application['id']}/proof",
+               json={"proof_status": "rejected"})
+
+    monkeypatch.setattr(proofcheck, "fetch",
+                        lambda url: ("<li>Kaia Mercer</li>", "ok"))
+    res = admin.post(f"/api/admin/applications/{application['id']}/auto-check")
+    assert res.status_code == 409
+    assert _application(db)["proof_status"] == "rejected"
+
+
+def test_admission_speed_counts_the_applications_still_waiting(athlete, admin, db):
+    """The same anti-survivorship rule the sponsor speed tile follows: a median
+    over the ones that got through reads fastest exactly when the queue is worst,
+    so the ones still in it are reported beside it."""
+    athlete.post("/api/athlete/application", json={
+        "competition_level": "regional", "years_competing": 4, "birth_year": 2002,
+        "proof_url": "https://club.example/roster", "proof_kind": "roster"})
+
+    speed = admin.get("/api/admin/admission-speed").json()
+    assert speed["still_waiting"] >= 1
+    assert speed["decided"] >= 1
+    assert speed["median_hours_to_decision"] is not None
+    assert speed["median_hours_to_decision"] >= 0
+    # nothing has been admitted in this fixture, and that reads as None
+    assert "median_hours_to_listed" in speed
+    assert "waiting_on_an_unopened_link" in speed

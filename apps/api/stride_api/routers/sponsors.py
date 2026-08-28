@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import time
 from datetime import datetime
 from statistics import median
 
@@ -19,7 +20,8 @@ from creatorlens.actions import create_target
 
 from ..auth import get_db, require_role
 from ..db import now_iso, row, rows
-from ..matching import MODEL_VERSION, WEIGHTS, slate, sponsor_matches
+from ..matching import (MODEL_VERSION, WEIGHTS, rank_athletes, slate,
+                        slate_fingerprint)
 from .athletes import athlete_public
 
 router = APIRouter(prefix="/api", tags=["sponsors"])
@@ -178,22 +180,67 @@ def _own_campaign(conn, org, campaign_id: int) -> dict:
     return c
 
 
+SHOWN_MATCHES = 20
+
+
+def _ranked(conn, org, campaign_id: int):
+    campaign = _own_campaign(conn, org, campaign_id)
+    started = time.perf_counter()
+    ranked = rank_athletes(conn, campaign)
+    return campaign, ranked, round((time.perf_counter() - started) * 1000, 1)
+
+
 @router.get("/campaigns/{campaign_id}/matches")
 def campaign_matches(campaign_id: int, user: dict = Depends(require_role("sponsor")),
                      conn: sqlite3.Connection = Depends(get_db)):
+    """Read the ranking. Deliberately free of side effects.
+
+    This used to write a `matching.ran` row and commit on every call, so a
+    sponsor refreshing the page manufactured duplicate training rows for a
+    ranker that has not been built yet — quietly biasing the exposure counts of
+    whichever campaigns someone happened to reload. Recording an exposure is an
+    intent, and an intent belongs on a POST.
+    """
     org = _own_org(conn, user)
-    campaign = _own_campaign(conn, org, campaign_id)
-    matches = sponsor_matches(conn, campaign)
-    # The slate, not just the count. A label without the candidate set it came
-    # from cannot train or evaluate a ranker, and the missing candidates are not
-    # reconstructable after the fact — see matching.slate().
-    log_event(conn, "user", "matching.ran", "campaign", campaign_id,
-              {"org_id": org["id"], "results": len(matches),
-               "model_version": MODEL_VERSION, "weights": WEIGHTS,
-               "require_verified_athletes": bool(campaign.get("require_verified_athletes")),
-               "slate": slate(matches)})
-    conn.commit()
-    return {"campaign": _campaign_view(campaign), "matches": matches}
+    campaign, ranked, duration_ms = _ranked(conn, org, campaign_id)
+    return {"campaign": _campaign_view(campaign),
+            "matches": ranked[:SHOWN_MATCHES],
+            "ranked_total": len(ranked),
+            "slate_id": slate_fingerprint(ranked),
+            "duration_ms": duration_ms}
+
+
+@router.post("/campaigns/{campaign_id}/matches", status_code=201)
+def record_campaign_matches(campaign_id: int, user: dict = Depends(require_role("sponsor")),
+                            conn: sqlite3.Connection = Depends(get_db)):
+    """Run matching and record the slate that was put in front of the sponsor.
+
+    Idempotent on the slate's own fingerprint rather than a key the client
+    invents: re-opening the same ranking is not a second exposure, but a
+    ranking that has genuinely changed is, and only the content can tell those
+    apart.
+    """
+    org = _own_org(conn, user)
+    campaign, ranked, duration_ms = _ranked(conn, org, campaign_id)
+    fingerprint = slate_fingerprint(ranked)
+
+    already = row(conn, "SELECT id FROM events WHERE event_type = 'matching.ran'"
+                  " AND object_type = 'campaign' AND object_id = ?"
+                  " AND detail_json LIKE ?", (campaign_id, f'%"slate_id": "{fingerprint}"%'))
+    if already is None:
+        log_event(conn, "user", "matching.ran", "campaign", campaign_id,
+                  {"org_id": org["id"], "results": len(ranked), "shown": SHOWN_MATCHES,
+                   "model_version": MODEL_VERSION, "weights": WEIGHTS,
+                   "slate_id": fingerprint, "duration_ms": duration_ms,
+                   "require_verified_athletes": bool(campaign.get("require_verified_athletes")),
+                   "slate": slate(ranked, SHOWN_MATCHES)})
+        conn.commit()
+    return {"campaign": _campaign_view(campaign),
+            "matches": ranked[:SHOWN_MATCHES],
+            "ranked_total": len(ranked),
+            "slate_id": fingerprint,
+            "duration_ms": duration_ms,
+            "recorded": already is None}
 
 
 class OfferIn(BaseModel):

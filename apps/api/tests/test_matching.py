@@ -90,15 +90,19 @@ def test_unmeasured_dimension_is_excluded_from_the_score(client, db, monkeypatch
     """Regression for the zero-fill bug: a null dimension must raise the score
     relative to treating it as zero, and say so in the caveats."""
     campaign = dict(db.execute("SELECT * FROM campaigns ORDER BY id LIMIT 1").fetchone())
-    real = matching.compute_scores
+    # patched at `analytics_for`, which is where matching now gets its
+    # dimensions from — it reads four of them back off the score snapshot and
+    # only falls through to compute_scores when there is none
+    real = matching.analytics_for
 
     def without_growth(conn, creator_id, target_id=None):
-        result = real(conn, creator_id, target_id=target_id)
-        result["dimensions"] = dict(result["dimensions"]) | {"growth": None}
+        result = real(conn, creator_id, target_id)
+        if result:
+            result["dimensions"] = dict(result["dimensions"]) | {"growth": None}
         return result
 
     baseline = {m["slug"]: m for m in sponsor_matches(db, campaign)}
-    monkeypatch.setattr(matching, "compute_scores", without_growth)
+    monkeypatch.setattr(matching, "analytics_for", without_growth)
     degraded = {m["slug"]: m for m in sponsor_matches(db, campaign)}
 
     scored = [s for s, m in baseline.items() if m["analytics_summary"]]
@@ -119,3 +123,71 @@ def test_fan_ranking_ties_break_alphabetically(client, db):
     ranked = fan_ranking(db, interests=[], country=None, followed_ids=set())
     zeros = [r["display_name"] for r in ranked if r["affinity"] == 0]
     assert zeros == sorted(zeros)
+
+
+def test_matching_reuses_the_snapshot_instead_of_rebuilding_from_posts(client, db, monkeypatch):
+    """The point of the snapshot path, stated as a property rather than a timing.
+
+    Scale, engagement quality, growth and consistency describe the athlete and
+    not the brief, so a stored snapshot is not an approximation of them — it is
+    the same number. Rebuilding them from post metrics on every matching run is
+    what made ranking cost O(athletes x posts).
+
+    `creator_kpis` is the expensive read, so making it explode proves matching
+    never reaches for it when a snapshot exists. Audience fit still has to be
+    live, and it is: it uses only follower weights and demographic shares.
+    """
+    campaign = dict(db.execute("SELECT * FROM campaigns ORDER BY id LIMIT 1").fetchone())
+
+    from creatorlens.analytics import scoring
+
+    rebuilt: list[int] = []
+    real_kpis = scoring.creator_kpis
+
+    def watched(conn, creator_id):
+        rebuilt.append(creator_id)
+        return real_kpis(conn, creator_id)
+
+    monkeypatch.setattr(scoring, "creator_kpis", watched)
+    matches = sponsor_matches(db, campaign)
+
+    with_snapshots = {r[0] for r in db.execute(
+        "SELECT DISTINCT creator_id FROM score_snapshots").fetchall()}
+    assert with_snapshots, "seed should contain score snapshots"
+    assert not (set(rebuilt) & with_snapshots), (
+        "matching rebuilt KPIs from posts for creators that already had a snapshot: "
+        f"{sorted(set(rebuilt) & with_snapshots)}")
+
+    scored = [m for m in matches if m["analytics_summary"]]
+    assert scored, "seed should contain athletes with analytics"
+    for m in scored:
+        assert m["components"]["audience_fit"] is not None, "fit must still be computed live"
+
+
+def test_audience_fit_moves_with_the_brief_while_the_rest_hold_still(client, db):
+    """The split has to preserve the thing that made matching worth having:
+    audience fit is scored against THIS campaign, so two briefs must be able to
+    disagree about the same athlete. The other four cannot, and must equal what
+    the snapshot already stored."""
+    from creatorlens.analytics.scoring import latest_score
+
+    campaigns = [dict(r) for r in db.execute(
+        "SELECT * FROM campaigns WHERE sponsor_target_id IS NOT NULL ORDER BY id").fetchall()]
+    assert len(campaigns) >= 2, "need two briefs with different targets"
+    a = {m["slug"]: m for m in sponsor_matches(db, campaigns[0])}
+    b = {m["slug"]: m for m in sponsor_matches(db, campaigns[1])}
+
+    shared = [s for s in a.keys() & b.keys() if a[s]["analytics_summary"]]
+    assert shared
+    assert any(a[s]["components"]["audience_fit"] != b[s]["components"]["audience_fit"]
+               for s in shared), "audience fit should depend on the brief"
+
+    for slug in shared:
+        creator_id = db.execute(
+            "SELECT creatorlens_creator_id FROM athlete_profiles WHERE slug = ?",
+            (slug,)).fetchone()[0]
+        snap = latest_score(db, creator_id)
+        for dim in matching.SNAPSHOT_DIMS:
+            stored = snap[dim]
+            assert a[slug]["analytics_summary"]["dimensions"][dim] == stored
+            assert b[slug]["analytics_summary"]["dimensions"][dim] == stored
