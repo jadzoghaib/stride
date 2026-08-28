@@ -30,19 +30,33 @@ export default function ReviewQueue() {
   const [revoking, setRevoking] = useState<ClubApplication | null>(null)
   const toast = useToast()
 
+  // The server caps this endpoint at 500. Asking for the maximum, and saying so
+  // when the list comes back full, keeps a truncated queue from looking like a
+  // complete one — the default of 100 silently hid the revoke control for every
+  // club past the hundredth.
+  const CLUB_LIMIT = 500
+
   const load = async () => {
     // Verified clubs are fetched alongside the queue on purpose. Revocation is
     // only ever meaningful for a club that IS verified, and the first version
     // of this view listed the review queue alone — so the one control that can
     // undo a verification never rendered for any club that had one.
-    const [a, waiting, verified] = await Promise.all([
+    //
+    // `allSettled`, not `all`: these are three independent queues, and under
+    // `all` a single failing request rejected the whole load, so one broken
+    // query emptied the other two lists as well. A reviewer cannot tell an
+    // empty queue from a failed one, so that read as "nothing to review".
+    const [a, waiting, verified] = await Promise.allSettled([
       api.get<AthleteApplication[]>('/api/admin/review-queue?decision=review'),
-      api.get<ClubApplication[]>('/api/admin/club-queue?decision=review'),
-      api.get<ClubApplication[]>('/api/admin/club-queue?decision=verified'),
+      api.get<ClubApplication[]>(`/api/admin/club-queue?decision=review&limit=${CLUB_LIMIT}`),
+      api.get<ClubApplication[]>(`/api/admin/club-queue?decision=verified&limit=${CLUB_LIMIT}`),
     ])
-    setAthletes(a)
-    setClubs(waiting)
-    setVerifiedClubs(verified)
+    if (a.status === 'fulfilled') setAthletes(a.value)
+    if (waiting.status === 'fulfilled') setClubs(waiting.value)
+    if (verified.status === 'fulfilled') setVerifiedClubs(verified.value)
+
+    const failed = [a, waiting, verified].filter((r) => r.status === 'rejected')
+    setError(failed.length ? errorText((failed[0] as PromiseRejectedResult).reason) : '')
   }
 
   useEffect(() => {
@@ -259,7 +273,13 @@ export default function ReviewQueue() {
 
       <Section
         title={`Verified clubs (${verifiedClubs.length})`}
-        aside={<span className="meta">each can nominate; each can be withdrawn</span>}
+        aside={
+          <span className="meta">
+            {verifiedClubs.length >= CLUB_LIMIT
+              ? `showing the first ${CLUB_LIMIT} — there are more`
+              : 'each can nominate; each can be withdrawn'}
+          </span>
+        }
       >
         {verifiedClubs.length === 0 ? (
           <EmptyNote text="No verified clubs yet. A club appears here once its roster page has been checked." />

@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import sqlite3
 
-from stride_api.db import init_db
+import pytest
+
+from stride_api.db import _migrate, init_db, lock_for_update
 
 
 def _columns(conn, table):
@@ -236,3 +238,122 @@ def test_speed_to_first_offer_keeps_the_campaigns_that_produced_nothing(sponsor)
     assert final["campaigns_without_offer"] == before["campaigns_without_offer"]
     assert final["median_hours"] is not None
     assert final["median_hours"] >= 0
+
+
+def test_a_completed_deal_will_not_take_another_deliverable(sponsor, athlete, db):
+    """The sponsor has already read that report. Attaching a post afterwards
+    moves reach, variance and cost-per-1k on a number they have acted on —
+    silently, with no record that the figure they saw ever changed."""
+    deal_id = _accepted_deal(sponsor, athlete, "frozen report")
+    posts = db.execute("""
+        SELECT p.id FROM posts p
+        JOIN platform_accounts pa ON pa.id = p.account_id
+        JOIN athlete_profiles a ON a.creatorlens_creator_id = pa.creator_id
+        WHERE a.slug = 'kaia-mercer' LIMIT 2""").fetchall()
+    assert len(posts) == 2, "this test needs two posts by the same athlete"
+
+    assert athlete.post(f"/api/athlete/deals/{deal_id}/deliverables",
+                        json={"post_id": posts[0]["id"]}).status_code == 201
+    assert athlete.post(f"/api/athlete/deals/{deal_id}/complete").status_code == 200
+
+    late = athlete.post(f"/api/athlete/deals/{deal_id}/deliverables",
+                        json={"post_id": posts[1]["id"]})
+    assert late.status_code == 409
+    assert late.json()["detail"] == "deal_not_accepted"
+
+
+def test_disconnecting_a_platform_withdraws_the_posts_it_supplied(sponsor, athlete, db):
+    """Consent is not a one-time grant. The rows stay so historical scores remain
+    reproducible, but a disconnected account's posts stop being offered for
+    attachment and stop being attachable — otherwise an athlete can still sell a
+    permission they have already taken back."""
+    deal_id = _accepted_deal(sponsor, athlete, "withdrawn consent")
+
+    # taken from the endpoint rather than from SQL, so the post is one the
+    # picker would really have offered (it returns a recent slice, not the lot)
+    offered = athlete.get("/api/athlete/posts").json()
+    assert offered, "the demo athlete should have attachable posts"
+    post_id = offered[0]["post_id"]
+    account_id = db.execute("SELECT account_id FROM posts WHERE id = ?",
+                            (post_id,)).fetchone()["account_id"]
+
+    db.execute("UPDATE platform_accounts SET connection_status = 'disconnected' WHERE id = ?",
+               (account_id,))
+    db.commit()
+    try:
+        after = {p["post_id"] for p in athlete.get("/api/athlete/posts").json()}
+        assert post_id not in after
+        res = athlete.post(f"/api/athlete/deals/{deal_id}/deliverables",
+                           json={"post_id": post_id})
+        assert res.status_code == 404
+        assert res.json()["detail"] == "unknown_post"
+        # ...but a failed sync is not a withdrawal. `sync.py` sets 'error' when a
+        # refresh fails, and an expired token must not cost the athlete a post
+        # they really published — this is the line between an operational
+        # problem and a consent decision, and it is easy to tighten by accident.
+        db.execute("UPDATE platform_accounts SET connection_status = 'error' WHERE id = ?",
+                   (account_id,))
+        db.commit()
+        assert post_id in {p["post_id"] for p in athlete.get("/api/athlete/posts").json()}
+        assert athlete.post(f"/api/athlete/deals/{deal_id}/deliverables",
+                            json={"post_id": post_id}).status_code == 201
+    finally:
+        # session-scoped database: leave it exactly as it was found
+        db.execute("UPDATE platform_accounts SET connection_status = 'connected' WHERE id = ?",
+                   (account_id,))
+        db.commit()
+    assert post_id in {p["post_id"] for p in athlete.get("/api/athlete/posts").json()}
+
+
+# ── two processes doing the same thing at the same time ─────────────────────
+
+def test_a_budget_check_can_hold_the_row_it_just_counted(tmp_path):
+    """Counting nominations and then inserting one is only a budget if nothing
+    slips between the two. Two requests arriving together both read the old
+    total, both find room, and both write — so the club mints more floors than
+    the roster size it declared, which is the number that made the declaration
+    checkable in the first place.
+
+    The lock is what closes that window, so this asserts the exclusion is real
+    rather than that the call exists: a second connection must not be able to
+    write while it is held.
+    """
+    path = tmp_path / "lock.db"
+    holder = sqlite3.connect(path)
+    holder.row_factory = sqlite3.Row
+    init_db(holder)
+    assert not holder.in_transaction
+
+    lock_for_update(holder, "club_applications", "club_id", 1)
+    assert holder.in_transaction, "the write transaction must start before the count"
+
+    other = sqlite3.connect(path, timeout=0)
+    with pytest.raises(sqlite3.OperationalError):
+        other.execute("INSERT INTO users (email, password_hash, role, status,"
+                      " token_version, created_at) VALUES"
+                      " ('r@x', 'x', 'athlete', 'active', 1, '2026-01-01T00:00:00Z')")
+        other.commit()
+
+    holder.rollback()
+    other.close()
+    holder.close()
+
+
+def test_a_migration_another_replica_already_ran_is_not_a_crash():
+    """Both schema checks are check-then-act, and two API processes starting
+    together both read the schema before either has changed it: both conclude
+    the migration is needed, and the loser used to crash on boot. What matters
+    is the end state, not which process produced it."""
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    init_db(conn)
+
+    # the race: the statement fails because the column is already there
+    _migrate(conn, "ALTER TABLE deals ADD COLUMN completed_at TEXT", "deals", "completed_at")
+    assert "completed_at" in _columns(conn, "deals")
+
+    # but a failure with nothing to show for it is still a failure
+    with pytest.raises(sqlite3.OperationalError):
+        _migrate(conn, "ALTER TABLE deals ADD COLUMN nonsense_column BAD SYNTAX(",
+                 "deals", "nonsense_column")
+    conn.close()

@@ -12,15 +12,23 @@ one passed a file that was broken:
   * v2 added quoting and self-reference checks, and found six circular formulas
     the same afternoon — but only *direct* ones, `C8` naming `C8`. A cycle that
     goes through another cell, or another sheet, walked straight past it.
+  * v3 made circularity a real dependency graph, and two holes survived it:
+    `Tokenizer` accepts unbalanced parentheses without complaint, and a
+    reference to a sheet that does not exist was *deliberately skipped* on the
+    grounds that it might be a function name — so `=Assumptons!C4`, one letter
+    wrong, passed every check while Excel showed `#REF!`.
 
-So the circularity check is now a real dependency graph over every cell, and a
-self-reference is simply the shortest cycle in it.
+So the circularity check is a dependency graph over every cell, a self-reference
+is simply the shortest cycle in it, and the two v3 holes are now checks of their
+own:
 
     1. DANGLING   a reference to a cell that holds nothing — a silent zero
     2. QUOTING    a sheet name Excel cannot read bare, unquoted
     3. CYCLES     any closed loop of references, of any length, across sheets;
                   Excel stops calculating and shows 0
     4. SYNTAX     anything the formula tokenizer cannot read
+    5. PARENS     brackets that do not balance — which the tokenizer allows
+    6. SHEET      a qualified reference to a sheet the workbook does not have
 
 Not covered, and worth knowing: `OFFSET` and other functions that compute a
 reference at runtime cannot be resolved statically, so their dependencies are
@@ -52,11 +60,18 @@ Cell = tuple[str, int, int]      # sheet, row, column
 
 
 def references(formula: str, here_sheet: str, sheets: set[str]):
-    """Every cell a formula reads, ranges expanded."""
+    """Every cell a formula reads, ranges expanded.
+
+    A name that is not a sheet is skipped here and reported by the caller. The
+    old comment called it "a function name, not a sheet", which is not something
+    this pattern can actually see: the regex only matches a name *followed by a
+    bang*, and Excel functions are not. What it really skipped was every typo in
+    a sheet name.
+    """
     for m in REF.finditer(formula):
         named = m.group("q") or m.group("b")
         if named and named not in sheets:
-            continue                       # a function name, not a sheet
+            continue
         sheet = named or here_sheet
         c1, r1 = column_index_from_string(m.group("c1")), int(m.group("r1"))
         if m.group("c2"):
@@ -129,11 +144,27 @@ def main() -> int:
                     problems.append(f"SYNTAX   {here}: {exc}  [{value[:70]}]")
                     continue
 
+                depth = 0
+                for ch in value:
+                    if ch == "(":
+                        depth += 1
+                    elif ch == ")":
+                        depth -= 1
+                        if depth < 0:
+                            break
+                if depth != 0:
+                    problems.append(
+                        f"PARENS   {here}: brackets do not balance  [{value[:70]}]")
+
                 for m in REF.finditer(value):
                     bare = m.group("b")
                     if bare and bare not in sheets and not BARE_SHEET.match(bare):
                         problems.append(
                             f"QUOTING  {here}: sheet {bare!r} must be quoted  [{value[:70]}]")
+                    named = m.group("q") or bare
+                    if named and named not in sheets:
+                        problems.append(
+                            f"SHEET    {here}: no sheet named {named!r}  [{value[:70]}]")
 
                 node: Cell = (ws.title, cell.row, cell.column)
                 edges = graph.setdefault(node, set())
@@ -161,8 +192,8 @@ def main() -> int:
         if len(problems) > 25:
             print(f"  ... and {len(problems) - 25} more")
         return 1
-    print("no dangling references, no unquoted sheet names, no cycles of any "
-          "length, every formula parses.")
+    print("no dangling references, no unquoted or unknown sheet names, no "
+          "unbalanced brackets, no cycles of any length, every formula parses.")
     return 0
 
 

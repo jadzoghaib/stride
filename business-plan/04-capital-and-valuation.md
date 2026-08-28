@@ -106,7 +106,7 @@ Two methods, because they answer different questions and disagree for a reason.
 <!-- MODEL:valuation -->
 | Valuation (DCF) | Value |
 |---|---|
-| PV of explicit FCF, Y1–Y7 | €11.61M |
+| PV of explicit FCF, Y1–Y10 | €11.61M |
 | Terminal value (g=3%) | €104.32M |
 | PV of terminal value | €11.20M |
 | **Enterprise value (WACC 25%)** | **€22.81M** |
@@ -116,7 +116,7 @@ Two methods, because they answer different questions and disagree for a reason.
 
 
 <!-- MODEL:multiples -->
-| Exit method (Y7) | Multiple | Value AT Y7 | Discounted to today |
+| Exit method (Y10) | Multiple | Value at Y10 | Discounted to today |
 |---|---|---|---|
 | Marketplace comparables | 4.0x revenue | €231.85M | €24.89M |
 | Blended marketplace + SaaS | 6.5x revenue | €376.75M | €40.45M |

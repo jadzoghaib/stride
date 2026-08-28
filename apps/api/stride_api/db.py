@@ -318,6 +318,24 @@ _RENAMED_COLUMNS: tuple[tuple[str, str, str], ...] = tuple(
 )
 
 
+def lock_for_update(conn, table: str, key_column: str, key) -> None:
+    """Serialise a check-then-act sequence on one row, on either backend.
+
+    Counting rows and then inserting one is only correct if nothing else does
+    the same thing in between. On Postgres that means holding a row lock for the
+    rest of the transaction; on SQLite it means starting the write transaction
+    *before* the count, because two connections can otherwise both read the old
+    total and then write in turn, each believing it was under the limit.
+
+    SQLite's lock is database-wide rather than per row, which is heavier than it
+    needs to be and entirely acceptable: this is a rare, human-paced write.
+    """
+    if settings.db_backend == "postgres":
+        conn.execute(f"SELECT 1 FROM {table} WHERE {key_column} = ? FOR UPDATE", (key,))
+    elif not conn.in_transaction:
+        conn.execute("BEGIN IMMEDIATE")
+
+
 def _columns(conn, table: str) -> set[str]:
     if settings.db_backend == "postgres":
         return {r["column_name"] for r in rows(
@@ -326,13 +344,44 @@ def _columns(conn, table: str) -> set[str]:
     return {c["name"] for c in rows(conn, f"PRAGMA table_info({table})")}
 
 
+def _migrate(conn, statement: str, table: str, wanted: str) -> None:
+    """Run one schema statement, tolerating a replica that got there first.
+
+    Both checks below are check-then-act, and two API processes starting
+    together both read the schema before either has changed it — so both decide
+    the migration is needed and the loser crashes on boot. What matters is the
+    end state, not which process produced it: if the column is there afterwards,
+    the migration succeeded regardless of who ran it.
+
+    The savepoint is what makes that recoverable on Postgres, where a failed
+    statement poisons the whole transaction: without it the re-check below would
+    itself fail with "current transaction is aborted", and the fix would only
+    have worked on the backend that did not need it. Rolling back to the
+    savepoint discards the failed statement and nothing else, so the migrations
+    that already succeeded in this transaction survive.
+    """
+    postgres = settings.db_backend == "postgres"
+    if postgres:
+        conn.execute("SAVEPOINT stride_migrate")
+    try:
+        conn.execute(statement)
+    except Exception:
+        if postgres:
+            conn.execute("ROLLBACK TO SAVEPOINT stride_migrate")
+        if wanted not in _columns(conn, table):
+            raise          # a real failure, not a race we already won
+    else:
+        if postgres:
+            conn.execute("RELEASE SAVEPOINT stride_migrate")
+
+
 def _rename_columns(conn) -> None:
     """Idempotent: only fires where the old name is still there and the new one
     is not, so a fresh database and a re-run are both no-ops."""
     for table, old, new in _RENAMED_COLUMNS:
         present = _columns(conn, table)
         if old in present and new not in present:
-            conn.execute(f"ALTER TABLE {table} RENAME COLUMN {old} TO {new}")
+            _migrate(conn, f"ALTER TABLE {table} RENAME COLUMN {old} TO {new}", table, new)
 
 
 def _add_missing_columns(conn) -> None:
@@ -340,10 +389,11 @@ def _add_missing_columns(conn) -> None:
         for table, column, decl in _ADDED_COLUMNS:
             conn.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {decl}")
         return
-    # SQLite has no ADD COLUMN IF NOT EXISTS, so ask first.
+    # SQLite has no ADD COLUMN IF NOT EXISTS, so ask first — and ask again if the
+    # statement fails, because another process may have added it in between.
     for table, column, decl in _ADDED_COLUMNS:
         if column not in _columns(conn, table):
-            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
+            _migrate(conn, f"ALTER TABLE {table} ADD COLUMN {column} {decl}", table, column)
 
 
 def init_db(conn) -> None:

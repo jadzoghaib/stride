@@ -121,11 +121,17 @@ CREATE TABLE deal_deliverables (
 | `GET /api/deals/{id}/performance` | sponsor | Delivered reach and engagement, cost per 1k reach, cost per engagement, actual vs projected, and the posts behind each |
 
 Two guards carry the weight. **Attribution**: an athlete can only attach a post
-from one of their own connected accounts, checked against
-`platform_accounts.creator_id` — without it an athlete could claim someone
+from one of their own accounts and only while that account is still connected —
+checked against `platform_accounts.creator_id` and `connection_status`, so
+disconnecting a platform withdraws the posts it supplied — without it an athlete could claim someone
 else's reach, which would poison the one dataset sponsors are asked to trust.
 **Completeness**: `complete` refuses with `no_deliverables` when nothing is
-attached, so a `completed` deal always has something a sponsor can open.
+attached, so no deal can *reach* `completed` through the API without something a
+sponsor can open. Rows written before that guard existed are not retrofitted —
+the seeded Rio event deal is deliberately one of them, because the honest
+demonstration of an unmeasured deal is an unmeasured deal. A sponsor opening it
+sees `—` rather than a zero, which is the rule the whole measurement view
+follows: unmeasured, not free.
 
 `projected_reach` is captured **when the offer is sent**, from the athlete's
 median reach across platforms. Without it there is nothing to measure against,

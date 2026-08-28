@@ -145,6 +145,10 @@ export default function AthleteDeals() {
         <DeliverDialog
           deal={delivering}
           rules={rules}
+          // Attaching writes to the server but only advanced the dialog's own
+          // state, so closing without delivering left the card behind still
+          // reading "Attach what you posted" over a post that was attached.
+          onAttach={() => void load()}
           onClose={() => setDelivering(null)}
           onDone={() => {
             setDelivering(null)
@@ -182,11 +186,13 @@ function DisclosureNote({ rules }: { rules: ReturnType<typeof disclosure> }) {
 function DeliverDialog({
   deal,
   rules,
+  onAttach,
   onClose,
   onDone,
 }: {
   deal: Deal
   rules: ReturnType<typeof disclosure>
+  onAttach: () => void
   onClose: () => void
   onDone: () => void
 }) {
@@ -205,6 +211,7 @@ function DeliverDialog({
     try {
       await api.post(`/api/athlete/deals/${deal.id}/deliverables`, { post_id: postId })
       setAttached((a) => [...a, postId])
+      onAttach()
     } catch (e) {
       setError(errorText(e))
     } finally {

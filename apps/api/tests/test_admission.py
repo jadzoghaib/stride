@@ -15,14 +15,16 @@ YEAR = 2026
 
 def score(**kw) -> dict:
     application = dict(sport="football", competition_level="regional", years_competing=3,
-                       birth_year=2006, proof_kind="roster", proof_status="verified")
+                       birth_year=2006, proof_kind="roster", proof_status="verified",
+                       proof_url="https://club.example/roster")
     application.update(kw)
     return athlete_credibility(application, today_year=YEAR)
 
 
 def decide(application_overrides=None, **decision_kw) -> dict:
     application = dict(sport="football", competition_level="regional", years_competing=3,
-                       birth_year=2006, proof_kind="roster", proof_status="verified")
+                       birth_year=2006, proof_kind="roster", proof_status="verified",
+                       proof_url="https://club.example/roster")
     application.update(application_overrides or {})
     scored = athlete_credibility(application, today_year=YEAR)
     kw = {"proof_status": application["proof_status"],
@@ -313,3 +315,45 @@ def test_a_hard_disqualification_is_not_outranked_by_an_unfinished_form():
     unknown_age = decide({"birth_year": None, "competition_level": "",
                           "years_competing": None})
     assert unknown_age["decision"] == "pending"
+
+
+def test_a_proof_kind_with_no_link_behind_it_is_not_proof():
+    """Picking "roster" from the dropdown and leaving the link box empty used to
+    buy the full unchecked-link multiplier — 0.55 for evidence that does not
+    exist and that no reviewer can ever resolve either way. It has to score as
+    what it is, which is the same as claiming no proof at all."""
+    real = score(proof_kind="roster", proof_status="unverified",
+                 proof_url="https://club.example/roster")["credibility"]
+    empty = score(proof_kind="roster", proof_status="unverified",
+                  proof_url="")["credibility"]
+    none = score(proof_kind="none", proof_status="unverified")["credibility"]
+    assert empty == none < real
+
+    # a bare scheme is not a link either: the same rule as the reviewer's button
+    assert score(proof_kind="roster", proof_status="unverified",
+                 proof_url="http://")["credibility"] == none
+
+    # and it cannot be laundered into an admission by claiming a strong level
+    verdict = decide({"competition_level": "international", "proof_kind": "results",
+                      "proof_url": "", "proof_status": "unverified"})
+    assert verdict["decision"] != "admitted"
+
+
+def test_a_club_proof_kind_with_no_roster_url_is_not_proof_either():
+    """Clubs have one URL, not two: `roster_url` is both the roster_proof
+    component and the thing the evidence multiplier discounts against. With the
+    URL blank, declaring a proof kind bought a better multiplier than admitting
+    to none — so the claim is held fixed here and only the declaration varies,
+    which is the comparison the earlier version of this test failed to make."""
+    base = dict(registration_id="B-1", federation_name="RFEF", federation_id="F-9",
+                founded_year=1998, teams_count=6, competition_level="regional",
+                roster_url="", proof_status="unverified")
+    claimed = club_legitimacy({**base, "proof_kind": "roster"}, today_year=YEAR)
+    honest = club_legitimacy({**base, "proof_kind": "none"}, today_year=YEAR)
+    assert claimed["legitimacy"] == honest["legitimacy"]
+    assert claimed["evidence_multiplier"] == honest["evidence_multiplier"]
+
+    # a real link still earns the unchecked-link multiplier
+    linked = club_legitimacy({**base, "proof_kind": "roster",
+                              "roster_url": "https://club.example/r"}, today_year=YEAR)
+    assert linked["evidence_multiplier"] > claimed["evidence_multiplier"]

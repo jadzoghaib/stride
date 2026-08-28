@@ -235,6 +235,15 @@ export default function AthleteApplication() {
                          onChange={set('proof_url')} />
                 </FormRow>
               </div>
+              {/* Naming a kind of proof and leaving the box empty scores exactly
+                  the same as claiming none — there is nothing for a reviewer to
+                  open. Better said here than discovered in the verdict. */}
+              {form.proof_kind !== 'none' && !form.proof_url.trim() && (
+                <p className="meta mt-3 text-ink-2">
+                  A {form.proof_kind} with no link counts as no proof: nobody can check it.
+                  Add the page, or set the kind to “none yet”.
+                </p>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-3">

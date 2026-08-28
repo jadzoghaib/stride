@@ -47,6 +47,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from .proofcheck import looks_openable
+
 POLICY_VERSION = "admission-v1"
 
 # ── Evidence ────────────────────────────────────────────────────────────────
@@ -161,7 +163,8 @@ def tenure_value(years_competing: int | None, birth_year: int | None,
     return min(1.0, max(absolute, years_competing / eligible))
 
 
-def evidence_multiplier(proof_kind: str, proof_status: str) -> float:
+def evidence_multiplier(proof_kind: str, proof_status: str,
+                        url: str | None = None) -> float:
     # A failed check outranks the absence of one, and it does so here in the
     # pure function rather than only at the endpoint. Otherwise withdrawing a
     # link that was checked and did not stand up scores better (0.25) than
@@ -171,6 +174,13 @@ def evidence_multiplier(proof_kind: str, proof_status: str) -> float:
     if proof_status == "rejected":
         return EVIDENCE_MULTIPLIER["rejected"]
     if proof_kind not in PROOF_KINDS or proof_kind == "none":
+        return NO_PROOF_MULTIPLIER
+    # Choosing "roster" from the dropdown and leaving the link box empty bought
+    # the same 0.55x as an actual unchecked link. There is nothing there for a
+    # reviewer to open, so it scores as what it is. `looks_openable` rather than
+    # a non-blank test, and imported rather than re-implemented, so the meaning
+    # of "there is a page here" cannot drift from the reviewer's verify button.
+    if url is not None and not looks_openable(url):
         return NO_PROOF_MULTIPLIER
     return EVIDENCE_MULTIPLIER.get(proof_status, EVIDENCE_MULTIPLIER["unverified"])
 
@@ -197,7 +207,8 @@ def athlete_credibility(application: dict, today_year: int | None = None) -> dic
                                application.get("birth_year"), today_year),
     }
     multiplier = evidence_multiplier(application.get("proof_kind") or "none",
-                                     application.get("proof_status") or "unverified")
+                                     application.get("proof_status") or "unverified",
+                                     url=application.get("proof_url") or "")
     # Competition level is the load-bearing claim; without it there is nothing to
     # discount and nothing to check, so the application is incomplete rather than
     # weak. Scoring it anyway would let an applicant omit the one field the whole
@@ -368,8 +379,11 @@ def club_legitimacy(application: dict, today_year: int | None = None) -> dict:
                       if teams is not None else None),
         "roster_proof": 1.0 if (application.get("roster_url") or "").strip() else 0.0,
     }
+    # `roster_url` is the club's proof link — there is no separate field, so the
+    # same URL feeds the roster_proof component and the evidence multiplier.
     multiplier = evidence_multiplier(application.get("proof_kind") or "none",
-                                     application.get("proof_status") or "unverified")
+                                     application.get("proof_status") or "unverified",
+                                     url=application.get("roster_url") or "")
     claim = 100 * _blend(CLUB_WEIGHTS, values)
     legitimacy = min(100.0, claim * multiplier)
 

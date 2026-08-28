@@ -296,7 +296,12 @@ def build() -> pathlib.Path:
         ("EVIDENCE CHAIN", BOLD),
         ("  Comparables (published facts) -> MarketModel (derives ours) -> Assumptions", None),
         ("  -> Drivers -> Revenue and Costs -> statements -> Valuation.", None),
-        ("  Follow any assumption backwards and it ends at a cited number.", None),
+        ("  From Assumptions rightwards every link is a formula you can follow with", None),
+        ("  Trace Precedents. The first arrow is not: MarketModel shows the derivation", None),
+        ("  from the published figures step by step, and Assumptions holds the number", None),
+        ("  it arrives at, entered rather than linked. So the derivation is auditable", None),
+        ("  but it is not enforced -- change a comparable and MarketModel moves while", None),
+        ("  Assumptions does not. Read them side by side before trusting either.", None),
         ("", None),
         ("MODEL SHAPE", BOLD),
         ("This is a target-driven model: athlete counts are the plan, and marketing spend", None),
@@ -317,6 +322,19 @@ def build() -> pathlib.Path:
     def put(label, unit, values, fmt=NUM, key=None, hard=False, const=False, note="",
             derive_note=""):
         nonlocal r
+        # An input that repeats a number already on `model.A` instead of reading
+        # it is a divergence waiting to happen: retune the Python and the
+        # workbook goes on costing the old plan, silently, because both files
+        # still parse. Wherever the key names a real field, the two must agree.
+        if key and hasattr(A, key):
+            expected = getattr(A, key)
+            if isinstance(expected, (int, float)) and not isinstance(expected, bool):
+                assert all(abs(v - expected) < 1e-9 for v in values), (
+                    f"Assumptions row {label!r} writes {values[0]} but model.A.{key} "
+                    f"is {expected} — the workbook and the Python have diverged")
+            elif isinstance(expected, list):
+                assert all(abs(a - b) < 1e-9 for a, b in zip(values, expected)), (
+                    f"Assumptions row {label!r} does not match model.A.{key}")
         A_ROW[key or label] = r
         r = row(a, r, label, unit, values=values, fmt=fmt, hard=hard, const=const)
         if note or derive_note:
@@ -396,17 +414,19 @@ def build() -> pathlib.Path:
     r += 1
 
     r = section(a, r, "WORKING CAPITAL, CAPEX & TAX")
-    put("Athlete payout float", "days", [15] * N, NUM, "float_days", const=True,
+    put("Athlete payout float", "days", [A.float_days] * N, NUM, "float_days", const=True,
         note="We hold fan money before paying athletes — a cash benefit")
-    put("Sponsor receivable days", "days", [45] * N, NUM, "ar_days", const=True)
-    put("Trade payable days", "days", [30] * N, NUM, "ap_days", const=True)
-    put("Capitalised development", "% of people cost", [0.30] * N, PCT, "capex_pct", const=True)
-    put("Amortisation period", "years", [3] * N, '0', "amort_years", const=True)
-    put("Corporate tax — startup rate", "%", [0.15] * N, PCT, "tax_low", hard=True, const=True,
+    put("Sponsor receivable days", "days", [A.ar_days] * N, NUM, "ar_days", const=True)
+    put("Trade payable days", "days", [A.ap_days] * N, NUM, "ap_days", const=True)
+    put("Capitalised development", "% of people cost", [A.capex_pct] * N, PCT, "capex_pct",
+        const=True)
+    put("Amortisation period", "years", [A.amort_years] * N, '0', "amort_years", const=True)
+    put("Corporate tax — startup rate", "%", [A.tax_low] * N, PCT, "tax_low", hard=True, const=True,
         note="Spanish Startup Law, first 4 profitable years")
-    put("Corporate tax — standard rate", "%", [0.25] * N, PCT, "tax_high", hard=True, const=True,
+    put("Corporate tax — standard rate", "%", [A.tax_high] * N, PCT, "tax_high", hard=True, const=True,
         note="Spanish corporate income tax")
-    put("Years at startup rate (from first profit)", "years", [4] * N, '0', "tax_low_years", hard=True, const=True)
+    put("Years at startup rate (from first profit)", "years", [A.tax_low_years] * N, '0',
+        "tax_low_years", hard=True, const=True)
     r += 1
 
     r = section(a, r, "ADMISSION — the gate between an applicant and an athlete")

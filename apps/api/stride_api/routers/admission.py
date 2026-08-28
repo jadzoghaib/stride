@@ -39,7 +39,7 @@ from ..admission import (ADMIT_AT, COMPETITION_LEVELS, PROOF_KINDS, PROOF_STATUS
                          athlete_credibility, club_legitimacy)
 from ..auth import get_db, require_role
 from .. import proofcheck
-from ..db import now_iso, row, rows
+from ..db import lock_for_update, now_iso, row, rows
 
 router = APIRouter(prefix="/api", tags=["admission"])
 
@@ -287,6 +287,11 @@ def nominate(body: NominationIn, user: dict = Depends(require_role("club")),
     if club_app is None or club_app["decision"] != "verified":
         raise HTTPException(403, "club_not_verified")
 
+    # Counting and then inserting is only a budget if nothing slips between the
+    # two. Two nominations posted together both read the old total, both find
+    # room, and both write — so a club could mint more floors than the roster it
+    # declared, which is the one number making that declaration checkable.
+    lock_for_update(conn, "club_applications", "club_id", club["id"])
     used = row(conn, "SELECT COUNT(*) AS n FROM athlete_applications"
                " WHERE nominated_by_club = ?", (club["id"],))["n"]
     if used >= club_app["registered_athletes"]:
