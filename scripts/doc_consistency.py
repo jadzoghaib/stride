@@ -131,7 +131,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # statement twice and a paragraph that quotes both can contradict itself:
     # it said EUR 0.92M a point and EUR 5.3M for five of them.
     ("01-revenue-model.md", "revenue added by moving 15% to 20%",
-     r"15% → 20%\nadds €([\d.]+)M", take_rate_delta() / 1e6, 0.1),
+     r"15% → 20%\s+adds €([\d.]+)M", take_rate_delta() / 1e6, 0.1),
 
     ("11-admission-and-matching.md", "Y10 blended admission rate",
      r"admission rate climbs from 20% to (\d+)%", Y10["admit_rate"] * 100, 0.6),

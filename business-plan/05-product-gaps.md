@@ -121,14 +121,17 @@ CREATE TABLE deal_deliverables (
 | `GET /api/deals/{id}/performance` | sponsor | Delivered reach and engagement, cost per 1k reach, cost per engagement, actual vs projected, and the posts behind each |
 
 Two guards carry the weight. **Attribution**: an athlete can only attach a post
-from one of their own accounts, and not from one they have disconnected —
-checked against `platform_accounts.creator_id` and `connection_status`.
-Disconnecting blocks *further* attachments from that platform; it does not
-retract deliverables already attached, which stay in the sponsor's report
-because that report is a record of what was delivered, not a live view. An
-account in `error` state (a failed token refresh) is still attachable: that is
-an operational problem, not a withdrawal of consent — without it an athlete could claim someone
-else's reach, which would poison the one dataset sponsors are asked to trust.
+from one of their own accounts, checked against `platform_accounts.creator_id` —
+without it an athlete could claim someone else's reach, which would poison the
+one dataset sponsors are asked to trust. The same query also excludes accounts
+they have disconnected, because consent is not a one-time grant: the rows are
+kept so past scores stay reproducible, but a platform you have taken back should
+not still be earning. Two limits on that are deliberate. Disconnecting blocks
+*further* attachments; it does not retract deliverables already attached, which
+remain in the sponsor's report because that report records what was delivered
+rather than what is currently connected. And an account in `error` state — a
+failed token refresh — stays attachable, because a broken sync is an operational
+problem and not a decision the athlete made.
 **Completeness**: `complete` refuses with `no_deliverables` when nothing is
 attached, so no deal can *reach* `completed` through the API without something a
 sponsor can open. Rows written before that guard existed are not retrofitted —

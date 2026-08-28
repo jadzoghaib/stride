@@ -386,7 +386,10 @@ def club_legitimacy(application: dict, today_year: int | None = None) -> dict:
                       if founded else None),
         "structure": (min(1.0, teams / CLUB_STRUCTURE_FULL_TEAMS)
                       if teams is not None else None),
-        "roster_proof": 1.0 if (application.get("roster_url") or "").strip() else 0.0,
+        # `looks_openable`, not a non-blank test: `http://` earned this component
+        # in full while the evidence multiplier below already treated it as no
+        # proof, so one URL was scored two different ways in the same function.
+        "roster_proof": 1.0 if looks_openable(application.get("roster_url") or "") else 0.0,
     }
     # `roster_url` is the club's proof link — there is no separate field, so the
     # same URL feeds the roster_proof component and the evidence multiplier.
@@ -424,6 +427,20 @@ def club_legitimacy(application: dict, today_year: int | None = None) -> dict:
         reasons.append(f"Operating since {founded}")
     if values["structure"] is None:
         caveats.append("Team count not supplied — excluded from the score")
+    # The clubs had no line about their evidence at all, so a club discounted to
+    # a quarter of its claim for naming a proof kind it never linked was told
+    # nothing about the largest single factor in its own score.
+    if not looks_openable(application.get("roster_url") or ""):
+        named = application.get("proof_kind") or "none"
+        caveats.append(
+            f"A {named} was named but no page was linked — nothing to check, so the "
+            f"claim is discounted to {int(NO_PROOF_MULTIPLIER * 100)}% of its face value"
+            if named in PROOF_KINDS and named != "none" else
+            "No roster or licence page linked — there is nothing a reviewer can open")
+    else:
+        state = application.get("proof_status") or "unverified"
+        (reasons if state == "verified" else caveats).append(
+            f"Roster page supplied, {state}")
 
     return {
         "legitimacy": round(legitimacy, 1),

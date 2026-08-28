@@ -373,3 +373,28 @@ def test_the_caveat_says_the_same_thing_as_the_score():
     real = score(proof_kind="roster", proof_status="unverified",
                  proof_url="https://club.example/roster")
     assert any("roster link, unverified" in c for c in real["caveats"])
+
+
+def test_a_club_is_told_what_its_evidence_was_worth():
+    """The club scorer explained registration, federation, longevity and team
+    count, and said nothing whatever about the roster link — which is the
+    largest single factor in the number. A club discounted to a quarter of its
+    claim could not tell which field to fix."""
+    base = dict(registration_id="B-1", federation_name="RFEF", federation_id="F-9",
+                founded_year=1998, teams_count=6, competition_level="regional",
+                proof_status="unverified")
+    silent = club_legitimacy({**base, "proof_kind": "roster", "roster_url": ""},
+                             today_year=YEAR)
+    assert any("no page was linked" in c for c in silent["caveats"])
+
+    # a bare scheme is not a page, and must not earn the roster_proof component
+    bare = club_legitimacy({**base, "proof_kind": "roster", "roster_url": "http://"},
+                           today_year=YEAR)
+    assert bare["components"]["roster_proof"] == 0.0
+    assert bare["legitimacy"] == silent["legitimacy"]
+
+    linked = club_legitimacy({**base, "proof_kind": "roster",
+                              "roster_url": "https://club.example/r"}, today_year=YEAR)
+    assert linked["components"]["roster_proof"] == 1.0
+    assert any("Roster page supplied" in c for c in linked["caveats"])
+    assert linked["legitimacy"] > silent["legitimacy"]

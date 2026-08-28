@@ -58,7 +58,12 @@ export default function ReviewQueue() {
   const [verifiedClubs, setVerifiedClubs] = useState<ClubApplication[]>([])
   const [loaded, setLoaded] = useState(false)
   const [failed, setFailed] = useState<Partial<Record<QueueName, string>>>({})
+  // Two different failures, deliberately not one state. `error` is a banner
+  // over a page that still works — a decision that did not post. `loadError` is
+  // the page having nothing to show at all. Collapsing them meant a failed
+  // decision blanked the whole queue, which is worse than what it replaced.
   const [error, setError] = useState('')
+  const [loadError, setLoadError] = useState('')
   const [busy, setBusy] = useState<number | null>(null)
   const [revoking, setRevoking] = useState<ClubApplication | null>(null)
   const toast = useToast()
@@ -92,13 +97,14 @@ export default function ReviewQueue() {
     take(verified, 'verified', setVerifiedClubs)
 
     setFailed(trouble)
-    setError(Object.keys(trouble).length === 3 ? Object.values(trouble)[0] : '')
+    setLoadError(Object.keys(trouble).length === 3 ? Object.values(trouble)[0] : '')
+    setError('')
     setLoaded(true)
   }
 
   useEffect(() => {
     load().catch((e) => {
-      setError(errorText(e))
+      setLoadError(errorText(e))
       setLoaded(true)
     })
   }, [])
@@ -148,7 +154,7 @@ export default function ReviewQueue() {
   // Only a total failure is a page-level error now. One queue down is a note on
   // that queue, with the other two still usable.
   if (!loaded) return <PageLoading />
-  if (error) return <LoadError text={error} />
+  if (loadError) return <LoadError text={loadError} />
 
   // Only a supplied link can be checked — the server refuses `verified`
   // without one, so the control says so rather than returning an error.
