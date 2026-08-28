@@ -39,7 +39,7 @@ from ..admission import (ADMIT_AT, COMPETITION_LEVELS, PROOF_KINDS, PROOF_STATUS
                          athlete_credibility, club_legitimacy)
 from ..auth import get_db, require_role
 from .. import proofcheck
-from ..db import now_iso, row, rows
+from ..db import lock_for_update, now_iso, row, rows
 
 router = APIRouter(prefix="/api", tags=["admission"])
 
@@ -283,6 +283,17 @@ def nominate(body: NominationIn, user: dict = Depends(require_role("club")),
     outright — see this module's docstring for why that distinction is the whole
     security model of club onboarding."""
     club = _own_club(conn, user)
+
+    # Counting and then inserting is only a budget if nothing slips between the
+    # two. Two nominations posted together both read the old total, both find
+    # room, and both write — so a club could mint more floors than the roster it
+    # declared, which is the one number making that declaration checkable.
+    #
+    # The lock is taken *before* the read, not after it. Locking and then
+    # trusting values fetched beforehand protects nothing: `decision` and
+    # `registered_athletes` may both have moved, so a club revoked mid-request
+    # would still nominate, against the roster size it used to claim.
+    lock_for_update(conn, "club_applications", "club_id", club["id"])
     club_app = row(conn, "SELECT * FROM club_applications WHERE club_id = ?", (club["id"],))
     if club_app is None or club_app["decision"] != "verified":
         raise HTTPException(403, "club_not_verified")

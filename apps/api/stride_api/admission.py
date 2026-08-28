@@ -47,6 +47,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from .proofcheck import looks_openable
+
 POLICY_VERSION = "admission-v1"
 
 # ── Evidence ────────────────────────────────────────────────────────────────
@@ -161,7 +163,8 @@ def tenure_value(years_competing: int | None, birth_year: int | None,
     return min(1.0, max(absolute, years_competing / eligible))
 
 
-def evidence_multiplier(proof_kind: str, proof_status: str) -> float:
+def evidence_multiplier(proof_kind: str, proof_status: str,
+                        url: str | None = None) -> float:
     # A failed check outranks the absence of one, and it does so here in the
     # pure function rather than only at the endpoint. Otherwise withdrawing a
     # link that was checked and did not stand up scores better (0.25) than
@@ -171,6 +174,13 @@ def evidence_multiplier(proof_kind: str, proof_status: str) -> float:
     if proof_status == "rejected":
         return EVIDENCE_MULTIPLIER["rejected"]
     if proof_kind not in PROOF_KINDS or proof_kind == "none":
+        return NO_PROOF_MULTIPLIER
+    # Choosing "roster" from the dropdown and leaving the link box empty bought
+    # the same 0.55x as an actual unchecked link. There is nothing there for a
+    # reviewer to open, so it scores as what it is. `looks_openable` rather than
+    # a non-blank test, and imported rather than re-implemented, so the meaning
+    # of "there is a page here" cannot drift from the reviewer's verify button.
+    if url is not None and not looks_openable(url):
         return NO_PROOF_MULTIPLIER
     return EVIDENCE_MULTIPLIER.get(proof_status, EVIDENCE_MULTIPLIER["unverified"])
 
@@ -197,7 +207,8 @@ def athlete_credibility(application: dict, today_year: int | None = None) -> dic
                                application.get("birth_year"), today_year),
     }
     multiplier = evidence_multiplier(application.get("proof_kind") or "none",
-                                     application.get("proof_status") or "unverified")
+                                     application.get("proof_status") or "unverified",
+                                     url=application.get("proof_url") or "")
     # Competition level is the load-bearing claim; without it there is nothing to
     # discount and nothing to check, so the application is incomplete rather than
     # weak. Scoring it anyway would let an applicant omit the one field the whole
@@ -222,13 +233,25 @@ def athlete_credibility(application: dict, today_year: int | None = None) -> dic
         caveats.append("Seasons competing not supplied — scored as zero, not excluded")
     if values["tenure"] is not None and values["tenure"] >= 0.6:
         reasons.append(f"{application.get('years_competing')} seasons competing")
-    if application.get("proof_kind") in ("roster", "results", "licence"):
+    # Gated on the same openability test the multiplier uses. A declared kind
+    # with nothing behind it scores as no proof, so it has to *read* as no proof:
+    # an applicant told "roster link, unchecked" while being charged the no-proof
+    # rate cannot tell which number to argue with.
+    if (application.get("proof_kind") in ("roster", "results", "licence")
+            and looks_openable(application.get("proof_url") or "")):
         state = application.get("proof_status") or "unverified"
         (reasons if state == "verified" else caveats).append(
             f"Proof of participation: {application['proof_kind']} link, {state}")
+    elif application.get("proof_kind") in ("roster", "results", "licence"):
+        # `multiplier`, not the constant: a rejected proof short-circuits to 0.10
+        # before the openability test ever runs, so quoting NO_PROOF_MULTIPLIER
+        # here told an applicant 25% while charging them 10%.
+        caveats.append(f"A {application['proof_kind']} was named but no link was supplied — "
+                       "there is nothing for a reviewer to open, so the claim is discounted "
+                       f"to {int(multiplier * 100)}% of its face value")
     else:
         caveats.append("No proof of participation supplied — claim discounted to "
-                       f"{int(NO_PROOF_MULTIPLIER * 100)}% of its face value")
+                       f"{int(multiplier * 100)}% of its face value")
 
     return {
         "credibility": round(credibility, 1),
@@ -366,10 +389,16 @@ def club_legitimacy(application: dict, today_year: int | None = None) -> dict:
                       if founded else None),
         "structure": (min(1.0, teams / CLUB_STRUCTURE_FULL_TEAMS)
                       if teams is not None else None),
-        "roster_proof": 1.0 if (application.get("roster_url") or "").strip() else 0.0,
+        # `looks_openable`, not a non-blank test: `http://` earned this component
+        # in full while the evidence multiplier below already treated it as no
+        # proof, so one URL was scored two different ways in the same function.
+        "roster_proof": 1.0 if looks_openable(application.get("roster_url") or "") else 0.0,
     }
+    # `roster_url` is the club's proof link — there is no separate field, so the
+    # same URL feeds the roster_proof component and the evidence multiplier.
     multiplier = evidence_multiplier(application.get("proof_kind") or "none",
-                                     application.get("proof_status") or "unverified")
+                                     application.get("proof_status") or "unverified",
+                                     url=application.get("roster_url") or "")
     claim = 100 * _blend(CLUB_WEIGHTS, values)
     legitimacy = min(100.0, claim * multiplier)
 
@@ -401,6 +430,37 @@ def club_legitimacy(application: dict, today_year: int | None = None) -> dict:
         reasons.append(f"Operating since {founded}")
     if values["structure"] is None:
         caveats.append("Team count not supplied — excluded from the score")
+    # The clubs had no line about their evidence at all, so a club discounted to
+    # a quarter of its claim for naming a proof kind it never linked was told
+    # nothing about the largest single factor in its own score.
+    #
+    # Both halves are gated on the *declaration* as well as the link, because the
+    # multiplier is: a roster page supplied under `proof_kind: none` still scores
+    # as no proof, and calling that "roster page supplied" praised evidence the
+    # score had already thrown away. The percentage comes from `multiplier` for
+    # the same reason — a rejected proof is 0.10, not the no-proof 0.25.
+    named = application.get("proof_kind") or "none"
+    declared = named in PROOF_KINDS and named != "none"
+    linked = looks_openable(application.get("roster_url") or "")
+    if declared and linked:
+        state = application.get("proof_status") or "unverified"
+        (reasons if state == "verified" else caveats).append(
+            f"Roster page supplied, {state}")
+    elif declared:
+        caveats.append(f"A {named} was named but no page was linked — nothing to check, so "
+                       f"the claim is discounted to {int(multiplier * 100)}% of its face value")
+    elif linked:
+        # Careful about "ignored": `roster_proof` credits any openable URL, so the
+        # page does raise the claim. What it does not do is earn an evidence
+        # multiplier, because nothing says what a reviewer is meant to check.
+        caveats.append("A page is linked and counts towards the claim, but no kind of proof "
+                       "is declared, so nobody knows what to check it against — the claim is "
+                       f"discounted to {int(multiplier * 100)}% of its face value. Name what "
+                       "the page is.")
+    else:
+        caveats.append("No roster or licence page linked — there is nothing a reviewer can "
+                       f"open, so the claim is discounted to {int(multiplier * 100)}% of "
+                       "its face value")
 
     return {
         "legitimacy": round(legitimacy, 1),

@@ -7,6 +7,8 @@ written as the counter-example rather than as a range check on a number.
 
 from __future__ import annotations
 
+import re
+
 from stride_api.admission import (ADMIT_AT, admission_decision, athlete_credibility,
                                   club_legitimacy, nomination_floor, tenure_value)
 
@@ -15,14 +17,16 @@ YEAR = 2026
 
 def score(**kw) -> dict:
     application = dict(sport="football", competition_level="regional", years_competing=3,
-                       birth_year=2006, proof_kind="roster", proof_status="verified")
+                       birth_year=2006, proof_kind="roster", proof_status="verified",
+                       proof_url="https://club.example/roster")
     application.update(kw)
     return athlete_credibility(application, today_year=YEAR)
 
 
 def decide(application_overrides=None, **decision_kw) -> dict:
     application = dict(sport="football", competition_level="regional", years_competing=3,
-                       birth_year=2006, proof_kind="roster", proof_status="verified")
+                       birth_year=2006, proof_kind="roster", proof_status="verified",
+                       proof_url="https://club.example/roster")
     application.update(application_overrides or {})
     scored = athlete_credibility(application, today_year=YEAR)
     kw = {"proof_status": application["proof_status"],
@@ -313,3 +317,120 @@ def test_a_hard_disqualification_is_not_outranked_by_an_unfinished_form():
     unknown_age = decide({"birth_year": None, "competition_level": "",
                           "years_competing": None})
     assert unknown_age["decision"] == "pending"
+
+
+def test_a_proof_kind_with_no_link_behind_it_is_not_proof():
+    """Picking "roster" from the dropdown and leaving the link box empty used to
+    buy the full unchecked-link multiplier — 0.55 for evidence that does not
+    exist and that no reviewer can ever resolve either way. It has to score as
+    what it is, which is the same as claiming no proof at all."""
+    real = score(proof_kind="roster", proof_status="unverified",
+                 proof_url="https://club.example/roster")["credibility"]
+    empty = score(proof_kind="roster", proof_status="unverified",
+                  proof_url="")["credibility"]
+    none = score(proof_kind="none", proof_status="unverified")["credibility"]
+    assert empty == none < real
+
+    # a bare scheme is not a link either: the same rule as the reviewer's button
+    assert score(proof_kind="roster", proof_status="unverified",
+                 proof_url="http://")["credibility"] == none
+
+    # and it cannot be laundered into an admission by claiming a strong level
+    verdict = decide({"competition_level": "international", "proof_kind": "results",
+                      "proof_url": "", "proof_status": "unverified"})
+    assert verdict["decision"] != "admitted"
+
+
+def test_a_club_proof_kind_with_no_roster_url_is_not_proof_either():
+    """Clubs have one URL, not two: `roster_url` is both the roster_proof
+    component and the thing the evidence multiplier discounts against. With the
+    URL blank, declaring a proof kind bought a better multiplier than admitting
+    to none — so the claim is held fixed here and only the declaration varies,
+    which is the comparison the earlier version of this test failed to make."""
+    base = dict(registration_id="B-1", federation_name="RFEF", federation_id="F-9",
+                founded_year=1998, teams_count=6, competition_level="regional",
+                roster_url="", proof_status="unverified")
+    claimed = club_legitimacy({**base, "proof_kind": "roster"}, today_year=YEAR)
+    honest = club_legitimacy({**base, "proof_kind": "none"}, today_year=YEAR)
+    assert claimed["legitimacy"] == honest["legitimacy"]
+    assert claimed["evidence_multiplier"] == honest["evidence_multiplier"]
+
+    # a real link still earns the unchecked-link multiplier
+    linked = club_legitimacy({**base, "proof_kind": "roster",
+                              "roster_url": "https://club.example/r"}, today_year=YEAR)
+    assert linked["evidence_multiplier"] > claimed["evidence_multiplier"]
+
+
+def test_the_caveat_says_the_same_thing_as_the_score():
+    """An applicant charged the no-proof rate was still told "roster link,
+    unverified", which describes the 0.55x they did not get. A reason that
+    contradicts the number is worse than no reason: it tells them to argue with
+    the wrong thing."""
+    empty = score(proof_kind="roster", proof_status="unverified", proof_url="")
+    text = " ".join(empty["caveats"]).lower()
+    assert "no link was supplied" in text
+    assert "roster link, unverified" not in text
+    assert str(int(0.25 * 100)) + "%" in text
+
+    real = score(proof_kind="roster", proof_status="unverified",
+                 proof_url="https://club.example/roster")
+    assert any("roster link, unverified" in c for c in real["caveats"])
+
+
+def test_a_club_is_told_what_its_evidence_was_worth():
+    """The club scorer explained registration, federation, longevity and team
+    count, and said nothing whatever about the roster link — which is the
+    largest single factor in the number. A club discounted to a quarter of its
+    claim could not tell which field to fix."""
+    base = dict(registration_id="B-1", federation_name="RFEF", federation_id="F-9",
+                founded_year=1998, teams_count=6, competition_level="regional",
+                proof_status="unverified")
+    silent = club_legitimacy({**base, "proof_kind": "roster", "roster_url": ""},
+                             today_year=YEAR)
+    assert any("no page was linked" in c for c in silent["caveats"])
+
+    # a bare scheme is not a page, and must not earn the roster_proof component
+    bare = club_legitimacy({**base, "proof_kind": "roster", "roster_url": "http://"},
+                           today_year=YEAR)
+    assert bare["components"]["roster_proof"] == 0.0
+    assert bare["legitimacy"] == silent["legitimacy"]
+
+    linked = club_legitimacy({**base, "proof_kind": "roster",
+                              "roster_url": "https://club.example/r"}, today_year=YEAR)
+    assert linked["components"]["roster_proof"] == 1.0
+    assert any("Roster page supplied" in c for c in linked["caveats"])
+    assert linked["legitimacy"] > silent["legitimacy"]
+
+
+def test_the_percentage_in_the_caveat_is_the_one_that_was_applied():
+    """Every caveat that quotes a discount used to quote the policy *constant*,
+    so a rejected proof — which short-circuits to 0.10 before the openability
+    test runs — told the applicant 25% while charging them 10%. A number in the
+    explanation that is not the number in the score is worse than no number."""
+    def quoted(result):
+        found = {int(m) for m in re.findall(r"(\d+)% of its face value",
+                                            " ".join(result["caveats"]))}
+        assert len(found) == 1, result["caveats"]
+        return found.pop()
+
+    for status, expected in (("unverified", 25), ("rejected", 10)):
+        athlete = score(proof_kind="roster", proof_status=status, proof_url="")
+        assert quoted(athlete) == int(athlete["evidence_multiplier"] * 100) == expected
+
+        club = club_legitimacy(dict(registration_id="B-1", federation_name="F",
+                                    federation_id="9", founded_year=1998, teams_count=6,
+                                    competition_level="regional", proof_kind="roster",
+                                    proof_status=status, roster_url=""), today_year=YEAR)
+        assert quoted(club) == int(club["evidence_multiplier"] * 100) == expected
+
+
+def test_a_club_page_with_no_declared_kind_is_not_called_evidence():
+    """`proof_kind: none` scores as no proof whatever the URL says, so the
+    caveat may not congratulate the club on a page the multiplier discarded."""
+    club = club_legitimacy(dict(registration_id="B-1", federation_name="F", federation_id="9",
+                                founded_year=1998, teams_count=6, competition_level="regional",
+                                proof_kind="none", proof_status="unverified",
+                                roster_url="https://club.example/r"), today_year=YEAR)
+    assert club["evidence_multiplier"] == 0.25
+    assert not any("Roster page supplied" in t for t in club["reasons"] + club["caveats"])
+    assert any("no kind of proof is declared" in c for c in club["caveats"])

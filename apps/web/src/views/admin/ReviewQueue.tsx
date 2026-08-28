@@ -18,14 +18,52 @@ import { EmptyNote, LoadError, Modal, PageHeader, PageLoading, Section, StatusCh
 import { api, errorText } from '../../lib/api'
 import { fmtDate } from '../../lib/format'
 import { useToast } from '../../lib/toast'
+import { openable } from '../../lib/url'
 import type { AdmissionVerdict, AthleteApplication, ClubApplication, ClubLegitimacy } from '../../types'
 import { DECISION_COPY, proofStatusLabel } from '../../types'
 
+type QueueName = 'athletes' | 'clubs' | 'verified'
+
+/** Both endpoints cap at 500. Ask for the maximum and say so when the list comes
+ *  back full: the default of 100 silently hid the revoke control for every club
+ *  past the hundredth, and a truncated queue looks exactly like a finished one. */
+const QUEUE_LIMIT = 500
+
+/** What a section says about itself when it is not a full, healthy list.
+ *  "there may be more" rather than "there are more": a list of exactly the
+ *  limit is indistinguishable from a truncated one without a count from the
+ *  server, and claiming certainty either way would be made up. */
+function QueueNote({ failure, shown, otherwise = '' }:
+                   { failure?: string; shown: number; otherwise?: string }) {
+  if (failure) return <span className="meta text-critical">could not be loaded</span>
+  if (shown >= QUEUE_LIMIT) {
+    return <span className="meta">showing the first {QUEUE_LIMIT} — there may be more</span>
+  }
+  return otherwise ? <span className="meta">{otherwise}</span> : null
+}
+
+/** Said in place of the empty state, because "nothing waiting" is the one thing
+ *  a reviewer must not be told when the truth is that nobody asked. */
+function QueueFailed({ what, why }: { what: string; why: string }) {
+  return (
+    <div className="rounded border border-critical/45 bg-critical/10 px-3.5 py-2.5 text-sm text-critical">
+      Could not load {what}: {why}. The other queues on this page are unaffected.
+    </div>
+  )
+}
+
 export default function ReviewQueue() {
-  const [athletes, setAthletes] = useState<AthleteApplication[] | null>(null)
-  const [clubs, setClubs] = useState<ClubApplication[] | null>(null)
+  const [athletes, setAthletes] = useState<AthleteApplication[]>([])
+  const [clubs, setClubs] = useState<ClubApplication[]>([])
   const [verifiedClubs, setVerifiedClubs] = useState<ClubApplication[]>([])
+  const [loaded, setLoaded] = useState(false)
+  const [failed, setFailed] = useState<Partial<Record<QueueName, string>>>({})
+  // Two different failures, deliberately not one state. `error` is a banner
+  // over a page that still works — a decision that did not post. `loadError` is
+  // the page having nothing to show at all. Collapsing them meant a failed
+  // decision blanked the whole queue, which is worse than what it replaced.
   const [error, setError] = useState('')
+  const [loadError, setLoadError] = useState('')
   const [busy, setBusy] = useState<number | null>(null)
   const [revoking, setRevoking] = useState<ClubApplication | null>(null)
   const toast = useToast()
@@ -35,18 +73,45 @@ export default function ReviewQueue() {
     // only ever meaningful for a club that IS verified, and the first version
     // of this view listed the review queue alone — so the one control that can
     // undo a verification never rendered for any club that had one.
-    const [a, waiting, verified] = await Promise.all([
-      api.get<AthleteApplication[]>('/api/admin/review-queue?decision=review'),
-      api.get<ClubApplication[]>('/api/admin/club-queue?decision=review'),
-      api.get<ClubApplication[]>('/api/admin/club-queue?decision=verified'),
+    //
+    // `allSettled`, not `all`: these are three independent queues, and under
+    // `all` a single failing request rejected the whole load, so one broken
+    // query emptied the other two lists as well. A reviewer cannot tell an
+    // empty queue from a failed one, so that read as "nothing to review".
+    const [a, waiting, verified] = await Promise.allSettled([
+      api.get<AthleteApplication[]>(`/api/admin/review-queue?decision=review&limit=${QUEUE_LIMIT}`),
+      api.get<ClubApplication[]>(`/api/admin/club-queue?decision=review&limit=${QUEUE_LIMIT}`),
+      api.get<ClubApplication[]>(`/api/admin/club-queue?decision=verified&limit=${QUEUE_LIMIT}`),
     ])
-    setAthletes(a)
-    setClubs(waiting)
-    setVerifiedClubs(verified)
+
+    // A rejected queue becomes an empty list *and* a recorded failure. Leaving
+    // it null was what made `allSettled` pointless: the page-level guard below
+    // saw the null and rendered an error over the two queues that did load.
+    const trouble: Partial<Record<QueueName, string>> = {}
+    const take = <T,>(r: PromiseSettledResult<T>, name: QueueName, set: (v: T) => void) => {
+      if (r.status === 'fulfilled') set(r.value)
+      else trouble[name] = errorText(r.reason)
+    }
+    take(a, 'athletes', setAthletes)
+    take(waiting, 'clubs', setClubs)
+    take(verified, 'verified', setVerifiedClubs)
+
+    setFailed(trouble)
+    // Only the load's own failure is set here. The action banner is owned by the
+    // handler that raises it, which also clears it when the action is retried —
+    // so `load()` writing to it as well was a second writer to one piece of
+    // state and nothing more. (Removing it does not make a failed decision's
+    // banner survive a later successful one: the handlers clear on retry, by
+    // design. It is one less place that can start disagreeing.)
+    setLoadError(Object.keys(trouble).length === 3 ? Object.values(trouble)[0] : '')
+    setLoaded(true)
   }
 
   useEffect(() => {
-    load().catch((e) => setError(errorText(e)))
+    load().catch((e) => {
+      setLoadError(errorText(e))
+      setLoaded(true)
+    })
   }, [])
 
   const decideAthlete = async (application: AthleteApplication, proof_status: string) => {
@@ -91,20 +156,15 @@ export default function ReviewQueue() {
     }
   }
 
-  if (!athletes || !clubs) return error ? <LoadError text={error} /> : <PageLoading />
+  // Only a total failure is a page-level error now. One queue down is a note on
+  // that queue, with the other two still usable.
+  if (!loaded) return <PageLoading />
+  if (loadError) return <LoadError text={loadError} />
 
-  /** Only a supplied link can be checked — the server refuses `verified`
-   *  without one, so the control says so rather than returning an error. */
-  const openable = (url: string) => {
-    // A scheme is not a link. `http://` passes /^https?:\/\//, enabling the
-    // verify button on an application with nothing to open behind it.
-    try {
-      const parsed = new URL((url || '').trim())
-      return (parsed.protocol === 'http:' || parsed.protocol === 'https:') && !!parsed.hostname
-    } catch {
-      return false
-    }
-  }
+  // Only a supplied link can be checked — the server refuses `verified`
+  // without one, so the control says so rather than returning an error.
+  // `openable` is imported rather than defined here: it has to stay the same
+  // rule as the server's, and a copy is how two rules become one bug.
 
   return (
     <div>
@@ -112,7 +172,12 @@ export default function ReviewQueue() {
         eyebrow="Operations"
         title="Review queue"
         lede="Open the link, decide whether it names the applicant. Almost nothing here is a judgement call — which is the argument for eventually doing it with a crawler."
-        aside={<span className="meta">{athletes.length + clubs.length} waiting</span>}
+        aside={
+          <span className="meta">
+            {athletes.length + clubs.length} waiting
+            {(failed.athletes || failed.clubs) && ' (count incomplete — a queue failed to load)'}
+          </span>
+        }
       />
       {error && (
         <div className="mb-4 rounded border border-critical/45 bg-critical/10 px-3.5 py-2.5 text-sm text-critical">
@@ -120,8 +185,11 @@ export default function ReviewQueue() {
         </div>
       )}
 
-      <Section title={`Athletes (${athletes.length})`}>
-        {athletes.length === 0 ? (
+      <Section title={`Athletes (${athletes.length})`}
+               aside={<QueueNote failure={failed.athletes} shown={athletes.length} />}>
+        {failed.athletes ? (
+          <QueueFailed what="athlete applications" why={failed.athletes} />
+        ) : athletes.length === 0 ? (
           <EmptyNote text="Nothing waiting. Applications arrive here when a claim clears the review floor but the evidence has not been checked." />
         ) : (
           <div className="space-y-3">
@@ -195,8 +263,11 @@ export default function ReviewQueue() {
         )}
       </Section>
 
-      <Section title={`Clubs (${clubs.length})`}>
-        {clubs.length === 0 ? (
+      <Section title={`Clubs (${clubs.length})`}
+               aside={<QueueNote failure={failed.clubs} shown={clubs.length} />}>
+        {failed.clubs ? (
+          <QueueFailed what="clubs awaiting verification" why={failed.clubs} />
+        ) : clubs.length === 0 ? (
           <EmptyNote text="No clubs waiting on verification." />
         ) : (
           <div className="space-y-3">
@@ -259,9 +330,14 @@ export default function ReviewQueue() {
 
       <Section
         title={`Verified clubs (${verifiedClubs.length})`}
-        aside={<span className="meta">each can nominate; each can be withdrawn</span>}
+        aside={
+          <QueueNote failure={failed.verified} shown={verifiedClubs.length}
+                     otherwise="each can nominate; each can be withdrawn" />
+        }
       >
-        {verifiedClubs.length === 0 ? (
+        {failed.verified ? (
+          <QueueFailed what="verified clubs" why={failed.verified} />
+        ) : verifiedClubs.length === 0 ? (
           <EmptyNote text="No verified clubs yet. A club appears here once its roster page has been checked." />
         ) : (
           <table className="w-full text-sm">

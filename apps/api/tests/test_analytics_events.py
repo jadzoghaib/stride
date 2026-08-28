@@ -20,6 +20,7 @@ import pytest
 from creatorlens.db import SCHEMA as CREATORLENS_SCHEMA
 from stride_api.analytics import (CONTENT_UNLOCKED, FAN_EVENTS, PAYWALL_VIEWED,
                                   REQUIRED_DIMENSIONS, SUBSCRIPTION_CANCELLED,
+                                  SUBSCRIPTION_EVENTS,
                                   SUBSCRIPTION_STARTED, TIP_SENT, MissingDimension,
                                   log_fan_event)
 
@@ -68,7 +69,11 @@ def test_events_land_in_the_audit_log_with_their_dimensions(db):
 @pytest.mark.parametrize("event", [SUBSCRIPTION_CANCELLED, CONTENT_UNLOCKED,
                                    TIP_SENT, PAYWALL_VIEWED])
 def test_all_five_events_are_writable(db, event):
-    log_fan_event(db, event, athlete_id=1, sport="Trail", country="Spain", tier="supporter")
+    # the subscription pair carries a fan identity; the other three need none,
+    # because nothing later has to be joined back to them
+    extra = {"fan_user_id": 42} if event in SUBSCRIPTION_EVENTS else {}
+    log_fan_event(db, event, athlete_id=1, sport="Trail", country="Spain",
+                  tier="supporter", **extra)
     db.commit()
     assert db.execute("SELECT COUNT(*) c FROM events WHERE event_type = ?",
                       (event,)).fetchone()["c"] >= 1
@@ -84,3 +89,48 @@ def test_unknown_event_is_rejected(db):
     with pytest.raises(ValueError):
         log_fan_event(db, "subscription.renewed", athlete_id=1, sport="Padel",
                       country="Spain", tier="insider")
+
+
+def test_a_subscription_without_a_fan_identity_cannot_be_written(db):
+    """A start and a cancellation are one fact recorded twice, months apart.
+    Without fan_user_id there is nothing to join them on, so the cohort churn
+    rate these events exist to produce is unrecoverable — and unrecoverable
+    silently, which is why it fails here instead."""
+    for event in SUBSCRIPTION_EVENTS:
+        with pytest.raises(MissingDimension):
+            log_fan_event(db, event, athlete_id=1, sport="Padel",
+                          country="Spain", tier="insider")
+
+    # the other three are unaffected: nothing is ever joined back to them
+    log_fan_event(db, TIP_SENT, athlete_id=1, sport="Padel",
+                  country="Spain", tier="insider", amount_eur=5)
+    db.commit()
+
+
+def test_detail_cannot_overwrite_a_dimension_that_was_just_validated(db):
+    """`payload |= detail` let a caller pass the required-dimension check and
+    then replace the dimension anyway, landing an event that looks complete and
+    groups into the wrong cohort — or into none."""
+    with pytest.raises(MissingDimension):
+        log_fan_event(db, TIP_SENT, athlete_id=1, sport="Padel", country="Spain",
+                      tier="insider", detail={"sport": ""})
+    with pytest.raises(MissingDimension):
+        log_fan_event(db, TIP_SENT, athlete_id=1, sport="Padel", country="Spain",
+                      tier="insider", amount_eur=5, detail={"amount_eur": 0})
+
+    # context that does not collide is still welcome
+    log_fan_event(db, TIP_SENT, athlete_id=1, sport="Padel", country="Spain",
+                  tier="insider", amount_eur=5, detail={"source": "profile_page"})
+    db.commit()
+    import json
+    row = db.execute("SELECT * FROM events WHERE event_type = ? ORDER BY id DESC LIMIT 1",
+                     (TIP_SENT,)).fetchone()
+    assert json.loads(row["detail_json"])["source"] == "profile_page"
+
+
+def test_an_empty_fan_id_is_as_unjoinable_as_a_missing_one(db):
+    """`is None` let an empty string through, and an empty string joins to
+    nothing just as reliably as a null does."""
+    with pytest.raises(MissingDimension):
+        log_fan_event(db, SUBSCRIPTION_STARTED, athlete_id=1, sport="Padel",
+                      country="Spain", tier="insider", fan_user_id="")

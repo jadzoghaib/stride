@@ -108,8 +108,15 @@ def looks_openable(url: str) -> bool:
     the case that matters: it passes a naive scheme test, passes a non-empty
     test, and there is nothing behind it to look at.
     """
-    parsed = urlparse((url or "").strip())
-    return parsed.scheme in ("http", "https") and bool(parsed.hostname)
+    # `urlparse` is not total: an unterminated IPv6 bracket like `http://[`
+    # raises rather than returning something falsy, and this runs on a string an
+    # applicant typed — so the raise surfaced as a 500 on submitting a form. A
+    # URL we cannot parse is, for every purpose here, not openable.
+    try:
+        parsed = urlparse((url or "").strip())
+        return parsed.scheme in ("http", "https") and bool(parsed.hostname)
+    except ValueError:
+        return False
 
 
 def _address_is_public(host: str) -> bool:
@@ -135,7 +142,10 @@ def _address_is_public(host: str) -> bool:
 
 
 def safe_url(url: str) -> tuple[bool, str]:
-    parsed = urlparse((url or "").strip())
+    try:
+        parsed = urlparse((url or "").strip())
+    except ValueError:
+        return False, "unparseable"          # same reason as `looks_openable`
     if parsed.scheme not in ("http", "https"):
         return False, "scheme_not_http"
     if not parsed.hostname:

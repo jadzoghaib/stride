@@ -13,6 +13,7 @@ import { Board } from '../../components/Board'
 import { FormRow, ReasonLists, ScoreBreakdown, ThresholdRule, VerdictNote } from '../../components/Admission'
 import { LoadError, PageHeader, PageLoading, Section, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
+import { openable } from '../../lib/url'
 import { fmtDate } from '../../lib/format'
 import { useToast } from '../../lib/toast'
 import type { AdmissionVerdict, AthleteApplicationView } from '../../types'
@@ -235,6 +236,17 @@ export default function AthleteApplication() {
                          onChange={set('proof_url')} />
                 </FormRow>
               </div>
+              {/* Naming a kind of proof and leaving the box empty scores exactly
+                  the same as claiming none — there is nothing for a reviewer to
+                  open. Better said here than discovered in the verdict. */}
+              {form.proof_kind !== 'none' && !openable(form.proof_url) && (
+                <p className="meta mt-3 text-ink-2">
+                  {form.proof_url.trim()
+                    ? `“${form.proof_url.trim()}” is not a page anyone can open, so it counts as no proof.`
+                    : `A ${form.proof_kind} with no link counts as no proof: nobody can check it.`}{' '}
+                  Add a full https:// address, or set the kind to “none yet”.
+                </p>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-3">

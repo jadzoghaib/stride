@@ -97,7 +97,11 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("01-revenue-model.md", "Y7 total revenue",
      r"By Y7 it is €[\d.]+M of the €([\d.]+)M", Y7["revenue"] / 1e6, 0.02),
     ("01-revenue-model.md", "SaaS as share of Y7 gross profit",
-     r"which is roughly (\d+)% of gross profit", Y7["rev_saas"] / Y7["gross"] * 100, 0.6),
+     r"which is roughly ([\d.]+)% of gross profit", Y7["rev_saas"] / Y7["gross"] * 100, 0.6),
+    # This one went stale twice: it is a Y7 figure in a model that runs to Y10,
+    # so it reads plausibly whichever year it was last computed from.
+    ("01-revenue-model.md", "value of one point of fan take at Y7",
+     r"each point of take on fan GMV is worth \*\*€([\d.]+)M", Y7["fan_gmv"] * 0.01 / 1e6, 0.02),
     ("01-revenue-model.md", "Passes crossover",
      r"cross at \*\*€([\d,]+)/month", 27 / ((A.take_fan - 0.10) - 0.28 / A.avg_fan_txn_eur), 5),
 
@@ -107,7 +111,8 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"Applications behind the athlete plan \| ([\d,]+) ", Y1["applications"], 1),
     ("02-cost-model.md", "Y1 manual reviews", r"\| Manual reviews \| ([\d,]+) ", Y1["reviews"], 1),
     ("02-cost-model.md", "peak verification cost",
-     r"Verification peaks at\s+€(\d+)k a year", 46.7, 0.6),
+     r"Verification peaks at\s+€([\d.]+)k a year",
+     max(r["verification"] for r in ROWS) / 1e3, 0.6),
 
     ("07-open-questions.md", "EUR 4.99 retention",
      r"€4\.99 retains (\d+)% of our take", retained(4.99) * 100, 0.5),
@@ -122,6 +127,12 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
 
     ("11-admission-and-matching.md", "peak reviewer FTE",
      r"(\d\.\d+) of one\s+reviewer", max(r["review_fte"] for r in ROWS), 0.01),
+    # Pinned beside the per-point figure above, because the two are the same
+    # statement twice and a paragraph that quotes both can contradict itself:
+    # it said EUR 0.92M a point and EUR 5.3M for five of them.
+    ("01-revenue-model.md", "revenue added by moving 15% to 20%",
+     r"15% → 20%\s+adds €([\d.]+)M", take_rate_delta() / 1e6, 0.1),
+
     ("11-admission-and-matching.md", "Y10 blended admission rate",
      r"admission rate climbs from 20% to (\d+)%", Y10["admit_rate"] * 100, 0.6),
 ]
@@ -143,16 +154,23 @@ def check_duplicated_sport_table() -> list[str]:
     # while "MMA" sat in admission.py in its published capitalisation, unable to
     # match anything, so every MMA applicant was scored on the neutral fallback.
     # A guard that compares the keys but not the way they are read is not a guard.
-    source = {name.lower(): density for name, _, _, density in SPORTS}
-    out = []
+    # Normalised for the *comparison*, because that is how admission.py reads the
+    # key — but stray whitespace is reported rather than absorbed. `sport_index`
+    # looks these names up exactly, so a trailing space there falls back to a 1.0
+    # multiplier in silence, and a guard that quietly strips it has hidden the
+    # very typo it exists to find.
+    source = {name.lower().strip(): density for name, _, _, density in SPORTS}
+    out = [f"sport_data.py SPORTS name {name!r} has stray whitespace — sport_index "
+           f"looks it up exactly and would fall back to a neutral multiplier"
+           for name, *_ in SPORTS if name != name.strip()]
     for sport, density in AGENT_DENSITY.items():
-        if sport != sport.lower():
-            out.append(f"admission.py AGENT_DENSITY key {sport!r} is not lower-case, so the "
-                       f"lookup can never match it")
-        if source.get(sport.lower()) != density:
+        if sport != sport.lower().strip():
+            out.append(f"admission.py AGENT_DENSITY key {sport!r} is not lower-case and "
+                       f"stripped, so the lookup can never match it")
+        if source.get(sport.lower().strip()) != density:
             out.append(f"admission.py AGENT_DENSITY[{sport!r}]={density} but sport_data.py "
-                       f"says {source.get(sport.lower())}")
-    for sport in set(source) - {k.lower() for k in AGENT_DENSITY}:
+                       f"says {source.get(sport.lower().strip())}")
+    for sport in set(source) - {k.lower().strip() for k in AGENT_DENSITY}:
         out.append(f"sport_data.py has {sport!r}; admission.py does not, so it falls back to neutral")
     return out
 
@@ -167,7 +185,10 @@ def main() -> int:
             failures.append(f"{doc}: claim not found — {label}  /{pattern}/")
             continue
         raw = m.group(1)
-        found = float(WORDS.get(raw, raw.replace(",", "")))
+        # `([\d.]+)` can swallow a sentence-ending full stop, and a `(\d+)`
+        # pattern against a prose figure that later gains a decimal silently
+        # captures only the integer part and passes on a truncated number.
+        found = float(WORDS.get(raw, raw.replace(",", "").rstrip(".")))
         if abs(found - expected) > tol:
             failures.append(f"{doc}: {label} says {found:,.2f}, model says {expected:,.2f}")
 

@@ -152,8 +152,18 @@ curve that stays above 50% through Y7 is what a Series B buyer wants to see.
 | Other opex | €2k | €19k | €83k | €270k | €672k | €1.30M | €2.12M | €3.02M | €3.81M | €4.64M |
 | **EBITDA** | €-91k | €-188k | €-274k | €81k | €1.72M | €5.13M | €9.99M | €16.10M | €21.75M | €28.21M |
 | Tax | €0 | €0 | €0 | €0 | €108k | €696k | €1.39M | €2.26M | €5.11M | €6.66M |
+| Working capital movement | €-16k | €-60k | €-220k | €-616k | €-1.32M | €-2.00M | €-2.60M | €-2.74M | €-2.35M | €-2.55M |
+| Capex (capitalised development) | €17k | €47k | €126k | €269k | €475k | €734k | €1.05M | €1.34M | €1.60M | €1.82M |
 | **Free cash flow** | €-92k | €-175k | €-180k | €428k | €2.45M | €5.71M | €10.15M | €15.25M | €17.39M | €22.28M |
 <!-- /MODEL:pl -->
+
+Free cash flow is EBITDA less tax, working capital movement and capex — not
+EBITDA less tax, which is what the table implied while those two rows were
+missing. **Working capital is negative in every year, meaning it releases cash
+rather than consuming it**: fan GMV is held about fifteen days before athletes
+are paid, and that float is larger than sponsor receivables net of payables. It
+is a real cash benefit and it is also a liability to the athletes, so it funds
+growth but is not available to lose.
 
 **Gross margin of 58–66% is the honest number for a payments-heavy marketplace.**
 Pure SaaS would be 80%+; the difference is the payment rail, and no amount of

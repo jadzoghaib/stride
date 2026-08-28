@@ -39,6 +39,11 @@ CONTENT_UNLOCKED = "content.unlocked"
 TIP_SENT = "tip.sent"
 PAYWALL_VIEWED = "paywall.viewed"
 
+# The two that only mean anything as a matched pair: a start with no fan
+# identity cannot be joined to the cancellation that ends it, and cohort churn
+# is the entire question these events exist to answer.
+SUBSCRIPTION_EVENTS = (SUBSCRIPTION_STARTED, SUBSCRIPTION_CANCELLED)
+
 FAN_EVENTS = (
     SUBSCRIPTION_STARTED,
     SUBSCRIPTION_CANCELLED,
@@ -78,12 +83,25 @@ def log_fan_event(conn: sqlite3.Connection, event_type: str, *,
     if missing:
         raise MissingDimension(f"{event_type} needs {', '.join(missing)}")
 
+    # Write time is the only moment a fan identity can still be supplied: the
+    # cancellation arrives months later with nothing to join it back to.
+    if event_type in SUBSCRIPTION_EVENTS and (fan_user_id is None or fan_user_id == ""):
+        raise MissingDimension(f"{event_type} needs fan_user_id to close a churn cohort")
+
     payload = dict(dims)
     if amount_eur is not None:
         payload["amount_eur"] = round(float(amount_eur), 2)
     if fan_user_id is not None:
         payload["fan_user_id"] = fan_user_id
     if detail:
+        # `payload |= detail` let a caller replace a dimension that had just been
+        # validated two lines above, so an event could pass the check and still
+        # land ungroupable — the exact failure this module exists to prevent.
+        # Extra context is welcome; overwriting a dimension is a call-site bug.
+        clashes = sorted(set(detail) & set(payload))
+        if clashes:
+            raise MissingDimension(
+                f"{event_type} detail may not overwrite {', '.join(clashes)}")
         payload |= detail
 
     # actor is "user", not "fan": the events table constrains it to

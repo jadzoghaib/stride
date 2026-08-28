@@ -121,11 +121,25 @@ CREATE TABLE deal_deliverables (
 | `GET /api/deals/{id}/performance` | sponsor | Delivered reach and engagement, cost per 1k reach, cost per engagement, actual vs projected, and the posts behind each |
 
 Two guards carry the weight. **Attribution**: an athlete can only attach a post
-from one of their own connected accounts, checked against
-`platform_accounts.creator_id` — without it an athlete could claim someone
-else's reach, which would poison the one dataset sponsors are asked to trust.
+from one of their own accounts, checked against `platform_accounts.creator_id` —
+without it an athlete could claim someone else's reach, which would poison the
+one dataset sponsors are asked to trust. The same query also excludes accounts
+they have disconnected, because consent is not a one-time grant: the rows are
+kept so past scores stay reproducible, but a platform you have taken back should
+not be offered up for new work. Two limits on that are deliberate, and the
+first is why the sentence says *new*. Disconnecting blocks
+*further* attachments; it does not retract deliverables already attached, which
+remain in the sponsor's report because that report records what was delivered
+rather than what is currently connected. And an account in `error` state — a
+failed token refresh — stays attachable, because a broken sync is an operational
+problem and not a decision the athlete made.
 **Completeness**: `complete` refuses with `no_deliverables` when nothing is
-attached, so a `completed` deal always has something a sponsor can open.
+attached, so no deal can *reach* `completed` through the API without something a
+sponsor can open. Rows written before that guard existed are not retrofitted —
+the seeded Rio event deal is deliberately one of them, because the honest
+demonstration of an unmeasured deal is an unmeasured deal. A sponsor opening it
+sees `—` rather than a zero, which is the rule the whole measurement view
+follows: unmeasured, not free.
 
 `projected_reach` is captured **when the offer is sent**, from the athlete's
 median reach across platforms. Without it there is nothing to measure against,

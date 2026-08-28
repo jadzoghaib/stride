@@ -20,7 +20,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..auth import get_db, require_role
-from ..db import now_iso, row, rows
+from ..db import lock_for_update, now_iso, row, rows
 
 router = APIRouter(prefix="/api", tags=["athletes"])
 
@@ -332,7 +332,17 @@ def own_posts(user: dict = Depends(require_role("athlete")),
     if not creator_id:
         return []
     out = []
-    for account in rows(conn, "SELECT * FROM platform_accounts WHERE creator_id = ?",
+    # Not disconnected. Disconnecting a platform withdraws the consent the data
+    # was collected under; the rows stay because scores have to remain
+    # reproducible, but continuing to offer those posts for attachment would let
+    # an athlete sell a permission they have already taken back.
+    #
+    # `!= 'disconnected'` rather than `= 'connected'`: sync.py sets 'error' when
+    # a refresh fails, and an expired token is an operational problem, not a
+    # withdrawal. Excluding it would block a real athlete from attaching a real
+    # post for a reason that has nothing to do with their consent.
+    for account in rows(conn, "SELECT * FROM platform_accounts"
+                        " WHERE creator_id = ? AND connection_status != 'disconnected'",
                         (creator_id,)):
         for post in latest_post_metrics(conn, account["id"])[:15]:
             out.append({"post_id": post["post_id"], "platform": account["platform"],
@@ -357,17 +367,29 @@ def add_deliverable(deal_id: int, body: DeliverableIn,
     campaign, which would poison the one dataset sponsors are meant to trust.
     """
     profile = _own_profile(conn, user)
+    # Reading the status and inserting against it is the same check-then-act race
+    # as the nomination budget: `complete` can commit in between, and the
+    # deliverable then lands on a deal that has finished — precisely what the
+    # status check below exists to prevent. Holding the deal row for the rest of
+    # the transaction makes the check and the insert one decision; `complete`
+    # takes the same row lock by updating it, so the two serialise either way
+    # round, on either backend.
+    lock_for_update(conn, "deals", "id", deal_id)
     deal = row(conn, "SELECT * FROM deals WHERE id = ? AND athlete_id = ?",
                (deal_id, profile["id"]))
     if deal is None:
         raise HTTPException(404, "unknown_deal")
-    if deal["status"] not in ("accepted", "completed"):
+    if deal["status"] != "accepted":
+        # Not `completed` either. The sponsor has already read that report, and
+        # attaching another post afterwards silently moves reach, engagement and
+        # cost-per-engagement on a figure they have acted on. Re-opening a closed
+        # deal should be a deliberate act, not a side effect of an attach.
         raise HTTPException(409, "deal_not_accepted")
 
     post = row(conn, """
         SELECT p.id FROM posts p
         JOIN platform_accounts pa ON pa.id = p.account_id
-        WHERE p.id = ? AND pa.creator_id = ?""",
+        WHERE p.id = ? AND pa.creator_id = ? AND pa.connection_status != 'disconnected'""",
         (body.post_id, profile["creatorlens_creator_id"]))
     if post is None:
         raise HTTPException(404, "unknown_post")

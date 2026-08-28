@@ -514,6 +514,13 @@ def render(rows: list[dict]) -> dict[str, str]:
         line("Other opex", "other"),
         line("**EBITDA**", "ebitda"),
         line("Tax", "tax"),
+        # Without these two rows the table ran EBITDA -> Tax -> Free cash flow,
+        # and a reader doing the obvious subtraction got a different number in
+        # every year from the fourth on (Y7: 8.6M by that arithmetic against the
+        # 10.2M printed). The bridge is not decoration — working capital is a
+        # *source* of cash here, and a P&L that hides it looks like an error.
+        line("Working capital movement", "change_in_nwc"),
+        line("Capex (capitalised development)", "capex"),
         line("**Free cash flow**", "fcf"),
     ])
 
@@ -525,15 +532,21 @@ def render(rows: list[dict]) -> dict[str, str]:
 
     v = valuation(rows)
     val = table(["Valuation (DCF)", "Value"], [
-        ["PV of explicit FCF, Y1–Y7", eur(v["pv_explicit"])],
+        [f"PV of explicit FCF, Y1–Y{YEARS[-1]}", eur(v["pv_explicit"])],
         [f"Terminal value (g={A.terminal_growth:.0%})", eur(v["terminal_value"])],
         ["PV of terminal value", eur(v["pv_terminal"])],
         [f"**Enterprise value (WACC {A.wacc:.0%})**", f"**{eur(v['enterprise_value'])}**"],
     ])
 
+    # `rows[-1]` is Y10, the end of the explicit period and the year the terminal
+    # value is struck from — but all four rows here were labelled Y7, so the
+    # table quoted an exit three years later than it claimed. The prose beneath
+    # it always reasoned about Y10 ("the day after Y10", "EUR 58M revenue"); the
+    # labels were the only part that was wrong, so the labels are what moved.
     last = rows[-1]
-    df = (1 + A.wacc) ** last["year"]   # discount Y7 money back to today
-    mult = table(["Exit method (Y7)", "Multiple", "Value AT Y7", "Discounted to today"], [
+    df = (1 + A.wacc) ** last["year"]   # discount end-of-horizon money to today
+    mult = table([f"Exit method (Y{last['year']})", "Multiple",
+                  f"Value at Y{last['year']}", "Discounted to today"], [
         ["Marketplace comparables", "4.0x revenue", eur(last["revenue"] * 4), eur(last["revenue"] * 4 / df)],
         ["Blended marketplace + SaaS", "6.5x revenue", eur(last["revenue"] * 6.5), eur(last["revenue"] * 6.5 / df)],
         ["High-growth SaaS mix", "9.0x revenue", eur(last["revenue"] * 9), eur(last["revenue"] * 9 / df)],
