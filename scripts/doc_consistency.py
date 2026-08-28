@@ -182,9 +182,11 @@ def check_market_model_chain() -> list[str]:
     match, so changing a comparable moved the derivation and left every
     assumption downstream where it was.
 
-    The literals are not an independent guess — they are this derivation,
-    rounded for a reader, which is why the tolerance is 1% rather than exact:
-    37.026 fans per athlete is written 37. Anything beyond that is drift.
+    The literals are not an independent guess — they are this derivation
+    rounded to the precision each is written at, so the comparison is exact.
+    A percentage tolerance was the first attempt and was worse: it let a
+    comparable move a little at a time without ever tripping, which is the
+    silent drift this exists to stop.
     """
     sys.path.insert(0, str(ROOT / "business-plan"))
     import market_model
@@ -197,10 +199,22 @@ def check_market_model_chain() -> list[str]:
         "niche_fan_churn_month": A.segments[0].fan_churn_month[-1],
         "popular_fan_churn_month": A.segments[1].fan_churn_month[-1],
     }
-    out = []
-    for name, derived in market_model.derived().items():
-        literal = mature[name]
-        if abs(literal - derived) > abs(derived) * 0.01:
+    produced = market_model.derived()
+    # Driven by the expected names, not by whatever the derivation happened to
+    # return: iterating the outputs meant a dropped one was silently not checked,
+    # and a guard that can quietly check nothing is the failure mode of every
+    # guard in this repository so far.
+    out = [f"market_model.derived() no longer produces {name!r}, so nothing checks it"
+           for name in mature if name not in produced]
+    out += [f"market_model.derived() produces unexpected {name!r}, which nothing checks"
+            for name in produced if name not in mature]
+
+    for name in mature:
+        if name not in produced:
+            continue
+        digits = market_model.PRECISION[name]
+        derived, literal = produced[name], mature[name]
+        if round(derived, digits) != round(literal, digits):
             out.append(f"model.py {name} is {literal:,.3f} but the MarketModel derivation "
                        f"from comparables_data.py gives {derived:,.3f} — the evidence chain "
                        f"the workbook advertises is broken")

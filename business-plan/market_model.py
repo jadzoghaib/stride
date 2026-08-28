@@ -10,18 +10,22 @@ that happens to match. No cell in the workbook references MarketModel, so
 nothing enforced the match — change a published figure and the derivation would
 move while every assumption downstream stayed exactly where it was.
 
-Measuring the gap is what settled how to close it. All six derived quantities
-agree with the literals in `model.py` to within 0.5%, and the two churn figures
-agree exactly; the rest is display rounding (37.026 fans becomes 37). So the
-literals are not an independent guess that happens to be close — they *are* this
-derivation, rounded for a reader.
+Measuring the gap is what settled how to close it. Every literal in `model.py`
+is this derivation rounded to the precision it is written at: 37.026 fans is
+written 37, EUR 9.490 is written 9.50, and 0.054993 churn is written 0.055. Not
+"close to" — equal, once you round to the number of digits actually shown. (In
+raw terms the largest difference is 0.53%, on popular ARPU, which is what
+rounding 8.256 to one decimal costs.) So the literals are not an independent
+guess that happens to land nearby.
 
-That rules out the obvious fix. Pointing the workbook's Assumptions cells at
-MarketModel would replace 37 with 37.026 and put the workbook a hair away from
-the Python everywhere, which the Check sheet exists to forbid. Instead the
-judgement factors live here, the workbook renders them, and
-`scripts/doc_consistency.py` asserts the derivation still produces the literals.
-Nothing moves, and the chain can no longer rot in silence.
+That rounding is also what rules out the obvious fix. Pointing the workbook's
+Assumptions cells at MarketModel would replace 37 with 37.026 and set the
+workbook a hair away from the Python everywhere, which the Check sheet exists to
+forbid. So the judgement factors live here instead, the workbook renders them,
+and `scripts/doc_consistency.py` asserts the derivation still rounds to the
+literals — exactly, using `PRECISION` below, because a percentage tolerance
+would let the chain drift by a little bit forever. Nothing moves, and it can no
+longer rot in silence.
 
 Every constant below is a judgement, not a fact — the facts are all in
 `comparables_data.py`. Each is annotated with what it claims and how confident
@@ -96,6 +100,20 @@ def blended_churn() -> float:
     midpoint = (low + high) / 2
     return (midpoint * (1 - ANNUAL_PLAN_SHARE)
             + midpoint * annual_multiplier * ANNUAL_PLAN_SHARE)
+
+
+#: Digits each quantity is written to in `model.py`. The literals are the
+#: derivation rounded to these, so a check can be exact — with a percentage
+#: tolerance instead, a comparable could move a little at a time and never trip
+#: it, which is precisely the silent drift the guard exists to stop.
+PRECISION = {
+    "niche_fans_per_athlete": 0,
+    "popular_fans_per_athlete": 0,
+    "niche_fan_arpu_month": 1,
+    "popular_fan_arpu_month": 1,
+    "niche_fan_churn_month": 3,
+    "popular_fan_churn_month": 3,
+}
 
 
 def derived() -> dict[str, float]:

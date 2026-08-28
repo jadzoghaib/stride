@@ -82,8 +82,17 @@ def _split_statements(script: str):
             continue
 
         if ch in "'\"":                                   # literal or identifier
+            # Backslashes are literal in a standard string and an escape in an
+            # `E'...'` one, so `E'it\\'s; here'` ends at the second quote in the
+            # first reading and does not in the second. Only honour them when
+            # the E is actually there.
+            escapes = ch == "'" and i > 0 and script[i - 1] in "Ee" and (
+                i == 1 or not (script[i - 2].isalnum() or script[i - 2] == "_"))
             j = i + 1
             while j < n:
+                if escapes and script[j] == "\\" and j + 1 < n:
+                    j += 2
+                    continue
                 if script[j] == ch:
                     if j + 1 < n and script[j + 1] == ch:  # doubled = escaped
                         j += 2
@@ -98,8 +107,15 @@ def _split_statements(script: str):
         if ch == "$":                                     # dollar-quoted body
             tag_end = script.find("$", i + 1)
             tag = script[i:tag_end + 1] if tag_end != -1 else ""
-            # only a valid tag: $$ or $name$, nothing with whitespace in it
-            if tag and (len(tag) == 2 or tag[1:-1].replace("_", "").isalnum()):
+            # `$$` or `$name$`, where name starts with a letter or underscore —
+            # and not directly after an identifier character, because `a$b$c` is
+            # one identifier and `$1` is a parameter, neither of which opens a
+            # quoted body. Reading either as one swallows every statement up to
+            # the next matching run of characters.
+            after_word = i > 0 and (script[i - 1].isalnum() or script[i - 1] == "_")
+            named = len(tag) > 2 and (tag[1].isalpha() or tag[1] == "_") and all(
+                c.isalnum() or c == "_" for c in tag[1:-1])
+            if tag and not after_word and (len(tag) == 2 or named):
                 close = script.find(tag, tag_end + 1)
                 j = n if close == -1 else close + len(tag)
                 stmt.append(script[i:j])
