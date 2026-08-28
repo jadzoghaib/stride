@@ -29,7 +29,7 @@ export interface ClubPackage {
   name: string
   description: string
   package_type: 'club' | 'player_direct'
-  price_usd: number
+  price_eur: number
   perks: string[]
   status: 'active' | 'archived'
   created_at: string
@@ -54,7 +54,7 @@ export interface Commitment {
   id: number
   package_id: number
   org_id: number
-  amount_usd: number
+  amount_eur: number
   status: 'active' | 'cancelled'
   created_at: string
   cancelled_at: string | null
@@ -92,7 +92,7 @@ export interface AthletePublic {
   career_highlights: string[]
   topics: string[]
   deal_types: string[]
-  base_rate_usd: number
+  base_rate_eur: number
   status: string
   claimed: boolean
   score: ScoreSummary | null
@@ -110,7 +110,7 @@ export interface Deal {
   org_id: number
   athlete_id: number
   deal_type: string
-  amount_usd: number
+  amount_eur: number
   message: string
   status: 'offered' | 'accepted' | 'declined' | 'withdrawn' | 'completed'
   created_at: string
@@ -136,8 +136,8 @@ export interface Campaign {
   objective: string
   category: string
   deal_types: string[]
-  budget_usd_min: number
-  budget_usd_max: number
+  budget_eur_min: number
+  budget_eur_max: number
   target_age_buckets: string[]
   target_genders: string[]
   target_countries: string[]
@@ -153,7 +153,7 @@ export interface Match {
   display_name: string
   sport: string
   country: string
-  base_rate_usd: number
+  base_rate_eur: number
   score: number
   /** null = the dimension could not be measured. It is excluded from the score
    *  rather than counted as zero, so never render it as a 0. */
@@ -187,7 +187,7 @@ export interface DealPerformance {
     id: number
     status: Deal['status']
     deal_type: string
-    amount_usd: number
+    amount_eur: number
     created_at: string
     responded_at: string | null
     completed_at: string | null
@@ -229,7 +229,7 @@ export interface AthleteWorkspace {
     country: string
     region: string
     bio: string
-    base_rate_usd: number
+    base_rate_eur: number
     status: string
     career_highlights: string[]
     topics: string[]
@@ -247,7 +247,7 @@ export interface AthleteWorkspace {
   deals: Deal[]
   earnings: number
   clubs: { name: string; slug: string; position: string }[]
-  club_backing: { amount_usd: number; status: string; created_at: string; package_name: string; club_name: string; org_name: string }[]
+  club_backing: { amount_eur: number; status: string; created_at: string; package_name: string; club_name: string; org_name: string }[]
 }
 
 export const DIMENSIONS = [

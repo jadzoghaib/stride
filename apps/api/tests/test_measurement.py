@@ -40,6 +40,36 @@ def test_a_column_added_later_reaches_a_database_that_already_exists():
     assert "require_verified_athletes" in _columns(conn, "campaigns")
     conn.close()
 
+
+def test_a_renamed_column_reaches_a_database_that_already_exists():
+    """The money columns moved from USD to EUR in one pass, and a rename is
+    worse than a missing column: the old name is still there holding the data,
+    so nothing is obviously broken until a query asks for the new one. Half a
+    migration is worse than either currency."""
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    init_db(conn)
+    # rewind to the pre-EUR shape
+    conn.execute("ALTER TABLE deals RENAME COLUMN amount_eur TO amount_usd")
+    conn.execute("ALTER TABLE athlete_profiles RENAME COLUMN base_rate_eur TO base_rate_usd")
+    assert "amount_usd" in _columns(conn, "deals")
+
+    init_db(conn)  # restart the app
+    assert _columns(conn, "deals") >= {"amount_eur"}
+    assert "amount_usd" not in _columns(conn, "deals")
+    assert "base_rate_eur" in _columns(conn, "athlete_profiles")
+
+    init_db(conn)  # and again: renaming has to be idempotent too
+    assert "amount_eur" in _columns(conn, "deals")
+    conn.close()
+
+
+def test_a_rename_carries_the_data_across(client, db):
+    """A rename that dropped and recreated the column would pass the check above
+    and silently empty the ledger."""
+    amounts = [r["amount_eur"] for r in db.execute("SELECT amount_eur FROM deals").fetchall()]
+    assert amounts and all(a > 0 for a in amounts)
+
 def _fresh_campaign(sponsor, name):
     """A campaign of this test's own.
 
@@ -49,7 +79,7 @@ def _fresh_campaign(sponsor, name):
     """
     res = sponsor.post("/api/campaigns", json={
         "name": name, "category": "Sportswear", "deal_types": ["social_post"],
-        "budget_usd_min": 1000, "budget_usd_max": 20000,
+        "budget_eur_min": 1000, "budget_eur_max": 20000,
         "target_age_buckets": ["18-24", "25-34"], "target_countries": ["US"],
         "target_topics": ["running", "training"]})
     assert res.status_code == 201, res.text
@@ -65,7 +95,7 @@ def _accepted_deal(sponsor, athlete, name="measurement"):
     campaign_id = _fresh_campaign(sponsor, f"{name} campaign")
     offer = sponsor.post(f"/api/campaigns/{campaign_id}/offers", json={
         "athlete_id": _athlete_id(sponsor), "deal_type": "social_post",
-        "amount_usd": 5000, "message": "measurement test"})
+        "amount_eur": 5000, "message": "measurement test"})
     assert offer.status_code == 201, offer.text
     deal_id = offer.json()["id"]
     assert athlete.post(f"/api/athlete/deals/{deal_id}/respond",
@@ -140,7 +170,7 @@ def test_deliverables_require_an_accepted_deal(sponsor, athlete, db):
     campaign_id = _fresh_campaign(sponsor, "other athlete campaign")
     other_id = _athlete_id(sponsor, "sofia-brandt")
     offer = sponsor.post(f"/api/campaigns/{campaign_id}/offers", json={
-        "athlete_id": other_id, "deal_type": "social_post", "amount_usd": 1000})
+        "athlete_id": other_id, "deal_type": "social_post", "amount_eur": 1000})
     assert offer.status_code == 201
 
     # `athlete` is Kaia Mercer; the deal above belongs to Sofia Brandt. Reuse the
@@ -199,7 +229,7 @@ def test_speed_to_first_offer_keeps_the_campaigns_that_produced_nothing(sponsor)
 
     assert sponsor.post(f"/api/campaigns/{campaign_id}/offers", json={
         "athlete_id": _athlete_id(sponsor), "deal_type": "social_post",
-        "amount_usd": 2500}).status_code == 201
+        "amount_eur": 2500}).status_code == 201
 
     final = sponsor.get("/api/sponsor/workspace").json()["speed"]
     assert final["campaigns_measured"] == before["campaigns_measured"] + 1

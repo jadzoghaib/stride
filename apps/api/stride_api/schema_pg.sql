@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS athlete_profiles (
     career_highlights       TEXT NOT NULL DEFAULT '[]',
     topics                  TEXT NOT NULL DEFAULT '[]',
     deal_types              TEXT NOT NULL DEFAULT '[]',
-    base_rate_usd           INTEGER NOT NULL DEFAULT 1000,
+    base_rate_eur           INTEGER NOT NULL DEFAULT 1000,
     status                  TEXT NOT NULL DEFAULT 'listed' CHECK (status IN ('draft','listed','hidden')),
     creatorlens_creator_id  BIGINT,
     created_at              TEXT NOT NULL
@@ -176,8 +176,8 @@ CREATE TABLE IF NOT EXISTS campaigns (
     objective          TEXT NOT NULL DEFAULT '',
     category           TEXT NOT NULL,
     deal_types         TEXT NOT NULL DEFAULT '[]',
-    budget_usd_min     INTEGER NOT NULL DEFAULT 1000,
-    budget_usd_max     INTEGER NOT NULL DEFAULT 10000,
+    budget_eur_min     INTEGER NOT NULL DEFAULT 1000,
+    budget_eur_max     INTEGER NOT NULL DEFAULT 10000,
     target_age_buckets TEXT NOT NULL DEFAULT '[]',
     target_genders     TEXT NOT NULL DEFAULT '[]',
     target_countries   TEXT NOT NULL DEFAULT '[]',
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS deals (
     org_id       BIGINT NOT NULL REFERENCES sponsor_orgs(id),
     athlete_id   BIGINT NOT NULL REFERENCES athlete_profiles(id),
     deal_type    TEXT NOT NULL,
-    amount_usd   INTEGER NOT NULL,
+    amount_eur   INTEGER NOT NULL,
     message      TEXT NOT NULL DEFAULT '',
     status       TEXT NOT NULL DEFAULT 'offered'
                  CHECK (status IN ('offered','accepted','declined','withdrawn','completed')),
@@ -312,7 +312,7 @@ CREATE TABLE IF NOT EXISTS club_packages (
     name         TEXT NOT NULL,
     description  TEXT NOT NULL DEFAULT '',
     package_type TEXT NOT NULL CHECK (package_type IN ('club','player_direct')),
-    price_usd    INTEGER NOT NULL,
+    price_eur    INTEGER NOT NULL,
     perks        TEXT NOT NULL DEFAULT '[]',
     status       TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','archived')),
     created_at   TEXT NOT NULL
@@ -323,7 +323,7 @@ CREATE TABLE IF NOT EXISTS package_commitments (
     id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     package_id   BIGINT NOT NULL REFERENCES club_packages(id),
     org_id       BIGINT NOT NULL REFERENCES sponsor_orgs(id),
-    amount_usd   INTEGER NOT NULL,
+    amount_eur   INTEGER NOT NULL,
     status       TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','cancelled')),
     created_at   TEXT NOT NULL,
     cancelled_at TEXT

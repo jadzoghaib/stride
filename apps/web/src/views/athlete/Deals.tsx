@@ -58,7 +58,7 @@ export default function AthleteDeals() {
           {open.map((d) => (
             <div key={d.id} className="panel p-5">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="text-lg font-semibold tnum text-ink">{fmtMoney(d.amount_usd)}</span>
+                <span className="text-lg font-semibold tnum text-ink">{fmtMoney(d.amount_eur)}</span>
                 <span className="tag">{dealTypeLabel(d.deal_type)}</span>
                 <span className="text-sm text-ink-2">{d.org_name} — {d.campaign_name}</span>
                 <span className="ml-auto text-xs text-ink-3">{fmtDate(d.created_at)}</span>
@@ -88,7 +88,7 @@ export default function AthleteDeals() {
                 return (
                   <div key={d.id} className="panel p-5">
                     <div className="flex flex-wrap items-center gap-3">
-                      <span className="text-lg font-semibold tnum text-ink">{fmtMoney(d.amount_usd)}</span>
+                      <span className="text-lg font-semibold tnum text-ink">{fmtMoney(d.amount_eur)}</span>
                       <span className="tag">{dealTypeLabel(d.deal_type)}</span>
                       <span className="text-sm text-ink-2">{d.org_name} — {d.campaign_name}</span>
                       <button className="btn-go ml-auto" onClick={() => setDelivering(d)}>
@@ -129,7 +129,7 @@ export default function AthleteDeals() {
                   <td className="table-cell text-ink">{d.org_name}</td>
                   <td className="table-cell">{d.campaign_name}</td>
                   <td className="table-cell">{dealTypeLabel(d.deal_type)}</td>
-                  <td className="table-cell tnum text-right">{fmtMoney(d.amount_usd)}</td>
+                  <td className="table-cell tnum text-right">{fmtMoney(d.amount_eur)}</td>
                   <td className="table-cell"><StatusChip status={d.status} /></td>
                   {/* a completed deal resolved when it was delivered, not when it
                       was accepted — the older column would misdate it */}

@@ -188,11 +188,11 @@ def test_a_verified_only_campaign_sees_only_checked_athletes(sponsor, athlete, a
 
     strict = sponsor.post("/api/campaigns", json={
         "name": "Verified only brief", "category": "Sportswear", "deal_types": ["social_post"],
-        "budget_usd_min": 1000, "budget_usd_max": 20000, "target_countries": ["US"],
+        "budget_eur_min": 1000, "budget_eur_max": 20000, "target_countries": ["US"],
         "target_topics": ["running"], "require_verified_athletes": True}).json()
     open_brief = sponsor.post("/api/campaigns", json={
         "name": "Open brief", "category": "Sportswear", "deal_types": ["social_post"],
-        "budget_usd_min": 1000, "budget_usd_max": 20000, "target_countries": ["US"],
+        "budget_eur_min": 1000, "budget_eur_max": 20000, "target_countries": ["US"],
         "target_topics": ["running"]}).json()
 
     strict_matches = sponsor.get(f"/api/campaigns/{strict['id']}/matches").json()["matches"]
@@ -218,7 +218,7 @@ def test_matching_logs_the_slate_it_showed_not_just_the_count(sponsor, admin):
     off-policy — and the missing candidates never come back."""
     campaign = sponsor.post("/api/campaigns", json={
         "name": "Slate brief", "category": "Sportswear", "deal_types": ["social_post"],
-        "budget_usd_min": 1000, "budget_usd_max": 20000, "target_countries": ["US"],
+        "budget_eur_min": 1000, "budget_eur_max": 20000, "target_countries": ["US"],
         "target_topics": ["running"]}).json()
     shown = sponsor.get(f"/api/campaigns/{campaign['id']}/matches").json()["matches"]
 
@@ -241,12 +241,12 @@ def test_congestion_is_surfaced_rather_than_silently_reranked(sponsor, db):
     athlete_id = row(db, "SELECT id FROM athlete_profiles WHERE slug = 'noa-lindqvist'")["id"]
     campaign = sponsor.post("/api/campaigns", json={
         "name": "Congestion brief", "category": "Sportswear", "deal_types": ["social_post"],
-        "budget_usd_min": 1000, "budget_usd_max": 20000, "target_countries": ["DE"],
+        "budget_eur_min": 1000, "budget_eur_max": 20000, "target_countries": ["DE"],
         "target_topics": ["cycling"]}).json()
     org_id = row(db, "SELECT id FROM sponsor_orgs WHERE user_id ="
                  " (SELECT id FROM users WHERE email = 'sponsor@demo.stride')")["id"]
     for _ in range(3):
-        db.execute("INSERT INTO deals (campaign_id, org_id, athlete_id, deal_type, amount_usd,"
+        db.execute("INSERT INTO deals (campaign_id, org_id, athlete_id, deal_type, amount_eur,"
                    " status, created_at) VALUES (?, ?, ?, 'social_post', 1000, 'offered', ?)",
                    (campaign["id"], org_id, athlete_id, now_iso()))
     db.commit()

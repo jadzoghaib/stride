@@ -92,7 +92,7 @@ export default function CampaignMatches() {
         trendEmpty="Every score below decomposes into the components that produced it."
         figures={[
           { label: 'Ranked', value: data.matches.length },
-          { label: 'Budget', value: `${fmtMoney(c.budget_usd_min)} – ${fmtMoney(c.budget_usd_max)}` },
+          { label: 'Budget', value: `${fmtMoney(c.budget_eur_min)} – ${fmtMoney(c.budget_eur_max)}` },
           { label: 'Full analytics', value: `${fullCoverage} of ${data.matches.length}` },
         ]}
         footNote="audience fit computed against this campaign's own target"
@@ -115,7 +115,7 @@ export default function CampaignMatches() {
                       {m.display_name}
                     </div>
                     <div className="text-xs text-ink-3">
-                      {m.sport} · {m.country} · rate {fmtMoney(m.base_rate_usd)}
+                      {m.sport} · {m.country} · rate {fmtMoney(m.base_rate_eur)}
                     </div>
                   </div>
                   <div className="ml-auto flex items-center gap-4">
@@ -232,7 +232,7 @@ function Composition({ match }: { match: Match }) {
 function OfferDialog({ campaign, match, onClose }: { campaign: Campaign; match: Match; onClose: () => void }) {
   const [form, setForm] = useState({
     deal_type: campaign.deal_types[0] ?? 'social_post',
-    amount_usd: Math.min(match.base_rate_usd, campaign.budget_usd_max),
+    amount_eur: Math.min(match.base_rate_eur, campaign.budget_eur_max),
     message: '',
   })
   const [error, setError] = useState('')
@@ -282,17 +282,17 @@ function OfferDialog({ campaign, match, onClose }: { campaign: Campaign; match: 
             </select>
           </label>
           <label className="block">
-            <span className="cap">Amount (USD)</span>
+            <span className="cap">Amount (EUR)</span>
             <input
               className="field mt-1 tnum"
               type="number"
               min={1}
-              value={form.amount_usd}
-              onChange={(e) => setForm((f) => ({ ...f, amount_usd: Number(e.target.value) }))}
+              value={form.amount_eur}
+              onChange={(e) => setForm((f) => ({ ...f, amount_eur: Number(e.target.value) }))}
             />
             <span className="mt-1 block text-xs text-ink-3">
-              Athlete rate card: {fmtMoney(match.base_rate_usd)} · campaign budget up to{' '}
-              {fmtMoney(campaign.budget_usd_max)}
+              Athlete rate card: {fmtMoney(match.base_rate_eur)} · campaign budget up to{' '}
+              {fmtMoney(campaign.budget_eur_max)}
             </span>
           </label>
           <label className="block">

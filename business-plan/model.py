@@ -9,7 +9,7 @@ the whole model move:
     python business-plan/model.py --write    # regenerate the markdown docs
 
 Currency is EUR throughout (the company is Spanish). Note the product currently
-stores money in `*_usd` columns — see 05-product-gaps.md.
+stores money in `*_eur` columns, as this model does.
 """
 
 from __future__ import annotations

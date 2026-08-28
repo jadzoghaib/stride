@@ -40,7 +40,7 @@ Ordered by what blocks revenue soonest.
 | # | Gap | Blocks | Effort | Notes |
 |---|---|---|---|---|
 | 1 | **Payments + payouts** | All 8 streams | L | Stripe Connect (Express), KYC onboarding, webhooks, reconciliation |
-| 2 | **Currency: EUR** | Everything | S | Schema is `amount_usd`, `base_rate_usd`, `price_usd`, `budget_usd`. Spain launch is EUR |
+| ~~2~~ | ~~**Currency: EUR**~~ | ~~Everything~~ | — | **Shipped** — columns are `amount_eur`, `base_rate_eur`, `price_eur`, `budget_eur_*`, the interface renders €, and existing databases are renamed in place on start-up |
 | 3 | **Subscriptions + tiers** | Streams 1–3 | L | Tier entity, recurring billing, entitlement checks, grace/dunning |
 | 4 | **Content + media** | Streams 1–2 | XL | Posts, upload, transcode, storage, CDN, paywalled delivery |
 | 5 | **Age assurance** | Legal launch | M | Partly delivered: admission collects a date of birth and refuses under-16s outright, and cannot auto-admit without one. Nothing *verifies* the date, and the 16/18 tiering below is designed but unbuilt |
@@ -54,6 +54,13 @@ Ordered by what blocks revenue soonest.
 
 **Effort: S ≈ days · M ≈ 2–4 weeks · L ≈ 1–2 months · XL ≈ 3+ months**, at the
 Y2 team size of three.
+
+On the currency: the seeded demo figures were *relabelled*, not converted. They
+are illustrative fixtures chosen to be readable, not amounts anyone quoted, so
+putting them through an exchange rate would have manufactured precision that was
+never there. The migration itself carries real data — the rename happens in
+place on start-up and is covered by a regression test that rewinds a seeded
+database to the old schema and checks every value back out.
 
 ---
 

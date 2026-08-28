@@ -45,7 +45,7 @@ def athlete_public(conn, a: dict) -> dict:
         "sport": a["sport"], "country": a["country"], "region": a["region"],
         "bio": a["bio"], "career_highlights": json.loads(a["career_highlights"]),
         "topics": json.loads(a["topics"]), "deal_types": json.loads(a["deal_types"]),
-        "base_rate_usd": a["base_rate_usd"], "status": a["status"],
+        "base_rate_eur": a["base_rate_eur"], "status": a["status"],
         "claimed": a["user_id"] is not None,
         "score": _score_summary(conn, a["creatorlens_creator_id"]),
     }
@@ -109,7 +109,7 @@ class ProfileIn(BaseModel):
     career_highlights: list[str] | None = Field(default=None, max_length=12)
     topics: list[str] | None = Field(default=None, max_length=12)
     deal_types: list[str] | None = Field(default=None, max_length=5)
-    base_rate_usd: int | None = Field(default=None, ge=0, le=1_000_000)
+    base_rate_eur: int | None = Field(default=None, ge=0, le=1_000_000)
     status: str | None = None  # draft -> listed
 
 
@@ -138,7 +138,7 @@ def workspace(user: dict = Depends(require_role("athlete")),
     return {
         "profile": athlete_public(conn, profile),
         "editable": {k: profile[k] for k in ("display_name", "sport", "country", "region",
-                                             "bio", "base_rate_usd", "status")}
+                                             "bio", "base_rate_eur", "status")}
                     | {"career_highlights": json.loads(profile["career_highlights"]),
                        "topics": json.loads(profile["topics"]),
                        "deal_types": json.loads(profile["deal_types"])},
@@ -152,13 +152,13 @@ def workspace(user: dict = Depends(require_role("athlete")),
         "audience": _combined_demographics(conn, creator_kpis(conn, creator_id))["dimensions"]
                     if creator_id else {},
         "deals": deals,
-        "earnings": sum(d["amount_usd"] for d in deals if d["status"] in ("accepted", "completed")),
+        "earnings": sum(d["amount_eur"] for d in deals if d["status"] in ("accepted", "completed")),
         "clubs": rows(conn, """
             SELECT c.name, c.slug, cm.position FROM club_members cm
             JOIN clubs c ON c.id = cm.club_id
             WHERE cm.athlete_id = ? AND cm.status = 'active' ORDER BY c.name""", (profile["id"],)),
         "club_backing": rows(conn, """
-            SELECT pc.amount_usd, pc.status, pc.created_at, cp.name AS package_name,
+            SELECT pc.amount_eur, pc.status, pc.created_at, cp.name AS package_name,
                    c.name AS club_name, o.name AS org_name
             FROM package_commitments pc
             JOIN club_packages cp ON cp.id = pc.package_id
@@ -174,7 +174,7 @@ def update_profile(body: ProfileIn, user: dict = Depends(require_role("athlete")
                    conn: sqlite3.Connection = Depends(get_db)):
     profile = _own_profile(conn, user)
     updates, params = [], []
-    for field in ("display_name", "sport", "country", "region", "bio", "base_rate_usd", "status"):
+    for field in ("display_name", "sport", "country", "region", "bio", "base_rate_eur", "status"):
         value = getattr(body, field)
         if value is not None:
             if field == "status" and value not in ("draft", "listed", "hidden"):
@@ -374,7 +374,7 @@ def complete_deal(deal_id: int, user: dict = Depends(require_role("athlete")),
                  (now_iso(), deal_id))
     log_event(conn, "user", "deal.completed", "deal", deal_id,
               {"athlete_id": profile["id"], "deliverables": count,
-               "amount_usd": deal["amount_usd"]})
+               "amount_eur": deal["amount_eur"]})
     conn.commit()
     return row(conn, "SELECT * FROM deals WHERE id = ?", (deal_id,))
 
@@ -395,6 +395,6 @@ def respond_to_deal(deal_id: int, body: RespondIn,
     conn.execute("UPDATE deals SET status = ?, responded_at = ? WHERE id = ?",
                  (status, now_iso(), deal_id))
     log_event(conn, "user", f"deal.{status}", "deal", deal_id,
-              {"athlete_id": profile["id"], "amount_usd": deal["amount_usd"]})
+              {"athlete_id": profile["id"], "amount_eur": deal["amount_eur"]})
     conn.commit()
     return row(conn, "SELECT * FROM deals WHERE id = ?", (deal_id,))

@@ -27,7 +27,7 @@ create table if not exists athlete_profiles (
     career_highlights      jsonb not null default '[]',
     topics                 jsonb not null default '[]',
     deal_types             jsonb not null default '[]',
-    base_rate_usd          integer not null default 1000,
+    base_rate_eur          integer not null default 1000,
     status                 text not null default 'listed' check (status in ('draft','listed','hidden')),
     creatorlens_creator_id bigint,
     created_at             timestamptz not null default now()
@@ -51,8 +51,8 @@ create table if not exists campaigns (
     objective          text not null default '',
     category           text not null,
     deal_types         jsonb not null default '[]',
-    budget_usd_min     integer not null default 1000,
-    budget_usd_max     integer not null default 10000,
+    budget_eur_min     integer not null default 1000,
+    budget_eur_max     integer not null default 10000,
     target_age_buckets jsonb not null default '[]',
     target_genders     jsonb not null default '[]',
     target_countries   jsonb not null default '[]',
@@ -68,7 +68,7 @@ create table if not exists deals (
     org_id       bigint not null references sponsor_orgs(id),
     athlete_id   bigint not null references athlete_profiles(id),
     deal_type    text not null,
-    amount_usd   integer not null,
+    amount_eur   integer not null,
     message      text not null default '',
     status       text not null default 'offered'
                  check (status in ('offered','accepted','declined','withdrawn','completed')),

@@ -179,7 +179,7 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
 
         # ---- commercial components: Stride's own
         budget_score, budget_reason = _budget_alignment(
-            athlete["base_rate_usd"], campaign["budget_usd_min"], campaign["budget_usd_max"])
+            athlete["base_rate_eur"], campaign["budget_eur_min"], campaign["budget_eur_max"])
         components["budget_alignment"] = budget_score
         if budget_reason and budget_score >= 0.85:
             reasons.append(budget_reason)
@@ -214,7 +214,7 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
             "display_name": athlete["display_name"],
             "sport": athlete["sport"],
             "country": athlete["country"],
-            "base_rate_usd": athlete["base_rate_usd"],
+            "base_rate_eur": athlete["base_rate_eur"],
             "score": score,
             # null component = not measured. `weights` is the nominal model;
             # `effective_weights` is what actually produced this score.

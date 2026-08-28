@@ -83,7 +83,7 @@ export default function SponsorPipeline() {
                       </td>
                       <td className="table-cell">{d.campaign_name}</td>
                       <td className="table-cell">{dealTypeLabel(d.deal_type)}</td>
-                      <td className="table-cell tnum text-right">{fmtMoney(d.amount_usd)}</td>
+                      <td className="table-cell tnum text-right">{fmtMoney(d.amount_eur)}</td>
                       <td className="table-cell text-xs text-ink-3">{fmtDate(d.created_at)}</td>
                       <td className="table-cell text-right">
                         {d.status === 'offered' && (
@@ -143,7 +143,7 @@ export default function SponsorPipeline() {
                     {c.package_type === 'player_direct' && <span className="tag ml-2 border-accent text-ink">player-direct</span>}
                   </td>
                   <td className="table-cell">{c.athlete_name ?? '—'}</td>
-                  <td className="table-cell tnum text-right">{fmtMoney(c.amount_usd)}</td>
+                  <td className="table-cell tnum text-right">{fmtMoney(c.amount_eur)}</td>
                   <td className="table-cell"><StatusChip status={c.status} /></td>
                   <td className="table-cell text-right">
                     {c.status === 'active' && (

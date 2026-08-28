@@ -103,9 +103,9 @@ def workspace(user: dict = Depends(require_role("sponsor")),
         "campaigns": campaigns,
         "deals": deals,
         "club_commitments": club_commitments,
-        "spend_committed": sum(d["amount_usd"] for d in deals
+        "spend_committed": sum(d["amount_eur"] for d in deals
                                if d["status"] in ("accepted", "completed"))
-                           + sum(x["amount_usd"] for x in club_commitments
+                           + sum(x["amount_eur"] for x in club_commitments
                                  if x["status"] == "active"),
         "speed": _speed_to_first_offer(conn, org["id"]),
     }
@@ -116,8 +116,8 @@ class CampaignIn(BaseModel):
     objective: str = Field(default="", max_length=500)
     category: str = Field(max_length=60)
     deal_types: list[str] = Field(default=[], max_length=5)
-    budget_usd_min: int = Field(ge=0, le=10_000_000, default=1000)
-    budget_usd_max: int = Field(ge=0, le=10_000_000, default=10000)
+    budget_eur_min: int = Field(ge=0, le=10_000_000, default=1000)
+    budget_eur_max: int = Field(ge=0, le=10_000_000, default=10000)
     target_age_buckets: list[str] = Field(default=[], max_length=6)
     target_genders: list[str] = Field(default=[], max_length=3)
     target_countries: list[str] = Field(default=[], max_length=20)
@@ -132,7 +132,7 @@ class CampaignIn(BaseModel):
 def create_campaign(body: CampaignIn, user: dict = Depends(require_role("sponsor")),
                     conn: sqlite3.Connection = Depends(get_db)):
     org = _own_org(conn, user)
-    if body.budget_usd_max < body.budget_usd_min:
+    if body.budget_eur_max < body.budget_eur_min:
         raise HTTPException(422, "budget_max_below_min")
     # every campaign brief becomes a CreatorLens sponsor target — audience fit
     # is then computed against THIS campaign, not a generic default
@@ -140,12 +140,12 @@ def create_campaign(body: CampaignIn, user: dict = Depends(require_role("sponsor
                            body.target_age_buckets, body.target_genders,
                            body.target_countries, body.target_topics, actor="user")
     cur = conn.execute(
-        "INSERT INTO campaigns (org_id, name, objective, category, deal_types, budget_usd_min,"
-        " budget_usd_max, target_age_buckets, target_genders, target_countries, target_topics,"
+        "INSERT INTO campaigns (org_id, name, objective, category, deal_types, budget_eur_min,"
+        " budget_eur_max, target_age_buckets, target_genders, target_countries, target_topics,"
         " sponsor_target_id, require_verified_athletes, status, created_at)"
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)",
         (org["id"], body.name, body.objective, body.category, json.dumps(body.deal_types),
-         body.budget_usd_min, body.budget_usd_max, json.dumps(body.target_age_buckets),
+         body.budget_eur_min, body.budget_eur_max, json.dumps(body.target_age_buckets),
          json.dumps(body.target_genders), json.dumps(body.target_countries),
          json.dumps(body.target_topics), target["id"],
          # the bool itself, not int(): Postgres will not implicitly cast an
@@ -199,7 +199,7 @@ def campaign_matches(campaign_id: int, user: dict = Depends(require_role("sponso
 class OfferIn(BaseModel):
     athlete_id: int
     deal_type: str = Field(max_length=40)
-    amount_usd: int = Field(gt=0, le=10_000_000)
+    amount_eur: int = Field(gt=0, le=10_000_000)
     message: str = Field(default="", max_length=1000)
 
 
@@ -218,13 +218,13 @@ def send_offer(campaign_id: int, body: OfferIn, user: dict = Depends(require_rol
         raise HTTPException(409, "offer_already_open")
     projected = _projected_reach(conn, athlete["creatorlens_creator_id"])
     cur = conn.execute(
-        "INSERT INTO deals (campaign_id, org_id, athlete_id, deal_type, amount_usd, message,"
+        "INSERT INTO deals (campaign_id, org_id, athlete_id, deal_type, amount_eur, message,"
         " status, created_at, projected_reach) VALUES (?, ?, ?, ?, ?, ?, 'offered', ?, ?)",
-        (campaign_id, org["id"], body.athlete_id, body.deal_type, body.amount_usd,
+        (campaign_id, org["id"], body.athlete_id, body.deal_type, body.amount_eur,
          body.message, now_iso(), projected))
     log_event(conn, "user", "deal.created", "deal", cur.lastrowid,
               {"campaign_id": campaign_id, "athlete_id": body.athlete_id,
-               "amount_usd": body.amount_usd, "org_id": org["id"]})
+               "amount_eur": body.amount_eur, "org_id": org["id"]})
     conn.commit()
     return row(conn, "SELECT * FROM deals WHERE id = ?", (cur.lastrowid,))
 
@@ -287,10 +287,10 @@ def deal_performance(deal_id: int, user: dict = Depends(require_role("sponsor"))
             "reach": post_reach, "engagement_rate": round(er, 5) if er is not None else None,
         })
 
-    amount = deal["amount_usd"]
+    amount = deal["amount_eur"]
     projected = deal["projected_reach"]
     return {
-        "deal": {k: deal[k] for k in ("id", "status", "deal_type", "amount_usd",
+        "deal": {k: deal[k] for k in ("id", "status", "deal_type", "amount_eur",
                                       "created_at", "responded_at", "completed_at",
                                       "athlete_name", "athlete_slug", "campaign_name")},
         "deliverables": deliverables,

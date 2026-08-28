@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS athlete_profiles (
     career_highlights       TEXT NOT NULL DEFAULT '[]',            -- json list of strings
     topics                  TEXT NOT NULL DEFAULT '[]',            -- json list: audience themes
     deal_types              TEXT NOT NULL DEFAULT '[]',            -- json list of DEAL_TYPES
-    base_rate_usd           INTEGER NOT NULL DEFAULT 1000,         -- per engagement, rate card anchor
+    base_rate_eur           INTEGER NOT NULL DEFAULT 1000,         -- per engagement, rate card anchor
     status                  TEXT NOT NULL DEFAULT 'listed' CHECK (status IN ('draft','listed','hidden')),
     creatorlens_creator_id  INTEGER,                               -- analytics identity (creators.id)
     created_at              TEXT NOT NULL
@@ -112,8 +112,8 @@ CREATE TABLE IF NOT EXISTS campaigns (
     objective          TEXT NOT NULL DEFAULT '',
     category           TEXT NOT NULL,
     deal_types         TEXT NOT NULL DEFAULT '[]',
-    budget_usd_min     INTEGER NOT NULL DEFAULT 1000,
-    budget_usd_max     INTEGER NOT NULL DEFAULT 10000,
+    budget_eur_min     INTEGER NOT NULL DEFAULT 1000,
+    budget_eur_max     INTEGER NOT NULL DEFAULT 10000,
     target_age_buckets TEXT NOT NULL DEFAULT '[]',
     target_genders     TEXT NOT NULL DEFAULT '[]',
     target_countries   TEXT NOT NULL DEFAULT '[]',
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS deals (
     org_id       INTEGER NOT NULL REFERENCES sponsor_orgs(id),
     athlete_id   INTEGER NOT NULL REFERENCES athlete_profiles(id),
     deal_type    TEXT NOT NULL,
-    amount_usd   INTEGER NOT NULL,
+    amount_eur   INTEGER NOT NULL,
     message      TEXT NOT NULL DEFAULT '',
     status       TEXT NOT NULL DEFAULT 'offered'
                  CHECK (status IN ('offered','accepted','declined','withdrawn','completed')),
@@ -257,7 +257,7 @@ CREATE TABLE IF NOT EXISTS club_packages (
     name         TEXT NOT NULL,
     description  TEXT NOT NULL DEFAULT '',
     package_type TEXT NOT NULL CHECK (package_type IN ('club','player_direct')),
-    price_usd    INTEGER NOT NULL,
+    price_eur    INTEGER NOT NULL,
     perks        TEXT NOT NULL DEFAULT '[]',
     status       TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','archived')),
     created_at   TEXT NOT NULL
@@ -268,7 +268,7 @@ CREATE TABLE IF NOT EXISTS package_commitments (
     id           INTEGER PRIMARY KEY,
     package_id   INTEGER NOT NULL REFERENCES club_packages(id),
     org_id       INTEGER NOT NULL REFERENCES sponsor_orgs(id),
-    amount_usd   INTEGER NOT NULL,
+    amount_eur   INTEGER NOT NULL,
     status       TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','cancelled')),
     created_at   TEXT NOT NULL,
     cancelled_at TEXT
@@ -291,6 +291,45 @@ _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
 )
 
 
+# Columns renamed after they had shipped. Same reasoning as the list above and
+# the same trap: CREATE TABLE IF NOT EXISTS writes the new name only on a
+# database that does not have the table yet, so an existing one keeps the old
+# column and every query against the new name fails. Renames are listed rather
+# than done by hand because the money columns moved from USD to EUR in one pass
+# and a half-migrated database is worse than either currency.
+# The old names are assembled rather than written out, because the search and
+# replace that performed this migration rewrote this very table on its first
+# run and left six no-op renames behind. A list of dead identifiers is exactly
+# what a global rename cannot see.
+_RENAMED_COLUMNS: tuple[tuple[str, str, str], ...] = tuple(
+    (table, new.replace("eur", "usd"), new) for table, new in (
+        ("deals", "amount_eur"),
+        ("athlete_profiles", "base_rate_eur"),
+        ("campaigns", "budget_eur_min"),
+        ("campaigns", "budget_eur_max"),
+        ("club_packages", "price_eur"),
+        ("package_commitments", "amount_eur"),
+    )
+)
+
+
+def _columns(conn, table: str) -> set[str]:
+    if settings.db_backend == "postgres":
+        return {r["column_name"] for r in rows(
+            conn, "SELECT column_name FROM information_schema.columns WHERE table_name = ?",
+            (table,))}
+    return {c["name"] for c in rows(conn, f"PRAGMA table_info({table})")}
+
+
+def _rename_columns(conn) -> None:
+    """Idempotent: only fires where the old name is still there and the new one
+    is not, so a fresh database and a re-run are both no-ops."""
+    for table, old, new in _RENAMED_COLUMNS:
+        present = _columns(conn, table)
+        if old in present and new not in present:
+            conn.execute(f"ALTER TABLE {table} RENAME COLUMN {old} TO {new}")
+
+
 def _add_missing_columns(conn) -> None:
     if settings.db_backend == "postgres":
         for table, column, decl in _ADDED_COLUMNS:
@@ -298,7 +337,7 @@ def _add_missing_columns(conn) -> None:
         return
     # SQLite has no ADD COLUMN IF NOT EXISTS, so ask first.
     for table, column, decl in _ADDED_COLUMNS:
-        if column not in {c["name"] for c in rows(conn, f"PRAGMA table_info({table})")}:
+        if column not in _columns(conn, table):
             conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
 
 
@@ -308,6 +347,9 @@ def init_db(conn) -> None:
     else:
         conn.executescript(CREATORLENS_SCHEMA)  # analytics tables + shared events audit log
         conn.executescript(STRIDE_SCHEMA)
+    # rename before adding: both walk the same tables, and a rename that ran
+    # second would find the new column already created empty beside the old one
+    _rename_columns(conn)
     _add_missing_columns(conn)
     conn.commit()
 
