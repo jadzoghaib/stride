@@ -450,9 +450,13 @@ def club_legitimacy(application: dict, today_year: int | None = None) -> dict:
         caveats.append(f"A {named} was named but no page was linked — nothing to check, so "
                        f"the claim is discounted to {int(multiplier * 100)}% of its face value")
     elif linked:
-        caveats.append("A page is linked but no kind of proof is declared, so it is not "
-                       f"treated as evidence — the claim is discounted to "
-                       f"{int(multiplier * 100)}% of its face value. Name what the page is.")
+        # Careful about "ignored": `roster_proof` credits any openable URL, so the
+        # page does raise the claim. What it does not do is earn an evidence
+        # multiplier, because nothing says what a reviewer is meant to check.
+        caveats.append("A page is linked and counts towards the claim, but no kind of proof "
+                       "is declared, so nobody knows what to check it against — the claim is "
+                       f"discounted to {int(multiplier * 100)}% of its face value. Name what "
+                       "the page is.")
     else:
         caveats.append("No roster or licence page linked — there is nothing a reviewer can "
                        f"open, so the claim is discounted to {int(multiplier * 100)}% of "

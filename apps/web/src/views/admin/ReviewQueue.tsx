@@ -97,9 +97,12 @@ export default function ReviewQueue() {
     take(verified, 'verified', setVerifiedClubs)
 
     setFailed(trouble)
-    // Only the load's own failure is cleared here. The action banner belongs to
-    // the handler that raised it — clearing it on any successful refresh would
-    // let a reload quietly retract the news that a decision did not post.
+    // Only the load's own failure is set here. The action banner is owned by the
+    // handler that raises it, which also clears it when the action is retried —
+    // so `load()` writing to it as well was a second writer to one piece of
+    // state and nothing more. (Removing it does not make a failed decision's
+    // banner survive a later successful one: the handlers clear on retry, by
+    // design. It is one less place that can start disagreeing.)
     setLoadError(Object.keys(trouble).length === 3 ? Object.values(trouble)[0] : '')
     setLoaded(true)
   }
