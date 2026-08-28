@@ -479,17 +479,21 @@ def build() -> pathlib.Path:
              formula=f"=IF({{k}}=1,0,{{p}}{D[f'{tag} paying fans (year end)']}*{{c}}{r-1}^12)")
         rr = D[f"{tag} monthly retention r = 1-churn"]
         surv = r - 1
-        drow(f"{tag} monthly gross adds", unit="solved: (end - survivors)/annuity",
-             formula=(f"=MAX(0,({{c}}{D[f'{tag} paying fans (year end)']}-{{c}}{surv})"
-                      f"/((1-{{c}}{rr}^12)/(1-{{c}}{rr})))"))
-        # An athlete's audience is finite: they can only convert so much of it in
-        # a year. Without this ceiling the workbook reaches year-end fan targets
-        # the Python model cannot, so fan revenue is overstated and the Check
-        # sheet — the whole point of which is to be zero — cannot reconcile.
-        drow(f"{tag} fans acquired (gross)", unit="x12 months, capped by capacity",
-             formula=(f"=MIN({{c}}{r-1}*12,"
+        # Capped HERE, on the driver, because everything downstream reads this
+        # row: the annual figure below it and — the one that matters — average
+        # fans during the year, which is what revenue accrues on. Capping only
+        # the annual display row left the ceiling cosmetic and the revenue
+        # uncapped, which is the exact shape of the bug the ceiling was added to
+        # prevent. Python caps `monthly_adds` in fan_path(); this is that.
+        drow(f"{tag} monthly gross adds", unit="solved, then capped by capacity",
+             formula=(f"=MIN(MAX(0,({{c}}{D[f'{tag} paying fans (year end)']}-{{c}}{surv})"
+                      f"/((1-{{c}}{rr}^12)/(1-{{c}}{rr}))),"
                       f"{{c}}{D[f'{tag} monetising athletes']}"
-                      f"*Assumptions!{{c}}{A_ROW[f'{t}_maxadds']})"))
+                      f"*Assumptions!{{c}}{A_ROW[f'{t}_maxadds']}/12)"))
+        # Plain x12 again: the ceiling is applied to the monthly row above, so
+        # this inherits it rather than clamping a second time.
+        drow(f"{tag} fans acquired (gross)", unit="x12 months",
+             formula=f"={{c}}{r-1}*12")
         drow(f"{tag} S = r(1-r^12)/(1-r)", unit="geometric sum", fmt='0.000',
              formula=f"={{c}}{rr}*(1-{{c}}{rr}^12)/(1-{{c}}{rr})")
         drow(f"{tag} average fans during year", unit="exact mean, revenue basis",
@@ -767,7 +771,14 @@ def build() -> pathlib.Path:
     r += 1
     frow("Equity raised", unit="see Funding",
          formula=f"=Funding!{{c}}{FUNDING_ROWS['Equity raised']}", font=LINK)
-    frow("Opening cash", formula=f"=IF({{k}}=1,0,{{p}}{r+1})")
+    # Year one opens at nothing rather than at `IF(k=1, 0, prev closing)`: in the
+    # first column `{p}` falls back to the same column, so the untaken branch
+    # named the closing-cash cell that reads this one. Excel does not care that
+    # the branch never runs — it saw Opening -> Closing -> Opening and stopped
+    # calculating. Found by the dependency-graph check, which the direct
+    # self-reference check could not see because the loop goes through a
+    # neighbour rather than back to the same cell.
+    frow("Opening cash", first="=0", formula=f"={{p}}{r+1}")
     frow("CLOSING CASH", bold=True, top=True, band=True,
          formula=f"={{c}}{r-1}+{{c}}{F['FREE CASH FLOW']}+{{c}}{F['Equity raised']}")
 
