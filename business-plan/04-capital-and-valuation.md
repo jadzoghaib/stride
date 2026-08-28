@@ -106,10 +106,10 @@ Two methods, because they answer different questions and disagree for a reason.
 <!-- MODEL:valuation -->
 | Valuation (DCF) | Value |
 |---|---|
-| PV of explicit FCF, Y1–Y7 | €10.45M |
-| Terminal value (g=3%) | €112.27M |
-| PV of terminal value | €12.06M |
-| **Enterprise value (WACC 25%)** | **€22.51M** |
+| PV of explicit FCF, Y1–Y7 | €11.61M |
+| Terminal value (g=3%) | €104.32M |
+| PV of terminal value | €11.20M |
+| **Enterprise value (WACC 25%)** | **€22.81M** |
 <!-- /MODEL:valuation -->
 
 ### Exit multiple
@@ -126,29 +126,31 @@ Two methods, because they answer different questions and disagree for a reason.
 
 ### Why they disagree, and which to believe
 
-The DCF says €9.2M; the blended exit multiple says €36.2M. **This is not an
+The DCF says €22.8M; the blended exit multiple says €40.5M. **This is not an
 error in either — it is the standard failure of perpetuity-growth DCF applied to
-a company still compounding at 60%.**
+a company that has not finished growing.**
 
-The DCF's terminal value assumes growth collapses from 60% to 3% the day after
-Y7. For a marketplace that has just reached €23M revenue with 66% gross margins
-and a network effect, that is not a neutral assumption — it is a pessimistic
-one. The terminal value is 73% of the DCF's total, so that single assumption
-drives the answer.
+The DCF's terminal value assumes growth collapses to 3% the day after Y10, from
+a year that still grew 22%. For a marketplace that has just reached €58M revenue
+at a 74% gross margin with a network effect, that is not a neutral assumption —
+it is a pessimistic one. The terminal value is 49% of the DCF's total, so that
+single assumption carries half the answer.
 
 **For a venture-stage company, the exit-multiple method discounted back is the
 more informative number.** The DCF is worth presenting precisely because it is
-the conservative floor: *even if growth stops dead in Y7*, the business is worth
-€9.2M today.
+the conservative floor: *even if growth stops dead after Y10*, the business is
+worth €22.8M today.
 
-| Sensitivity — enterprise value | WACC 20% | WACC 25% | WACC 30% |
+<!-- MODEL:sensitivity -->
+| Enterprise value | WACC 20% | WACC 25% | WACC 30% |
 |---|---|---|---|
-| Terminal growth 2% | €15.7M | €10.7M | €7.8M |
-| Terminal growth 3% | €17.1M | €11.4M | €8.2M |
-| Terminal growth 4% | €19.0M | €12.3M | €8.7M |
+| Terminal growth 2% | €36.54M | €22.22M | €14.37M |
+| Terminal growth 3% | €37.95M | **€22.81M** | €14.65M |
+| Terminal growth 4% | €39.54M | €23.46M | €14.94M |
+<!-- /MODEL:sensitivity -->
 
-**Defensible headline: €22–36M enterprise value at Y7 discounted to today**,
-with a €9.2M floor under a no-growth-after-Y7 assumption.
+**Defensible headline: €25–56M enterprise value at Y10 discounted to today**,
+with a €22.8M floor under a no-growth-after-Y10 assumption.
 
 ---
 

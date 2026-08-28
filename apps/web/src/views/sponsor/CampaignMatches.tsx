@@ -2,19 +2,10 @@ import { ChevronDown, ChevronUp, Send } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Board } from '../../components/Board'
-import {
-  Avatar,
-  CoverageChip,
-  LoadError,
-  Meter,
-  Modal,
-  PageLoading,
-  Section,
-  StatusChip,
-} from '../../components/ui'
+import { Avatar, CoverageChip, LoadError, Meter, Modal, PageLoading, Section, SimulatedChip, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtMoney } from '../../lib/format'
-import type { Campaign, Match } from '../../types'
+import type { Campaign, Match, MatchesResponse } from '../../types'
 import { dealTypeLabel } from '../../types'
 
 const COMPONENT_LABELS: Record<string, string> = {
@@ -51,14 +42,19 @@ function decompose(m: Match) {
 
 export default function CampaignMatches() {
   const { id } = useParams()
-  const [data, setData] = useState<{ campaign: Campaign; matches: Match[] } | null>(null)
+  const [data, setData] = useState<MatchesResponse | null>(null)
   const [error, setError] = useState('')
   const [open, setOpen] = useState<number | null>(null)
   const [offerFor, setOfferFor] = useState<Match | null>(null)
 
+  /** POST, not GET. Opening the matches for a campaign is the exposure a later
+   *  ranker learns from, and it is recorded here — but the server keys the
+   *  record on the slate's own fingerprint, so a refresh or a second visit to
+   *  an unchanged ranking is the same exposure rather than a duplicate training
+   *  row. Reading without recording is still available on GET. */
   useEffect(() => {
     api
-      .get<{ campaign: Campaign; matches: Match[] }>(`/api/campaigns/${id}/matches`)
+      .post<MatchesResponse>(`/api/campaigns/${id}/matches`)
       .then(setData)
       .catch((e) => setError(errorText(e)))
   }, [id])
@@ -84,6 +80,7 @@ export default function CampaignMatches() {
           <>
             <span className="tag">{c.category}</span>
             <StatusChip status={c.status} />
+            <SimulatedChip what="analytics" />
           </>
         }
         score={best ? best.score : null}

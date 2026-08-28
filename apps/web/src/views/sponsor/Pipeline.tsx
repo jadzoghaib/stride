@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Delta, KV, LoadError, Meter, PageHeader, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
+import { Delta, EmptyNote, KV, LoadError, Meter, PageHeader, PageLoading, Section, SimulatedChip, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDate, fmtMoney, fmtNum, fmtPct } from '../../lib/format'
 import type { Commitment, Deal, DealPerformance } from '../../types'
@@ -187,6 +187,7 @@ function Performance({ dealId }: { dealId: number }) {
     <div className="py-3">
       <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2.5">
         <KV label="Delivered reach" value={fmtNum(delivered.reach)} />
+        <SimulatedChip what="delivery" />
         <KV label="Projected at offer" value={fmtNum(projected.reach)} />
         <KV label="Engagements" value={fmtNum(delivered.engagements)} />
         {/* None, not zero: an unmeasured campaign must not read as a free one */}

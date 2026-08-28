@@ -173,10 +173,10 @@ at Series A, when the network — not the price — is the reason to stay.
 
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| Fan take | €43k (84%) | €977k (74%) | €6.15M (63%) | €15.88M (55%) |
-| Sponsorship take | €3k (6%) | €166k (13%) | €2.48M (25%) | €9.38M (33%) |
-| Sponsor SaaS | €6k (11%) | €180k (14%) | €1.15M (12%) | €3.36M (12%) |
-| **Total** | **€51k** | **€1.32M** | **€9.78M** | **€28.62M** |
+| Fan take | €25k (87%) | €692k (67%) | €4.77M (57%) | €13.78M (52%) |
+| Sponsorship take | €3k (9%) | €166k (16%) | €2.48M (29%) | €9.38M (35%) |
+| Sponsor SaaS | €1k (4%) | €180k (17%) | €1.15M (14%) | €3.36M (13%) |
+| **Total** | **€29k** | **€1.04M** | **€8.40M** | **€26.52M** |
 
 The mix shifts deliberately. Fans fund the early years because they can be
 acquired at near-zero cost — **athletes bring their own audience**. Sponsorship

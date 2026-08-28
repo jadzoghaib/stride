@@ -151,8 +151,8 @@ curve that stays above 50% through Y7 is what a Series B buyer wants to see.
 | Legal & compliance | €18k | €45k | €90k | €150k | €200k | €235k | €270k | €300k | €325k | €345k |
 | Other opex | €2k | €19k | €83k | €270k | €672k | €1.30M | €2.12M | €3.02M | €3.81M | €4.64M |
 | **EBITDA** | €-91k | €-188k | €-274k | €81k | €1.72M | €5.13M | €9.99M | €16.10M | €21.75M | €28.21M |
-| Tax | €0 | €0 | €0 | €12k | €258k | €770k | €1.50M | €2.42M | €3.26M | €4.23M |
-| **Free cash flow** | €-91k | €-188k | €-274k | €69k | €1.46M | €4.36M | €8.49M | €13.69M | €18.49M | €23.98M |
+| Tax | €0 | €0 | €0 | €0 | €108k | €696k | €1.39M | €2.26M | €5.11M | €6.66M |
+| **Free cash flow** | €-92k | €-175k | €-180k | €428k | €2.45M | €5.71M | €10.15M | €15.25M | €17.39M | €22.28M |
 <!-- /MODEL:pl -->
 
 **Gross margin of 58–66% is the honest number for a payments-heavy marketplace.**
@@ -169,30 +169,30 @@ parent (~85% at a 20% take on far larger tickets).
 <!-- MODEL:cash -->
 | Year | Free cash flow | Cumulative |
 |---|---|---|
-| Y1 | €-91k | €-91k |
-| Y2 | €-188k | €-279k |
-| Y3 | €-274k | €-553k |
-| Y4 | €69k | €-484k |
-| Y5 | €1.46M | €977k |
-| Y6 | €4.36M | €5.34M |
-| Y7 | €8.49M | €13.83M |
-| Y8 | €13.69M | €27.52M |
-| Y9 | €18.49M | €46.01M |
-| Y10 | €23.98M | €69.99M |
+| Y1 | €-92k | €-92k |
+| Y2 | €-175k | €-267k |
+| Y3 | €-180k | €-446k |
+| Y4 | €428k | €-18k |
+| Y5 | €2.45M | €2.43M |
+| Y6 | €5.71M | €8.14M |
+| Y7 | €10.15M | €18.29M |
+| Y8 | €15.25M | €33.54M |
+| Y9 | €17.39M | €50.93M |
+| Y10 | €22.28M | €73.21M |
 <!-- /MODEL:cash -->
 
 | Capital requirement | Value |
 <!-- MODEL:funding -->
 | Capital requirement | Value |
 |---|---|
-| Deepest cumulative cash position | €-553k |
+| Deepest cumulative cash position | €-446k |
 | Year it occurs | Y3 |
-| Buffer at 40% (hiring slips, churn worse) | €221k |
-| **Total capital to fund the plan** | **€774k** |
+| Buffer at 40% (hiring slips, churn worse) | €179k |
+| **Total capital to fund the plan** | **€625k** |
 | First EBITDA-positive year | Y4 |
 <!-- /MODEL:funding -->
 
-**€952k is a small number for a plan that reaches €26.6M of revenue,
+**€625k is a small number for a plan that reaches €26.5M of revenue by Y7,
 and that should be interrogated rather than celebrated.** It is small because
 the model hires behind revenue rather than ahead of it, and because fan
 acquisition is free. A growth-optimised version — hiring 12 months earlier,
@@ -209,8 +209,8 @@ be wrong are **fans per athlete** and **share of athletes who monetise**.
 
 | Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Capital need |
 |---|---|---|---|---|
-| **Conservative** | Fans/athlete −30%, monetise rate −25% | ~€15M | ~€3.4M | ~€1.3M |
-| **Base** | As modelled | €26.57M | €8.20M | €952k |
+| **Conservative** | Fans/athlete −30%, monetise rate −25% | ~€15M | ~€3.4M | ~€0.9M |
+| **Base** | As modelled | €26.52M | €9.99M | €625k |
 | **Growth-optimised** | Hire 12mo ahead, 3 markets from Y2 | ~€39M | ~€9M | €3–5M |
 
 To run these, edit `Assumptions` in `model.py` and rerun. The conservative case

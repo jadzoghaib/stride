@@ -20,14 +20,51 @@ def test_health_probes(client):
 
 
 def test_public_directory(client):
-    athletes = client.get("/api/athletes").json()
-    assert len(athletes) == 24
+    page = client.get("/api/athletes").json()
+    athletes = page["athletes"]
+    assert len(athletes) == page["limit"] == 24
     scored = [a for a in athletes if a["score"]]
     assert len(scored) >= 20
     assert any(a["score"] is None for a in athletes)  # unconnected stays unscored
 
     facets = client.get("/api/athletes/facets").json()
     assert "Athletics" in facets["sports"]
+
+
+def test_the_directory_pages_without_skipping_or_repeating(client):
+    """A keyset cursor rather than an offset: this set shifts every time an
+    athlete is admitted or delisted, and an offset silently skips or repeats a
+    row when it does."""
+    first = client.get("/api/athletes", params={"limit": 10}).json()
+    assert len(first["athletes"]) == 10 and first["next_cursor"]
+
+    second = client.get("/api/athletes",
+                        params={"limit": 10, "cursor": first["next_cursor"]}).json()
+    assert len(second["athletes"]) == 10
+
+    slugs_a = [a["slug"] for a in first["athletes"]]
+    slugs_b = [a["slug"] for a in second["athletes"]]
+    assert not set(slugs_a) & set(slugs_b), "pages must not overlap"
+    assert slugs_a + slugs_b == sorted(
+        slugs_a + slugs_b,
+        key=lambda s: next(a["display_name"] for a in first["athletes"] + second["athletes"]
+                           if a["slug"] == s))
+
+    # walking to the end terminates and covers everything exactly once
+    seen, cursor, guard = [], None, 0
+    while guard < 20:
+        guard += 1
+        page = client.get("/api/athletes",
+                          params={"limit": 10, **({"cursor": cursor} if cursor else {})}).json()
+        seen += [a["slug"] for a in page["athletes"]]
+        cursor = page["next_cursor"]
+        if not cursor:
+            break
+    assert len(seen) == len(set(seen)) == 24
+
+
+def test_a_malformed_cursor_is_refused_rather_than_ignored(client):
+    assert client.get("/api/athletes", params={"cursor": "nonsense"}).status_code == 422
 
 
 def test_public_athlete_detail(client):

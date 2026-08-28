@@ -118,33 +118,15 @@ def compute_scores(conn: sqlite3.Connection, creator_id: int, target_id: int | N
         coverage["dimensions"]["engagement_quality"] = {"confidence": None, "reason": "no_posts"}
 
     # --- 3. Audience Fit: demographic overlap vs sponsor target ------------
-    target = row(conn, "SELECT * FROM sponsor_targets WHERE id = ?", (target_id,)) if target_id else None
-    combined = _combined_demographics(conn, kpis)
-    if target is None:
-        dims["audience_fit"] = None
-        coverage["dimensions"]["audience_fit"] = {"confidence": None, "reason": "no_target"}
-    elif not combined["dimensions"]:
-        dims["audience_fit"] = None
-        coverage["dimensions"]["audience_fit"] = {"confidence": None, "reason": "no_demographics"}
-    else:
-        demo = combined["dimensions"]
-        age_overlap = sum(demo.get("age", {}).get(b, 0.0) for b in json.loads(target["age_buckets"]))
-        geo_overlap = sum(demo.get("country", {}).get(c, 0.0) for c in json.loads(target["countries"]))
-        target_genders = json.loads(target["genders"])
-        gender_overlap = (sum(demo.get("gender", {}).get(g, 0.0) for g in target_genders)
-                          if target_genders else 1.0)
-        topic_match = 1.0 if creator["primary_topic"] in json.loads(target["topics"]) else 0.3
-        fit = 100 * (0.35 * age_overlap + 0.30 * geo_overlap + 0.15 * gender_overlap + 0.20 * topic_match)
-        dims["audience_fit"] = round(fit, 1)
-        intermediate["audience_fit"] = {
-            "target": target["name"], "age_overlap": round(age_overlap, 3),
-            "geo_overlap": round(geo_overlap, 3), "gender_overlap": round(gender_overlap, 3),
-            "topic_match": topic_match,
-        }
-        n_with, n_data = combined["platforms_with_demos"], len(kpis)
-        coverage["dimensions"]["audience_fit"] = {
-            "confidence": "high" if n_with == n_data else "medium",
-            "data_points": n_with, "unit": "platforms_with_demographics"}
+    # Computed by the shared helper below rather than inline, so a match that
+    # reuses a stored snapshot for the other four dimensions is running exactly
+    # this arithmetic for the one dimension it must recompute. Two copies of a
+    # score is how the number in the UI and the number in the model drift apart.
+    fit = audience_fit(conn, creator_id, target_id, kpis=kpis, creator=creator)
+    dims["audience_fit"] = fit["value"]
+    coverage["dimensions"]["audience_fit"] = fit["coverage"]
+    if fit["intermediate"] is not None:
+        intermediate["audience_fit"] = fit["intermediate"]
 
     # --- 4. Growth: monthly-ized blend, follower-weighted ------------------
     growth_parts = {}
@@ -192,12 +174,82 @@ def compute_scores(conn: sqlite3.Connection, creator_id: int, target_id: int | N
 
     return {
         "creator_id": creator_id,
-        "sponsor_target_id": target["id"] if target else None,
+        "sponsor_target_id": target_id,
         "formula_version": FORMULA_VERSION,
         "dimensions": dims,
         "coverage": coverage,
         "inputs": {"platform_kpis": kpis, "intermediate": intermediate,
-                   "audience": combined["dimensions"]},
+                   "audience": _combined_demographics(conn, kpis)["dimensions"]},
+    }
+
+
+def demographic_kpis(conn: sqlite3.Connection, creator_id: int) -> dict[str, dict]:
+    """The cheap half of `creator_kpis`: which accounts, and how big each is.
+
+    Audience fit needs follower weights and demographic shares. It does NOT need
+    the per-post metrics the other four dimensions are built from, and those are
+    the expensive part — a correlated lookup per post, per account, per athlete,
+    on every matching run. Building only what fit uses is what makes ranking a
+    directory affordable.
+    """
+    out: dict[str, dict] = {}
+    for account in rows(conn, "SELECT id, platform FROM platform_accounts"
+                        " WHERE creator_id = ? AND connection_status = 'connected'",
+                        (creator_id,)):
+        snap = row(conn, "SELECT followers FROM account_snapshots WHERE account_id = ?"
+                   " ORDER BY snapshot_date DESC LIMIT 1", (account["id"],))
+        out[account["platform"]] = {"account_id": account["id"],
+                                    "followers": snap["followers"] if snap else None}
+    return out
+
+
+def audience_fit(conn: sqlite3.Connection, creator_id: int, target_id: int | None,
+                 kpis: dict[str, dict] | None = None, creator: dict | None = None) -> dict:
+    """The one dimension a campaign brief can change.
+
+    Scale, engagement quality, growth and consistency describe the athlete and
+    not the brief, so a stored snapshot answers for them however many campaigns
+    ask. Fit is the exception: it is overlap against *this* target, so it has to
+    be recomputed per campaign — and it is the cheap one.
+
+    Returns `value`, its `coverage` entry and the `intermediate` working, so a
+    caller can render the same decomposition either way. `value` is None rather
+    than zero when there is no target or no demographics; unmeasured is not a
+    measured nought, and every consumer of this depends on the difference.
+    """
+    if creator is None:
+        creator = row(conn, "SELECT * FROM creators WHERE id = ?", (creator_id,))
+    if kpis is None:
+        kpis = demographic_kpis(conn, creator_id)
+    target = (row(conn, "SELECT * FROM sponsor_targets WHERE id = ?", (target_id,))
+              if target_id else None)
+    if target is None:
+        return {"value": None, "intermediate": None,
+                "coverage": {"confidence": None, "reason": "no_target"}}
+    combined = _combined_demographics(conn, kpis)
+    if not combined["dimensions"]:
+        return {"value": None, "intermediate": None,
+                "coverage": {"confidence": None, "reason": "no_demographics"}}
+
+    demo = combined["dimensions"]
+    age_overlap = sum(demo.get("age", {}).get(b, 0.0) for b in json.loads(target["age_buckets"]))
+    geo_overlap = sum(demo.get("country", {}).get(c, 0.0) for c in json.loads(target["countries"]))
+    target_genders = json.loads(target["genders"])
+    gender_overlap = (sum(demo.get("gender", {}).get(g, 0.0) for g in target_genders)
+                      if target_genders else 1.0)
+    topic_match = 1.0 if creator["primary_topic"] in json.loads(target["topics"]) else 0.3
+    value = 100 * (0.35 * age_overlap + 0.30 * geo_overlap
+                   + 0.15 * gender_overlap + 0.20 * topic_match)
+    n_with, n_data = combined["platforms_with_demos"], len(kpis)
+    return {
+        "value": round(value, 1),
+        "intermediate": {
+            "target": target["name"], "age_overlap": round(age_overlap, 3),
+            "geo_overlap": round(geo_overlap, 3), "gender_overlap": round(gender_overlap, 3),
+            "topic_match": topic_match,
+        },
+        "coverage": {"confidence": "high" if n_with == n_data else "medium",
+                     "data_points": n_with, "unit": "platforms_with_demographics"},
     }
 
 

@@ -15,10 +15,12 @@ Fan affinity (user mode): lightweight interest/geography ranking for discovery.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 
-from creatorlens.analytics.scoring import InsufficientData, compute_scores
+from creatorlens.analytics.scoring import (InsufficientData, audience_fit, compute_scores,
+                                           latest_score)
 
 from .db import rows
 
@@ -63,13 +65,13 @@ CATEGORY_TOPICS = {
 def _budget_alignment(rate: int, lo: int, hi: int) -> tuple[float, str | None]:
     if rate <= hi:
         if rate >= lo:
-            return 1.0, f"Rate card ${rate:,} sits inside the ${lo:,}-${hi:,} budget"
-        return 0.85, f"Rate card ${rate:,} is under budget - room for a larger package"
+            return 1.0, f"Rate card EUR {rate:,} sits inside the EUR {lo:,}-{hi:,} budget"
+        return 0.85, f"Rate card EUR {rate:,} is under budget - room for a larger package"
     if rate <= hi * 2:
-        return 0.4, f"Rate card ${rate:,} exceeds budget - negotiable at reduced scope"
+        return 0.4, f"Rate card EUR {rate:,} exceeds budget - negotiable at reduced scope"
     # A genuine measured zero, not missing data — but it still has to say why,
     # or the decomposition shows an unexplained 0 against a 12% weight.
-    return 0.0, f"Rate card ${rate:,} is more than double the ${hi:,} ceiling"
+    return 0.0, f"Rate card EUR {rate:,} is more than double the EUR {hi:,} ceiling"
 
 
 def _effective_weights(components: dict[str, float | None]) -> dict[str, float | None]:
@@ -96,6 +98,45 @@ def _effective_weights(components: dict[str, float | None]) -> dict[str, float |
     return effective
 
 
+SNAPSHOT_DIMS = ("audience_scale", "engagement_quality", "growth", "consistency")
+
+
+def analytics_for(conn: sqlite3.Connection, creator_id: int | None,
+                  target_id: int | None) -> dict | None:
+    """Four dimensions from the stored snapshot, audience fit recomputed live.
+
+    Scale, engagement quality, growth and consistency describe the athlete and
+    not the brief: every campaign that asks gets the same answer, so reading
+    them back from `score_snapshots` is not an approximation, it is the same
+    number. Rebuilding them from post metrics once per athlete per matching run
+    is what made ranking a directory cost O(athletes x posts) — the successor
+    docs/architecture.md said would be needed past ~10^3 athletes.
+
+    Audience fit is the exception and stays live, because it is overlap against
+    *this* campaign's target and nothing else in the snapshot can answer it.
+
+    With no snapshot there is nothing to reuse, so the full computation runs and
+    that athlete is scored on the same formula set as everyone else rather than
+    being quietly dropped.
+    """
+    if not creator_id:
+        return None
+    snap = latest_score(conn, creator_id)
+    if snap is None:
+        try:
+            return compute_scores(conn, creator_id, target_id=target_id)
+        except InsufficientData:
+            return None
+
+    fit = audience_fit(conn, creator_id, target_id)
+    dims: dict[str, float | None] = {k: snap[k] for k in SNAPSHOT_DIMS}
+    dims["audience_fit"] = fit["value"]
+    coverage = dict(snap["coverage"])
+    coverage["dimensions"] = {**coverage.get("dimensions", {}), "audience_fit": fit["coverage"]}
+    return {"dimensions": dims, "coverage": coverage, "source": "snapshot",
+            "computed_at": snap["computed_at"], "formula_version": snap["formula_version"]}
+
+
 def candidates(conn: sqlite3.Connection, campaign: dict) -> list[dict]:
     """Retrieval: hard constraints only, applied before anything is scored.
 
@@ -115,21 +156,45 @@ def candidates(conn: sqlite3.Connection, campaign: dict) -> list[dict]:
     return rows(conn, "SELECT * FROM athlete_profiles WHERE status = 'listed' ORDER BY id")
 
 
-def slate(matches: list[dict]) -> list[dict]:
+def slate(ranked: list[dict], shown: int) -> list[dict]:
     """The ranked candidate set, compressed for the audit log.
 
     Offers on their own are a biased sample: they record what a sponsor chose
     without recording what they chose *from*, and nothing recovers later the
-    candidates that were never written down. Logging the slate — who was shown,
-    at what rank, with which component vector, under which weights — is what
-    makes a learned ranker trainable at all, and its evaluation off-policy
-    rather than wishful. One row per matching run, and unrecoverable if skipped.
+    candidates that were never written down.
+
+    Everything ranked is recorded, not only the page the sponsor saw. The
+    candidates below the fold are the negatives — a ranker trained on the top
+    twenty alone learns to reproduce the current ordering rather than to improve
+    it, because it never sees an example of something correctly left out. They
+    are stored as id and score only; the component vector is recoverable from
+    the score snapshot and is not worth the bytes for a row nobody rendered.
     """
-    return [{"rank": i + 1, "athlete_id": m["athlete_id"], "score": m["score"],
-             "components": m["components"]} for i, m in enumerate(matches)]
+    out = []
+    for i, m in enumerate(ranked):
+        entry = {"rank": i + 1, "athlete_id": m["athlete_id"], "score": m["score"]}
+        if i < shown:
+            entry["components"] = m["components"]
+        else:
+            entry["truncated"] = True
+        out.append(entry)
+    return out
+
+
+def slate_fingerprint(ranked: list[dict]) -> str:
+    """Identifies a slate by what it contains, so re-viewing one is not a new
+    exposure. A client-supplied idempotency key would let a refresh invent a
+    fresh one; a fingerprint of the ordering cannot."""
+    body = ";".join(f"{m['athlete_id']}:{m['score']}" for m in ranked)
+    return hashlib.sha256(body.encode()).hexdigest()[:16]
 
 
 def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -> list[dict]:
+    """The page a sponsor sees. `rank_athletes` is the whole ordering behind it."""
+    return rank_athletes(conn, campaign)[:limit]
+
+
+def rank_athletes(conn: sqlite3.Connection, campaign: dict) -> list[dict]:
     athletes = candidates(conn, campaign)
     # one grouped read, not one per athlete: this runs on every matching call
     congestion = {r["athlete_id"]: r["n"] for r in rows(
@@ -145,13 +210,8 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
         caveats: list[str] = []
 
         # ---- analytics components: CreatorLens, live against this campaign's target
-        analytics = None
-        if athlete["creatorlens_creator_id"]:
-            try:
-                analytics = compute_scores(conn, athlete["creatorlens_creator_id"],
-                                           target_id=campaign["sponsor_target_id"])
-            except InsufficientData:
-                analytics = None
+        analytics = analytics_for(conn, athlete["creatorlens_creator_id"],
+                                  campaign["sponsor_target_id"])
         if analytics:
             dims = analytics["dimensions"]
             cov = analytics["coverage"]["platforms"]
@@ -233,7 +293,7 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
         })
 
     results.sort(key=lambda r: (-r["score"], r["display_name"]))  # ties break A->Z
-    return results[:limit]
+    return results
 
 
 def fan_ranking(conn: sqlite3.Connection, interests: list[str], country: str | None,

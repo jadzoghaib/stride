@@ -177,8 +177,26 @@ class Assumptions:
     legal_compliance_eur: list[int] = field(default_factory=lambda: [18_000, 45_000, 90_000, 150_000, 200_000, 235_000, 270_000, 300_000, 325_000, 345_000])
     other_opex_pct_of_revenue: float = 0.08
 
+    # ---- working capital, capex, amortisation ------------------------------
+    # These existed on the workbook's WorkingCap sheet and nowhere in Python,
+    # so the two disagreed about what free cash flow even means: the workbook
+    # ran net profit through working capital and capex, while this model
+    # returned EBITDA less tax and called it FCF. The DCF the plan quotes came
+    # from the Python side, so it was discounting a cash flow the three
+    # statements never produced.
+    ar_days: int = 45              # sponsor receivables
+    float_days: int = 15           # fan GMV held before athletes are paid — a cash benefit
+    ap_days: int = 30              # trade payables
+    capex_pct: float = 0.30        # share of people cost capitalised as development
+    amort_years: int = 3
+
     # ---- financing / valuation --------------------------------------------
-    tax_rate: float = 0.15         # Spanish Startup Law: 15% for first 4 profitable years
+    # Spanish Startup Law: 15% for the first four PROFITABLE years, then the
+    # standard 25%, against losses carried forward. The single flat rate this
+    # replaced undercharged every year from the fifth profitable one onward.
+    tax_low: float = 0.15
+    tax_high: float = 0.25
+    tax_low_years: int = 4
     wacc: float = 0.25
     terminal_growth: float = 0.03
     risk_free: float = 0.032       # Spanish 10Y, mid-2026
@@ -282,6 +300,10 @@ def split(i_: int) -> dict[str, float]:
 def build() -> list[dict]:
     rows = []
     prev_fans = {s.name: 0.0 for s in A.segments}
+    prev_nwc = 0.0
+    losses_cf = 0.0
+    profitable_years = 0
+    capex_history: list[float] = []
     for y in YEARS:
         i_ = i(y)
         athletes = A.athletes[i_]
@@ -360,8 +382,35 @@ def build() -> list[dict]:
         opex = people + marketing + legal + other
 
         ebitda = gross - opex
-        tax = max(0.0, ebitda) * A.tax_rate
-        fcf = ebitda - tax
+
+        # --- working capital, capex and amortisation ----------------------
+        receivables = (rev_sponsorship + rev_saas) * A.ar_days / 365
+        payout_float = gmv * A.float_days / 365
+        payables = opex * A.ap_days / 365
+        nwc = receivables - payout_float - payables
+        change_in_nwc = nwc - prev_nwc
+        capex = people * A.capex_pct
+        capex_history.append(capex)
+        # three-year straight line on trailing capex, matching the workbook's
+        # OFFSET window exactly rather than approximately
+        amortisation = sum(capex_history[max(0, i_ - A.amort_years + 1):i_ + 1]) / A.amort_years
+        ebit = ebitda - amortisation
+
+        # --- tax: loss carry-forward, then the startup-rate step ----------
+        losses_bf = min(0.0, losses_cf)
+        taxable = max(0.0, ebit + losses_bf)
+        losses_cf = min(0.0, ebit + losses_bf)
+        if taxable > 0:
+            profitable_years += 1
+            rate = A.tax_low if profitable_years <= A.tax_low_years else A.tax_high
+        else:
+            rate = 0.0
+        tax = taxable * rate
+        net_profit = ebit - tax
+
+        operating_cf = net_profit + amortisation - change_in_nwc
+        fcf = operating_cf - capex
+        prev_nwc = nwc
 
         rows.append(dict(
             year=y, athletes=athletes, paying_fans=paying_fans, deals=deals,
@@ -375,7 +424,11 @@ def build() -> list[dict]:
             review_rate=review_rate, review_hourly=review_hourly,
             cogs=cogs, gross=gross, people=people,
             marketing=marketing, legal=legal, other=other, opex=opex,
-            ebitda=ebitda, tax=tax, fcf=fcf,
+            ebitda=ebitda, amortisation=amortisation, ebit=ebit,
+            taxable=taxable, tax_rate=rate, tax=tax, net_profit=net_profit,
+            receivables=receivables, payout_float=payout_float, payables=payables,
+            nwc=nwc, change_in_nwc=change_in_nwc, capex=capex,
+            operating_cf=operating_cf, fcf=fcf,
             headcount=A.headcount[i_],
             segs={s["name"]: s for s in segs},
             niche_share=A.niche_share[i_],
@@ -520,6 +573,22 @@ def render(rows: list[dict]) -> dict[str, str]:
          "**Brought by the athlete**", "Outbound, events, agency partnerships"],
     ])
 
+    # Sensitivity, generated. The hand-written version quoted a base cell that
+    # did not match the base case beside it, which is the failure mode of any
+    # table typed once and never recomputed.
+    base_w, base_g = A.wacc, A.terminal_growth
+    grid_w, grid_g = (0.20, 0.25, 0.30), (0.02, 0.03, 0.04)
+    sens_rows = []
+    for g in grid_g:
+        cells = []
+        for w in grid_w:
+            A.wacc, A.terminal_growth = w, g
+            ev = valuation(build())["enterprise_value"]
+            cells.append(f"**{eur(ev)}**" if (w, g) == (base_w, base_g) else eur(ev))
+        sens_rows.append([f"Terminal growth {g:.0%}"] + cells)
+    A.wacc, A.terminal_growth = base_w, base_g
+    sensitivity = table(["Enterprise value"] + [f"WACC {w:.0%}" for w in grid_w], sens_rows)
+
     # cumulative funding need = deepest point of cumulative FCF
     cum, trough, trough_year = 0.0, 0.0, 1
     cash_rows = []
@@ -563,7 +632,7 @@ def render(rows: list[dict]) -> dict[str, str]:
     return dict(drivers=drivers, gmv=gmv, revenue=revenue, pl=pl, egress=egress,
                 valuation=val, multiples=mult, cash=cash, funding=funding,
                 segments=segments, churn=churn,
-                costs_y7=costs_y7, cac=cac)
+                costs_y7=costs_y7, cac=cac, sensitivity=sensitivity)
 
 
 def unit_economics() -> str:
@@ -589,7 +658,7 @@ def unit_economics() -> str:
 DOC_TABLES = {
     "02-cost-model.md": ["costs_y7", "cac"],
     "03-financial-model.md": ["drivers", "churn", "segments", "gmv", "revenue", "pl", "cash", "funding"],
-    "04-capital-and-valuation.md": ["valuation", "multiples"],
+    "04-capital-and-valuation.md": ["valuation", "multiples", "sensitivity"],
 }
 
 

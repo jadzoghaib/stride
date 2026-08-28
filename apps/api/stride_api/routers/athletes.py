@@ -53,10 +53,27 @@ def athlete_public(conn, a: dict) -> dict:
 
 # ---- public directory --------------------------------------------------------
 
+DIRECTORY_PAGE = 24
+
+
 @router.get("/athletes")
 def list_athletes(sport: str | None = None, country: str | None = None,
-                  q: str | None = None, conn: sqlite3.Connection = Depends(get_db)):
-    sql, params = "SELECT * FROM athlete_profiles WHERE status = 'listed'", []
+                  q: str | None = None, cursor: str | None = None,
+                  limit: int = Query(DIRECTORY_PAGE, ge=1, le=100),
+                  conn: sqlite3.Connection = Depends(get_db)):
+    """The public directory, a page at a time.
+
+    This returned every listed athlete and ran a score lookup per row, which is
+    fine at two dozen and is the first thing to fall over as supply grows —
+    exactly the direction the whole plan is pointed in.
+
+    The cursor is the last `(display_name, id)` seen rather than an offset.
+    Offsets skip or repeat rows when the set shifts underneath a reader, and
+    this set shifts every time an athlete is admitted or delisted; the ordering
+    key does not have that problem. `id` breaks ties so the order is total.
+    """
+    sql = "SELECT * FROM athlete_profiles WHERE status = 'listed'"
+    params: list = []
     if sport:
         sql += " AND sport = ?"
         params.append(sport)
@@ -66,7 +83,22 @@ def list_athletes(sport: str | None = None, country: str | None = None,
     if q:
         sql += " AND (display_name LIKE ? OR sport LIKE ?)"
         params += [f"%{q}%", f"%{q}%"]
-    return [athlete_public(conn, a) for a in rows(conn, sql + " ORDER BY display_name", tuple(params))]
+    if cursor:
+        name, _, raw_id = cursor.rpartition("")
+        if not raw_id.isdigit():
+            raise HTTPException(422, "bad_cursor")
+        sql += " AND (display_name, id) > (?, ?)"
+        params += [name, int(raw_id)]
+
+    # one extra row, purely to answer "is there another page" without a count(*)
+    found = rows(conn, sql + " ORDER BY display_name, id LIMIT ?", (*params, limit + 1))
+    page, more = found[:limit], len(found) > limit
+    return {
+        "athletes": [athlete_public(conn, a) for a in page],
+        "next_cursor": (f"{page[-1]['display_name']}{page[-1]['id']}"
+                        if page and more else None),
+        "limit": limit,
+    }
 
 
 @router.get("/athletes/facets")

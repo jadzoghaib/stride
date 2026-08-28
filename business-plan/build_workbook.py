@@ -33,6 +33,7 @@ Sheets, in dependency order:
 from __future__ import annotations
 
 import pathlib
+import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
@@ -131,7 +132,7 @@ def sheet(wb, name, title):
     return ws
 
 
-def row(ws, r, label, unit="", *, values=None, formula=None, fmt=MONEY,
+def row(ws, r, label, unit="", *, values=None, formula=None, first=None, fmt=MONEY,
         bold=False, font=None, band=False, top=False, indent=0,
         hard=False, const=False, check=False):
     """Write one line.
@@ -163,9 +164,16 @@ def row(ws, r, label, unit="", *, values=None, formula=None, fmt=MONEY,
                 cell.value = values[k] if k < len(values) else None
                 fill = FILL_HARD if hard else FILL_INPUT
                 base = FONT_HARD if hard else FONT_INPUT
-        elif formula is not None:
+        elif formula is not None or first is not None:
             prev = COLS[k - 1] if k > 0 else None
-            f = formula.format(c=c, p=prev or c, k=k + 1, y=YEARS[k])
+            # `first` exists because an accumulating row written as
+            # `=IF(k=1, seed, prev + x)` still NAMES its own cell in the branch
+            # that never runs, and Excel's dependency graph does not care which
+            # branch is taken — it reports a circular reference and stops
+            # calculating. Six rows shipped that way. Giving year one its own
+            # formula removes the back-reference instead of hiding it.
+            src = first if (k == 0 and first is not None) else formula
+            f = _quote_sheets(src.format(c=c, p=prev or c, k=k + 1, y=YEARS[k]))
             cell.value = f
             fill = FILL_LINK if "!" in f else FILL_CALC
             base = FONT_LINK if "!" in f else (font or FONT_CALC)
@@ -188,6 +196,36 @@ def row(ws, r, label, unit="", *, values=None, formula=None, fmt=MONEY,
     if top:
         lab.border = TOPLINE
     return r + 1
+
+
+# Sheet names that are not bare identifiers must be quoted inside a formula.
+# `P&L` is the one here: Excel stops reading the sheet token at the ampersand,
+# so `=P&L!C21` is a syntax error rather than a reference, and CashFlow,
+# BalanceSheet and Check all opened as #NAME?. openpyxl stores the bad string
+# happily and a reference-resolution check passes it, which is exactly how forty
+# of them shipped — the file only fails when Excel itself parses it. Applied at
+# the single point a formula is written, so no future reference can miss it.
+_NEEDS_QUOTES = ("P&L",)
+
+# Funding rows, declared once because CashFlow references the equity row before
+# the Funding sheet is built. The builder asserts the rows land here, so the
+# declaration cannot quietly stop being true — the previous version hand-counted
+# them, was off by one throughout, and made every Funding formula circular while
+# CashFlow booked a pre-money valuation as cash received.
+FUNDING_ROWS = {
+    "Equity raised": 4,
+    "Pre-money valuation": 5,
+    "Post-money valuation": 6,
+    "New investor stake": 7,
+    "Cumulative dilution": 8,
+    "Founders + team retained": 9,
+}
+
+
+def _quote_sheets(formula: str) -> str:
+    for name in _NEEDS_QUOTES:
+        formula = re.sub(rf"(?<!')\b{re.escape(name)}!", f"'{name}'!", formula)
+    return formula
 
 
 def section(ws, r, text):
@@ -289,6 +327,10 @@ def build() -> pathlib.Path:
     r = section(a, r, "MARKET — the plan's shape")
     put("Active athletes (year end)", "count", A.athletes, NUM, "athletes")
     put("Niche share of athletes", "%", A.niche_share, PCT, "niche_share")
+    put("Athletes needed for full SaaS value", "count", [A.athletes_for_full_saas_value] * N,
+        NUM, "saas_floor", const=True,
+        note="Below this, sponsor conversion scales with supply — a matching product "
+             "is worth nothing against an empty directory")
     r += 1
 
     for seg, tag in ((M.NICHE, "niche"), (M.POPULAR, "popular")):
@@ -301,6 +343,9 @@ def build() -> pathlib.Path:
         put(f"Fan churn per month ({tag})", "%", seg.fan_churn_month, PCT, f"{tag}_fchurn",
             derive_note="derived on MarketModel from Patreon churn and our annual-plan mix")
         put(f"Athlete churn per year ({tag})", "%", seg.athlete_churn_year, PCT, f"{tag}_achurn")
+        put(f"Max new fans per athlete per year ({tag})", "capacity ceiling",
+            seg.max_fan_adds_per_athlete_year, NUM, f"{tag}_maxadds",
+            note="An audience is finite; without this ceiling higher churn RAISES revenue")
         put(f"Athletes landing a deal ({tag})", "% of segment", seg.deal_rate, PCT, f"{tag}_dealrate")
         put(f"Deals per dealing athlete ({tag})", "count", seg.deals_per_athlete, '0.0', f"{tag}_dpa")
         put(f"Average deal value ({tag})", "EUR", seg.avg_deal_eur, MONEY, f"{tag}_deal")
@@ -437,8 +482,14 @@ def build() -> pathlib.Path:
         drow(f"{tag} monthly gross adds", unit="solved: (end - survivors)/annuity",
              formula=(f"=MAX(0,({{c}}{D[f'{tag} paying fans (year end)']}-{{c}}{surv})"
                       f"/((1-{{c}}{rr}^12)/(1-{{c}}{rr})))"))
-        drow(f"{tag} fans acquired (gross)", unit="x12 months",
-             formula=f"={{c}}{r-1}*12")
+        # An athlete's audience is finite: they can only convert so much of it in
+        # a year. Without this ceiling the workbook reaches year-end fan targets
+        # the Python model cannot, so fan revenue is overstated and the Check
+        # sheet — the whole point of which is to be zero — cannot reconcile.
+        drow(f"{tag} fans acquired (gross)", unit="x12 months, capped by capacity",
+             formula=(f"=MIN({{c}}{r-1}*12,"
+                      f"{{c}}{D[f'{tag} monetising athletes']}"
+                      f"*Assumptions!{{c}}{A_ROW[f'{t}_maxadds']})"))
         drow(f"{tag} S = r(1-r^12)/(1-r)", unit="geometric sum", fmt='0.000',
              formula=f"={{c}}{rr}*(1-{{c}}{rr}^12)/(1-{{c}}{rr})")
         drow(f"{tag} average fans during year", unit="exact mean, revenue basis",
@@ -469,8 +520,17 @@ def build() -> pathlib.Path:
          formula=(f"={{c}}{D['Popular athletes']}*Assumptions!{{c}}{A_ROW['popular_dealrate']}"
                   f"*Assumptions!{{c}}{A_ROW['popular_dpa']}"))
     drow("Total deals", formula=f"={{c}}{r-2}+{{c}}{r-1}", bold=True)
+    # A matching product is worth nothing without athletes to match. Below the
+    # supply floor, paid conversion scales with the size of the directory —
+    # otherwise the workbook books SaaS revenue against an empty one, and again
+    # disagrees with Python.
+    drow("Supply factor", unit="athletes / floor, capped at 1", fmt='0.000',
+         formula=(f"=MIN(1,{{c}}{D['Total athletes (year end)']}"
+                  f"/Assumptions!{{c}}{A_ROW['saas_floor']})"))
     drow("Paying sponsors",
-         formula=f"=Assumptions!{{c}}{A_ROW['sponsors']}*Assumptions!{{c}}{A_ROW['sponsor_paid']}")
+         formula=(f"=Assumptions!{{c}}{A_ROW['sponsors']}"
+                  f"*Assumptions!{{c}}{A_ROW['sponsor_paid']}"
+                  f"*{{c}}{D['Supply factor']}"))
     drow("Sponsors acquired (gross)",
          formula=f"=MAX(0,Assumptions!{{c}}{A_ROW['sponsors']}-IF({{k}}=1,0,Assumptions!{{p}}{A_ROW['sponsors']}))")
     r += 1
@@ -644,8 +704,9 @@ def build() -> pathlib.Path:
                   f"MIN(Assumptions!{{c}}{A_ROW['amort_years']},{{k}})))"
                   f"/Assumptions!{{c}}{A_ROW['amort_years']}"))
     wrow("Net intangible assets", unit="closing",
-         formula=(f"=IF({{k}}=1,{{c}}{W['Capitalised development']}-{{c}}{r-1},"
-                  f"{{p}}{r}+{{c}}{W['Capitalised development']}-{{c}}{r-1})"))
+         first=f"={{c}}{W['Capitalised development']}-{{c}}{W['Amortisation']}",
+         formula=(f"={{p}}{r}+{{c}}{W['Capitalised development']}"
+                  f"-{{c}}{W['Amortisation']}"))
 
     # ══ P&L ═════════════════════════════════════════════════════════════════
     pl = sheet(wb, "P&L", "Income statement")
@@ -673,7 +734,8 @@ def build() -> pathlib.Path:
     prow("Taxable profit", unit="after offset",
          formula=f"=MAX(0,{{c}}{P['EBIT']}+{{c}}{r-1})")
     prow("Losses carried forward", unit="running",
-         formula=f"=MIN(0,{{c}}{P['EBIT']}+IF({{k}}=1,0,{{p}}{r}))")
+         first=f"=MIN(0,{{c}}{P['EBIT']})",
+         formula=f"=MIN(0,{{c}}{P['EBIT']}+{{p}}{r})")
     prow("Applicable tax rate", unit="15% then 25%", fmt=PCT,
          formula=(f"=IF({{c}}{P['Taxable profit']}<=0,0,"
                   f"IF(COUNTIF($C{P['Taxable profit']}:{{c}}{P['Taxable profit']},\">0\")"
@@ -700,9 +762,11 @@ def build() -> pathlib.Path:
     frow("FREE CASH FLOW", bold=True, top=True, band=True,
          formula=f"={{c}}{F['OPERATING CASH FLOW']}+{{c}}{r-1}")
     frow("Cumulative free cash flow",
-         formula=f"=IF({{k}}=1,{{c}}{F['FREE CASH FLOW']},{{p}}{r}+{{c}}{F['FREE CASH FLOW']})")
+         first=f"={{c}}{F['FREE CASH FLOW']}",
+         formula=f"={{p}}{r}+{{c}}{F['FREE CASH FLOW']}")
     r += 1
-    frow("Equity raised", unit="see Funding", formula=f"=Funding!{{c}}5", font=LINK)
+    frow("Equity raised", unit="see Funding",
+         formula=f"=Funding!{{c}}{FUNDING_ROWS['Equity raised']}", font=LINK)
     frow("Opening cash", formula=f"=IF({{k}}=1,0,{{p}}{r+1})")
     frow("CLOSING CASH", bold=True, top=True, band=True,
          formula=f"={{c}}{r-1}+{{c}}{F['FREE CASH FLOW']}+{{c}}{F['Equity raised']}")
@@ -728,9 +792,13 @@ def build() -> pathlib.Path:
     brow("TOTAL LIABILITIES", bold=True, top=True, formula=f"={{c}}{r-2}+{{c}}{r-1}")
     r += 1
     r = section(bs, r, "EQUITY")
-    brow("Paid-in capital", formula=f"=IF({{k}}=1,Funding!{{c}}5,{{p}}{r}+Funding!{{c}}5)")
+    _eq = FUNDING_ROWS["Equity raised"]
+    brow("Paid-in capital",
+         first=f"=Funding!{{c}}{_eq}",
+         formula=f"={{p}}{r}+Funding!{{c}}{_eq}")
     brow("Retained earnings",
-         formula=f"=IF({{k}}=1,P&L!{{c}}{P['NET PROFIT']},{{p}}{r}+P&L!{{c}}{P['NET PROFIT']})")
+         first=f"=P&L!{{c}}{P['NET PROFIT']}",
+         formula=f"={{p}}{r}+P&L!{{c}}{P['NET PROFIT']}")
     brow("TOTAL EQUITY", bold=True, top=True, formula=f"={{c}}{r-2}+{{c}}{r-1}")
     brow("Liabilities + equity", bold=True,
          formula=f"={{c}}{B['TOTAL LIABILITIES']}+{{c}}{B['TOTAL EQUITY']}")
@@ -742,14 +810,28 @@ def build() -> pathlib.Path:
     fu = sheet(wb, "Funding", "Funding rounds and dilution")
     raises = [400_000, 0, 2_000_000, 0, 8_000_000, 0, 0, 0, 0, 0]
     pre = [2_500_000, 0, 10_000_000, 0, 40_000_000, 0, 0, 0, 0, 0]
+    U = FUNDING_ROWS
     r = 4
-    r = row(fu, r, "Equity raised", "EUR", values=raises, fmt=MONEY)
-    r = row(fu, r, "Pre-money valuation", "EUR", values=pre, fmt=MONEY)
-    r = row(fu, r, "Post-money valuation", "EUR", formula="=IF({c}5=0,0,{c}6+{c}5)", fmt=MONEY)
-    r = row(fu, r, "New investor stake", "%", formula="=IF({c}7=0,0,{c}5/{c}7)", fmt=PCT)
-    r = row(fu, r, "Cumulative dilution", "%",
-            formula="=IF({k}=1,{c}8,1-(1-{p}9)*(1-{c}8))", fmt=PCT)
-    r = row(fu, r, "Founders + team retained", "%", formula="=1-{c}9", fmt=PCT, bold=True)
+
+    def urow(label, unit, **kw):
+        nonlocal r
+        assert r == U[label], f"Funding row moved: {label} is at {r}, declared {U[label]}"
+        r = row(fu, r, label, unit, **kw)
+
+    urow("Equity raised", "EUR", values=raises, fmt=MONEY)
+    urow("Pre-money valuation", "EUR", values=pre, fmt=MONEY)
+    urow("Post-money valuation", "EUR", fmt=MONEY,
+         formula=f"=IF({{c}}{U['Equity raised']}=0,0,"
+                 f"{{c}}{U['Pre-money valuation']}+{{c}}{U['Equity raised']})")
+    urow("New investor stake", "%", fmt=PCT,
+         formula=f"=IF({{c}}{U['Post-money valuation']}=0,0,"
+                 f"{{c}}{U['Equity raised']}/{{c}}{U['Post-money valuation']})")
+    urow("Cumulative dilution", "%", fmt=PCT,
+         first=f"={{c}}{U['New investor stake']}",
+         formula=f"=1-(1-{{p}}{U['Cumulative dilution']})"
+                 f"*(1-{{c}}{U['New investor stake']})")
+    urow("Founders + team retained", "%", fmt=PCT, bold=True,
+         formula=f"=1-{{c}}{U['Cumulative dilution']}")
 
     # ══ VALUATION ═══════════════════════════════════════════════════════════
     va = sheet(wb, "Valuation", "Valuation — DCF, NPV, IRR and exit multiples")
@@ -761,24 +843,36 @@ def build() -> pathlib.Path:
     r = row(va, r, "Discounted FCF", "EUR", formula="={c}4*{c}5", fmt=MONEY, bold=True)
     r += 1
     lastc = COLS[-1]
+    # An FCF row with the terminal value added to the final year, so the
+    # terminal-value IRR can be taken over a cash-flow series that actually
+    # contains one. The previous formula ran to the second-to-last column and
+    # included no terminal value at all, despite its label.
+    r = row(va, r, "FCF incl. terminal value", "for the IRR below", fmt=MONEY,
+            formula=f"={{c}}4+IF({{k}}={N},$C$__TV__,0)")
+    tv_series_row = r - 1
+
+    # Rows are recorded as they are written. The previous version addressed them
+    # with arithmetic on an `r` captured before the loop ran, so the exit-value
+    # formula pointed at its own output and Excel could not calculate it.
+    V = {}
     blocks = [
         ("DCF", None),
         ("PV of explicit forecast", f"=SUM(C6:{lastc}6)"),
         ("Terminal value at Y10",
-         f"=C4*0+{lastc}4*(1+Assumptions!$C${A_ROW['tg']})"
+         f"={lastc}4*(1+Assumptions!$C${A_ROW['tg']})"
          f"/(Assumptions!$C${A_ROW['wacc']}-Assumptions!$C${A_ROW['tg']})"),
-        ("PV of terminal value", f"=C{r+2}*{lastc}5"),
-        ("ENTERPRISE VALUE (DCF)", f"=C{r+1}+C{r+3}"),
+        ("PV of terminal value", "=C{Terminal value at Y10}*" + f"{lastc}5"),
+        ("ENTERPRISE VALUE (DCF)", "=C{PV of explicit forecast}+C{PV of terminal value}"),
         ("", None),
         ("RETURN METRICS", None),
         ("NPV of FCF at WACC", f"=NPV(Assumptions!$C${A_ROW['wacc']},C4:{lastc}4)"),
         ("IRR of the plan", f"=IRR(C4:{lastc}4)"),
-        ("IRR incl. terminal value", f"=IRR(C4:{get_column_letter(FIRST+N-2)}4,0.3)"),
+        ("IRR incl. terminal value", f"=IRR(C{tv_series_row}:{lastc}{tv_series_row},0.3)"),
         ("", None),
         ("EXIT MULTIPLE", None),
         ("Y10 net revenue", f"=Revenue!{lastc}{R['NET REVENUE']}"),
-        ("Exit value at Y10", f"=C{r+13}*Assumptions!$C${A_ROW['exit_mult']}"),
-        ("Discounted to today", f"=C{r+14}*{lastc}5"),
+        ("Exit value at Y10", "=C{Y10 net revenue}*Assumptions!$C$" + str(A_ROW['exit_mult'])),
+        ("Discounted to today", "=C{Exit value at Y10}*" + f"{lastc}5"),
     ]
     for label, formula in blocks:
         if formula is None:
@@ -787,11 +881,17 @@ def build() -> pathlib.Path:
             else:
                 r += 1
             continue
+        V[label] = r
         va.cell(r, 1, label).font = BOLD if label.isupper() else Font(name="Calibri", size=10)
-        cell = va.cell(r, 3, formula)
+        cell = va.cell(r, 3, formula.format(**V))
         cell.number_format = PCT if "IRR" in label else MONEY
         cell.font = Font(bold=True, name="Calibri", size=10)
         r += 1
+    # the terminal-value cell the helper row points at is only known now
+    for k in range(N):
+        c = va.cell(tv_series_row, FIRST + k)
+        if isinstance(c.value, str):
+            c.value = c.value.replace("$C$__TV__", f"$C${V['Terminal value at Y10']}")
 
     r += 1
     r = section(va, r, "SENSITIVITY — enterprise value by WACC and terminal growth")
@@ -1161,6 +1261,14 @@ def build() -> pathlib.Path:
         ("Deals", "deals", f"=Drivers!{{c}}{D['Total deals']}", NUM),
         ("Applications required", "applications", f"=Drivers!{{c}}{D['Applications required']}", NUM),
         ("Athlete verification", "verification", f"=Costs!{{c}}{C['Athlete verification']}", MONEY),
+        # The three lines below the EBITDA line. Leaving them out is how the two
+        # models drifted apart unnoticed: Python taxed a flat 15% forever and
+        # called EBITDA-less-tax "free cash flow", while the workbook ran a loss
+        # carry-forward, a 15%->25% step, working capital and capex. Both were
+        # internally consistent and they disagreed, and nothing compared them.
+        ("Tax charge", "tax", f"=-P&L!{{c}}{P['Tax charge']}", MONEY),
+        ("Net profit", "net_profit", f"=P&L!{{c}}{P['NET PROFIT']}", MONEY),
+        ("Free cash flow", "fcf", f"=CashFlow!{{c}}{F['FREE CASH FLOW']}", MONEY),
     ]
     for label, key, formula, fmt in CHECKS:
         r = section(ck, r, label.upper())

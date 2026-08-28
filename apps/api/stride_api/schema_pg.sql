@@ -126,6 +126,7 @@ CREATE TABLE IF NOT EXISTS events (
     detail_json TEXT NOT NULL DEFAULT '{}'
 );
 CREATE INDEX IF NOT EXISTS idx_events_ts ON events(ts);
+CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type, ts);
 
 -- ── Stride product tables ───────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
@@ -158,6 +159,7 @@ CREATE TABLE IF NOT EXISTS athlete_profiles (
     created_at              TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_athletes_sport ON athlete_profiles(sport);
+CREATE INDEX IF NOT EXISTS idx_athletes_status ON athlete_profiles(status);
 
 CREATE TABLE IF NOT EXISTS sponsor_orgs (
     id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -215,6 +217,9 @@ CREATE TABLE IF NOT EXISTS deal_deliverables (
 );
 CREATE INDEX IF NOT EXISTS idx_deals_athlete ON deals(athlete_id, status);
 CREATE INDEX IF NOT EXISTS idx_deals_org ON deals(org_id, status);
+CREATE INDEX IF NOT EXISTS idx_deals_campaign ON deals(campaign_id);
+-- present in the SQLite schema and missing here until now
+CREATE INDEX IF NOT EXISTS idx_deliverables_deal ON deal_deliverables(deal_id);
 
 CREATE TABLE IF NOT EXISTS follows (
     id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -304,6 +309,7 @@ CREATE TABLE IF NOT EXISTS club_applications (
     submitted_at        TEXT NOT NULL,
     decided_at          TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_club_applications_decision ON club_applications(decision);
 
 CREATE TABLE IF NOT EXISTS club_packages (
     id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
