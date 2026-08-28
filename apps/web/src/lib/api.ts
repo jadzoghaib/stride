@@ -50,6 +50,8 @@ export const ERROR_TEXT: Record<string, string> = {
   no_deliverables: 'Attach at least one post before marking this delivered.',
   already_attached: 'That post is already attached to this deal.',
   unknown_post: 'That post is not on one of your connected accounts.',
+  no_proof_to_check:
+    'There is no link on this application, so there is nothing to check. Ask the applicant to supply one.',
   club_not_verified: 'Your club has to be verified before it can nominate athletes.',
   nomination_budget_exhausted:
     'You have nominated as many athletes as your declared roster allows. Update the roster size in your club application.',

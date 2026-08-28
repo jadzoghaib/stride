@@ -56,8 +56,40 @@ def take_rate_delta() -> float:
         model.A = original
 
 
+# The capital the plan needs: the deepest point of cumulative free cash flow,
+# plus the buffer the funding table applies. Quoted in three documents, and it
+# was wrong in all three at once — the prose said EUR 952k and EUR 1.03M while
+# the generated table right beside it said EUR 625k.
+def peak_funding() -> float:
+    cum = trough = 0.0
+    for r in ROWS:
+        cum += r["fcf"]
+        trough = min(trough, cum)
+    return -trough
+
+
 # (document, description, regex capturing one number, expected value, tolerance)
 CLAIMS: list[tuple[str, str, str, float, float]] = [
+    # --- the figures that had drifted, now watched -------------------------
+    ("README.md", "capital required",
+     r"Capital required to fund it: €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
+    ("README.md", "first EBITDA-positive year",
+     r"EBITDA turns positive in \*\*Y(\d+)\*\*",
+     next(r["year"] for r in ROWS if r["ebitda"] > 0), 0.1),
+    ("03-financial-model.md", "capital in the prose beside the table",
+     r"\*\*€(\d+)k is a small number", peak_funding() * 1.4 / 1e3, 1.0),
+    ("03-financial-model.md", "scenarios base-case Y7 revenue",
+     r"\| \*\*Base\*\* \| As modelled \| €([\d.]+)M", Y7["revenue"] / 1e6, 0.02),
+    ("03-financial-model.md", "scenarios base-case Y7 EBITDA",
+     r"\| \*\*Base\*\* \| As modelled \| €[\d.]+M \| €([\d.]+)M", Y7["ebitda"] / 1e6, 0.02),
+    ("04-capital-and-valuation.md", "DCF in the prose",
+     r"The DCF says €([\d.]+)M", VAL["enterprise_value"] / 1e6, 0.05),
+    ("04-capital-and-valuation.md", "terminal value share of the DCF",
+     r"terminal value is (\d+)% of the DCF",
+     VAL["pv_terminal"] / VAL["enterprise_value"] * 100, 0.6),
+    ("04-capital-and-valuation.md", "the conservative floor",
+     r"worth €([\d.]+)M today", VAL["enterprise_value"] / 1e6, 0.05),
+
     ("01-revenue-model.md", "EUR 4.99 retains x% of take",
      r"€4\.99 tier retains (\d+)% of our take", retained(4.99) * 100, 0.5),
     ("01-revenue-model.md", "Y7 SaaS revenue",
@@ -106,13 +138,21 @@ def check_duplicated_sport_table() -> list[str]:
     sys.path.insert(0, str(ROOT / "apps" / "api"))
     from sport_data import SPORTS
     from stride_api.admission import AGENT_DENSITY
-    source = {name: density for name, _, _, density in SPORTS}
+    # Compared case-insensitively, because the lookup lower-cases the sport
+    # before reading the table. A raw-key comparison called the two identical
+    # while "MMA" sat in admission.py in its published capitalisation, unable to
+    # match anything, so every MMA applicant was scored on the neutral fallback.
+    # A guard that compares the keys but not the way they are read is not a guard.
+    source = {name.lower(): density for name, _, _, density in SPORTS}
     out = []
     for sport, density in AGENT_DENSITY.items():
-        if source.get(sport) != density:
+        if sport != sport.lower():
+            out.append(f"admission.py AGENT_DENSITY key {sport!r} is not lower-case, so the "
+                       f"lookup can never match it")
+        if source.get(sport.lower()) != density:
             out.append(f"admission.py AGENT_DENSITY[{sport!r}]={density} but sport_data.py "
-                       f"says {source.get(sport)}")
-    for sport in set(source) - set(AGENT_DENSITY):
+                       f"says {source.get(sport.lower())}")
+    for sport in set(source) - {k.lower() for k in AGENT_DENSITY}:
         out.append(f"sport_data.py has {sport!r}; admission.py does not, so it falls back to neutral")
     return out
 

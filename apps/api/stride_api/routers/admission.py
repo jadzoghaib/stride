@@ -374,6 +374,12 @@ def set_proof(application_id: int, body: ProofIn,
     application = row(conn, "SELECT * FROM athlete_applications WHERE id = ?", (application_id,))
     if application is None:
         raise HTTPException(404, "unknown_application")
+    # `verified` means somebody opened a link and saw the applicant's name on it.
+    # With no link there is nothing to open, so the status cannot be reached —
+    # otherwise a high-scoring claim is admitted on a check that never happened,
+    # which is the exact hole the whole evidence multiplier exists to close.
+    if body.proof_status == "verified" and not (application["proof_url"] or "").strip():
+        raise HTTPException(409, "no_proof_to_check")
     conn.execute("UPDATE athlete_applications SET proof_status = ? WHERE id = ?",
                  (body.proof_status, application_id))
     application = row(conn, "SELECT * FROM athlete_applications WHERE id = ?", (application_id,))
@@ -402,6 +408,8 @@ def set_club_proof(club_id: int, body: ProofIn,
     application = row(conn, "SELECT * FROM club_applications WHERE club_id = ?", (club_id,))
     if application is None:
         raise HTTPException(404, "unknown_club_application")
+    if body.proof_status == "verified" and not (application["roster_url"] or "").strip():
+        raise HTTPException(409, "no_proof_to_check")
     application = {**application, "proof_status": body.proof_status}
     scored = club_legitimacy(application)
     conn.execute("UPDATE club_applications SET proof_status = ?, legitimacy = ?,"

@@ -284,11 +284,18 @@ def check_decision_surface() -> int:
             if not scoreable:
                 note("decision", f"admitted on an unscoreable application: c={c}")
 
-        # the social score may never improve the verdict
+        # The social score may never ADMIT. Moving a case to review is what the
+        # rule is for — reach behind a claim we cannot verify is the profile
+        # that deserves human eyes. The stronger invariant written here first
+        # ("never improves the verdict") only ever passed because the branch it
+        # guarded was unreachable: SOCIAL_REVIEW_MIN_CREDIBILITY sat equal to
+        # REVIEW_AT, so anything that reached it had already been sent to
+        # review. A test that passes because the code is dead is not a test.
         quiet = admission_decision(c, proof_status=status, social_score=None, age=age,
                                    club_floor=floor, scoreable=scoreable)
-        if rank[verdict] > rank[quiet["decision"]]:
-            note("decision", f"social {social} lifted {quiet['decision']} -> {verdict}")
+        if verdict == "admitted" and quiet["decision"] != "admitted":
+            note("decision", f"a social score ADMITTED a case that was "
+                             f"{quiet['decision']} without it")
 
         # a larger floor may never worsen it
         if floor:
@@ -362,31 +369,37 @@ def check_social_cannot_lift() -> None:
 # ── 7. what does the policy cost in humans? ─────────────────────────────────
 # Shares are an assumption, not a measurement — the point of the sweep is the
 # sensitivity, not the level. Replace with real intake data the moment it exists.
+# Each archetype carries its own following. A blanket social score across the
+# whole population was fine while the social-review branch was dead code, and
+# badly wrong once it worked: it treated every applicant as having 85, which is
+# the one input that routes a weak claim to a human, and doubled the modelled
+# review queue overnight. A regional club athlete does not have an influencer's
+# reach, and the model should not pretend otherwise.
 POPULATION = [
     ("regional athlete, proof checked", 0.15,
      dict(competition_level="regional", years_competing=4, birth_year=2002,
-          proof_kind="roster", proof_status="verified")),
+          proof_kind="roster", proof_status="verified"), 45.0),
     ("regional athlete, proof queued", 0.25,
      dict(competition_level="regional", years_competing=4, birth_year=2002,
-          proof_kind="roster", proof_status="pending")),
+          proof_kind="roster", proof_status="pending"), 40.0),
     ("local athlete, proof queued", 0.20,
      dict(competition_level="local", years_competing=3, birth_year=2005,
-          proof_kind="roster", proof_status="pending")),
+          proof_kind="roster", proof_status="pending"), 30.0),
     ("national athlete, proof checked", 0.05,
      dict(competition_level="national", years_competing=7, birth_year=2000,
-          proof_kind="licence", proof_status="verified")),
+          proof_kind="licence", proof_status="verified"), 62.0),
     ("influencer, no proof", 0.10,
      dict(competition_level="local", years_competing=5, birth_year=1999,
-          proof_kind="none", proof_status="unverified")),
+          proof_kind="none", proof_status="unverified"), 92.0),
     ("incomplete form", 0.15,
      dict(competition_level="", years_competing=None, birth_year=None,
-          proof_kind="none", proof_status="unverified")),
+          proof_kind="none", proof_status="unverified"), 35.0),
     ("under age", 0.03,
      dict(competition_level="regional", years_competing=3, birth_year=2012,
-          proof_kind="roster", proof_status="verified")),
+          proof_kind="roster", proof_status="verified"), 28.0),
     ("regional athlete, no proof supplied", 0.07,
      dict(competition_level="regional", years_competing=4, birth_year=2002,
-          proof_kind="none", proof_status="unverified")),
+          proof_kind="none", proof_status="unverified"), 38.0),
 ]
 
 
@@ -399,8 +412,8 @@ def ops_load(admit_at: float | None = None) -> dict:
         policy.ADMIT_AT = admit_at
     try:
         mix = {"admitted": 0.0, "review": 0.0, "rejected": 0.0, "pending": 0.0}
-        for _, share, spec in POPULATION:
-            mix[outcome(application(**spec), social=85.0)] += share
+        for _, share, spec, social in POPULATION:
+            mix[outcome(application(**spec), social=social)] += share
         return mix
     finally:
         policy.ADMIT_AT = original

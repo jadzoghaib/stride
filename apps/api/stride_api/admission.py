@@ -69,11 +69,15 @@ PROOF_STATUSES = ("unverified", "pending", "verified", "rejected")
 # business-plan/sport_data.py. Duplicated rather than imported because the sport
 # index is a planning module outside the API package; when it is wired into the
 # product this table should be read from it instead of maintained here.
+# Keys are lower-case because the lookup lower-cases the athlete's sport before
+# reading this table. "MMA" sat here in its published capitalisation and could
+# therefore never be matched: every MMA applicant was silently scored against
+# the neutral fallback instead of a 0.66 agent density.
 AGENT_DENSITY = {
     "running / trail": 0.10, "cycling": 0.35, "swimming": 0.25, "football": 0.88,
     "fitness / gym": 0.08, "padel": 0.15, "tennis": 0.78, "basketball": 0.78,
     "volleyball": 0.45, "climbing": 0.12, "athletics": 0.48, "triathlon": 0.14,
-    "surfing": 0.22, "golf": 0.72, "boxing": 0.70, "MMA": 0.66, "gymnastics": 0.42,
+    "surfing": 0.22, "golf": 0.72, "boxing": 0.70, "mma": 0.66, "gymnastics": 0.42,
     "handball": 0.42, "rowing": 0.18, "skateboarding": 0.28, "motorsport": 0.85,
 }
 NEUTRAL_DENSITY = 0.45          # an unlisted sport is treated as neither dense nor sparse
@@ -106,7 +110,12 @@ REVIEW_AT = 25.0
 
 MIN_AGE = 16                    # see business-plan/05-product-gaps.md — the age model
 SOCIAL_REVIEW_FLOOR = 70.0      # a following this size behind a weak claim gets human eyes
-SOCIAL_REVIEW_MIN_CREDIBILITY = 25.0
+# Must sit BELOW REVIEW_AT, or the branch it guards is unreachable: anything at
+# or above the review floor has already been sent to a human by the band check.
+# It was set equal to REVIEW_AT, so the rule the policy documents most loudly —
+# reach without credibility gets human eyes — was dead code, and the sweep's
+# "the social score never lifts a decision" assertion passed trivially.
+SOCIAL_REVIEW_MIN_CREDIBILITY = 12.0
 
 
 def _blend(weights: dict[str, float], values: dict[str, float | None]) -> float:

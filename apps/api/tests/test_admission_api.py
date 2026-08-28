@@ -311,3 +311,38 @@ def test_the_club_queue_is_navigable(clubu, admin, db):
     assert checked.json()["decision"] == "verified"
     assert not [c for c in admin.get("/api/admin/club-queue").json()
                 if c["club_id"] == mine["club_id"]]
+
+
+def test_a_proof_that_does_not_exist_cannot_be_marked_checked(athlete, admin, db):
+    """`verified` means somebody opened a link and saw the applicant's name on
+    it. With no link there is nothing to open, so the status must be
+    unreachable — otherwise a high-scoring claim is admitted on a check that
+    never happened, which is the hole the evidence multiplier exists to close.
+    """
+    athlete.post("/api/athlete/application", json={
+        "competition_level": "international", "years_competing": 10,
+        "birth_year": 1998, "proof_kind": "none"})
+    application = _application(db)
+    assert not application["proof_url"]
+
+    refused = admin.post(f"/api/admin/applications/{application['id']}/proof",
+                         json={"proof_status": "verified"})
+    assert refused.status_code == 409
+    assert refused.json()["detail"] == "no_proof_to_check"
+    assert _application(db)["decision"] != "admitted"
+
+
+def test_verified_clubs_are_listed_so_revocation_is_reachable(clubu, admin, db):
+    """Revocation only ever applies to a club that IS verified, and the review
+    queue by definition contains none. Listing only the queue left the one
+    control that can undo a verification rendered for nobody."""
+    assert clubu.post("/api/club/application", json=STRONG_CLUB).status_code == 201
+    club = row(db, "SELECT * FROM clubs WHERE user_id = "
+               "(SELECT id FROM users WHERE email = 'club@demo.stride')")
+    admin.post(f"/api/admin/clubs/{club['id']}/proof", json={"proof_status": "verified"})
+
+    waiting = admin.get("/api/admin/club-queue", params={"decision": "review"}).json()
+    verified = admin.get("/api/admin/club-queue", params={"decision": "verified"}).json()
+    assert club["id"] not in [c["club_id"] for c in waiting]
+    assert club["id"] in [c["club_id"] for c in verified]
+    assert next(c for c in verified if c["club_id"] == club["id"])["scored"]["nomination_floor"] > 0

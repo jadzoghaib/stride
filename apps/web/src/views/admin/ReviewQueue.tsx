@@ -24,18 +24,25 @@ import { DECISION_COPY, proofStatusLabel } from '../../types'
 export default function ReviewQueue() {
   const [athletes, setAthletes] = useState<AthleteApplication[] | null>(null)
   const [clubs, setClubs] = useState<ClubApplication[] | null>(null)
+  const [verifiedClubs, setVerifiedClubs] = useState<ClubApplication[]>([])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState<number | null>(null)
   const [revoking, setRevoking] = useState<ClubApplication | null>(null)
   const toast = useToast()
 
   const load = async () => {
-    const [a, c] = await Promise.all([
+    // Verified clubs are fetched alongside the queue on purpose. Revocation is
+    // only ever meaningful for a club that IS verified, and the first version
+    // of this view listed the review queue alone — so the one control that can
+    // undo a verification never rendered for any club that had one.
+    const [a, waiting, verified] = await Promise.all([
       api.get<AthleteApplication[]>('/api/admin/review-queue?decision=review'),
       api.get<ClubApplication[]>('/api/admin/club-queue?decision=review'),
+      api.get<ClubApplication[]>('/api/admin/club-queue?decision=verified'),
     ])
     setAthletes(a)
-    setClubs(c)
+    setClubs(waiting)
+    setVerifiedClubs(verified)
   }
 
   useEffect(() => {
@@ -86,6 +93,10 @@ export default function ReviewQueue() {
 
   if (!athletes || !clubs) return error ? <LoadError text={error} /> : <PageLoading />
 
+  /** Only a supplied link can be checked — the server refuses `verified`
+   *  without one, so the control says so rather than returning an error. */
+  const openable = (url: string) => /^https?:\/\//i.test((url || '').trim())
+
   return (
     <div>
       <PageHeader
@@ -132,7 +143,11 @@ export default function ReviewQueue() {
                   {a.nominated_by_club && <span className="tag">club-nominated</span>}
                 </div>
 
-                {a.proof_url ? (
+                {/* Rendered as a link only for http(s). The URL is a string an
+                    applicant typed, and an anchor will happily launch whatever
+                    scheme it is given; a reviewer clicking through the queue
+                    should not be the one to find that out. */}
+                {openable(a.proof_url) ? (
                   <a
                     href={a.proof_url}
                     target="_blank"
@@ -142,12 +157,17 @@ export default function ReviewQueue() {
                     <ExternalLink size={13} />
                     {a.proof_url}
                   </a>
+                ) : a.proof_url ? (
+                  <p className="meta mt-3 break-all">
+                    Not an http(s) link, so it is shown rather than linked: {a.proof_url}
+                  </p>
                 ) : (
                   <p className="meta mt-3">No link supplied — nothing to open.</p>
                 )}
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <button className="btn-go" disabled={busy === a.id}
+                  <button className="btn-go" disabled={busy === a.id || !openable(a.proof_url)}
+                          title={openable(a.proof_url) ? undefined : 'No link to open'}
                           onClick={() => decideAthlete(a, 'verified')}>
                     <Check size={14} /> Name is on the page
                   </button>
@@ -197,18 +217,23 @@ export default function ReviewQueue() {
                   <span className="meta">roster {proofStatusLabel(c.proof_status)}</span>
                 </div>
 
-                {c.roster_url ? (
+                {openable(c.roster_url) ? (
                   <a href={c.roster_url} target="_blank" rel="noreferrer noopener"
                      className="mt-3 inline-flex items-center gap-1.5 break-all text-sm text-accent-ink hover:text-accent">
                     <ExternalLink size={13} />
                     {c.roster_url}
                   </a>
+                ) : c.roster_url ? (
+                  <p className="meta mt-3 break-all">
+                    Not an http(s) link, so it is shown rather than linked: {c.roster_url}
+                  </p>
                 ) : (
                   <p className="meta mt-3">No roster page supplied — nothing to open.</p>
                 )}
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <button className="btn-go" disabled={busy === c.id}
+                  <button className="btn-go" disabled={busy === c.id || !openable(c.roster_url)}
+                          title={openable(c.roster_url) ? undefined : 'No roster page to open'}
                           onClick={() => decideClub(c, 'verified')}>
                     <Check size={14} /> Roster checks out
                   </button>
@@ -216,13 +241,53 @@ export default function ReviewQueue() {
                           onClick={() => decideClub(c, 'rejected')}>
                     <X size={14} /> It does not
                   </button>
-                  <button className="btn ml-auto" onClick={() => setRevoking(c)}>
-                    <Ban size={14} /> Revoke verification
-                  </button>
                 </div>
               </div>
             ))}
           </div>
+        )}
+      </Section>
+
+      <Section
+        title={`Verified clubs (${verifiedClubs.length})`}
+        aside={<span className="meta">each can nominate; each can be withdrawn</span>}
+      >
+        {verifiedClubs.length === 0 ? (
+          <EmptyNote text="No verified clubs yet. A club appears here once its roster page has been checked." />
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="table-head">Club</th>
+                <th className="table-head">Federation</th>
+                <th className="table-head text-right">Legitimacy</th>
+                <th className="table-head text-right">Nomination floor</th>
+                <th className="table-head" />
+              </tr>
+            </thead>
+            <tbody>
+              {verifiedClubs.map((c) => (
+                <tr key={c.id}>
+                  <td className="table-cell">
+                    <Link to={`/clubs/${c.slug}`} className="text-ink hover:text-accent">{c.name}</Link>
+                    <span className="ml-2 text-xs text-ink-3">{c.sport}</span>
+                  </td>
+                  <td className="table-cell text-ink-3">
+                    {c.federation_name || '—'}{c.federation_id && ` #${c.federation_id}`}
+                  </td>
+                  <td className="table-cell tnum text-right">{c.legitimacy?.toFixed(1) ?? '—'}</td>
+                  <td className="table-cell tnum text-right">
+                    {c.scored?.nomination_floor.toFixed(1) ?? '—'}
+                  </td>
+                  <td className="table-cell text-right">
+                    <button className="btn px-2.5 py-1 text-xs" onClick={() => setRevoking(c)}>
+                      <Ban size={13} /> Revoke
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </Section>
 

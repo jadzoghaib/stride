@@ -130,3 +130,71 @@ create policy follows_owner on follows
 -- CreatorLens analytics tables migrate with their own script (same shapes as
 -- packages/creatorlens/creatorlens/db.py); athlete-owned accounts follow the
 -- athlete_profiles ownership chain.
+
+-- ── Upgrades for databases created before the changes below ─────────────────
+-- `create table if not exists` above is a no-op against a database that already
+-- has the table, so nothing above this line reaches an existing Supabase
+-- project. Everything here is written to be idempotent and safe to re-run: it
+-- is the same rename-then-add sequence apps/api/stride_api/db.py performs on
+-- start-up, kept in step with it by hand because Supabase applies this file
+-- rather than importing that module.
+--
+-- Table SHAPES are owned by apps/api/stride_api/schema_pg.sql. What lives here
+-- is the upgrade path and the row-level security that goes with it.
+
+-- money moved from USD to EUR
+do $$
+declare
+  r record;
+begin
+  for r in
+    select * from (values
+      ('deals','amount_usd','amount_eur'),
+      ('athlete_profiles','base_rate_usd','base_rate_eur'),
+      ('campaigns','budget_usd_min','budget_eur_min'),
+      ('campaigns','budget_usd_max','budget_eur_max'),
+      ('club_packages','price_usd','price_eur'),
+      ('package_commitments','amount_usd','amount_eur')
+    ) as t(tbl, old_col, new_col)
+  loop
+    if exists (select 1 from information_schema.columns
+                where table_name = r.tbl and column_name = r.old_col)
+       and not exists (select 1 from information_schema.columns
+                        where table_name = r.tbl and column_name = r.new_col)
+    then
+      execute format('alter table %I rename column %I to %I', r.tbl, r.old_col, r.new_col);
+    end if;
+  end loop;
+end $$;
+
+-- columns added to tables that had already shipped
+alter table deals     add column if not exists completed_at              text;
+alter table deals     add column if not exists projected_reach           integer;
+alter table campaigns add column if not exists require_verified_athletes boolean not null default false;
+
+-- row-level security for the tables added since this file was written
+alter table if exists deal_deliverables    enable row level security;
+alter table if exists athlete_applications enable row level security;
+alter table if exists club_applications    enable row level security;
+
+-- an athlete sees and writes their own application; nobody else reads it
+drop policy if exists application_owner on athlete_applications;
+create policy application_owner on athlete_applications
+  for all using (athlete_id in (select id from athlete_profiles
+                                 where user_id = current_app_user_id()));
+
+-- a club sees its own application
+drop policy if exists club_application_owner on club_applications;
+create policy club_application_owner on club_applications
+  for all using (club_id in (select id from clubs where user_id = current_app_user_id()));
+
+-- a deliverable is visible to the two parties to the deal it belongs to
+drop policy if exists deliverable_parties on deal_deliverables;
+create policy deliverable_parties on deal_deliverables
+  for select using (
+    deal_id in (
+      select d.id from deals d
+      where d.org_id in (select id from sponsor_orgs where user_id = current_app_user_id())
+         or d.athlete_id in (select id from athlete_profiles where user_id = current_app_user_id())
+    )
+  );
