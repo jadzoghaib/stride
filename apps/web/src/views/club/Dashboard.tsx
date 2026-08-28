@@ -110,7 +110,7 @@ export default function ClubDashboard() {
                   </span>
                 </td>
                 <td className="table-cell">{p.athlete_name ?? '—'}</td>
-                <td className="table-cell tnum text-right">{fmtMoney(p.price_usd)}</td>
+                <td className="table-cell tnum text-right">{fmtMoney(p.price_eur)}</td>
                 <td className="table-cell tnum text-right">{p.active_backers}</td>
                 <td className="table-cell"><StatusChip status={p.status} /></td>
                 <td className="table-cell text-right">
@@ -175,7 +175,7 @@ export default function ClubDashboard() {
                   <td className="table-cell text-ink">{c.org_name}</td>
                   <td className="table-cell">{c.package_name}</td>
                   <td className="table-cell">{c.athlete_name ?? '—'}</td>
-                  <td className="table-cell tnum text-right">{fmtMoney(c.amount_usd)}</td>
+                  <td className="table-cell tnum text-right">{fmtMoney(c.amount_eur)}</td>
                   <td className="table-cell"><StatusChip status={c.status} /></td>
                   <td className="table-cell text-xs text-ink-3">{fmtDate(c.created_at)}</td>
                 </tr>
@@ -255,7 +255,7 @@ function MemberForm({ onDone }: { onDone: () => void }) {
 
 function PackageForm({ roster, onDone }: { roster: { slug: string; name: string }[]; onDone: () => void }) {
   const [form, setForm] = useState({
-    name: '', description: '', package_type: 'club', price_usd: 10000,
+    name: '', description: '', package_type: 'club', price_eur: 10000,
     athlete_slug: roster[0]?.slug ?? '', perks: '',
   })
   const [error, setError] = useState('')
@@ -265,7 +265,7 @@ function PackageForm({ roster, onDone }: { roster: { slug: string; name: string 
     try {
       await api.post('/api/club/packages', {
         name: form.name, description: form.description, package_type: form.package_type,
-        price_usd: form.price_usd,
+        price_eur: form.price_eur,
         athlete_slug: form.package_type === 'player_direct' ? form.athlete_slug : null,
         perks: form.perks.split('\n').map((s) => s.trim()).filter(Boolean),
       })
@@ -280,9 +280,9 @@ function PackageForm({ roster, onDone }: { roster: { slug: string; name: string 
         <label className="block"><span className="cap">Package name</span>
           <input className="field mt-1" required minLength={3} value={form.name}
                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} /></label>
-        <label className="block"><span className="cap">Price (USD)</span>
-          <input className="field mt-1 tnum" type="number" min={1} value={form.price_usd}
-                 onChange={(e) => setForm((f) => ({ ...f, price_usd: Number(e.target.value) }))} /></label>
+        <label className="block"><span className="cap">Price (EUR)</span>
+          <input className="field mt-1 tnum" type="number" min={1} value={form.price_eur}
+                 onChange={(e) => setForm((f) => ({ ...f, price_eur: Number(e.target.value) }))} /></label>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         <label className="block"><span className="cap">Type</span>

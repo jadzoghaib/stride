@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS athlete_profiles (
     career_highlights       TEXT NOT NULL DEFAULT '[]',
     topics                  TEXT NOT NULL DEFAULT '[]',
     deal_types              TEXT NOT NULL DEFAULT '[]',
-    base_rate_usd           INTEGER NOT NULL DEFAULT 1000,
+    base_rate_eur           INTEGER NOT NULL DEFAULT 1000,
     status                  TEXT NOT NULL DEFAULT 'listed' CHECK (status IN ('draft','listed','hidden')),
     creatorlens_creator_id  BIGINT,
     created_at              TEXT NOT NULL
@@ -176,13 +176,15 @@ CREATE TABLE IF NOT EXISTS campaigns (
     objective          TEXT NOT NULL DEFAULT '',
     category           TEXT NOT NULL,
     deal_types         TEXT NOT NULL DEFAULT '[]',
-    budget_usd_min     INTEGER NOT NULL DEFAULT 1000,
-    budget_usd_max     INTEGER NOT NULL DEFAULT 10000,
+    budget_eur_min     INTEGER NOT NULL DEFAULT 1000,
+    budget_eur_max     INTEGER NOT NULL DEFAULT 10000,
     target_age_buckets TEXT NOT NULL DEFAULT '[]',
     target_genders     TEXT NOT NULL DEFAULT '[]',
     target_countries   TEXT NOT NULL DEFAULT '[]',
     target_topics      TEXT NOT NULL DEFAULT '[]',
     sponsor_target_id  BIGINT,
+    -- a hard retrieval filter, not a weighted term: see matching.candidates()
+    require_verified_athletes BOOLEAN NOT NULL DEFAULT FALSE,
     status             TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('draft','active','closed')),
     created_at         TEXT NOT NULL
 );
@@ -194,12 +196,22 @@ CREATE TABLE IF NOT EXISTS deals (
     org_id       BIGINT NOT NULL REFERENCES sponsor_orgs(id),
     athlete_id   BIGINT NOT NULL REFERENCES athlete_profiles(id),
     deal_type    TEXT NOT NULL,
-    amount_usd   INTEGER NOT NULL,
+    amount_eur   INTEGER NOT NULL,
     message      TEXT NOT NULL DEFAULT '',
     status       TEXT NOT NULL DEFAULT 'offered'
                  CHECK (status IN ('offered','accepted','declined','withdrawn','completed')),
     created_at   TEXT NOT NULL,
-    responded_at TEXT
+    responded_at TEXT,
+    completed_at TEXT,
+    projected_reach INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS deal_deliverables (
+    id       BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    deal_id  BIGINT NOT NULL REFERENCES deals(id),
+    post_id  BIGINT NOT NULL REFERENCES posts(id),
+    added_at TEXT NOT NULL,
+    UNIQUE (deal_id, post_id)
 );
 CREATE INDEX IF NOT EXISTS idx_deals_athlete ON deals(athlete_id, status);
 CREATE INDEX IF NOT EXISTS idx_deals_org ON deals(org_id, status);
@@ -235,6 +247,64 @@ CREATE TABLE IF NOT EXISTS club_members (
     UNIQUE (club_id, athlete_id)
 );
 
+-- Admission. Applications are stored whole so a decision is reproducible from
+-- the row that produced it, with `policy_version` naming the rules in force.
+CREATE TABLE IF NOT EXISTS athlete_applications (
+    id                BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    athlete_id        BIGINT NOT NULL UNIQUE REFERENCES athlete_profiles(id),
+    discipline        TEXT NOT NULL DEFAULT '',
+    club_name         TEXT NOT NULL DEFAULT '',
+    league_name       TEXT NOT NULL DEFAULT '',
+    competition_level TEXT NOT NULL DEFAULT '',
+    years_competing   INTEGER,
+    birth_year        INTEGER,
+    proof_url         TEXT NOT NULL DEFAULT '',
+    proof_kind        TEXT NOT NULL DEFAULT 'none'
+                      CHECK (proof_kind IN ('none','roster','results','licence')),
+    proof_status      TEXT NOT NULL DEFAULT 'unverified'
+                      CHECK (proof_status IN ('unverified','pending','verified','rejected')),
+    -- set when a verified club vouched for them; the pair with `admitted_via` is
+    -- what makes de-verifying that club a reversible act rather than a wish
+    nominated_by_club BIGINT REFERENCES clubs(id),
+    credibility       DOUBLE PRECISION,
+    decision          TEXT NOT NULL DEFAULT 'pending'
+                      CHECK (decision IN ('pending','admitted','review','rejected')),
+    decision_rule     TEXT NOT NULL DEFAULT '',
+    admitted_via      TEXT NOT NULL DEFAULT ''
+                      CHECK (admitted_via IN ('','self','club_nomination','manual')),
+    policy_version    TEXT NOT NULL DEFAULT '',
+    submitted_at      TEXT NOT NULL,
+    decided_at        TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_applications_decision ON athlete_applications(decision);
+CREATE INDEX IF NOT EXISTS idx_applications_club ON athlete_applications(nominated_by_club);
+
+CREATE TABLE IF NOT EXISTS club_applications (
+    id                  BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    club_id             BIGINT NOT NULL UNIQUE REFERENCES clubs(id),
+    legal_name          TEXT NOT NULL DEFAULT '',
+    registration_id     TEXT NOT NULL DEFAULT '',
+    federation_name     TEXT NOT NULL DEFAULT '',
+    federation_id       TEXT NOT NULL DEFAULT '',
+    founded_year        INTEGER,
+    competition_level   TEXT NOT NULL DEFAULT '',
+    teams_count         INTEGER,
+    -- the roster size the club declares, which is also its nomination budget:
+    -- inflating it to mint nominations makes the inflation itself checkable
+    registered_athletes INTEGER NOT NULL DEFAULT 0,
+    roster_url          TEXT NOT NULL DEFAULT '',
+    proof_kind          TEXT NOT NULL DEFAULT 'none'
+                        CHECK (proof_kind IN ('none','roster','results','licence')),
+    proof_status        TEXT NOT NULL DEFAULT 'unverified'
+                        CHECK (proof_status IN ('unverified','pending','verified','rejected')),
+    legitimacy          DOUBLE PRECISION,
+    decision            TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (decision IN ('pending','verified','review','rejected')),
+    policy_version      TEXT NOT NULL DEFAULT '',
+    submitted_at        TEXT NOT NULL,
+    decided_at          TEXT
+);
+
 CREATE TABLE IF NOT EXISTS club_packages (
     id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     club_id      BIGINT NOT NULL REFERENCES clubs(id),
@@ -242,7 +312,7 @@ CREATE TABLE IF NOT EXISTS club_packages (
     name         TEXT NOT NULL,
     description  TEXT NOT NULL DEFAULT '',
     package_type TEXT NOT NULL CHECK (package_type IN ('club','player_direct')),
-    price_usd    INTEGER NOT NULL,
+    price_eur    INTEGER NOT NULL,
     perks        TEXT NOT NULL DEFAULT '[]',
     status       TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','archived')),
     created_at   TEXT NOT NULL
@@ -253,7 +323,7 @@ CREATE TABLE IF NOT EXISTS package_commitments (
     id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     package_id   BIGINT NOT NULL REFERENCES club_packages(id),
     org_id       BIGINT NOT NULL REFERENCES sponsor_orgs(id),
-    amount_usd   INTEGER NOT NULL,
+    amount_eur   INTEGER NOT NULL,
     status       TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','cancelled')),
     created_at   TEXT NOT NULL,
     cancelled_at TEXT

@@ -173,10 +173,14 @@ const privacy: LegalDoc = {
       h: 'Children',
       p: [
         'Athletes under 18 are common in this market, which is exactly why it is called out rather than ' +
-          'assumed away. Stride does not knowingly create accounts for anyone under 16 without verified ' +
-          'parental consent, and commercial features — rate cards, offers, payouts — are gated behind ' +
-          'adulthood or a verified guardian. This gate is specified and not yet implemented; it blocks ' +
-          'public launch, not this draft.',
+          'assumed away. Admission asks for your year of birth and refuses anyone under 16 outright: it ' +
+          'is a hard rule that no other part of the assessment can outweigh, and an application that ' +
+          'leaves the date blank cannot be admitted automatically either.',
+        'What that is not, yet, is age *assurance*. The date is self-declared and nothing verifies it, ' +
+          'and the tiering described in our plan — sponsorship at 16 with a guardian co-signing, fan ' +
+          'subscriptions at 18 — is designed but not built. Both block public launch, not this draft. ' +
+          'We would rather say exactly where the line currently sits than imply a stronger check than ' +
+          'the one running.',
       ],
     },
     {
@@ -336,3 +340,56 @@ const terms: LegalDoc = {
 export const LEGAL_DOCS: LegalDoc[] = [privacy, cookies, terms]
 
 export const legalDoc = (slug: string | undefined) => LEGAL_DOCS.find((d) => d.slug === slug)
+
+/** ── Sponsored-content disclosure ────────────────────────────────────────────
+ *
+ *  The Terms, "Disclosure of sponsored content", say Stride surfaces this duty
+ *  in the deal flow. This is that surface. The duty belongs to the athlete, not
+ *  to Stride, and nothing here transfers it — the point is that a marketplace
+ *  which stays silent about it is not a neutral one.
+ *
+ *  Keyed on the athlete's own country, which is the closest thing the profile
+ *  carries to the market that binds them. It is a proxy and not a rule: the
+ *  obligation generally follows the audience, so an athlete posting mainly into
+ *  another market should use that market's wording. The copy says so rather
+ *  than presenting a mapping as settled law.
+ *
+ *  Same draft status as everything else in this file — engineering-accurate,
+ *  not solicitor-reviewed. */
+const DISCLOSURE_TAGS: Record<string, string[]> = {
+  Spain: ['#publicidad', '#publi'],
+  Mexico: ['#publicidad'],
+  Brazil: ['#publicidade'],
+  Portugal: ['#publicidade'],
+  France: ['#publicité', '#collaborationcommerciale'],
+  Germany: ['#werbung', '#anzeige'],
+  Italy: ['#pubblicità', '#adv'],
+  Netherlands: ['#adv', '#samenwerking'],
+  'United States': ['#ad'],
+  'United Kingdom': ['#ad'],
+  Canada: ['#ad'],
+  Australia: ['#ad'],
+  India: ['#ad'],
+}
+
+export interface Disclosure {
+  tags: string[]
+  /** True when the country is not mapped and the tag is the default, so the UI
+   *  can say so instead of implying a jurisdiction-specific answer. */
+  fallback: boolean
+  note: string
+}
+
+export const disclosure = (country: string | null | undefined): Disclosure => {
+  const tags = (country && DISCLOSURE_TAGS[country]) || null
+  return {
+    tags: tags ?? ['#ad'],
+    fallback: !tags,
+    note: tags
+      ? `Paid posts generally have to say so, in the post itself. Common practice in ${country}. ` +
+        'The duty is yours — check it against the market your audience is actually in.'
+      : 'Paid posts generally have to say so, in the post itself. We have no market-specific ' +
+        'wording for your country, so this is the widely accepted default — check it against ' +
+        'your own market before you post.',
+  }
+}

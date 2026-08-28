@@ -1,2 +1,7 @@
 [tool.uv.workspace]
 members = ["apps/api", "packages/creatorlens"]
+
+[dependency-groups]
+dev = [
+    "openpyxl>=3.1.5",
+]

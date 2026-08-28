@@ -265,6 +265,12 @@
     @apply m-auto max-h-[85vh] w-[min(30rem,calc(100vw-2rem))] overflow-y-auto
            border-0 bg-transparent p-0 text-ink-2;
   }
+  /* Defined after `.modal` deliberately: both are single-class selectors, so
+     source order is what lets the modifier win. A picker table needs more
+     column room than the forms the base width was sized for. */
+  .modal-wide {
+    @apply w-[min(44rem,calc(100vw-2rem))];
+  }
   .modal::backdrop {
     /* A literal, not a token: ::backdrop sits outside the element tree in older
        engines and cannot be relied on to inherit custom properties. A dark

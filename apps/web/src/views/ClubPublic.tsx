@@ -75,7 +75,7 @@ export default function ClubPublic() {
                     )}
                   </div>
                 </div>
-                <div className="tnum text-lg font-semibold text-ink">{fmtMoney(p.price_usd)}</div>
+                <div className="tnum text-lg font-semibold text-ink">{fmtMoney(p.price_eur)}</div>
               </div>
               {p.description && <p className="mt-2 text-sm text-ink-2">{p.description}</p>}
               {p.perks.length > 0 && (

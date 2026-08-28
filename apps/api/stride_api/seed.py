@@ -29,6 +29,11 @@ from .db import now_iso, row
 
 DEMO_PASSWORD = "stride123"
 
+# Money is EUR throughout. These figures were relabelled from the earlier USD
+# columns rather than converted: they are illustrative fixtures picked to be
+# readable, not amounts anyone quoted, so running them through an exchange rate
+# would have produced false precision. Real amounts arrive with real deals.
+#
 # slug, name, sport, country, region, topics, deal_types, rate, platforms
 ATHLETES = [
     ("kaia-mercer", "Kaia Mercer", "Athletics", "United States", "North America",
@@ -166,7 +171,7 @@ def seed(conn: sqlite3.Connection) -> dict:
             [f"Ranked nationally in {sport}", "Multi-season sponsorship track record"]))
         cur = conn.execute(
             "INSERT INTO athlete_profiles (slug, display_name, sport, country, region, bio,"
-            " career_highlights, topics, deal_types, base_rate_usd, status, creatorlens_creator_id, created_at)"
+            " career_highlights, topics, deal_types, base_rate_eur, status, creatorlens_creator_id, created_at)"
             " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'listed', ?, ?)",
             (slug, name, sport, country, region, bio, json.dumps(highlights),
              json.dumps(topics), json.dumps(deal_types), rate, creator["id"], now_iso()))
@@ -195,8 +200,8 @@ def seed(conn: sqlite3.Connection) -> dict:
         target = create_target(conn, f"{name} target", ages, genders, countries, topics, actor="system")
         first_target_id = first_target_id or target["id"]
         cur = conn.execute(
-            "INSERT INTO campaigns (org_id, name, objective, category, deal_types, budget_usd_min,"
-            " budget_usd_max, target_age_buckets, target_genders, target_countries, target_topics,"
+            "INSERT INTO campaigns (org_id, name, objective, category, deal_types, budget_eur_min,"
+            " budget_eur_max, target_age_buckets, target_genders, target_countries, target_topics,"
             " sponsor_target_id, status, created_at)"
             " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)",
             (org_ids[org_idx], name, objective, category, json.dumps(dts), lo, hi,
@@ -239,11 +244,11 @@ def seed(conn: sqlite3.Connection) -> dict:
     ]
     for cid, oid, aid, dt, amount, msg, status, responded in deals:
         cur = conn.execute(
-            "INSERT INTO deals (campaign_id, org_id, athlete_id, deal_type, amount_usd, message,"
+            "INSERT INTO deals (campaign_id, org_id, athlete_id, deal_type, amount_eur, message,"
             " status, created_at, responded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (cid, oid, aid, dt, amount, msg, status, now_iso(), responded))
         log_event(conn, "system", "deal.created", "deal", cur.lastrowid,
-                  {"athlete_id": aid, "campaign_id": cid, "status": status, "amount_usd": amount})
+                  {"athlete_id": aid, "campaign_id": cid, "status": status, "amount_eur": amount})
         summary["deals"] += 1
 
     # ---- clubs: rosters + sponsorship packages (incl. player-direct) --------
@@ -290,7 +295,7 @@ def seed(conn: sqlite3.Connection) -> dict:
         for pname, ptype, price, desc, athlete_slug, perks in packages:
             cur = conn.execute(
                 "INSERT INTO club_packages (club_id, athlete_id, name, description, package_type,"
-                " price_usd, perks, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                " price_eur, perks, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (club_id, athlete_ids[athlete_slug] if athlete_slug else None,
                  pname, desc, ptype, price, json.dumps(perks), now_iso()))
             first_pkg_ids.setdefault(cslug, cur.lastrowid)
@@ -299,12 +304,12 @@ def seed(conn: sqlite3.Connection) -> dict:
     # one live commitment so club revenue + sponsor spend render immediately:
     # Solstice Hydration backs Ironline's title partnership
     ironline_pkg = first_pkg_ids["ironline-combat"]
-    pkg = row(conn, "SELECT price_usd, athlete_id FROM club_packages WHERE id = ?", (ironline_pkg,))
+    pkg = row(conn, "SELECT price_eur, athlete_id FROM club_packages WHERE id = ?", (ironline_pkg,))
     cur = conn.execute(
-        "INSERT INTO package_commitments (package_id, org_id, amount_usd, created_at)"
-        " VALUES (?, ?, ?, ?)", (ironline_pkg, org_ids[2], pkg["price_usd"], now_iso()))
+        "INSERT INTO package_commitments (package_id, org_id, amount_eur, created_at)"
+        " VALUES (?, ?, ?, ?)", (ironline_pkg, org_ids[2], pkg["price_eur"], now_iso()))
     log_event(conn, "system", "package.committed", "package_commitment", cur.lastrowid,
-              {"package_id": ironline_pkg, "org_id": org_ids[2], "amount_usd": pkg["price_usd"],
+              {"package_id": ironline_pkg, "org_id": org_ids[2], "amount_eur": pkg["price_eur"],
                "athlete_id": pkg["athlete_id"]})
 
     # ---- fans ----------------------------------------------------------------

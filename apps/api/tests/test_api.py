@@ -121,7 +121,7 @@ def test_matching_is_explainable_and_sorted(sponsor):
 def test_audience_fit_is_campaign_specific(sponsor):
     created = sponsor.post("/api/campaigns", json={
         "name": "Contract Test Campaign", "category": "Wellness",
-        "deal_types": ["social_post"], "budget_usd_min": 1000, "budget_usd_max": 8000,
+        "deal_types": ["social_post"], "budget_eur_min": 1000, "budget_eur_max": 8000,
         "target_age_buckets": ["18-24", "25-34"], "target_countries": ["US", "AU"],
         "target_topics": ["wellness", "fitness"]})
     assert created.status_code == 201
@@ -142,10 +142,10 @@ def test_offer_lifecycle(sponsor):
     target = next(m for m in matches if m["slug"] != "kaia-mercer")
     offer = sponsor.post(f"/api/campaigns/{campaign['id']}/offers", json={
         "athlete_id": target["athlete_id"], "deal_type": "social_post",
-        "amount_usd": 4000, "message": "test offer"})
+        "amount_eur": 4000, "message": "test offer"})
     assert offer.status_code == 201
     dup = sponsor.post(f"/api/campaigns/{campaign['id']}/offers", json={
-        "athlete_id": target["athlete_id"], "deal_type": "social_post", "amount_usd": 4000})
+        "athlete_id": target["athlete_id"], "deal_type": "social_post", "amount_eur": 4000})
     assert dup.status_code == 409
     assert sponsor.post(f"/api/deals/{offer.json()['id']}/withdraw").status_code == 200
 
@@ -160,7 +160,7 @@ def test_club_workspace_and_guardrails(clubu):
     assert ws["revenue_active"] == 0
     bad = clubu.post("/api/club/packages", json={
         "name": "Bad package", "package_type": "player_direct",
-        "price_usd": 100, "athlete_slug": "kaia-mercer"})
+        "price_eur": 100, "athlete_slug": "kaia-mercer"})
     assert bad.status_code == 409  # not on roster
 
 
@@ -174,7 +174,7 @@ def test_package_backing_lifecycle(client, sponsor, clubu, fan):
     assert sponsor.post(f"/api/clubs/packages/{pd['id']}/commit").status_code == 409
 
     ws = clubu.get("/api/club/workspace").json()
-    assert ws["revenue_active"] == pd["price_usd"]
+    assert ws["revenue_active"] == pd["price_eur"]
     sws = sponsor.get("/api/sponsor/workspace").json()
     assert any(x["package_id"] == pd["id"] and x["status"] == "active"
                for x in sws["club_commitments"])

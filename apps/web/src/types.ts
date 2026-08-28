@@ -29,7 +29,7 @@ export interface ClubPackage {
   name: string
   description: string
   package_type: 'club' | 'player_direct'
-  price_usd: number
+  price_eur: number
   perks: string[]
   status: 'active' | 'archived'
   created_at: string
@@ -54,7 +54,7 @@ export interface Commitment {
   id: number
   package_id: number
   org_id: number
-  amount_usd: number
+  amount_eur: number
   status: 'active' | 'cancelled'
   created_at: string
   cancelled_at: string | null
@@ -92,7 +92,7 @@ export interface AthletePublic {
   career_highlights: string[]
   topics: string[]
   deal_types: string[]
-  base_rate_usd: number
+  base_rate_eur: number
   status: string
   claimed: boolean
   score: ScoreSummary | null
@@ -110,11 +110,17 @@ export interface Deal {
   org_id: number
   athlete_id: number
   deal_type: string
-  amount_usd: number
+  amount_eur: number
   message: string
   status: 'offered' | 'accepted' | 'declined' | 'withdrawn' | 'completed'
   created_at: string
   responded_at: string | null
+  completed_at?: string | null
+  projected_reach?: number | null
+  /** Posts the athlete has already attached as proof of delivery. Present on
+   *  the athlete's own workspace only — a sponsor reads these through
+   *  `DealPerformance` instead. */
+  deliverable_post_ids?: number[]
   campaign_name?: string
   category?: string
   org_name?: string
@@ -130,8 +136,8 @@ export interface Campaign {
   objective: string
   category: string
   deal_types: string[]
-  budget_usd_min: number
-  budget_usd_max: number
+  budget_eur_min: number
+  budget_eur_max: number
   target_age_buckets: string[]
   target_genders: string[]
   target_countries: string[]
@@ -147,7 +153,7 @@ export interface Match {
   display_name: string
   sport: string
   country: string
-  base_rate_usd: number
+  base_rate_eur: number
   score: number
   /** null = the dimension could not be measured. It is excluded from the score
    *  rather than counted as zero, so never render it as a 0. */
@@ -163,6 +169,46 @@ export interface Match {
     dimensions: Record<string, number | null>
     coverage: { connected: number; total: number; missing: string[] }
   } | null
+}
+
+/** A post the athlete can attach to a deal as proof of delivery. */
+export interface AthletePost {
+  post_id: number
+  platform: string
+  title: string
+  published_at: string
+  reach: number | null
+}
+
+/** What the sponsor actually got. Every headline figure decomposes to
+ *  `deliverables` — the same rule the marketability scores follow. */
+export interface DealPerformance {
+  deal: {
+    id: number
+    status: Deal['status']
+    deal_type: string
+    amount_eur: number
+    created_at: string
+    responded_at: string | null
+    completed_at: string | null
+    athlete_name: string
+    athlete_slug: string
+    campaign_name: string
+  }
+  deliverables: {
+    post_id: number
+    platform: string
+    title: string
+    published_at: string
+    permalink: string
+    reach: number
+    engagement_rate: number | null
+  }[]
+  delivered: { posts: number; reach: number; engagements: number }
+  projected: { reach: number | null }
+  variance_pct: number | null
+  cost_per_1k_reach: number | null
+  cost_per_engagement: number | null
 }
 
 export interface PlatformAccount {
@@ -183,7 +229,7 @@ export interface AthleteWorkspace {
     country: string
     region: string
     bio: string
-    base_rate_usd: number
+    base_rate_eur: number
     status: string
     career_highlights: string[]
     topics: string[]
@@ -201,7 +247,7 @@ export interface AthleteWorkspace {
   deals: Deal[]
   earnings: number
   clubs: { name: string; slug: string; position: string }[]
-  club_backing: { amount_usd: number; status: string; created_at: string; package_name: string; club_name: string; org_name: string }[]
+  club_backing: { amount_eur: number; status: string; created_at: string; package_name: string; club_name: string; org_name: string }[]
 }
 
 export const DIMENSIONS = [
@@ -249,3 +295,161 @@ export function meanScore(dimensions: Record<string, number | null> | undefined 
   if (!values.length) return { value: null as number | null, n: 0 }
   return { value: values.reduce((s, v) => s + v, 0) / values.length, n: values.length }
 }
+
+
+/* ── Admission ──────────────────────────────────────────────────────────────
+ *  The gate, and its decomposition. Every field the server returns is here for
+ *  one reason: a decision an applicant cannot have explained to them is a
+ *  decision they cannot act on, so the interface shows the whole working. */
+
+export const COMPETITION_LEVELS = ['local', 'regional', 'national', 'international'] as const
+export const PROOF_KINDS = ['none', 'roster', 'results', 'licence'] as const
+
+export type AdmissionDecision = 'pending' | 'admitted' | 'review' | 'rejected'
+export type ProofStatus = 'unverified' | 'pending' | 'verified' | 'rejected'
+
+export interface AthleteApplication {
+  id: number
+  athlete_id: number
+  discipline: string
+  club_name: string
+  league_name: string
+  competition_level: string
+  years_competing: number | null
+  birth_year: number | null
+  proof_url: string
+  proof_kind: string
+  proof_status: ProofStatus
+  nominated_by_club: number | null
+  credibility: number | null
+  decision: AdmissionDecision
+  decision_rule: string
+  admitted_via: string
+  policy_version: string
+  submitted_at: string
+  decided_at: string | null
+  /** joined in on the admin queue only */
+  slug?: string
+  display_name?: string
+  sport?: string
+  country?: string
+  scored?: Credibility
+}
+
+/** What the scorer returns: the number, and everything behind it. */
+export interface Credibility {
+  credibility: number
+  claim: number
+  components: Record<string, number | null>
+  weights: Record<string, number>
+  missing: string[]
+  scoreable: boolean
+  evidence_multiplier: number
+  reasons: string[]
+  caveats: string[]
+  policy_version: string
+}
+
+/** A scored application plus the verdict — what every write endpoint returns. */
+export interface AdmissionVerdict extends Credibility {
+  decision: AdmissionDecision
+  rule: string
+  effective_credibility: number
+  notes: string[]
+  thresholds: { admit: number; review: number }
+  listing: string
+  social_score: number | null
+}
+
+export interface AthleteApplicationView {
+  application: AthleteApplication | null
+  scored?: Credibility
+  club_floor?: number
+  thresholds?: { admit: number }
+}
+
+export interface ClubApplication {
+  id: number
+  club_id: number
+  legal_name: string
+  registration_id: string
+  federation_name: string
+  federation_id: string
+  founded_year: number | null
+  competition_level: string
+  teams_count: number | null
+  registered_athletes: number
+  roster_url: string
+  proof_kind: string
+  proof_status: ProofStatus
+  legitimacy: number | null
+  decision: 'pending' | 'verified' | 'review' | 'rejected'
+  policy_version: string
+  submitted_at: string
+  decided_at: string | null
+  /** joined in on the admin queue only */
+  slug?: string
+  name?: string
+  sport?: string
+  country?: string
+  scored?: ClubLegitimacy
+}
+
+export interface ClubLegitimacy {
+  legitimacy: number
+  claim: number
+  decision: 'pending' | 'verified' | 'review' | 'rejected'
+  components: Record<string, number | null>
+  weights: Record<string, number>
+  missing: string[]
+  evidence_multiplier: number
+  nomination_floor: number
+  reasons: string[]
+  caveats: string[]
+  thresholds: { verify: number; review: number }
+  policy_version: string
+}
+
+export interface ClubApplicationView {
+  application: ClubApplication | null
+  scored?: ClubLegitimacy
+  nominations?: { used: number; budget: number }
+}
+
+/** Rule codes, said in words the applicant can act on. The server returns a
+ *  machine-readable rule precisely so the wording lives here and can change
+ *  without touching the policy. */
+export const DECISION_COPY: Record<string, string> = {
+  credibility_above_admit: 'Admitted. Your profile can be listed for sponsors.',
+  credibility_in_review_band: 'With our team for a look.',
+  evidence_not_checked:
+    'Your claim clears the bar — we just have not opened your proof link yet.',
+  incomplete_application:
+    'Not submitted yet. Competition level is missing, and nothing can be assessed without it.',
+  under_minimum_age: 'Stride accounts are 16 and over.',
+  proof_rejected: 'We checked your link and it did not support the claim.',
+  credibility_below_review: 'Not enough evidence yet to assess this.',
+  social_reach_without_credibility:
+    'Sent for a human look: a large following behind a claim we cannot yet verify.',
+  club_verification_revoked:
+    'Your club lost its verification, so this is back with our team.',
+}
+
+export const componentLabel = (key: string) =>
+  ({
+    level: 'Competition level',
+    tenure: 'Seasons competing',
+    registration: 'Legal registration',
+    federation: 'Federation affiliation',
+    longevity: 'Years operating',
+    structure: 'Teams fielded',
+    roster_proof: 'Public roster',
+  })[key] ?? key.replace(/_/g, ' ')
+
+export const proofStatusLabel = (status: string) =>
+  ({
+    unverified: 'not checked',
+    pending: 'queued for checking',
+    verified: 'checked',
+    rejected: 'checked — did not stand up',
+  })[status] ?? status

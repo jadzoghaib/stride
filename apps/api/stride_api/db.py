@@ -26,6 +26,7 @@ _PG_SCHEMA = Path(__file__).with_name("schema_pg.sql")
 
 # Every table the app owns, child-first, for a clean Postgres reset.
 _ALL_TABLES = (
+    "deal_deliverables", "athlete_applications", "club_applications",
     "package_commitments", "club_packages", "club_members", "clubs",
     "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
     "events", "score_snapshots", "sponsor_targets", "audience_demographics",
@@ -87,7 +88,7 @@ CREATE TABLE IF NOT EXISTS athlete_profiles (
     career_highlights       TEXT NOT NULL DEFAULT '[]',            -- json list of strings
     topics                  TEXT NOT NULL DEFAULT '[]',            -- json list: audience themes
     deal_types              TEXT NOT NULL DEFAULT '[]',            -- json list of DEAL_TYPES
-    base_rate_usd           INTEGER NOT NULL DEFAULT 1000,         -- per engagement, rate card anchor
+    base_rate_eur           INTEGER NOT NULL DEFAULT 1000,         -- per engagement, rate card anchor
     status                  TEXT NOT NULL DEFAULT 'listed' CHECK (status IN ('draft','listed','hidden')),
     creatorlens_creator_id  INTEGER,                               -- analytics identity (creators.id)
     created_at              TEXT NOT NULL
@@ -111,13 +112,17 @@ CREATE TABLE IF NOT EXISTS campaigns (
     objective          TEXT NOT NULL DEFAULT '',
     category           TEXT NOT NULL,
     deal_types         TEXT NOT NULL DEFAULT '[]',
-    budget_usd_min     INTEGER NOT NULL DEFAULT 1000,
-    budget_usd_max     INTEGER NOT NULL DEFAULT 10000,
+    budget_eur_min     INTEGER NOT NULL DEFAULT 1000,
+    budget_eur_max     INTEGER NOT NULL DEFAULT 10000,
     target_age_buckets TEXT NOT NULL DEFAULT '[]',
     target_genders     TEXT NOT NULL DEFAULT '[]',
     target_countries   TEXT NOT NULL DEFAULT '[]',
     target_topics      TEXT NOT NULL DEFAULT '[]',
     sponsor_target_id  INTEGER,                                    -- creatorlens sponsor_targets.id
+    -- a hard retrieval filter, not a weighted term: see matching.candidates().
+    -- BOOLEAN rather than INTEGER so the fresh and migrated forms of this column
+    -- agree on both backends — SQLite gives it NUMERIC affinity and stores 0/1.
+    require_verified_athletes BOOLEAN NOT NULL DEFAULT FALSE,
     status             TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('draft','active','closed')),
     created_at         TEXT NOT NULL
 );
@@ -129,14 +134,30 @@ CREATE TABLE IF NOT EXISTS deals (
     org_id       INTEGER NOT NULL REFERENCES sponsor_orgs(id),
     athlete_id   INTEGER NOT NULL REFERENCES athlete_profiles(id),
     deal_type    TEXT NOT NULL,
-    amount_usd   INTEGER NOT NULL,
+    amount_eur   INTEGER NOT NULL,
     message      TEXT NOT NULL DEFAULT '',
     status       TEXT NOT NULL DEFAULT 'offered'
                  CHECK (status IN ('offered','accepted','declined','withdrawn','completed')),
     created_at   TEXT NOT NULL,
-    responded_at TEXT
+    responded_at TEXT,
+    completed_at TEXT,
+    -- Captured when the OFFER is sent, not at completion: once the athlete's
+    -- following moves there is nothing left to measure delivery against.
+    projected_reach INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_deals_athlete ON deals(athlete_id, status);
+
+-- What actually fulfilled a deal. Everything needed to measure a campaign
+-- already exists in posts/post_metrics; this is the missing link between the
+-- commercial record and the content.
+CREATE TABLE IF NOT EXISTS deal_deliverables (
+    id       INTEGER PRIMARY KEY,
+    deal_id  INTEGER NOT NULL REFERENCES deals(id),
+    post_id  INTEGER NOT NULL REFERENCES posts(id),
+    added_at TEXT NOT NULL,
+    UNIQUE (deal_id, post_id)
+);
+CREATE INDEX IF NOT EXISTS idx_deliverables_deal ON deal_deliverables(deal_id);
 CREATE INDEX IF NOT EXISTS idx_deals_org ON deals(org_id, status);
 
 CREATE TABLE IF NOT EXISTS follows (
@@ -170,6 +191,65 @@ CREATE TABLE IF NOT EXISTS club_members (
     UNIQUE (club_id, athlete_id)
 );
 
+-- Admission. Structured applications are the only cold-start evidence the
+-- platform has, so they are stored whole: the decision is reproducible from the
+-- row that produced it, and `policy_version` says which rules were in force.
+CREATE TABLE IF NOT EXISTS athlete_applications (
+    id                INTEGER PRIMARY KEY,
+    athlete_id        INTEGER NOT NULL UNIQUE REFERENCES athlete_profiles(id),
+    discipline        TEXT NOT NULL DEFAULT '',
+    club_name         TEXT NOT NULL DEFAULT '',
+    league_name       TEXT NOT NULL DEFAULT '',
+    competition_level TEXT NOT NULL DEFAULT '',
+    years_competing   INTEGER,
+    birth_year        INTEGER,
+    proof_url         TEXT NOT NULL DEFAULT '',
+    proof_kind        TEXT NOT NULL DEFAULT 'none'
+                      CHECK (proof_kind IN ('none','roster','results','licence')),
+    proof_status      TEXT NOT NULL DEFAULT 'unverified'
+                      CHECK (proof_status IN ('unverified','pending','verified','rejected')),
+    -- set when a verified club vouched for them; the pair with `admitted_via` is
+    -- what makes de-verifying that club a reversible act rather than a wish
+    nominated_by_club INTEGER REFERENCES clubs(id),
+    credibility       REAL,
+    decision          TEXT NOT NULL DEFAULT 'pending'
+                      CHECK (decision IN ('pending','admitted','review','rejected')),
+    decision_rule     TEXT NOT NULL DEFAULT '',
+    admitted_via      TEXT NOT NULL DEFAULT ''
+                      CHECK (admitted_via IN ('','self','club_nomination','manual')),
+    policy_version    TEXT NOT NULL DEFAULT '',
+    submitted_at      TEXT NOT NULL,
+    decided_at        TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_applications_decision ON athlete_applications(decision);
+CREATE INDEX IF NOT EXISTS idx_applications_club ON athlete_applications(nominated_by_club);
+
+CREATE TABLE IF NOT EXISTS club_applications (
+    id                  INTEGER PRIMARY KEY,
+    club_id             INTEGER NOT NULL UNIQUE REFERENCES clubs(id),
+    legal_name          TEXT NOT NULL DEFAULT '',
+    registration_id     TEXT NOT NULL DEFAULT '',
+    federation_name     TEXT NOT NULL DEFAULT '',
+    federation_id       TEXT NOT NULL DEFAULT '',
+    founded_year        INTEGER,
+    competition_level   TEXT NOT NULL DEFAULT '',
+    teams_count         INTEGER,
+    -- the roster size the club declares, which is also its nomination budget:
+    -- inflating it to mint more nominations makes the inflation itself checkable
+    registered_athletes INTEGER NOT NULL DEFAULT 0,
+    roster_url          TEXT NOT NULL DEFAULT '',
+    proof_kind          TEXT NOT NULL DEFAULT 'none'
+                        CHECK (proof_kind IN ('none','roster','results','licence')),
+    proof_status        TEXT NOT NULL DEFAULT 'unverified'
+                        CHECK (proof_status IN ('unverified','pending','verified','rejected')),
+    legitimacy          REAL,
+    decision            TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (decision IN ('pending','verified','review','rejected')),
+    policy_version      TEXT NOT NULL DEFAULT '',
+    submitted_at        TEXT NOT NULL,
+    decided_at          TEXT
+);
+
 CREATE TABLE IF NOT EXISTS club_packages (
     id           INTEGER PRIMARY KEY,
     club_id      INTEGER NOT NULL REFERENCES clubs(id),
@@ -177,7 +257,7 @@ CREATE TABLE IF NOT EXISTS club_packages (
     name         TEXT NOT NULL,
     description  TEXT NOT NULL DEFAULT '',
     package_type TEXT NOT NULL CHECK (package_type IN ('club','player_direct')),
-    price_usd    INTEGER NOT NULL,
+    price_eur    INTEGER NOT NULL,
     perks        TEXT NOT NULL DEFAULT '[]',
     status       TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','archived')),
     created_at   TEXT NOT NULL
@@ -188,7 +268,7 @@ CREATE TABLE IF NOT EXISTS package_commitments (
     id           INTEGER PRIMARY KEY,
     package_id   INTEGER NOT NULL REFERENCES club_packages(id),
     org_id       INTEGER NOT NULL REFERENCES sponsor_orgs(id),
-    amount_usd   INTEGER NOT NULL,
+    amount_eur   INTEGER NOT NULL,
     status       TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','cancelled')),
     created_at   TEXT NOT NULL,
     cancelled_at TEXT
@@ -197,12 +277,80 @@ CREATE INDEX IF NOT EXISTS idx_commitments_org ON package_commitments(org_id, st
 """
 
 
+# Columns added to a table that had already shipped. The schema above is
+# written with CREATE TABLE IF NOT EXISTS, which is a no-op against a database
+# that already has the table — so a column added later never reaches an existing
+# one, and the first request to read it fails with "no such column" while a
+# fresh database (every test run) passes. Keep this list append-only and
+# additive: it is a column backfill, not a migration framework, and anything
+# that rewrites or drops data needs a real one.
+_ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
+    ("deals", "completed_at", "TEXT"),
+    ("deals", "projected_reach", "INTEGER"),
+    ("campaigns", "require_verified_athletes", "BOOLEAN NOT NULL DEFAULT FALSE"),
+)
+
+
+# Columns renamed after they had shipped. Same reasoning as the list above and
+# the same trap: CREATE TABLE IF NOT EXISTS writes the new name only on a
+# database that does not have the table yet, so an existing one keeps the old
+# column and every query against the new name fails. Renames are listed rather
+# than done by hand because the money columns moved from USD to EUR in one pass
+# and a half-migrated database is worse than either currency.
+# The old names are assembled rather than written out, because the search and
+# replace that performed this migration rewrote this very table on its first
+# run and left six no-op renames behind. A list of dead identifiers is exactly
+# what a global rename cannot see.
+_RENAMED_COLUMNS: tuple[tuple[str, str, str], ...] = tuple(
+    (table, new.replace("eur", "usd"), new) for table, new in (
+        ("deals", "amount_eur"),
+        ("athlete_profiles", "base_rate_eur"),
+        ("campaigns", "budget_eur_min"),
+        ("campaigns", "budget_eur_max"),
+        ("club_packages", "price_eur"),
+        ("package_commitments", "amount_eur"),
+    )
+)
+
+
+def _columns(conn, table: str) -> set[str]:
+    if settings.db_backend == "postgres":
+        return {r["column_name"] for r in rows(
+            conn, "SELECT column_name FROM information_schema.columns WHERE table_name = ?",
+            (table,))}
+    return {c["name"] for c in rows(conn, f"PRAGMA table_info({table})")}
+
+
+def _rename_columns(conn) -> None:
+    """Idempotent: only fires where the old name is still there and the new one
+    is not, so a fresh database and a re-run are both no-ops."""
+    for table, old, new in _RENAMED_COLUMNS:
+        present = _columns(conn, table)
+        if old in present and new not in present:
+            conn.execute(f"ALTER TABLE {table} RENAME COLUMN {old} TO {new}")
+
+
+def _add_missing_columns(conn) -> None:
+    if settings.db_backend == "postgres":
+        for table, column, decl in _ADDED_COLUMNS:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {decl}")
+        return
+    # SQLite has no ADD COLUMN IF NOT EXISTS, so ask first.
+    for table, column, decl in _ADDED_COLUMNS:
+        if column not in _columns(conn, table):
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
+
+
 def init_db(conn) -> None:
     if settings.db_backend == "postgres":
         conn.executescript(_PG_SCHEMA.read_text(encoding="utf-8"))
     else:
         conn.executescript(CREATORLENS_SCHEMA)  # analytics tables + shared events audit log
         conn.executescript(STRIDE_SCHEMA)
+    # rename before adding: both walk the same tables, and a rename that ran
+    # second would find the new column already created empty beside the old one
+    _rename_columns(conn)
+    _add_missing_columns(conn)
     conn.commit()
 
 

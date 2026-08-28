@@ -11,7 +11,7 @@ import json
 import sqlite3
 
 from creatorlens.actions import ActionRejected, connect_platform, disconnect_platform
-from creatorlens.analytics.kpis import creator_kpis
+from creatorlens.analytics.kpis import creator_kpis, latest_post_metrics
 from creatorlens.analytics.scoring import (InsufficientData, _combined_demographics,
                                            latest_score, store_scores)
 from creatorlens.events import log_event
@@ -45,7 +45,7 @@ def athlete_public(conn, a: dict) -> dict:
         "sport": a["sport"], "country": a["country"], "region": a["region"],
         "bio": a["bio"], "career_highlights": json.loads(a["career_highlights"]),
         "topics": json.loads(a["topics"]), "deal_types": json.loads(a["deal_types"]),
-        "base_rate_usd": a["base_rate_usd"], "status": a["status"],
+        "base_rate_eur": a["base_rate_eur"], "status": a["status"],
         "claimed": a["user_id"] is not None,
         "score": _score_summary(conn, a["creatorlens_creator_id"]),
     }
@@ -109,7 +109,7 @@ class ProfileIn(BaseModel):
     career_highlights: list[str] | None = Field(default=None, max_length=12)
     topics: list[str] | None = Field(default=None, max_length=12)
     deal_types: list[str] | None = Field(default=None, max_length=5)
-    base_rate_usd: int | None = Field(default=None, ge=0, le=1_000_000)
+    base_rate_eur: int | None = Field(default=None, ge=0, le=1_000_000)
     status: str | None = None  # draft -> listed
 
 
@@ -138,7 +138,7 @@ def workspace(user: dict = Depends(require_role("athlete")),
     return {
         "profile": athlete_public(conn, profile),
         "editable": {k: profile[k] for k in ("display_name", "sport", "country", "region",
-                                             "bio", "base_rate_usd", "status")}
+                                             "bio", "base_rate_eur", "status")}
                     | {"career_highlights": json.loads(profile["career_highlights"]),
                        "topics": json.loads(profile["topics"]),
                        "deal_types": json.loads(profile["deal_types"])},
@@ -152,13 +152,13 @@ def workspace(user: dict = Depends(require_role("athlete")),
         "audience": _combined_demographics(conn, creator_kpis(conn, creator_id))["dimensions"]
                     if creator_id else {},
         "deals": deals,
-        "earnings": sum(d["amount_usd"] for d in deals if d["status"] in ("accepted", "completed")),
+        "earnings": sum(d["amount_eur"] for d in deals if d["status"] in ("accepted", "completed")),
         "clubs": rows(conn, """
             SELECT c.name, c.slug, cm.position FROM club_members cm
             JOIN clubs c ON c.id = cm.club_id
             WHERE cm.athlete_id = ? AND cm.status = 'active' ORDER BY c.name""", (profile["id"],)),
         "club_backing": rows(conn, """
-            SELECT pc.amount_usd, pc.status, pc.created_at, cp.name AS package_name,
+            SELECT pc.amount_eur, pc.status, pc.created_at, cp.name AS package_name,
                    c.name AS club_name, o.name AS org_name
             FROM package_commitments pc
             JOIN club_packages cp ON cp.id = pc.package_id
@@ -174,7 +174,7 @@ def update_profile(body: ProfileIn, user: dict = Depends(require_role("athlete")
                    conn: sqlite3.Connection = Depends(get_db)):
     profile = _own_profile(conn, user)
     updates, params = [], []
-    for field in ("display_name", "sport", "country", "region", "bio", "base_rate_usd", "status"):
+    for field in ("display_name", "sport", "country", "region", "bio", "base_rate_eur", "status"):
         value = getattr(body, field)
         if value is not None:
             if field == "status" and value not in ("draft", "listed", "hidden"):
@@ -269,15 +269,114 @@ def disconnect(account_id: int, user: dict = Depends(require_role("athlete")),
 # ---- deals (athlete side) ----------------------------------------------------
 
 def _deals_for_athlete(conn, athlete_id: int) -> list[dict]:
-    return rows(conn, """
+    deals = rows(conn, """
         SELECT d.*, c.name AS campaign_name, c.category, o.name AS org_name
         FROM deals d JOIN campaigns c ON c.id = d.campaign_id
                      JOIN sponsor_orgs o ON o.id = d.org_id
         WHERE d.athlete_id = ? ORDER BY d.created_at DESC, d.id DESC""", (athlete_id,))
+    # What is already attached, so the athlete is never offered a post they have
+    # submitted before. One grouped query rather than one per deal.
+    attached: dict[int, list[int]] = {}
+    for link in rows(conn, """
+            SELECT dd.deal_id, dd.post_id FROM deal_deliverables dd
+            JOIN deals d ON d.id = dd.deal_id
+            WHERE d.athlete_id = ? ORDER BY dd.id""", (athlete_id,)):
+        attached.setdefault(link["deal_id"], []).append(link["post_id"])
+    for deal in deals:
+        deal["deliverable_post_ids"] = attached.get(deal["id"], [])
+    return deals
 
 
 class RespondIn(BaseModel):
     action: str  # accept | decline
+
+
+@router.get("/athlete/posts")
+def own_posts(user: dict = Depends(require_role("athlete")),
+              conn: sqlite3.Connection = Depends(get_db)):
+    """The athlete's recent posts, for attaching to a deal as a deliverable."""
+    profile = _own_profile(conn, user)
+    creator_id = profile["creatorlens_creator_id"]
+    if not creator_id:
+        return []
+    out = []
+    for account in rows(conn, "SELECT * FROM platform_accounts WHERE creator_id = ?",
+                        (creator_id,)):
+        for post in latest_post_metrics(conn, account["id"])[:15]:
+            out.append({"post_id": post["post_id"], "platform": account["platform"],
+                        "title": post["title"], "published_at": post["published_at"],
+                        "reach": post["reach"]})
+    out.sort(key=lambda p: p["published_at"], reverse=True)
+    return out[:40]
+
+
+class DeliverableIn(BaseModel):
+    post_id: int
+
+
+@router.post("/athlete/deals/{deal_id}/deliverables", status_code=201)
+def add_deliverable(deal_id: int, body: DeliverableIn,
+                    user: dict = Depends(require_role("athlete")),
+                    conn: sqlite3.Connection = Depends(get_db)):
+    """Attach the post that fulfilled a deal.
+
+    Guarded twice over: the deal must be the athlete's, and so must the post —
+    otherwise an athlete could attribute someone else's reach to their own
+    campaign, which would poison the one dataset sponsors are meant to trust.
+    """
+    profile = _own_profile(conn, user)
+    deal = row(conn, "SELECT * FROM deals WHERE id = ? AND athlete_id = ?",
+               (deal_id, profile["id"]))
+    if deal is None:
+        raise HTTPException(404, "unknown_deal")
+    if deal["status"] not in ("accepted", "completed"):
+        raise HTTPException(409, "deal_not_accepted")
+
+    post = row(conn, """
+        SELECT p.id FROM posts p
+        JOIN platform_accounts pa ON pa.id = p.account_id
+        WHERE p.id = ? AND pa.creator_id = ?""",
+        (body.post_id, profile["creatorlens_creator_id"]))
+    if post is None:
+        raise HTTPException(404, "unknown_post")
+
+    existing = row(conn, "SELECT id FROM deal_deliverables WHERE deal_id = ? AND post_id = ?",
+                   (deal_id, body.post_id))
+    if existing:
+        raise HTTPException(409, "already_attached")
+
+    conn.execute("INSERT INTO deal_deliverables (deal_id, post_id, added_at) VALUES (?, ?, ?)",
+                 (deal_id, body.post_id, now_iso()))
+    log_event(conn, "user", "deal.deliverable_added", "deal", deal_id,
+              {"post_id": body.post_id, "athlete_id": profile["id"]})
+    conn.commit()
+    return {"ok": True, "deal_id": deal_id, "post_id": body.post_id}
+
+
+@router.post("/athlete/deals/{deal_id}/complete")
+def complete_deal(deal_id: int, user: dict = Depends(require_role("athlete")),
+                  conn: sqlite3.Connection = Depends(get_db)):
+    """Mark a deal delivered. Requires at least one deliverable, so a completed
+    deal always has something a sponsor can inspect."""
+    profile = _own_profile(conn, user)
+    deal = row(conn, "SELECT * FROM deals WHERE id = ? AND athlete_id = ?",
+               (deal_id, profile["id"]))
+    if deal is None:
+        raise HTTPException(404, "unknown_deal")
+    if deal["status"] != "accepted":
+        raise HTTPException(409, "deal_not_accepted")
+    count = row(conn, "SELECT COUNT(*) AS n FROM deal_deliverables WHERE deal_id = ?",
+                (deal_id,))["n"]
+    if not count:
+        raise HTTPException(409, "no_deliverables")
+
+    conn.execute("UPDATE deals SET status = 'completed', completed_at = ? WHERE id = ?",
+                 (now_iso(), deal_id))
+    log_event(conn, "user", "deal.completed", "deal", deal_id,
+              {"athlete_id": profile["id"], "deliverables": count,
+               "amount_eur": deal["amount_eur"]})
+    conn.commit()
+    return row(conn, "SELECT * FROM deals WHERE id = ?", (deal_id,))
 
 
 @router.post("/athlete/deals/{deal_id}/respond")
@@ -296,6 +395,6 @@ def respond_to_deal(deal_id: int, body: RespondIn,
     conn.execute("UPDATE deals SET status = ?, responded_at = ? WHERE id = ?",
                  (status, now_iso(), deal_id))
     log_event(conn, "user", f"deal.{status}", "deal", deal_id,
-              {"athlete_id": profile["id"], "amount_usd": deal["amount_usd"]})
+              {"athlete_id": profile["id"], "amount_eur": deal["amount_eur"]})
     conn.commit()
     return row(conn, "SELECT * FROM deals WHERE id = ?", (deal_id,))

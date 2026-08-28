@@ -48,7 +48,7 @@ def _packages_view(conn, club_id: int, include_archived: bool = False) -> list[d
     if not include_archived:
         sql += " AND cp.status = 'active'"
     out = []
-    for p in rows(conn, sql + " ORDER BY cp.package_type, cp.price_usd DESC", (club_id,)):
+    for p in rows(conn, sql + " ORDER BY cp.package_type, cp.price_eur DESC", (club_id,)):
         p["perks"] = json.loads(p["perks"])
         p["active_backers"] = row(conn, "SELECT COUNT(*) AS n FROM package_commitments"
                                   " WHERE package_id = ? AND status = 'active'", (p["id"],))["n"]
@@ -109,7 +109,7 @@ def workspace(user: dict = Depends(require_role("club")),
         "roster": _roster_view(conn, c["id"]),
         "packages": _packages_view(conn, c["id"], include_archived=True),
         "commitments": commitments,
-        "revenue_active": sum(x["amount_usd"] for x in commitments if x["status"] == "active"),
+        "revenue_active": sum(x["amount_eur"] for x in commitments if x["status"] == "active"),
     }
 
 
@@ -206,7 +206,7 @@ class PackageIn(BaseModel):
     name: str = Field(min_length=3, max_length=120)
     description: str = Field(default="", max_length=1000)
     package_type: str  # club | player_direct
-    price_usd: int = Field(gt=0, le=10_000_000)
+    price_eur: int = Field(gt=0, le=10_000_000)
     athlete_slug: str | None = Field(default=None, max_length=80)  # required for player_direct
     perks: list[str] = Field(default=[], max_length=10)
 
@@ -230,11 +230,11 @@ def create_package(body: PackageIn, user: dict = Depends(require_role("club")),
         athlete_id = member["id"]
     cur = conn.execute(
         "INSERT INTO club_packages (club_id, athlete_id, name, description, package_type,"
-        " price_usd, perks, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        " price_eur, perks, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         (c["id"], athlete_id, body.name, body.description, body.package_type,
-         body.price_usd, json.dumps(body.perks), now_iso()))
+         body.price_eur, json.dumps(body.perks), now_iso()))
     log_event(conn, "user", "club.package_created", "club_package", cur.lastrowid,
-              {"club_id": c["id"], "type": body.package_type, "price_usd": body.price_usd})
+              {"club_id": c["id"], "type": body.package_type, "price_eur": body.price_eur})
     conn.commit()
     return _packages_view(conn, c["id"], include_archived=True)
 
@@ -271,10 +271,10 @@ def commit_to_package(package_id: int, user: dict = Depends(require_role("sponso
     if open_commit:
         raise HTTPException(409, "already_backing_package")
     cur = conn.execute(
-        "INSERT INTO package_commitments (package_id, org_id, amount_usd, created_at)"
-        " VALUES (?, ?, ?, ?)", (package_id, org["id"], p["price_usd"], now_iso()))
+        "INSERT INTO package_commitments (package_id, org_id, amount_eur, created_at)"
+        " VALUES (?, ?, ?, ?)", (package_id, org["id"], p["price_eur"], now_iso()))
     log_event(conn, "user", "package.committed", "package_commitment", cur.lastrowid,
-              {"package_id": package_id, "org_id": org["id"], "amount_usd": p["price_usd"],
+              {"package_id": package_id, "org_id": org["id"], "amount_eur": p["price_eur"],
                "athlete_id": p["athlete_id"]})
     conn.commit()
     return row(conn, "SELECT * FROM package_commitments WHERE id = ?", (cur.lastrowid,))

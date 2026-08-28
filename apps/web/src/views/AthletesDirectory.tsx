@@ -7,12 +7,12 @@ import { fmtMoney } from '../lib/format'
 import type { AthletePublic } from '../types'
 import { meanScore } from '../types'
 
-type SortKey = 'display_name' | 'score' | 'base_rate_usd'
+type SortKey = 'display_name' | 'score' | 'base_rate_eur'
 
 const COLUMNS: { key: SortKey; label: string; align?: string }[] = [
   { key: 'display_name', label: 'Athlete' },
   { key: 'score', label: 'Marketability', align: 'text-right' },
-  { key: 'base_rate_usd', label: 'Rate card', align: 'text-right' },
+  { key: 'base_rate_eur', label: 'Rate card', align: 'text-right' },
 ]
 
 export default function AthletesDirectory() {
@@ -47,7 +47,7 @@ export default function AthletesDirectory() {
     const dir = desc ? -1 : 1
     return scored.sort((a, b) => {
       if (sort === 'display_name') return dir * a.display_name.localeCompare(b.display_name)
-      if (sort === 'base_rate_usd') return dir * (a.base_rate_usd - b.base_rate_usd)
+      if (sort === 'base_rate_eur') return dir * (a.base_rate_eur - b.base_rate_eur)
       // unscored athletes sort last in both directions — an absent score is not
       // a low score, so it never displaces a measured one at the top
       if (a.mean === null || b.mean === null) return a.mean === b.mean ? 0 : a.mean === null ? 1 : -1
@@ -148,7 +148,7 @@ export default function AthletesDirectory() {
                     </div>
                   )}
                 </td>
-                <td className="table-cell tnum text-right">{fmtMoney(a.base_rate_usd)}</td>
+                <td className="table-cell tnum text-right">{fmtMoney(a.base_rate_eur)}</td>
                 <td className="table-cell">{a.sport}</td>
                 <td className="table-cell">{a.country}</td>
                 <td className="table-cell">

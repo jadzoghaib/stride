@@ -72,7 +72,7 @@ export default function AthleteEvidence() {
             : 'Open this from a campaign to score audience fit against that brief.'
         }
         figures={[
-          { label: 'Rate card', value: fmtMoney(a.base_rate_usd) },
+          { label: 'Rate card', value: fmtMoney(a.base_rate_eur) },
           { label: 'Total reach', value: fmtNum(reach) },
           { label: 'Posts analysed', value: data.posts.length },
           { label: 'Platforms', value: `${data.analytics?.coverage.platforms.connected ?? 0} of ${data.analytics?.coverage.platforms.total ?? 3}` },

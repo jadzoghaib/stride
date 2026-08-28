@@ -6,8 +6,15 @@ export const fmtNum = (n: number | null | undefined): string => {
   return String(Math.round(n))
 }
 
+/** EUR, with comma grouping rather than the Spanish `1.234,56`.
+ *
+ *  The grouping is deliberate: every figure in business-plan/ is written this
+ *  way, and a product whose interface and whose financial model disagree on
+ *  where the separators go is harder to read across than one that picks a
+ *  convention and keeps it. Revisit when the product is localised, which is a
+ *  wider job than a separator. */
 export const fmtMoney = (n: number | null | undefined): string =>
-  n === null || n === undefined ? '—' : '$' + n.toLocaleString('en-US')
+  n === null || n === undefined ? '—' : '€' + n.toLocaleString('en-US')
 
 export const fmtPct = (x: number | null | undefined, dp = 1): string =>
   x === null || x === undefined ? '—' : (100 * x).toFixed(dp) + '%'

@@ -14,6 +14,18 @@ interface Workspace {
   deals: Deal[]
   club_commitments?: { id: number }[]
   spend_committed: number
+  speed?: { median_hours: number | null; campaigns_measured: number; campaigns_without_offer: number }
+}
+
+/** Brief to first offer, in the coarsest unit that still says something. The
+ *  agencies this competes with sell speed as a claim; a marketplace can show
+ *  the clock instead. `null` stays a dash — no campaign has produced an offer,
+ *  which is not the same statement as an instant one. */
+const fmtWait = (hours: number | null | undefined) => {
+  if (hours === null || hours === undefined) return '—'
+  if (hours < 1) return '<1h'
+  if (hours < 48) return `${Math.round(hours)}h`
+  return `${Math.round(hours / 24)}d`
 }
 
 const AGE_BUCKETS = ['13-17', '18-24', '25-34', '35-44', '45-54', '55+']
@@ -58,7 +70,16 @@ export default function SponsorCampaigns() {
           { label: 'Active campaigns', value: ws.campaigns.filter((c) => c.status === 'active').length },
           { label: 'Open offers', value: open, to: '/sponsor/pipeline' },
           { label: 'Club packages', value: ws.club_commitments?.length ?? 0, to: '/sponsor/pipeline' },
+          { label: 'Brief to first offer', value: fmtWait(ws.speed?.median_hours) },
         ]}
+        footNote={
+          ws.speed?.campaigns_measured
+            ? `median over ${ws.speed.campaigns_measured} campaign${ws.speed.campaigns_measured === 1 ? '' : 's'}` +
+              (ws.speed.campaigns_without_offer
+                ? ` · ${ws.speed.campaigns_without_offer} still without an offer`
+                : '')
+            : 'no campaign has produced an offer yet'
+        }
       />
 
       <div>
@@ -82,7 +103,7 @@ export default function SponsorCampaigns() {
                 <span className="tag">{c.category}</span>
                 <StatusChip status={c.status} />
                 <span className="ml-auto tnum text-sm text-ink-2">
-                  {fmtMoney(c.budget_usd_min)} – {fmtMoney(c.budget_usd_max)}
+                  {fmtMoney(c.budget_eur_min)} – {fmtMoney(c.budget_eur_max)}
                 </span>
               </div>
               <p className="mt-1.5 text-sm text-ink-3">{c.objective}</p>
@@ -103,7 +124,7 @@ export default function SponsorCampaigns() {
 function CampaignForm({ onDone }: { onDone: () => void }) {
   const [form, setForm] = useState({
     name: '', objective: '', category: CATEGORIES[0],
-    deal_types: [] as string[], budget_usd_min: 2000, budget_usd_max: 20000,
+    deal_types: [] as string[], budget_eur_min: 2000, budget_eur_max: 20000,
     target_age_buckets: [] as string[], target_countries: [] as string[], target_topics: [] as string[],
   })
   const [error, setError] = useState('')
@@ -137,12 +158,12 @@ function CampaignForm({ onDone }: { onDone: () => void }) {
         <input className="field mt-1" value={form.objective}
                onChange={(e) => setForm((f) => ({ ...f, objective: e.target.value }))} /></label>
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="block"><span className="cap">Budget min (USD)</span>
-          <input className="field mt-1 tnum" type="number" min={0} value={form.budget_usd_min}
-                 onChange={(e) => setForm((f) => ({ ...f, budget_usd_min: Number(e.target.value) }))} /></label>
-        <label className="block"><span className="cap">Budget max (USD)</span>
-          <input className="field mt-1 tnum" type="number" min={0} value={form.budget_usd_max}
-                 onChange={(e) => setForm((f) => ({ ...f, budget_usd_max: Number(e.target.value) }))} /></label>
+        <label className="block"><span className="cap">Budget min (EUR)</span>
+          <input className="field mt-1 tnum" type="number" min={0} value={form.budget_eur_min}
+                 onChange={(e) => setForm((f) => ({ ...f, budget_eur_min: Number(e.target.value) }))} /></label>
+        <label className="block"><span className="cap">Budget max (EUR)</span>
+          <input className="field mt-1 tnum" type="number" min={0} value={form.budget_eur_max}
+                 onChange={(e) => setForm((f) => ({ ...f, budget_eur_max: Number(e.target.value) }))} /></label>
       </div>
       {([
         ['Deal formats', 'deal_types', DEAL_TYPES.map((d) => d.key)],

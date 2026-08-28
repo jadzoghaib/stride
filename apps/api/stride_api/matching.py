@@ -22,6 +22,14 @@ from creatorlens.analytics.scoring import InsufficientData, compute_scores
 
 from .db import rows
 
+MODEL_VERSION = "match-v1"
+
+# An athlete already holding this many unanswered offers is congested: worth
+# surfacing, never worth silently down-ranking. Telling a sponsor "four other
+# campaigns are waiting on this person" lets them decide; quietly reordering
+# their results decides for them.
+CONGESTION_AT = 3
+
 # Sponsor-match component weights (documented in docs/architecture.md)
 WEIGHTS = {
     "audience_fit": 0.32,      # campaign target vs athlete audience (CreatorLens)
@@ -88,9 +96,45 @@ def _effective_weights(components: dict[str, float | None]) -> dict[str, float |
     return effective
 
 
+def candidates(conn: sqlite3.Connection, campaign: dict) -> list[dict]:
+    """Retrieval: hard constraints only, applied before anything is scored.
+
+    Requirements a sponsor states as *must* belong here rather than in the
+    weights. A weighted blend is compensatory by construction — a strong
+    audience fit would outscore a failed brand-safety or verification check,
+    which is the one trade no brand wants made on its behalf. A filter cannot be
+    outscored; a 0.05 weight can.
+    """
+    if campaign.get("require_verified_athletes"):
+        return rows(conn, """
+            SELECT a.* FROM athlete_profiles a
+            JOIN athlete_applications ap ON ap.athlete_id = a.id
+            WHERE a.status = 'listed' AND ap.decision = 'admitted'
+              AND ap.proof_status = 'verified'
+            ORDER BY a.id""")
+    return rows(conn, "SELECT * FROM athlete_profiles WHERE status = 'listed' ORDER BY id")
+
+
+def slate(matches: list[dict]) -> list[dict]:
+    """The ranked candidate set, compressed for the audit log.
+
+    Offers on their own are a biased sample: they record what a sponsor chose
+    without recording what they chose *from*, and nothing recovers later the
+    candidates that were never written down. Logging the slate — who was shown,
+    at what rank, with which component vector, under which weights — is what
+    makes a learned ranker trainable at all, and its evaluation off-policy
+    rather than wishful. One row per matching run, and unrecoverable if skipped.
+    """
+    return [{"rank": i + 1, "athlete_id": m["athlete_id"], "score": m["score"],
+             "components": m["components"]} for i, m in enumerate(matches)]
+
+
 def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -> list[dict]:
-    athletes = rows(conn,
-                    "SELECT * FROM athlete_profiles WHERE status = 'listed' ORDER BY id")
+    athletes = candidates(conn, campaign)
+    # one grouped read, not one per athlete: this runs on every matching call
+    congestion = {r["athlete_id"]: r["n"] for r in rows(
+        conn, "SELECT athlete_id, COUNT(*) AS n FROM deals WHERE status = 'offered'"
+        " GROUP BY athlete_id")}
     campaign_deal_types = set(json.loads(campaign["deal_types"]))
     category_topics = set(CATEGORY_TOPICS.get(campaign["category"], []))
     results = []
@@ -135,7 +179,7 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
 
         # ---- commercial components: Stride's own
         budget_score, budget_reason = _budget_alignment(
-            athlete["base_rate_usd"], campaign["budget_usd_min"], campaign["budget_usd_max"])
+            athlete["base_rate_eur"], campaign["budget_eur_min"], campaign["budget_eur_max"])
         components["budget_alignment"] = budget_score
         if budget_reason and budget_score >= 0.85:
             reasons.append(budget_reason)
@@ -156,6 +200,11 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
         if topic_hits:
             reasons.append(f"Content themes match {campaign['category']}: " + ", ".join(sorted(topic_hits)))
 
+        waiting = congestion.get(athlete["id"], 0)
+        if waiting >= CONGESTION_AT:
+            caveats.append(f"{waiting} offers from other campaigns are already waiting on this"
+                           " athlete - expect a slower answer")
+
         effective = _effective_weights(components)
         score = round(100 * sum(effective[k] * components[k]
                                 for k in WEIGHTS if components[k] is not None), 1)
@@ -165,7 +214,7 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
             "display_name": athlete["display_name"],
             "sport": athlete["sport"],
             "country": athlete["country"],
-            "base_rate_usd": athlete["base_rate_usd"],
+            "base_rate_eur": athlete["base_rate_eur"],
             "score": score,
             # null component = not measured. `weights` is the nominal model;
             # `effective_weights` is what actually produced this score.
@@ -176,6 +225,7 @@ def sponsor_matches(conn: sqlite3.Connection, campaign: dict, limit: int = 20) -
                                   for k, v in effective.items()},
             "reasons": reasons,
             "caveats": caveats,
+            "open_offers": waiting,
             "analytics_summary": {
                 "dimensions": analytics["dimensions"],
                 "coverage": analytics["coverage"]["platforms"],

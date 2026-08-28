@@ -2,7 +2,7 @@
  *  theme control, session. The active tab is marked by an amber underscore —
  *  the same rule that closes the board header, so the two read as one system. */
 
-import { BarChart3, Briefcase, Compass, FileSearch, LayoutDashboard, LogOut, Moon, Radio, Shield, Sun, Users } from 'lucide-react'
+import { BadgeCheck, BarChart3, Briefcase, ClipboardCheck, Compass, FileSearch, LayoutDashboard, LogOut, Moon, Radio, Shield, Sun, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { roleHome, useAuth } from '../lib/auth'
@@ -15,6 +15,7 @@ const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]>
     { to: '/athlete', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/athlete/deals', label: 'Deals', icon: Briefcase },
     { to: '/athlete/profile', label: 'Profile', icon: Users },
+    { to: '/athlete/application', label: 'Eligibility', icon: BadgeCheck },
     { to: '/athletes', label: 'Directory', icon: Compass },
     { to: '/clubs', label: 'Clubs', icon: Shield },
   ],
@@ -31,12 +32,14 @@ const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]>
   ],
   club: [
     { to: '/club', label: 'Club HQ', icon: LayoutDashboard },
+    { to: '/club/eligibility', label: 'Eligibility', icon: BadgeCheck },
     { to: '/athletes', label: 'Directory', icon: Compass },
     { to: '/clubs', label: 'Clubs', icon: Shield },
   ],
   admin: [
     { to: '/athletes', label: 'Directory', icon: Compass },
     { to: '/clubs', label: 'Clubs', icon: Shield },
+    { to: '/admin/review', label: 'Review', icon: ClipboardCheck },
     { to: '/admin', label: 'Operations', icon: FileSearch },
   ],
 }
@@ -69,6 +72,13 @@ export default function Shell({ children }: { children: ReactNode }) {
   const { me, logout } = useAuth()
   const navigate = useNavigate()
   const items = me ? NAV[me.role] ?? [] : []
+  // Exact matching for any entry another entry sits underneath, or the parent
+  // stays lit on its own child and two tabs read as current at once. Derived
+  // from the list rather than hard-coded against a couple of known parents,
+  // because that version broke silently the moment /club and /admin gained
+  // children. Section roots like /clubs keep prefix matching on purpose, so the
+  // tab stays lit on /clubs/:slug.
+  const hasChildTab = (to: string) => items.some((i) => i.to !== to && i.to.startsWith(to + '/'))
 
   return (
     <div className="min-h-screen bg-ground">
@@ -82,7 +92,7 @@ export default function Shell({ children }: { children: ReactNode }) {
               <NavLink
                 key={to}
                 to={to}
-                end={to === '/athlete' || to === '/sponsor'}
+                end={hasChildTab(to)}
                 className={({ isActive }) =>
                   `flex items-center gap-1.5 rounded px-3 py-1.5 font-display text-[13px] font-semibold uppercase tracking-micro transition-colors ${
                     isActive

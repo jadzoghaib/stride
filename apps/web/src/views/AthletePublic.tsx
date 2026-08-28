@@ -56,7 +56,7 @@ export default function AthletePublicView() {
         trend={history}
         trendLabel={history.length > 1 ? `audience scale · last ${history.length} snapshots` : undefined}
         figures={[
-          { label: 'Rate card', value: fmtMoney(a.base_rate_usd) },
+          { label: 'Rate card', value: fmtMoney(a.base_rate_eur) },
           { label: 'Region', value: a.region },
           {
             label: 'Club',

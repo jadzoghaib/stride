@@ -130,11 +130,15 @@ export function PageHeader({
 export function Modal({
   title,
   onClose,
+  wide = false,
   children,
 }: {
   title: string
   /** Called once the dialog has actually closed — unmount it here. */
   onClose: () => void
+  /** Widen for tabular content. The width belongs on the dialog element; a
+   *  child that sets its own overflows the parent instead of resizing it. */
+  wide?: boolean
   /** Given the platform close request, so controls inside route through it. */
   children: (close: () => void) => ReactNode
 }) {
@@ -184,7 +188,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      className="modal"
+      className={wide ? 'modal modal-wide' : 'modal'}
       aria-labelledby={titleId}
       onCancel={(e) => {
         e.preventDefault() // take the same explicit path as every other close
@@ -342,6 +346,14 @@ const STATUS_STYLE: Record<string, string> = {
   draft: 'border-warn/45 bg-warn/10 text-warn',
   active: 'border-ok/45 bg-ok/10 text-ok',
   closed: '',
+  // admission verdicts. `pending` stays neutral on purpose: it is the absence
+  // of a decision rather than a warning about one, and colouring it amber would
+  // tell an applicant something is wrong when nothing has been judged yet.
+  admitted: 'border-ok/45 bg-ok/10 text-ok',
+  verified: 'border-ok/45 bg-ok/10 text-ok',
+  review: 'border-warn/45 bg-warn/10 text-warn',
+  rejected: 'border-critical/45 bg-critical/10 text-critical',
+  pending: '',
 }
 
 export function StatusChip({ status }: { status: string }) {

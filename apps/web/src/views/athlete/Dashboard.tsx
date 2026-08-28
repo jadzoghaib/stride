@@ -94,7 +94,7 @@ export default function AthleteDashboard() {
           { label: 'Committed', value: fmtMoney(ws.earnings), to: '/athlete/deals#history' },
           { label: 'Open offers', value: openDeals.length, to: '/athlete/deals' },
           { label: 'Total reach', value: fmtNum(followers), to: '/athlete#platforms' },
-          { label: 'Base rate', value: fmtMoney(ws.editable.base_rate_usd) },
+          { label: 'Base rate', value: fmtMoney(ws.editable.base_rate_eur) },
         ]}
         footNote={
           ws.analytics ? `computed ${fmtDT(ws.analytics.computed_at)} · formulas v${ws.analytics.formula_version}` : undefined
@@ -111,7 +111,7 @@ export default function AthleteDashboard() {
             <div className="cap mb-1">Club-routed backing</div>
             {ws.club_backing.map((b, i) => (
               <div key={i} className="text-ink-2">
-                {b.org_name} backs you through {b.club_name} — {b.package_name} ({fmtMoney(b.amount_usd)})
+                {b.org_name} backs you through {b.club_name} — {b.package_name} ({fmtMoney(b.amount_eur)})
               </div>
             ))}
           </div>
@@ -237,7 +237,7 @@ export default function AthleteDashboard() {
                       <span className="font-display text-[15px] font-semibold uppercase tracking-board text-ink">
                         {d.org_name}
                       </span>
-                      <span className="tnum font-display text-[21px] font-bold text-ink">{fmtMoney(d.amount_usd)}</span>
+                      <span className="tnum font-display text-[21px] font-bold text-ink">{fmtMoney(d.amount_eur)}</span>
                     </div>
                     <p className="meta mt-1">
                       {d.deal_type.replace(/_/g, ' ')} · {d.category} · offered {fmtDT(d.created_at).slice(0, 10)}

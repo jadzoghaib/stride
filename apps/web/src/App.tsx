@@ -5,6 +5,7 @@ import { PageLoading } from './components/ui'
 import { AuthProvider, roleHome, useAuth } from './lib/auth'
 import { ToastProvider } from './lib/toast'
 import Operations from './views/admin/Operations'
+import ReviewQueue from './views/admin/ReviewQueue'
 import Legal from './views/legal/Legal'
 import YourData from './views/legal/YourData'
 import AthletePublicView from './views/AthletePublic'
@@ -15,6 +16,8 @@ import ClubsDirectory from './views/ClubsDirectory'
 import Landing from './views/Landing'
 import NotFound from './views/NotFound'
 import ClubDashboard from './views/club/Dashboard'
+import ClubEligibility from './views/club/Eligibility'
+import AthleteApplication from './views/athlete/Application'
 import AthleteDashboard from './views/athlete/Dashboard'
 import AthleteDeals from './views/athlete/Deals'
 import AthleteProfile from './views/athlete/Profile'
@@ -78,10 +81,12 @@ export default function App() {
           <Route path="/clubs" element={<Public><ClubsDirectory /></Public>} />
           <Route path="/clubs/:slug" element={<Public><ClubPublic /></Public>} />
           <Route path="/club" element={<Guard roles={['club']}><ClubDashboard /></Guard>} />
+          <Route path="/club/eligibility" element={<Guard roles={['club']}><ClubEligibility /></Guard>} />
 
           <Route path="/athlete" element={<Guard roles={['athlete']}><AthleteDashboard /></Guard>} />
           <Route path="/athlete/deals" element={<Guard roles={['athlete']}><AthleteDeals /></Guard>} />
           <Route path="/athlete/profile" element={<Guard roles={['athlete']}><AthleteProfile /></Guard>} />
+          <Route path="/athlete/application" element={<Guard roles={['athlete']}><AthleteApplication /></Guard>} />
 
           <Route path="/sponsor" element={<Guard roles={['sponsor']}><SponsorCampaigns /></Guard>} />
           <Route path="/sponsor/campaigns/:id" element={<Guard roles={['sponsor']}><CampaignMatches /></Guard>} />
@@ -96,6 +101,7 @@ export default function App() {
           <Route path="/feed" element={<Guard roles={['fan', 'athlete', 'sponsor']}><Feed /></Guard>} />
 
           <Route path="/admin" element={<Guard roles={['admin']}><Operations /></Guard>} />
+          <Route path="/admin/review" element={<Guard roles={['admin']}><ReviewQueue /></Guard>} />
 
           {/* Public on purpose: someone deciding whether to hand over their
               social data must be able to read the terms before signing up. */}

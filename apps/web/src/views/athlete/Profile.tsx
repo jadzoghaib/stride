@@ -66,9 +66,9 @@ export default function AthleteProfile() {
       </Section>
 
       <Section title="Commercial">
-        <label className="block max-w-xs"><span className="cap">Base rate (USD per engagement)</span>
-          <input className="field mt-1 tnum" type="number" min={0} value={form.base_rate_usd}
-                 onChange={(e) => set('base_rate_usd', Number(e.target.value))} /></label>
+        <label className="block max-w-xs"><span className="cap">Base rate (EUR per engagement)</span>
+          <input className="field mt-1 tnum" type="number" min={0} value={form.base_rate_eur}
+                 onChange={(e) => set('base_rate_eur', Number(e.target.value))} /></label>
         <div className="mt-4">
           <div className="cap mb-2">Deal formats you offer</div>
           <div className="flex flex-wrap gap-2">
