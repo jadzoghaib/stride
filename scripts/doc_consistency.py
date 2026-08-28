@@ -214,7 +214,11 @@ def check_market_model_chain() -> list[str]:
             continue
         digits = market_model.PRECISION[name]
         derived, literal = produced[name], mature[name]
-        if round(derived, digits) != round(literal, digits):
+        # The rounded derivation against the literal itself, not against the
+        # rounded literal: rounding both sides also accepts a literal carrying
+        # precision it does not declare — 37.4 would pass as 37 while the model
+        # ran on 37.4 and every document said 37.
+        if round(derived, digits) != literal:
             out.append(f"model.py {name} is {literal:,.3f} but the MarketModel derivation "
                        f"from comparables_data.py gives {derived:,.3f} — the evidence chain "
                        f"the workbook advertises is broken")
