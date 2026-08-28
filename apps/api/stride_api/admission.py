@@ -233,10 +233,19 @@ def athlete_credibility(application: dict, today_year: int | None = None) -> dic
         caveats.append("Seasons competing not supplied — scored as zero, not excluded")
     if values["tenure"] is not None and values["tenure"] >= 0.6:
         reasons.append(f"{application.get('years_competing')} seasons competing")
-    if application.get("proof_kind") in ("roster", "results", "licence"):
+    # Gated on the same openability test the multiplier uses. A declared kind
+    # with nothing behind it scores as no proof, so it has to *read* as no proof:
+    # an applicant told "roster link, unchecked" while being charged the no-proof
+    # rate cannot tell which number to argue with.
+    if (application.get("proof_kind") in ("roster", "results", "licence")
+            and looks_openable(application.get("proof_url") or "")):
         state = application.get("proof_status") or "unverified"
         (reasons if state == "verified" else caveats).append(
             f"Proof of participation: {application['proof_kind']} link, {state}")
+    elif application.get("proof_kind") in ("roster", "results", "licence"):
+        caveats.append(f"A {application['proof_kind']} was named but no link was supplied — "
+                       "there is nothing for a reviewer to open, so the claim is discounted "
+                       f"to {int(NO_PROOF_MULTIPLIER * 100)}% of its face value")
     else:
         caveats.append("No proof of participation supplied — claim discounted to "
                        f"{int(NO_PROOF_MULTIPLIER * 100)}% of its face value")

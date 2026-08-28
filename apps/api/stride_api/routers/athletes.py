@@ -20,7 +20,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..auth import get_db, require_role
-from ..db import now_iso, row, rows
+from ..db import lock_for_update, now_iso, row, rows
 
 router = APIRouter(prefix="/api", tags=["athletes"])
 
@@ -367,6 +367,14 @@ def add_deliverable(deal_id: int, body: DeliverableIn,
     campaign, which would poison the one dataset sponsors are meant to trust.
     """
     profile = _own_profile(conn, user)
+    # Reading the status and inserting against it is the same check-then-act race
+    # as the nomination budget: `complete` can commit in between, and the
+    # deliverable then lands on a deal that has finished — precisely what the
+    # status check below exists to prevent. Holding the deal row for the rest of
+    # the transaction makes the check and the insert one decision; `complete`
+    # takes the same row lock by updating it, so the two serialise either way
+    # round, on either backend.
+    lock_for_update(conn, "deals", "id", deal_id)
     deal = row(conn, "SELECT * FROM deals WHERE id = ? AND athlete_id = ?",
                (deal_id, profile["id"]))
     if deal is None:

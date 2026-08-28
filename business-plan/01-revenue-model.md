@@ -154,7 +154,7 @@ two decisions have to agree with each other.
 ### The lever, quantified
 
 At Y7 each point of take on fan GMV is worth **€0.92M of revenue**; 15% → 20%
-adds €5.3M. It is the single biggest lever in the model.
+adds €4.6M. It is the single biggest lever in the model.
 
 **Recommendation: hold 15%, and never add a monthly creator fee.** The fee is
 what makes Passes beatable, and copying it would forfeit the only pricing

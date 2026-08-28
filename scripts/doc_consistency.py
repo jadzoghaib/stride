@@ -127,6 +127,12 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
 
     ("11-admission-and-matching.md", "peak reviewer FTE",
      r"(\d\.\d+) of one\s+reviewer", max(r["review_fte"] for r in ROWS), 0.01),
+    # Pinned beside the per-point figure above, because the two are the same
+    # statement twice and a paragraph that quotes both can contradict itself:
+    # it said EUR 0.92M a point and EUR 5.3M for five of them.
+    ("01-revenue-model.md", "revenue added by moving 15% to 20%",
+     r"15% → 20%\nadds €([\d.]+)M", take_rate_delta() / 1e6, 0.1),
+
     ("11-admission-and-matching.md", "Y10 blended admission rate",
      r"admission rate climbs from 20% to (\d+)%", Y10["admit_rate"] * 100, 0.6),
 ]
@@ -148,12 +154,15 @@ def check_duplicated_sport_table() -> list[str]:
     # while "MMA" sat in admission.py in its published capitalisation, unable to
     # match anything, so every MMA applicant was scored on the neutral fallback.
     # A guard that compares the keys but not the way they are read is not a guard.
-    # Stripped as well as lower-cased: a trailing space survives `.lower()`, so
-    # two copies could agree with each other while the key still matched nothing
-    # at lookup time — the same class of silent fallback as the MMA bug, but
-    # invisible to a guard that only compares the two tables to one another.
+    # Normalised for the *comparison*, because that is how admission.py reads the
+    # key — but stray whitespace is reported rather than absorbed. `sport_index`
+    # looks these names up exactly, so a trailing space there falls back to a 1.0
+    # multiplier in silence, and a guard that quietly strips it has hidden the
+    # very typo it exists to find.
     source = {name.lower().strip(): density for name, _, _, density in SPORTS}
-    out = []
+    out = [f"sport_data.py SPORTS name {name!r} has stray whitespace — sport_index "
+           f"looks it up exactly and would fall back to a neutral multiplier"
+           for name, *_ in SPORTS if name != name.strip()]
     for sport, density in AGENT_DENSITY.items():
         if sport != sport.lower().strip():
             out.append(f"admission.py AGENT_DENSITY key {sport!r} is not lower-case and "

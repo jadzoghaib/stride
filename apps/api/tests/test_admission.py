@@ -357,3 +357,19 @@ def test_a_club_proof_kind_with_no_roster_url_is_not_proof_either():
     linked = club_legitimacy({**base, "proof_kind": "roster",
                               "roster_url": "https://club.example/r"}, today_year=YEAR)
     assert linked["evidence_multiplier"] > claimed["evidence_multiplier"]
+
+
+def test_the_caveat_says_the_same_thing_as_the_score():
+    """An applicant charged the no-proof rate was still told "roster link,
+    unverified", which describes the 0.55x they did not get. A reason that
+    contradicts the number is worse than no reason: it tells them to argue with
+    the wrong thing."""
+    empty = score(proof_kind="roster", proof_status="unverified", proof_url="")
+    text = " ".join(empty["caveats"]).lower()
+    assert "no link was supplied" in text
+    assert "roster link, unverified" not in text
+    assert str(int(0.25 * 100)) + "%" in text
+
+    real = score(proof_kind="roster", proof_status="unverified",
+                 proof_url="https://club.example/roster")
+    assert any("roster link, unverified" in c for c in real["caveats"])

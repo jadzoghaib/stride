@@ -335,20 +335,22 @@ def test_the_club_queue_is_navigable(clubu, admin, db):
     before = db.execute("SELECT proof_status, legitimacy, decision, policy_version,"
                         " decided_at FROM club_applications WHERE club_id = ?",
                         (mine["club_id"],)).fetchone()
-    checked = admin.post(f"/api/admin/clubs/{mine['club_id']}/proof",
-                         json={"proof_status": "verified"})
-    assert checked.status_code == 200
-    assert checked.json()["decision"] == "verified"
-    assert not [c for c in admin.get("/api/admin/club-queue").json()
-                if c["club_id"] == mine["club_id"]]
-
     # The database is session-scoped, so verifying this club is a change every
-    # later test inherits — including the ones that count verified clubs. Put
-    # back every column that endpoint writes, not just the two that are obvious.
-    db.execute("UPDATE club_applications SET proof_status = ?, legitimacy = ?,"
-               " decision = ?, policy_version = ?, decided_at = ? WHERE club_id = ?",
-               (*tuple(before), mine["club_id"]))
-    db.commit()
+    # later test inherits — including the ones that count verified clubs. The
+    # restore has to be in a `finally`: a cleanup that only runs when every
+    # assertion passed is a cleanup for the case that did not need it.
+    try:
+        checked = admin.post(f"/api/admin/clubs/{mine['club_id']}/proof",
+                             json={"proof_status": "verified"})
+        assert checked.status_code == 200
+        assert checked.json()["decision"] == "verified"
+        assert not [c for c in admin.get("/api/admin/club-queue").json()
+                    if c["club_id"] == mine["club_id"]]
+    finally:
+        db.execute("UPDATE club_applications SET proof_status = ?, legitimacy = ?,"
+                   " decision = ?, policy_version = ?, decided_at = ? WHERE club_id = ?",
+                   (*tuple(before), mine["club_id"]))
+        db.commit()
 
 
 def test_a_proof_that_does_not_exist_cannot_be_marked_checked(athlete, admin, db):

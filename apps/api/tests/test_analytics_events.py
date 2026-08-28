@@ -126,3 +126,11 @@ def test_detail_cannot_overwrite_a_dimension_that_was_just_validated(db):
     row = db.execute("SELECT * FROM events WHERE event_type = ? ORDER BY id DESC LIMIT 1",
                      (TIP_SENT,)).fetchone()
     assert json.loads(row["detail_json"])["source"] == "profile_page"
+
+
+def test_an_empty_fan_id_is_as_unjoinable_as_a_missing_one(db):
+    """`is None` let an empty string through, and an empty string joins to
+    nothing just as reliably as a null does."""
+    with pytest.raises(MissingDimension):
+        log_fan_event(db, SUBSCRIPTION_STARTED, athlete_id=1, sport="Padel",
+                      country="Spain", tier="insider", fan_user_id="")

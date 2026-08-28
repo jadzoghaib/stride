@@ -276,6 +276,11 @@ def test_disconnecting_a_platform_withdraws_the_posts_it_supplied(sponsor, athle
     post_id = offered[0]["post_id"]
     account_id = db.execute("SELECT account_id FROM posts WHERE id = ?",
                             (post_id,)).fetchone()["account_id"]
+    # Whatever it was, not whatever we assume: the endpoint offers 'error'
+    # accounts too, so restoring a hardcoded 'connected' would rewrite a state
+    # the rest of the suite shares.
+    was = db.execute("SELECT connection_status FROM platform_accounts WHERE id = ?",
+                     (account_id,)).fetchone()["connection_status"]
 
     db.execute("UPDATE platform_accounts SET connection_status = 'disconnected' WHERE id = ?",
                (account_id,))
@@ -299,8 +304,8 @@ def test_disconnecting_a_platform_withdraws_the_posts_it_supplied(sponsor, athle
                             json={"post_id": post_id}).status_code == 201
     finally:
         # session-scoped database: leave it exactly as it was found
-        db.execute("UPDATE platform_accounts SET connection_status = 'connected' WHERE id = ?",
-                   (account_id,))
+        db.execute("UPDATE platform_accounts SET connection_status = ? WHERE id = ?",
+                   (was, account_id))
         db.commit()
     assert post_id in {p["post_id"] for p in athlete.get("/api/athlete/posts").json()}
 
@@ -327,11 +332,17 @@ def test_a_budget_check_can_hold_the_row_it_just_counted(tmp_path):
     lock_for_update(holder, "club_applications", "club_id", 1)
     assert holder.in_transaction, "the write transaction must start before the count"
 
+    # A write that would otherwise succeed. The first version omitted
+    # `display_name`, which is NOT NULL — so it would have failed with an
+    # IntegrityError whether or not the lock was held, and proved nothing about
+    # the lock. The probe has to be a valid statement for its failure to mean
+    # "blocked" rather than "malformed".
     other = sqlite3.connect(path, timeout=0)
     with pytest.raises(sqlite3.OperationalError):
-        other.execute("INSERT INTO users (email, password_hash, role, status,"
-                      " token_version, created_at) VALUES"
-                      " ('r@x', 'x', 'athlete', 'active', 1, '2026-01-01T00:00:00Z')")
+        other.execute("INSERT INTO users (email, password_hash, role, display_name,"
+                      " status, token_version, created_at) VALUES"
+                      " ('r@x', 'x', 'athlete', 'Probe', 'active', 1,"
+                      " '2026-01-01T00:00:00Z')")
         other.commit()
 
     holder.rollback()

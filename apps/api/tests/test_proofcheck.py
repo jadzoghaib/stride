@@ -135,3 +135,26 @@ def test_looks_openable_requires_a_host_not_just_a_scheme(url, openable):
     """`http://` used to reach `verified`: non-empty, correctly prefixed, and
     with no page behind it for anyone to have looked at."""
     assert proofcheck.looks_openable(url) is openable
+
+
+# ── a URL we cannot parse is not a crash ────────────────────────────────────
+
+@pytest.mark.parametrize("url", [
+    "http://[",            # unterminated IPv6 bracket — `urlparse` RAISES on this
+    "http://[::1",
+    "https://[abc",
+    "http://[]",
+])
+def test_an_unparseable_url_is_refused_rather_than_raising(url):
+    """`urlparse` is not total, and this runs on a string an applicant typed:
+    the ValueError surfaced as a 500 on submitting the form. Refusing is the
+    only sane reading anyway — a URL nobody can parse is not one anybody can
+    open."""
+    assert proofcheck.looks_openable(url) is False
+    ok, why = proofcheck.safe_url(url)
+    assert not ok and why == "unparseable"
+    # and the whole decision stays a decision rather than an exception. The real
+    # fetcher, not the injected one: `safe_url` refuses before a socket is
+    # opened, so this stays offline while exercising the path that raised.
+    result = proofcheck.check(url, "Kaia Mercer")
+    assert result.status == "unverified" and result.reason == "unparseable"

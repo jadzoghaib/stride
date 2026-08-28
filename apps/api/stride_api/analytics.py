@@ -85,7 +85,7 @@ def log_fan_event(conn: sqlite3.Connection, event_type: str, *,
 
     # Write time is the only moment a fan identity can still be supplied: the
     # cancellation arrives months later with nothing to join it back to.
-    if event_type in SUBSCRIPTION_EVENTS and fan_user_id is None:
+    if event_type in SUBSCRIPTION_EVENTS and (fan_user_id is None or fan_user_id == ""):
         raise MissingDimension(f"{event_type} needs fan_user_id to close a churn cohort")
 
     payload = dict(dims)

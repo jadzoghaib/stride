@@ -283,15 +283,21 @@ def nominate(body: NominationIn, user: dict = Depends(require_role("club")),
     outright — see this module's docstring for why that distinction is the whole
     security model of club onboarding."""
     club = _own_club(conn, user)
-    club_app = row(conn, "SELECT * FROM club_applications WHERE club_id = ?", (club["id"],))
-    if club_app is None or club_app["decision"] != "verified":
-        raise HTTPException(403, "club_not_verified")
 
     # Counting and then inserting is only a budget if nothing slips between the
     # two. Two nominations posted together both read the old total, both find
     # room, and both write — so a club could mint more floors than the roster it
     # declared, which is the one number making that declaration checkable.
+    #
+    # The lock is taken *before* the read, not after it. Locking and then
+    # trusting values fetched beforehand protects nothing: `decision` and
+    # `registered_athletes` may both have moved, so a club revoked mid-request
+    # would still nominate, against the roster size it used to claim.
     lock_for_update(conn, "club_applications", "club_id", club["id"])
+    club_app = row(conn, "SELECT * FROM club_applications WHERE club_id = ?", (club["id"],))
+    if club_app is None or club_app["decision"] != "verified":
+        raise HTTPException(403, "club_not_verified")
+
     used = row(conn, "SELECT COUNT(*) AS n FROM athlete_applications"
                " WHERE nominated_by_club = ?", (club["id"],))["n"]
     if used >= club_app["registered_athletes"]:

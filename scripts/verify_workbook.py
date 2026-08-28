@@ -59,20 +59,54 @@ REF = re.compile(
 Cell = tuple[str, int, int]      # sheet, row, column
 
 
-def references(formula: str, here_sheet: str, sheets: set[str]):
+def masked(formula: str, quotes: str = '"') -> str:
+    """The formula with quoted spans blanked out, offsets preserved.
+
+    Everything below reads formula *text*, which is only the same thing as
+    formula *syntax* until a string literal contains something that looks like
+    syntax. `="Total (net)"` is balanced and `="see Revenue!A1"` refers to
+    nothing; both would otherwise be reported. Doubled quotes are Excel's
+    escape and stay inside the span.
+    """
+    out, closer = [], ""
+    i = 0
+    while i < len(formula):
+        ch = formula[i]
+        if closer:
+            if ch == closer:
+                if i + 1 < len(formula) and formula[i + 1] == closer:
+                    out.append("  ")           # an escaped quote, still inside
+                    i += 2
+                    continue
+                closer = ""
+            out.append(" ")
+        elif ch in quotes:
+            closer = ch
+            out.append(" ")
+        else:
+            out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+def references(formula: str, here_sheet: str, sheets: dict[str, str]):
     """Every cell a formula reads, ranges expanded.
 
-    A name that is not a sheet is skipped here and reported by the caller. The
-    old comment called it "a function name, not a sheet", which is not something
-    this pattern can actually see: the regex only matches a name *followed by a
-    bang*, and Excel functions are not. What it really skipped was every typo in
-    a sheet name.
+    `sheets` maps a lower-cased name to the real one, because Excel resolves
+    sheet names case-insensitively: `=assumptions!C4` is a valid reference to
+    `Assumptions`, and matching case-sensitively both hid its dependency edge
+    and reported it as a sheet that does not exist.
+
+    A name that resolves to nothing is skipped here and reported by the caller.
+    The old comment called it "a function name, not a sheet", which is not
+    something this pattern can see: the regex only matches a name *followed by
+    a bang*, and Excel functions are not. What it really skipped was every typo.
     """
-    for m in REF.finditer(formula):
+    for m in REF.finditer(masked(formula)):
         named = m.group("q") or m.group("b")
-        if named and named not in sheets:
+        if named and named.lower() not in sheets:
             continue
-        sheet = named or here_sheet
+        sheet = sheets[named.lower()] if named else here_sheet
         c1, r1 = column_index_from_string(m.group("c1")), int(m.group("r1"))
         if m.group("c2"):
             c2, r2 = column_index_from_string(m.group("c2")), int(m.group("r2"))
@@ -124,7 +158,7 @@ def main() -> int:
         print(f"no workbook at {WORKBOOK} — run business-plan/build_workbook.py first")
         return 1
     wb = load_workbook(WORKBOOK)
-    sheets = set(wb.sheetnames)
+    sheets = {name.lower(): name for name in wb.sheetnames}
     problems: list[str] = []
     graph: dict[Cell, set[Cell]] = {}
     formulas = refs = 0
@@ -145,7 +179,7 @@ def main() -> int:
                     continue
 
                 depth = 0
-                for ch in value:
+                for ch in masked(value, quotes="\"'"):
                     if ch == "(":
                         depth += 1
                     elif ch == ")":
@@ -156,13 +190,13 @@ def main() -> int:
                     problems.append(
                         f"PARENS   {here}: brackets do not balance  [{value[:70]}]")
 
-                for m in REF.finditer(value):
+                for m in REF.finditer(masked(value)):
                     bare = m.group("b")
-                    if bare and bare not in sheets and not BARE_SHEET.match(bare):
+                    if bare and bare.lower() not in sheets and not BARE_SHEET.match(bare):
                         problems.append(
                             f"QUOTING  {here}: sheet {bare!r} must be quoted  [{value[:70]}]")
                     named = m.group("q") or bare
-                    if named and named not in sheets:
+                    if named and named.lower() not in sheets:
                         problems.append(
                             f"SHEET    {here}: no sheet named {named!r}  [{value[:70]}]")
 
