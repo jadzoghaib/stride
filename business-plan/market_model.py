@@ -1,0 +1,118 @@
+"""The derivation the MarketModel sheet displays, written once, in code.
+
+    Comparables (published facts) -> MarketModel (derives ours) -> Assumptions
+
+The workbook has shown this chain since it was built, and the README claimed you
+could follow any assumption backwards to a cited number. That was very nearly
+true and not quite: the MarketModel sheet computes each figure from
+`comparables_data.py`, and the Assumptions sheet then carries a *typed* number
+that happens to match. No cell in the workbook references MarketModel, so
+nothing enforced the match — change a published figure and the derivation would
+move while every assumption downstream stayed exactly where it was.
+
+Measuring the gap is what settled how to close it. All six derived quantities
+agree with the literals in `model.py` to within 0.5%, and the two churn figures
+agree exactly; the rest is display rounding (37.026 fans becomes 37). So the
+literals are not an independent guess that happens to be close — they *are* this
+derivation, rounded for a reader.
+
+That rules out the obvious fix. Pointing the workbook's Assumptions cells at
+MarketModel would replace 37 with 37.026 and put the workbook a hair away from
+the Python everywhere, which the Check sheet exists to forbid. Instead the
+judgement factors live here, the workbook renders them, and
+`scripts/doc_consistency.py` asserts the derivation still produces the literals.
+Nothing moves, and the chain can no longer rot in silence.
+
+Every constant below is a judgement, not a fact — the facts are all in
+`comparables_data.py`. Each is annotated with what it claims and how confident
+that claim is, because these are the numbers an investor should argue with.
+"""
+
+from __future__ import annotations
+
+from comparables_data import PLATFORM_FACTS
+
+# ── our judgement, applied to published benchmarks ──────────────────────────
+
+#: +6% on the Patreon members-per-creator benchmark. Sport audiences are smaller
+#: but convert better, because the fan usually does the sport themselves.
+NICHE_FPA_ADJUSTMENT = 1.06
+#: +37%. Much larger followings, much weaker conversion — more paying fans in
+#: absolute terms even though a smaller share of them converts.
+POPULAR_FPA_ADJUSTMENT = 1.37
+
+#: Subscription tiers and the assumed distribution across them. Replace the mix
+#: with the real one the moment there is one; the prices are a product decision.
+TIER_PRICES = (4.99, 9.99, 24.99)
+TIER_MIX = (0.40, 0.50, 0.10)
+
+#: Niche fans buy knowledge and sit at the tier mix above.
+NICHE_ARPU_FACTOR = 1.00
+#: -13%: popular-sport fans skew to the cheapest tier.
+POPULAR_ARPU_FACTOR = 0.87
+
+#: Target share of subscribers on the season pass. The one lever that improves
+#: churn without changing the product.
+ANNUAL_PLAN_SHARE = 0.30
+
+#: THE MOST OPTIMISTIC JUDGEMENT IN THE MODEL, AND UNTESTED: niche fans churn
+#: 45% slower than the Patreon benchmark, because training content is habitual
+#: and competitive seasons create renewal moments. If this is wrong and we are
+#: merely at benchmark, Y10 revenue falls by roughly EUR 7M.
+NICHE_ENGAGEMENT = 0.55
+#: 15% better than benchmark: impulse follows a result, with many free
+#: substitutes — but still a sport fan rather than a general creator audience.
+POPULAR_ENGAGEMENT = 0.85
+
+
+def fact(company: str, metric: str) -> float:
+    """One published figure, by the name it is cited under."""
+    for name, value, _unit, firm, *_ in PLATFORM_FACTS:
+        if firm == company and name == metric:
+            return value
+    raise KeyError(f"comparables_data.py has no {metric!r} for {company!r}")
+
+
+def members_per_creator() -> float:
+    """The single most useful benchmark in the file: measured, not modelled."""
+    return (fact("Patreon", "Active paying members")
+            / fact("Patreon", "Creators with >=1 paying member"))
+
+
+def weighted_arpu() -> float:
+    """Monthly ARPU implied by our own tier prices and assumed mix.
+
+    Cross-check: Patreon publishes $6.10 average support and an $8–12 typical
+    band. Landing inside that band from an independent tier build is a good sign.
+    """
+    return sum(price * share for price, share in zip(TIER_PRICES, TIER_MIX))
+
+
+def blended_churn() -> float:
+    """Benchmark monthly churn, adjusted for our annual-plan mix."""
+    low = fact("Patreon", "Monthly churn (low)")
+    high = fact("Patreon", "Monthly churn (high)")
+    annual_multiplier = fact("Patreon", "Annual-plan churn multiplier")
+    midpoint = (low + high) / 2
+    return (midpoint * (1 - ANNUAL_PLAN_SHARE)
+            + midpoint * annual_multiplier * ANNUAL_PLAN_SHARE)
+
+
+def derived() -> dict[str, float]:
+    """The six numbers the MarketModel sheet hands to Assumptions, at maturity."""
+    mpc, arpu, churn = members_per_creator(), weighted_arpu(), blended_churn()
+    return {
+        "niche_fans_per_athlete": mpc * NICHE_FPA_ADJUSTMENT,
+        "popular_fans_per_athlete": mpc * POPULAR_FPA_ADJUSTMENT,
+        "niche_fan_arpu_month": arpu * NICHE_ARPU_FACTOR,
+        "popular_fan_arpu_month": arpu * POPULAR_ARPU_FACTOR,
+        "niche_fan_churn_month": churn * NICHE_ENGAGEMENT,
+        "popular_fan_churn_month": churn * POPULAR_ENGAGEMENT,
+    }
+
+
+if __name__ == "__main__":
+    print(f"members per paying creator: {members_per_creator():.3f}")
+    print(f"weighted ARPU: EUR {weighted_arpu():.2f}   blended churn: {blended_churn():.4f}\n")
+    for name, value in derived().items():
+        print(f"  {name:28} {value:9.3f}")

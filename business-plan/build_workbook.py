@@ -42,6 +42,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
+import market_model as MKT
 import model as M
 import research_data as RD
 import comparables_data as CD
@@ -296,12 +297,14 @@ def build() -> pathlib.Path:
         ("EVIDENCE CHAIN", BOLD),
         ("  Comparables (published facts) -> MarketModel (derives ours) -> Assumptions", None),
         ("  -> Drivers -> Revenue and Costs -> statements -> Valuation.", None),
-        ("  From Assumptions rightwards every link is a formula you can follow with", None),
-        ("  Trace Precedents. The first arrow is not: MarketModel shows the derivation", None),
-        ("  from the published figures step by step, and Assumptions holds the number", None),
-        ("  it arrives at, entered rather than linked. So the derivation is auditable", None),
-        ("  but it is not enforced -- change a comparable and MarketModel moves while", None),
-        ("  Assumptions does not. Read them side by side before trusting either.", None),
+        ("  From Assumptions rightwards, every link is a formula you can follow with", None),
+        ("  Trace Precedents. The first arrow is checked rather than linked: MarketModel", None),
+        ("  derives each figure from the published ones, and Assumptions carries the", None),
+        ("  result rounded for reading -- 37 fans per athlete, not 37.026. Linking the", None),
+        ("  cells would put the workbook a hair off the Python everywhere, which the", None),
+        ("  Check sheet exists to forbid, so scripts/doc_consistency.py asserts the", None),
+        ("  derivation still produces those literals instead. Change a comparable and", None),
+        ("  that check fails; it cannot drift quietly.", None),
         ("", None),
         ("MODEL SHAPE", BOLD),
         ("This is a target-driven model: athlete counts are the plan, and marketing spend", None),
@@ -1070,10 +1073,10 @@ def build() -> pathlib.Path:
     mrow("OnlyFans fan accounts per creator",
          formula=f"=Comparables!B{CP[('OnlyFans','Fan accounts')]}/Comparables!B{CP[('OnlyFans','Creator accounts')]}",
          fmt='0.0', note="Fan ACCOUNTS, not paying fans - most follow free. Shown as an upper bound only.")
-    mrow("Niche adjustment", 1.06, fmt='0.00', kind="input",
+    mrow("Niche adjustment", MKT.NICHE_FPA_ADJUSTMENT, fmt='0.00', kind="input",
          note="OUR JUDGEMENT: +6% on the Patreon benchmark. Sport audiences are smaller but convert "
               "better, because the fan usually does the sport themselves.")
-    mrow("Popular adjustment", 1.37, fmt='0.00', kind="input",
+    mrow("Popular adjustment", MKT.POPULAR_FPA_ADJUSTMENT, fmt='0.00', kind="input",
          note="OUR JUDGEMENT: +37%. Much larger followings, much weaker conversion - more paying fans "
               "in absolute terms even though a smaller share converts.")
     mrow("→ Niche fans per athlete, mature", formula=f"=B{MM['members_per_creator']}*B{MM['Niche adjustment']}",
@@ -1083,12 +1086,12 @@ def build() -> pathlib.Path:
 
     # --- 2. fan ARPU from tier mix ---
     sect("2. FAN ARPU  -> Assumptions")
-    mrow("Tier 1 price (Supporter)", 4.99, kind="input")
-    mrow("Tier 2 price (Insider)", 9.99, kind="input")
-    mrow("Tier 3 price (Inner circle)", 24.99, kind="input")
-    mrow("Mix - Tier 1", 0.40, fmt=PCT, kind="input", note="Assumed distribution; replace with the real tier mix after P1.")
-    mrow("Mix - Tier 2", 0.50, fmt=PCT, kind="input")
-    mrow("Mix - Tier 3", 0.10, fmt=PCT, kind="input")
+    mrow("Tier 1 price (Supporter)", MKT.TIER_PRICES[0], kind="input")
+    mrow("Tier 2 price (Insider)", MKT.TIER_PRICES[1], kind="input")
+    mrow("Tier 3 price (Inner circle)", MKT.TIER_PRICES[2], kind="input")
+    mrow("Mix - Tier 1", MKT.TIER_MIX[0], fmt=PCT, kind="input", note="Assumed distribution; replace with the real tier mix after P1.")
+    mrow("Mix - Tier 2", MKT.TIER_MIX[1], fmt=PCT, kind="input")
+    mrow("Mix - Tier 3", MKT.TIER_MIX[2], fmt=PCT, kind="input")
     mrow("Mix check (must be 100%)",
          formula=f"=B{MM['Mix - Tier 1']}+B{MM['Mix - Tier 2']}+B{MM['Mix - Tier 3']}", fmt=PCT)
     mrow("→ Weighted ARPU per month",
@@ -1102,9 +1105,9 @@ def build() -> pathlib.Path:
          formula=f"=Comparables!B{CP[('Patreon','Average monthly support per member')]}",
          note="Published average - below our figure because Patreon's long tail includes many $1-3 tiers. "
               "Our EUR 9.49 sits inside their $8-12 typical band.")
-    mrow("Niche ARPU factor", 1.00, fmt='0.00', kind="input",
+    mrow("Niche ARPU factor", MKT.NICHE_ARPU_FACTOR, fmt='0.00', kind="input",
          note="Niche fans buy knowledge and sit at the tier mix above.")
-    mrow("Popular ARPU factor", 0.87, fmt='0.00', kind="input",
+    mrow("Popular ARPU factor", MKT.POPULAR_ARPU_FACTOR, fmt='0.00', kind="input",
          note="OUR JUDGEMENT: -13%. Popular-sport fans skew to the cheapest tier.")
     mrow("→ Niche ARPU, mature",
          formula=f"=B{MM['out_arpu']}*B{MM['Niche ARPU factor']}", kind="out", key="out_arpu_niche")
@@ -1120,7 +1123,7 @@ def build() -> pathlib.Path:
          key="churn_mid")
     mrow("Annual-plan churn multiplier", formula=f"=Comparables!B{CP[('Patreon','Annual-plan churn multiplier')]}",
          fmt='0.000', note="Patreon: annual patrons churn at one third the monthly rate.", key="ann_mult")
-    mrow("Share of subscribers on annual plans", 0.30, fmt=PCT, kind="input",
+    mrow("Share of subscribers on annual plans", MKT.ANNUAL_PLAN_SHARE, fmt=PCT, kind="input",
          note="Our target for the season pass. This is the one lever that improves churn without "
               "changing the product.")
     mrow("Blended benchmark churn",
@@ -1128,12 +1131,12 @@ def build() -> pathlib.Path:
                   f"+B{MM['churn_mid']}*B{MM['ann_mult']}*B{MM['Share of subscribers on annual plans']}"),
          fmt=PCT, key="churn_blend",
          note="What a Patreon-like platform would see with our annual mix.")
-    mrow("Niche engagement factor", 0.55, fmt='0.00', kind="input",
+    mrow("Niche engagement factor", MKT.NICHE_ENGAGEMENT, fmt='0.00', kind="input",
          note="OUR CLAIM, UNTESTED, AND THE MOST OPTIMISTIC JUDGEMENT IN THE MODEL: this says niche "
               "fans churn 45% SLOWER than the Patreon benchmark, because training content is habitual "
               "and competitive seasons create renewal moments. Nothing yet proves it. If it is wrong "
               "and we are merely at benchmark, Y10 revenue falls by roughly EUR 7M.")
-    mrow("Popular engagement factor", 0.85, fmt='0.00', kind="input",
+    mrow("Popular engagement factor", MKT.POPULAR_ENGAGEMENT, fmt='0.00', kind="input",
          note="OUR JUDGEMENT: 15% better than benchmark. Impulse follows after a result, with many "
               "free substitutes - but still a sport fan rather than a general creator audience.")
     mrow("→ Niche churn, mature", formula=f"=B{MM['churn_blend']}*B{MM['Niche engagement factor']}",

@@ -151,7 +151,9 @@ def test_matching_reuses_the_snapshot_instead_of_rebuilding_from_posts(client, d
     monkeypatch.setattr(scoring, "creator_kpis", watched)
     matches = sponsor_matches(db, campaign)
 
-    with_snapshots = {r[0] for r in db.execute(
+    # By name, not by position: sqlite3.Row supports both, psycopg's dict_row
+    # only the name, and this suite is meant to run on either backend.
+    with_snapshots = {r["creator_id"] for r in db.execute(
         "SELECT DISTINCT creator_id FROM score_snapshots").fetchall()}
     assert with_snapshots, "seed should contain score snapshots"
     assert not (set(rebuilt) & with_snapshots), (
@@ -185,7 +187,7 @@ def test_audience_fit_moves_with_the_brief_while_the_rest_hold_still(client, db)
     for slug in shared:
         creator_id = db.execute(
             "SELECT creatorlens_creator_id FROM athlete_profiles WHERE slug = ?",
-            (slug,)).fetchone()[0]
+            (slug,)).fetchone()["creatorlens_creator_id"]
         snap = latest_score(db, creator_id)
         for dim in matching.SNAPSHOT_DIMS:
             stored = snap[dim]

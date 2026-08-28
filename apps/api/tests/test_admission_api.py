@@ -347,9 +347,13 @@ def test_the_club_queue_is_navigable(clubu, admin, db):
         assert not [c for c in admin.get("/api/admin/club-queue").json()
                     if c["club_id"] == mine["club_id"]]
     finally:
+        # Named, not `tuple(before)`: sqlite3.Row iterates its values and
+        # psycopg's dict_row iterates its *keys*, so the tuple form silently
+        # bound the column names as values on Postgres.
         db.execute("UPDATE club_applications SET proof_status = ?, legitimacy = ?,"
                    " decision = ?, policy_version = ?, decided_at = ? WHERE club_id = ?",
-                   (*tuple(before), mine["club_id"]))
+                   (before["proof_status"], before["legitimacy"], before["decision"],
+                    before["policy_version"], before["decided_at"], mine["club_id"]))
         db.commit()
 
 

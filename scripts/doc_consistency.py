@@ -175,8 +175,40 @@ def check_duplicated_sport_table() -> list[str]:
     return out
 
 
+def check_market_model_chain() -> list[str]:
+    """The workbook says Comparables -> MarketModel -> Assumptions. Nothing in
+    the workbook enforced it: MarketModel computes each figure from the
+    published ones, and Assumptions carries a typed number that happens to
+    match, so changing a comparable moved the derivation and left every
+    assumption downstream where it was.
+
+    The literals are not an independent guess — they are this derivation,
+    rounded for a reader, which is why the tolerance is 1% rather than exact:
+    37.026 fans per athlete is written 37. Anything beyond that is drift.
+    """
+    sys.path.insert(0, str(ROOT / "business-plan"))
+    import market_model
+
+    mature = {
+        "niche_fans_per_athlete": A.segments[0].fans_per_athlete[-1],
+        "popular_fans_per_athlete": A.segments[1].fans_per_athlete[-1],
+        "niche_fan_arpu_month": A.segments[0].fan_arpu_month[-1],
+        "popular_fan_arpu_month": A.segments[1].fan_arpu_month[-1],
+        "niche_fan_churn_month": A.segments[0].fan_churn_month[-1],
+        "popular_fan_churn_month": A.segments[1].fan_churn_month[-1],
+    }
+    out = []
+    for name, derived in market_model.derived().items():
+        literal = mature[name]
+        if abs(literal - derived) > abs(derived) * 0.01:
+            out.append(f"model.py {name} is {literal:,.3f} but the MarketModel derivation "
+                       f"from comparables_data.py gives {derived:,.3f} — the evidence chain "
+                       f"the workbook advertises is broken")
+    return out
+
+
 def main() -> int:
-    failures = check_duplicated_sport_table()
+    failures = check_duplicated_sport_table() + check_market_model_chain()
     for doc, label, pattern, expected, tol in CLAIMS:
         path = ROOT / "business-plan" / doc
         text = path.read_text(encoding="utf-8")
@@ -193,7 +225,8 @@ def main() -> int:
             failures.append(f"{doc}: {label} says {found:,.2f}, model says {expected:,.2f}")
 
     print(f"checked {len(CLAIMS)} prose claims across "
-          f"{len({c[0] for c in CLAIMS})} documents, plus the duplicated sport table")
+          f"{len({c[0] for c in CLAIMS})} documents, the duplicated sport table, "
+          f"and the Comparables -> MarketModel -> Assumptions chain")
     if failures:
         print(f"\nDRIFT ({len(failures)}):")
         for f in failures:
