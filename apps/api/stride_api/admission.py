@@ -243,12 +243,15 @@ def athlete_credibility(application: dict, today_year: int | None = None) -> dic
         (reasons if state == "verified" else caveats).append(
             f"Proof of participation: {application['proof_kind']} link, {state}")
     elif application.get("proof_kind") in ("roster", "results", "licence"):
+        # `multiplier`, not the constant: a rejected proof short-circuits to 0.10
+        # before the openability test ever runs, so quoting NO_PROOF_MULTIPLIER
+        # here told an applicant 25% while charging them 10%.
         caveats.append(f"A {application['proof_kind']} was named but no link was supplied — "
                        "there is nothing for a reviewer to open, so the claim is discounted "
-                       f"to {int(NO_PROOF_MULTIPLIER * 100)}% of its face value")
+                       f"to {int(multiplier * 100)}% of its face value")
     else:
         caveats.append("No proof of participation supplied — claim discounted to "
-                       f"{int(NO_PROOF_MULTIPLIER * 100)}% of its face value")
+                       f"{int(multiplier * 100)}% of its face value")
 
     return {
         "credibility": round(credibility, 1),
@@ -430,17 +433,30 @@ def club_legitimacy(application: dict, today_year: int | None = None) -> dict:
     # The clubs had no line about their evidence at all, so a club discounted to
     # a quarter of its claim for naming a proof kind it never linked was told
     # nothing about the largest single factor in its own score.
-    if not looks_openable(application.get("roster_url") or ""):
-        named = application.get("proof_kind") or "none"
-        caveats.append(
-            f"A {named} was named but no page was linked — nothing to check, so the "
-            f"claim is discounted to {int(NO_PROOF_MULTIPLIER * 100)}% of its face value"
-            if named in PROOF_KINDS and named != "none" else
-            "No roster or licence page linked — there is nothing a reviewer can open")
-    else:
+    #
+    # Both halves are gated on the *declaration* as well as the link, because the
+    # multiplier is: a roster page supplied under `proof_kind: none` still scores
+    # as no proof, and calling that "roster page supplied" praised evidence the
+    # score had already thrown away. The percentage comes from `multiplier` for
+    # the same reason — a rejected proof is 0.10, not the no-proof 0.25.
+    named = application.get("proof_kind") or "none"
+    declared = named in PROOF_KINDS and named != "none"
+    linked = looks_openable(application.get("roster_url") or "")
+    if declared and linked:
         state = application.get("proof_status") or "unverified"
         (reasons if state == "verified" else caveats).append(
             f"Roster page supplied, {state}")
+    elif declared:
+        caveats.append(f"A {named} was named but no page was linked — nothing to check, so "
+                       f"the claim is discounted to {int(multiplier * 100)}% of its face value")
+    elif linked:
+        caveats.append("A page is linked but no kind of proof is declared, so it is not "
+                       f"treated as evidence — the claim is discounted to "
+                       f"{int(multiplier * 100)}% of its face value. Name what the page is.")
+    else:
+        caveats.append("No roster or licence page linked — there is nothing a reviewer can "
+                       f"open, so the claim is discounted to {int(multiplier * 100)}% of "
+                       "its face value")
 
     return {
         "legitimacy": round(legitimacy, 1),

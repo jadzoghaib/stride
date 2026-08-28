@@ -7,6 +7,8 @@ written as the counter-example rather than as a range check on a number.
 
 from __future__ import annotations
 
+import re
+
 from stride_api.admission import (ADMIT_AT, admission_decision, athlete_credibility,
                                   club_legitimacy, nomination_floor, tenure_value)
 
@@ -398,3 +400,37 @@ def test_a_club_is_told_what_its_evidence_was_worth():
     assert linked["components"]["roster_proof"] == 1.0
     assert any("Roster page supplied" in c for c in linked["caveats"])
     assert linked["legitimacy"] > silent["legitimacy"]
+
+
+def test_the_percentage_in_the_caveat_is_the_one_that_was_applied():
+    """Every caveat that quotes a discount used to quote the policy *constant*,
+    so a rejected proof — which short-circuits to 0.10 before the openability
+    test runs — told the applicant 25% while charging them 10%. A number in the
+    explanation that is not the number in the score is worse than no number."""
+    def quoted(result):
+        found = {int(m) for m in re.findall(r"(\d+)% of its face value",
+                                            " ".join(result["caveats"]))}
+        assert len(found) == 1, result["caveats"]
+        return found.pop()
+
+    for status, expected in (("unverified", 25), ("rejected", 10)):
+        athlete = score(proof_kind="roster", proof_status=status, proof_url="")
+        assert quoted(athlete) == int(athlete["evidence_multiplier"] * 100) == expected
+
+        club = club_legitimacy(dict(registration_id="B-1", federation_name="F",
+                                    federation_id="9", founded_year=1998, teams_count=6,
+                                    competition_level="regional", proof_kind="roster",
+                                    proof_status=status, roster_url=""), today_year=YEAR)
+        assert quoted(club) == int(club["evidence_multiplier"] * 100) == expected
+
+
+def test_a_club_page_with_no_declared_kind_is_not_called_evidence():
+    """`proof_kind: none` scores as no proof whatever the URL says, so the
+    caveat may not congratulate the club on a page the multiplier discarded."""
+    club = club_legitimacy(dict(registration_id="B-1", federation_name="F", federation_id="9",
+                                founded_year=1998, teams_count=6, competition_level="regional",
+                                proof_kind="none", proof_status="unverified",
+                                roster_url="https://club.example/r"), today_year=YEAR)
+    assert club["evidence_multiplier"] == 0.25
+    assert not any("Roster page supplied" in t for t in club["reasons"] + club["caveats"])
+    assert any("no kind of proof is declared" in c for c in club["caveats"])

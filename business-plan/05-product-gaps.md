@@ -126,7 +126,8 @@ without it an athlete could claim someone else's reach, which would poison the
 one dataset sponsors are asked to trust. The same query also excludes accounts
 they have disconnected, because consent is not a one-time grant: the rows are
 kept so past scores stay reproducible, but a platform you have taken back should
-not still be earning. Two limits on that are deliberate. Disconnecting blocks
+not be offered up for new work. Two limits on that are deliberate, and the
+first is why the sentence says *new*. Disconnecting blocks
 *further* attachments; it does not retract deliverables already attached, which
 remain in the sponsor's report because that report records what was delivered
 rather than what is currently connected. And an account in `error` state — a
