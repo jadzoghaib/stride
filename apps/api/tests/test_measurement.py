@@ -11,6 +11,7 @@ import sqlite3
 
 import pytest
 
+from conftest import requires_postgres
 from stride_api.db import _migrate, init_db, lock_for_update
 
 
@@ -18,7 +19,7 @@ def _columns(conn, table):
     return {c["name"] for c in conn.execute(f"PRAGMA table_info({table})").fetchall()}
 
 
-def test_a_column_added_later_reaches_a_database_that_already_exists():
+def test_a_column_added_later_reaches_a_database_that_already_exists(sqlite_backend):
     """The failure this reproduces was found by running the app, not the suite:
     every test builds a fresh database, where CREATE TABLE writes the current
     schema. On a database that already has the table it is a no-op, so a column
@@ -43,7 +44,7 @@ def test_a_column_added_later_reaches_a_database_that_already_exists():
     conn.close()
 
 
-def test_a_renamed_column_reaches_a_database_that_already_exists():
+def test_a_renamed_column_reaches_a_database_that_already_exists(sqlite_backend):
     """The money columns moved from USD to EUR in one pass, and a rename is
     worse than a missing column: the old name is still there holding the data,
     so nothing is obviously broken until a query asks for the new one. Half a
@@ -312,7 +313,7 @@ def test_disconnecting_a_platform_withdraws_the_posts_it_supplied(sponsor, athle
 
 # ── two processes doing the same thing at the same time ─────────────────────
 
-def test_a_budget_check_can_hold_the_row_it_just_counted(tmp_path):
+def test_a_budget_check_can_hold_the_row_it_just_counted(sqlite_backend, tmp_path):
     """Counting nominations and then inserting one is only a budget if nothing
     slips between the two. Two requests arriving together both read the old
     total, both find room, and both write — so the club mints more floors than
@@ -350,7 +351,7 @@ def test_a_budget_check_can_hold_the_row_it_just_counted(tmp_path):
     holder.close()
 
 
-def test_a_migration_another_replica_already_ran_is_not_a_crash():
+def test_a_migration_another_replica_already_ran_is_not_a_crash(sqlite_backend):
     """Both schema checks are check-then-act, and two API processes starting
     together both read the schema before either has changed it: both conclude
     the migration is needed, and the loser used to crash on boot. What matters
@@ -368,3 +369,200 @@ def test_a_migration_another_replica_already_ran_is_not_a_crash():
         _migrate(conn, "ALTER TABLE deals ADD COLUMN nonsense_column BAD SYNTAX(",
                  "deals", "nonsense_column")
     conn.close()
+
+
+# ── the same two races, on the backend where they behave differently ────────
+
+@requires_postgres
+def test_the_lock_really_locks_the_row_on_postgres():
+    """`lock_for_update` issues `SELECT ... FOR UPDATE` here rather than SQLite's
+    `BEGIN IMMEDIATE`, and that branch had never run: the Postgres backend could
+    not create its own schema, so nothing on it was ever exercised. A second
+    writer must block on the locked row and must not block on a different one."""
+    import psycopg
+    from stride_api.config import settings
+    from stride_api.db import connect, lock_for_update
+
+    setup = connect()
+    # `id` because the connection shim appends `RETURNING id` to every INSERT
+    # to synthesise `lastrowid`, so a table without one cannot be written through it
+    setup.execute("CREATE TABLE IF NOT EXISTS lock_probe"
+                  " (id SERIAL PRIMARY KEY, club_id INT UNIQUE, n INT)")
+    setup.execute("DELETE FROM lock_probe")
+    setup.execute("INSERT INTO lock_probe (club_id, n) VALUES (1, 0), (2, 0)")
+    setup.commit()
+
+    holder = connect()
+    lock_for_update(holder, "lock_probe", "club_id", 1)
+    try:
+        other = psycopg.connect(settings.database_url, autocommit=False)
+        with other.cursor() as cur:
+            cur.execute("SET LOCAL statement_timeout = '1200ms'")
+            # the same row: must not be writable while the lock is held
+            with pytest.raises(psycopg.errors.QueryCanceled):
+                cur.execute("UPDATE lock_probe SET n = n + 1 WHERE club_id = 1")
+        other.rollback()
+
+        with other.cursor() as cur:
+            cur.execute("SET LOCAL statement_timeout = '1200ms'")
+            cur.execute("UPDATE lock_probe SET n = n + 1 WHERE club_id = 2")  # a different row
+        other.commit()
+        other.close()
+    finally:
+        holder.rollback()
+        setup.execute("DROP TABLE IF EXISTS lock_probe")
+        setup.commit()
+        setup.close()
+        holder.close()
+
+
+@requires_postgres
+def test_a_failed_migration_does_not_poison_the_transaction_on_postgres():
+    """The reason `_migrate` takes a savepoint at all.
+
+    Postgres aborts the entire transaction on any failed statement, so the
+    re-check that decides "another replica already did this" would itself raise
+    `InFailedSqlTransaction` — the recovery would only have worked on the
+    backend that never needed it. The savepoint discards the failed statement
+    and nothing else.
+    """
+    import psycopg
+    from stride_api.db import _migrate, connect
+
+    conn = connect()
+    conn.execute("DROP TABLE IF EXISTS migrate_probe")
+    conn.execute("CREATE TABLE migrate_probe (id INT)")
+    conn.commit()
+    try:
+        # the race: the column is already there, so the statement fails and the
+        # end state is nonetheless the one we wanted
+        _migrate(conn, "ALTER TABLE migrate_probe ADD COLUMN id INT", "migrate_probe", "id")
+
+        # the property the savepoint buys — the transaction is still usable
+        assert conn.execute("SELECT COUNT(*) AS n FROM migrate_probe").fetchone()["n"] == 0
+
+        # and a failure with nothing to show for it is still a failure
+        with pytest.raises(psycopg.Error):
+            _migrate(conn, "ALTER TABLE migrate_probe ADD COLUMN nope NOT_A_TYPE",
+                     "migrate_probe", "nope")
+    finally:
+        conn.rollback()
+        conn.execute("DROP TABLE IF EXISTS migrate_probe")
+        conn.commit()
+        conn.close()
+
+
+# ── the races themselves, reproduced before they are prevented ──────────────
+
+def _count_then_insert(conn, club_id, budget, athlete_id, *, locked):
+    """`nominate`, reduced to the two statements that race with each other."""
+    if locked:
+        lock_for_update(conn, "club_applications", "club_id", club_id)
+    used = conn.execute("SELECT COUNT(*) AS n FROM athlete_applications"
+                        " WHERE nominated_by_club = ?", (club_id,)).fetchone()["n"]
+    if used >= budget:
+        return "refused"
+    conn.execute("INSERT INTO athlete_applications (athlete_id, nominated_by_club,"
+                 " submitted_at) VALUES (?, ?, ?)",
+                 (athlete_id, club_id, "2026-01-01T00:00:00Z"))
+    conn.commit()
+    return "nominated"
+
+
+def _two_connections(tmp_path, name):
+    path = tmp_path / name
+    first = sqlite3.connect(path, timeout=0)
+    first.row_factory = sqlite3.Row
+    init_db(first)
+    second = sqlite3.connect(path, timeout=0)
+    second.row_factory = sqlite3.Row
+    return first, second
+
+
+def test_without_the_lock_a_club_can_exceed_the_roster_it_declared(sqlite_backend, tmp_path):
+    """The race, run rather than described. Both requests read the same total,
+    both find room, and both write — so a budget of one yields two nominations.
+    `timeout=0` and a fixed interleaving make it deterministic: this is the
+    sequence, not a thread schedule that might happen to occur."""
+    a, b = _two_connections(tmp_path, "unlocked.db")
+    count = ("SELECT COUNT(*) AS n FROM athlete_applications WHERE nominated_by_club = 1")
+    insert = ("INSERT INTO athlete_applications (athlete_id, nominated_by_club,"
+              " submitted_at) VALUES (?, 1, '2026-01-01T00:00:00Z')")
+    budget = 1
+    try:
+        # both requests read the total before either has written: this is the
+        # interleaving, spelled out, rather than a thread schedule that might
+        # produce it. Each then decides there is room, and each is right on the
+        # evidence it has.
+        seen_by_a = a.execute(count).fetchone()["n"]
+        seen_by_b = b.execute(count).fetchone()["n"]
+        assert seen_by_a == seen_by_b == 0
+        assert seen_by_a < budget and seen_by_b < budget
+
+        a.execute(insert, (10,))
+        a.commit()
+        b.execute(insert, (11,))
+        b.commit()
+
+        assert a.execute(count).fetchone()["n"] == 2, "the unlocked path should overshoot"
+    finally:
+        a.close()
+        b.close()
+
+
+def test_with_the_lock_the_same_sequence_cannot_overshoot(sqlite_backend, tmp_path):
+    """The identical interleaving, with the lock taken before the count. The
+    second writer cannot start its transaction while the first holds one, so it
+    never gets to read a total that is about to be wrong."""
+    a, b = _two_connections(tmp_path, "locked.db")
+    try:
+        lock_for_update(a, "club_applications", "club_id", 1)
+        used = a.execute("SELECT COUNT(*) AS n FROM athlete_applications"
+                         " WHERE nominated_by_club = ?", (1,)).fetchone()["n"]
+        assert used == 0
+
+        with pytest.raises(sqlite3.OperationalError):
+            _count_then_insert(b, club_id=1, budget=1, athlete_id=11, locked=True)
+
+        a.execute("INSERT INTO athlete_applications (athlete_id, nominated_by_club,"
+                  " submitted_at) VALUES (?, ?, ?)", (10, 1, "2026-01-01T00:00:00Z"))
+        a.commit()
+
+        # and once the first is done, the second sees the real total and refuses
+        assert _count_then_insert(b, club_id=1, budget=1, athlete_id=11, locked=True) == "refused"
+        used = a.execute("SELECT COUNT(*) AS n FROM athlete_applications"
+                         " WHERE nominated_by_club = 1").fetchone()["n"]
+        assert used == 1
+    finally:
+        a.close()
+        b.close()
+
+
+def test_without_the_tolerance_the_losing_replica_crashes_on_boot(sqlite_backend, tmp_path):
+    """The migration race, same treatment: one process checks the schema, the
+    other changes it first, and the first then runs a statement that can no
+    longer succeed. Raw `conn.execute` is what `_migrate` replaced, so this is
+    the boot failure it exists to absorb."""
+    a, b = _two_connections(tmp_path, "migrate.db")
+    try:
+        # both processes look at the same schema and agree work is needed
+        assert "completed_at" in _columns(a, "deals")
+        a.execute("ALTER TABLE deals DROP COLUMN completed_at")
+        a.commit()
+        assert "completed_at" not in _columns(a, "deals")
+        assert "completed_at" not in _columns(b, "deals")
+
+        # b gets there first
+        b.execute("ALTER TABLE deals ADD COLUMN completed_at TEXT")
+        b.commit()
+
+        # a now runs the statement it decided on, and loses
+        with pytest.raises(sqlite3.OperationalError):
+            a.execute("ALTER TABLE deals ADD COLUMN completed_at TEXT")
+
+        # which is exactly what `_migrate` absorbs, because the end state is right
+        _migrate(a, "ALTER TABLE deals ADD COLUMN completed_at TEXT", "deals", "completed_at")
+        assert "completed_at" in _columns(a, "deals")
+    finally:
+        a.close()
+        b.close()

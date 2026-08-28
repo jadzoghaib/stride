@@ -26,10 +26,42 @@ from stride_api.main import app  # noqa: E402
 
 PASSWORD = "stride123"
 
+#: The suite runs on SQLite by default and on Postgres when this is set, so a
+#: test whose subject *is* one backend has to say which.
+ON_POSTGRES = bool(os.environ.get("STRIDE_TEST_DATABASE_URL"))
+requires_postgres = pytest.mark.skipif(
+    not ON_POSTGRES, reason="needs a Postgres server (set STRIDE_TEST_DATABASE_URL)")
+
+
+@pytest.fixture
+def sqlite_backend():
+    """Force the SQLite code path whichever way the suite was invoked.
+
+    A few tests build their own `sqlite3` connection to exercise migration and
+    locking mechanics that only exist there. `init_db` and `lock_for_update`
+    dispatch on `settings.db_backend`, so under the Postgres run they aimed
+    Postgres DDL at a SQLite connection and failed for an unrelated reason.
+    """
+    from stride_api.config import settings
+    original = settings.database_url
+    settings.database_url = ""
+    yield
+    settings.database_url = original
+
 
 @pytest.fixture(scope="session")
 def client():
     """App with lifespan run once: schema created + demo data seeded."""
+    if ON_POSTGRES:
+        # SQLite gets a fresh temp file every session; Postgres gets whatever is
+        # in the DSN, so without this the second run of the suite starts on the
+        # first run's data and fails on things like a duplicate registration —
+        # a difference between the backends that is nothing to do with the code
+        # under test.
+        from stride_api.db import connect, drop_all
+        conn = connect()
+        drop_all(conn)
+        conn.close()
     with TestClient(app) as c:
         yield c
 
