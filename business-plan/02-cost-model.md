@@ -10,13 +10,14 @@ Stripe charges a Spanish entity **1.5% + €0.25** on EEA cards, 2.5% on UK card
 on non-EEA — blended to **1.9% + €0.25** here. On small subscriptions the fixed component is
 most of the cost, and it lands on our commission, not on the athlete's share.
 
+<!-- MODEL:unit_economics -->
 | Fan pays (monthly) | Our take (15%) | Payment cost | We keep | % of take retained |
 |---|---|---|---|---|
-| €4.99 | €0.75 | €0.34 | €0.40 | **54%** |
-| €9.99 | €1.50 | €0.44 | €1.06 | **71%** |
-| €14.99 | €2.25 | €0.53 | €1.71 | 76% |
+| €4.99 | €0.75 | €0.34 | €0.40 | 54% |
+| €9.99 | €1.50 | €0.44 | €1.06 | 71% |
 | €24.99 | €3.75 | €0.72 | €3.02 | 81% |
-| €89.00 (annual) | €13.35 | €1.94 | €11.41 | **85%** |
+| €89.00 (annual) | €13.35 | €1.94 | €11.41 | 85% |
+<!-- /MODEL:unit_economics -->
 
 **Read that first row again.** At a €4.99 tier, nearly half our commission goes to the
 payment processor — almost all of it the fixed €0.25, not the percentage. The tier floor

@@ -50,6 +50,11 @@ POPULAR_FPA_ADJUSTMENT = 1.37
 TIER_PRICES = (4.99, 9.99, 24.99)
 TIER_MIX = (0.40, 0.50, 0.10)
 
+#: The annual tier, priced at roughly nine months of Insider. It lives here with
+#: the others because it kept drifting when it did not: `model.py` had its own
+#: copy at EUR 99 while every document and the retention guard said EUR 89.
+SEASON_PASS_EUR = 89.00
+
 #: Niche fans buy knowledge and sit at the tier mix above.
 NICHE_ARPU_FACTOR = 1.00
 #: -13%: popular-sport fans skew to the cheapest tier.

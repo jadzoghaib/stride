@@ -657,20 +657,35 @@ def render(rows: list[dict]) -> dict[str, str]:
     segments = table(["Segment"] + ys, seg_rows)
 
     return dict(drivers=drivers, gmv=gmv, revenue=revenue, pl=pl, egress=egress,
-                summary=summary, valuation=val, multiples=mult, cash=cash, funding=funding,
+                summary=summary, unit_economics=unit_economics(),
+                valuation=val, multiples=mult, cash=cash, funding=funding,
                 segments=segments, churn=churn,
                 costs_y7=costs_y7, cac=cac, sensitivity=sensitivity)
 
 
 def unit_economics() -> str:
-    """The fixed-fee problem, per transaction size."""
+    """The fixed-fee problem, per transaction size.
+
+    Prices come from `market_model`, which is where the tier design lives. This
+    kept its own copy and the copy drifted: it carried a EUR 14.99 tier that
+    exists in no other document, and priced the season pass at EUR 99 while
+    01-revenue-model.md, the tier table and the retention guard all say EUR 89.
+    """
+    import market_model
+
     rows = []
-    for price in (4.99, 9.99, 14.99, 24.99, 99.00):
+    tiers = [(p, "") for p in market_model.TIER_PRICES]
+    # The season pass is the only annual row, under a header that says monthly.
+    # The hand-typed table it replaced carried the annotation; losing it made the
+    # pass read as a EUR 89/month tier, directly under a paragraph arguing for
+    # annual billing.
+    tiers.append((market_model.SEASON_PASS_EUR, " (annual)"))
+    for price, period in tiers:
         take = price * A.take_fan
         psp = price * A.psp_pct + A.psp_fixed_eur
         net = take - psp
         rows.append([
-            f"€{price:,.2f}",
+            f"€{price:,.2f}{period}",
             f"€{take:,.2f}",
             f"€{psp:,.2f}",
             f"€{net:,.2f}",
@@ -684,7 +699,7 @@ def unit_economics() -> str:
 
 DOC_TABLES = {
     "00-executive-summary.md": ["summary"],
-    "02-cost-model.md": ["costs_y7", "cac"],
+    "02-cost-model.md": ["costs_y7", "cac", "unit_economics"],
     "03-financial-model.md": ["drivers", "churn", "segments", "gmv", "revenue", "pl", "cash", "funding"],
     "04-capital-and-valuation.md": ["valuation", "multiples", "sensitivity"],
 }

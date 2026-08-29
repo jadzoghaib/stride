@@ -354,7 +354,141 @@ graph TD
 > €9.99 a month?** Text and photo behind a paywall answer that — no transcoding,
 > no CDN decision, far less moderation exposure than video.
 
-## 4.3 Infrastructure and the cost that decides viability
+## 4.3 The fan product — specification
+
+> [!warning] This is the least-built and most valuable part of the plan
+> **87% of Y1 revenue is fan subscriptions**, and the product currently has *no
+> content object of any kind*. Fans can follow an athlete and see a marketability
+> sparkline. They cannot see a single post. This section is the specification,
+> not a description of something that exists.
+
+### 4.3.1 The free layer — the reason to open the app
+
+Following an athlete is free and always will be. A free follower sees:
+
+| | Source | Build cost |
+|---|---|---|
+| Their public social posts, aggregated | **Already ingested.** The connectors sync posts to compute marketability — the same rows render as a feed | **Near zero** |
+| News and articles about them | New ingestion: news API + RSS, matched on athlete name and sport | Moderate. Attribution and excerpt-length rules apply |
+| Competition results and score movement | Already in the product | Zero |
+
+> [!tip] The free layer is nearly free to build
+> The analytics pipeline already pulls every post to score it. **The same data
+> that prices an athlete for sponsors is the content that keeps a fan opening the
+> app between paid drops.** One ingestion, two products — which is also why a
+> general creator platform cannot copy this cheaply: they have no reason to have
+> built the measurement side first.
+
+The free layer exists to solve the retention problem that kills creator
+subscriptions: nothing to come back for between posts. A fan who opens the app
+weekly for free news converts far better than one who must decide to subscribe
+cold.
+
+### 4.3.2 Content types
+
+Four types, and the split that matters is **unlimited vs scarce**.
+
+| Type | What it is | Scarce? | Pricing model |
+|---|---|---|---|
+| **Post** | Text, photo, later video. Training logs, race reports, gear notes | No | Tier-gated |
+| **Course** | An *ordered series* with progress and completion — "12-week hill block" | No | Tier-gated, or one-off unlock |
+| **Session** | Scheduled, one-to-many, remote — Q&A, watch-along, technique review | Semi | Tier-gated with a cap |
+| **Event** | **Physical, capacity-limited, dated, located** — "come train with me", a club open session, a media appearance | **Yes** | One-off purchase or subscriber ballot |
+
+> [!important] Scarcity is what justifies the top tier
+> Posts and courses cost nothing to serve to one more fan. **Events cost the
+> athlete a Saturday.** That difference is the whole argument for a €24.99 tier
+> and for one-off purchases existing alongside subscriptions — and it is why
+> "come train with me" cannot simply be a subscriber perk with unlimited
+> redemption. It is a capacity-managed product, closer to a race entry than to a
+> Patreon post.
+
+### 4.3.3 Tiers
+
+| Tier | Price | Includes |
+|---|---|---|
+| **Follow** | Free | Aggregated posts, news, results, score movement |
+| **Supporter** | €4.99 | + members-only posts, training logs, early race reports |
+| **Insider** | €9.99 | + course series, group sessions and Q&A |
+| **Inner circle** | €24.99 | + event access or ballot priority, direct message window |
+| **Season pass** | €89/yr | Insider for a year — the churn lever, priced at ~9 months |
+
+These four are the whole set. They live in `market_model.py` and everything else
+reads them — the retention table, the fee table in §2 of the cost model, and this
+document.
+
+A fifth tier at €14.99 used to exist in **two hand-typed copies of the fee table
+and nowhere else**: not in the tier design, not in the pricing decision, not in
+the model's inputs. Both copies are generated now. A duplicated price is a price
+that drifts, and this one drifted in two directions at once — one copy invented a
+tier, the other priced the season pass at €99.
+
+Assumed mix **40 / 50 / 10** across the three monthly tiers. That mix produces
+**€9.49**, which is the *mature niche* subscription ARPU — not a blend across the
+plan. The model ramps to it: niche **€8.00 → €9.50** and popular **€7.00 → €8.30**
+over the ten years, because early cohorts skew to the cheap tier and the mix
+improves as the product does. `[to research: replace the mix with real data after P1]`
+
+### 4.3.4 Labels — sponsored and highlighted
+
+Two labels, and they do different jobs.
+
+- **`sponsored`** — a brand paid for this content. This is a **disclosure
+  obligation, not decoration**, and it connects to work already shipped: the
+  product carries a per-country disclosure module that tells an athlete which
+  tags they must use. Sponsored content *inside a paywall* is a different
+  regime from a sponsored social post, and the rule set needs extending.
+  `[to research: EU rules for disclosure behind a paywall]`
+- **`highlighted`** — the athlete or club is merchandising this item to the top
+  of their feed. Purely presentational, no legal weight.
+
+> [!note] Sponsored content is the bridge between the two revenue engines
+> A brand pays for a course; the athlete's subscribers get it; the sponsorship
+> deal is measured by the same delivery pipeline that already exists. It is the
+> first place where fan revenue and sponsorship revenue touch the same object,
+> and the measurement engine is already built for it.
+
+### 4.3.5 Clubs as publishers — new, and not in the model
+
+Clubs today can only sell **sponsorship** packages. They should also publish fan
+content, for three reasons:
+
+1. **A club has an audience no individual athlete has** — the club's own
+   followers, its members' families, its local community.
+2. **It solves cold start.** A club with 30 athletes can publish from day one,
+   while individual athletes are still building. The club channel is already the
+   cheapest acquisition route in §5.2; this makes it a revenue route too.
+3. **Club content is naturally event-shaped** — open sessions, academy days,
+   "train at our club" — which is the scarce, highest-margin type.
+
+**Two design questions this opens, both unanswered:**
+
+| Question | Why it matters |
+|---|---|
+| When a club publishes content featuring an athlete, how does revenue split? | Three-way split (fan → club → athlete → Stride) is materially more complex than the two-way one built today |
+| Does a fan subscribe to a *club*, an *athlete*, or both separately? | Determines whether the subscription object hangs off `athlete_profiles` or becomes polymorphic — a schema decision, cheap now and expensive later |
+
+> [!danger] The financial model does not contain club fan revenue
+> Its three revenue lines are per-athlete fan revenue, sponsorship, and sponsor
+> SaaS. Club packages feed the *sponsorship* line. **So every euro of club-published
+> fan content is upside the plan does not claim** — which is the honest way round,
+> but it also means the model cannot yet be used to size this decision.
+
+### 4.3.6 What this changes about the build
+
+The P1 line in §4.2 reads *"tiers, subscriptions, entitlements, simple text/photo
+posts"*. That is the **minimum** to test the assumption in §7 R1, and it remains
+the right first build. This specification is the shape P1 grows into — sequenced
+so nothing here blocks the churn measurement that gates the pre-seed:
+
+| | Ships | Why then |
+|---|---|---|
+| **P1** | Free feed (from existing ingestion), posts, tiers, entitlements | Tests "will fans pay" for the least possible money |
+| **P1.5** | Courses, sponsored/highlighted labels | Raises ARPU without new infrastructure |
+| **P2** | Video, sessions | Needs transcode and moderation |
+| **P2.5** | Events with capacity and ballots, club publishing | Needs the revenue-split decision above |
+
+## 4.4 Infrastructure and the cost that decides viability
 
 Content delivery is the cost that kills naive versions of this business.
 
@@ -386,7 +520,7 @@ salary, taken once, at the start.
 in the low 70s rather than a SaaS 80%+, and pretending otherwise would be the
 easiest way to lose credibility with anyone who has run a marketplace.
 
-## 4.4 Team and scaling
+## 4.5 Team and scaling
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y7 |
 |---|---|---|---|---|---|---|
@@ -695,13 +829,15 @@ Ordered by how much the plan would change if the answer surprised us.
 | 4 | **EU sponsorship spend, long-tail share** | Sizes the second engine | 2 weeks |
 | 5 | **Federation commercial programmes** — what exists already | Partnership design, and whether we compete with them | 1 week |
 | 6 | **Race/expo costs** for 3–5 Spanish events | Prices the highest-conviction acquisition channel | 1 week |
+| 7 | **Disclosure rules for sponsored content behind a paywall** (EU) | §4.3.4 — a different regime from a sponsored social post, and we ship a disclosure module already | 1 week |
+| 8 | **News aggregation: attribution, excerpt length, licensing** | §4.3.1 — the free layer depends on it, and it is the one part with real legal texture | 2 weeks |
 
 ## 8.2 Method notes
 
 - **Financial model:** `business-plan/model.py`. Ten-year projection, real
   working capital, capex, amortisation, loss carry-forward, Spanish Startup Law
   tax step (15% for four profitable years, then 25%).
-- **Consistency:** an automated guard checks **43 prose claims across 9
+- **Consistency:** an automated guard checks **46 prose claims across 9
   documents** against the model, plus the evidence chain from published
   comparables → derived assumptions. The build fails if any figure drifts —
   including this sentence, whose two numbers are themselves pinned to the
@@ -753,6 +889,13 @@ Ordered by how much the plan would change if the answer surprised us.
 > 3. **Anchor athlete — do we have a route to one?** Everything in §5.3 depends on it.
 > 4. **Do we lead the pitch with fan revenue or with the demo?** They tell different
 >    stories about the same company, and the order changes the conversation.
+> 5. **Does a fan subscribe to an athlete, a club, or both?** (§4.3.5) This decides
+>    whether the subscription object hangs off `athlete_profiles` or becomes
+>    polymorphic. **Cheap to decide now, expensive to change once there are
+>    subscribers** — and it gates the club revenue-split design.
+> 6. **Do we model club fan revenue at all?** Today it is upside the plan does not
+>    claim. That is the safe direction, but it also means we cannot size the club
+>    publishing decision with the model we have.
 
 *Preliminary draft v0.1 · figures generated from the model and guard-checked ·
 prose is a draft for review.*
