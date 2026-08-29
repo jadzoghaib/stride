@@ -26,19 +26,30 @@ def clean_slate(db):
     ran afterwards, which is a failure that would surface far from its cause.
     """
     def snapshot(table):
-        return [dict(r) for r in rows(db, f"SELECT * FROM {table}")]
+        return {r["id"]: dict(r) for r in rows(db, f"SELECT * FROM {table}")}
 
     def restore(table, saved):
-        db.execute(f"DELETE FROM {table}")
-        for r in saved:
-            keys = list(r)
-            db.execute(f"INSERT INTO {table} ({', '.join(keys)}) VALUES"
-                       f" ({', '.join('?' for _ in keys)})", tuple(r[k] for k in keys))
+        """Delete what the test made; put back what it changed.
+
+        Not delete-and-reinsert: `id` is GENERATED ALWAYS on Postgres, so
+        writing one back is an error there and silently fine on SQLite -- the
+        kind of divergence that only shows up in the other backend's CI job.
+        Keeping the rows also keeps their ids, which `content_items.part_of`
+        points at.
+        """
+        if saved:
+            keep = tuple(saved)
+            db.execute(f"DELETE FROM {table} WHERE id NOT IN"
+                       f" ({', '.join('?' for _ in keep)})", keep)
+        else:
+            db.execute(f"DELETE FROM {table}")
+        for row_id, saved_row in saved.items():
+            cols = [c for c in saved_row if c != "id"]
+            db.execute(f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in cols)}"
+                       f" WHERE id = ?", tuple(saved_row[c] for c in cols) + (row_id,))
 
     before = {t: snapshot(t) for t in ("club_members", "content_items")}
     yield
-    # content first: a course part references a course, so the parents have to
-    # go back in the same order they came out
     for table in ("content_items", "club_members"):
         restore(table, before[table])
     db.commit()
