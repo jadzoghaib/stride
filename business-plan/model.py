@@ -499,6 +499,20 @@ def render(rows: list[dict]) -> dict[str, str]:
         line("**Total net revenue**", "revenue"),
     ])
 
+    # The two columns the executive summary leads with. Generated for the same
+    # reason as everything else here: a headline figure typed by hand is the one
+    # a reader checks, and the one that goes stale first.
+    y3, y7 = rows[2], rows[6]
+    summary = table(["", "Y3", "Y7"], [
+        ["Net revenue", eur(y3["revenue"]), eur(y7["revenue"])],
+        ["EBITDA", eur(y3["ebitda"]), eur(y7["ebitda"])],
+        ["Active athletes", num(y3["athletes"]), num(y7["athletes"])],
+        ["Paying fans", num(y3["paying_fans"]), num(y7["paying_fans"])],
+        ["Gross margin",
+         f"{100 * y3['gross'] / y3['revenue']:,.0f}%",
+         f"{100 * y7['gross'] / y7['revenue']:,.0f}%"],
+    ])
+
     pl = table(["P&L"] + ys, [
         line("Net revenue", "revenue"),
         line("Payment processing", "psp"),
@@ -643,7 +657,7 @@ def render(rows: list[dict]) -> dict[str, str]:
     segments = table(["Segment"] + ys, seg_rows)
 
     return dict(drivers=drivers, gmv=gmv, revenue=revenue, pl=pl, egress=egress,
-                valuation=val, multiples=mult, cash=cash, funding=funding,
+                summary=summary, valuation=val, multiples=mult, cash=cash, funding=funding,
                 segments=segments, churn=churn,
                 costs_y7=costs_y7, cac=cac, sensitivity=sensitivity)
 
@@ -669,6 +683,7 @@ def unit_economics() -> str:
 
 
 DOC_TABLES = {
+    "00-executive-summary.md": ["summary"],
     "02-cost-model.md": ["costs_y7", "cac"],
     "03-financial-model.md": ["drivers", "churn", "segments", "gmv", "revenue", "pl", "cash", "funding"],
     "04-capital-and-valuation.md": ["valuation", "multiples", "sensitivity"],

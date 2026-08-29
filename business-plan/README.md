@@ -26,6 +26,7 @@ are no agents at all, and the athlete's alternative to Stride is nothing. See
 
 | # | Document | What it settles |
 |---|---|---|
+| 00 | [Executive summary](00-executive-summary.md) | The two-page version: the wedge, what exists, the shape of the model, the one assumption it rests on, and the ask |
 | 01 | [Revenue model](01-revenue-model.md) | The eight streams, the OnlyFans comparison, take rates, tier design |
 | 02 | [Cost model](02-cost-model.md) | AWS build-up, people, compliance, and the two costs that decide viability |
 | 03 | [Financial model](03-financial-model.md) | Seven-year P&L, drivers, scenarios |

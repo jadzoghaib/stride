@@ -54,7 +54,7 @@ fact you can demonstrate, not a milestone you can assert.
 | **Seed** | €2.0M | €10M | €80k MRR · fan churn < 8%/mo · CAC payback < 9mo · 2nd market opened · 30+ paying sponsors | Team to 24, second and third market, moderation infrastructure |
 | **Series A** | €8.0M | €40M | €300k MRR · net revenue retention > 110% · sponsorship take > 25% of revenue · unit economics stable across 3 markets | EU-wide, sales org, managed services |
 
-**The plan needs €952k. The rounds above raise €2.4M before Series A.** The
+**The plan needs €625k. The rounds above raise €2.4M before Series A.** The
 difference is deliberate: raising only what the model needs leaves no room for
 the assumption that turns out wrong, and a company that runs out of cash in Y3
 at the trough dies with a working product. Raise the buffer; do not spend it
@@ -87,7 +87,7 @@ Taking dilution before exhausting these is leaving money on the table.
 | **Ley de Startups** tax regime | — | **15% corporate tax** for first 4 profitable years vs 25% | Modelled — worth €209k across Y4–Y7 |
 | Beckham Law | — | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
 
-**A realistic non-dilutive stack is €300–500k**, which covers most of the €680k
+**A realistic non-dilutive stack is €300–500k**, which covers most of the €446k
 trough. Combined with a smaller pre-seed, the founder could reach the Seed gate
 holding materially more equity.
 

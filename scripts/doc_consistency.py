@@ -43,6 +43,41 @@ def blended_cac(r: dict) -> float:
     return (r["cac_per_application"] * r["applications"] / adds) if adds else 0.0
 
 
+def churn_gross_adds() -> tuple[float, float]:
+    """Y10 fan gross adds as modelled, and at benchmark churn.
+
+    The plan calls niche engagement its most optimistic judgement, and for a long
+    time claimed being wrong cost "roughly EUR 7M of Y10 revenue". It does not:
+    Y10 revenue moves by +0.07M and the fan count is identical to the digit,
+    because `fans_per_athlete` is a target the model solves backwards from and
+    marketing is driven by athlete adds rather than fan adds.
+
+    What it really moves is the acquisition burden, so that is what is watched.
+    A claim about the plan's central risk is the last one that should be
+    unpinned — that is how it was wrong by two orders of magnitude for so long.
+    """
+    import copy
+
+    import market_model
+
+    def run(niche_factor: float) -> float:
+        original = model.A.segments
+        swapped = []
+        for seg in original:
+            clone = copy.deepcopy(seg)
+            if seg is model.NICHE:
+                clone.fan_churn_month = [c / market_model.NICHE_ENGAGEMENT * niche_factor
+                                         for c in seg.fan_churn_month]
+            swapped.append(clone)
+        model.A.segments = swapped
+        try:
+            return model.build()[-1]["fan_gross_adds"]
+        finally:
+            model.A.segments = original
+
+    return run(market_model.NICHE_ENGAGEMENT), run(1.0)
+
+
 def take_rate_delta() -> float:
     """Y7 revenue forgone by charging 15% on fan revenue instead of 20%."""
     import copy
@@ -75,7 +110,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"Capital required to fund it: €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
     ("README.md", "first EBITDA-positive year",
      r"EBITDA turns positive in \*\*Y(\d+)\*\*",
-     next(r["year"] for r in ROWS if r["ebitda"] > 0), 0.1),
+     next((r["year"] for r in ROWS if r["ebitda"] > 0), 0), 0.1),
     ("03-financial-model.md", "capital in the prose beside the table",
      r"\*\*€(\d+)k is a small number", peak_funding() * 1.4 / 1e3, 1.0),
     ("03-financial-model.md", "scenarios base-case Y7 revenue",
@@ -113,6 +148,32 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("02-cost-model.md", "peak verification cost",
      r"Verification peaks at\s+€([\d.]+)k a year",
      max(r["verification"] for r in ROWS) / 1e3, 0.6),
+
+    # --- the executive summary, and the figure it shares with 04 -----------
+    # 04 said the plan needed EUR 952k while 03 and the README said 625k: the
+    # same quantity, two numbers, in one document set. Nothing watched 04's copy,
+    # and it went stale when working capital and capex entered the free cash
+    # flow. A pitch reader finding that is a pitch reader who stops believing the
+    # rest, so both places are pinned now.
+    ("04-capital-and-valuation.md", "capital the plan needs",
+     r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
+    ("00-executive-summary.md", "capital the plan needs",
+     r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
+    ("00-executive-summary.md", "first EBITDA-positive year",
+     r"EBITDA turns positive in \*\*Y(\d+)\*\*",
+     # `0` rather than letting `next` raise: a model with no profitable year is a
+     # drift report, not an import-time crash in the checker that would report it
+     next((r["year"] for r in ROWS if r["ebitda"] > 0), 0), 0.1),
+    ("00-executive-summary.md", "fan take rate",
+     r"\*\*(\d+)% on\s+fan revenue", A.take_fan * 100, 0.1),
+    ("00-executive-summary.md", "sponsorship take rate",
+     r"fan revenue, (\d+)% on sponsorship\*\*", A.take_sponsorship * 100, 0.1),
+    ("00-executive-summary.md", "Y10 gross adds as modelled",
+     r"instead of ([\d.]+)M\*\*", churn_gross_adds()[0] / 1e6, 0.02),
+    ("00-executive-summary.md", "Y10 gross adds at benchmark churn",
+     r"needs \*\*([\d.]+)M gross adds", churn_gross_adds()[1] / 1e6, 0.02),
+    ("00-executive-summary.md", "revenue forfeited by the 15% take",
+     r"forfeits €([\d.]+)M of Y7 revenue", take_rate_delta() / 1e6, 0.1),
 
     ("07-open-questions.md", "EUR 4.99 retention",
      r"€4\.99 retains (\d+)% of our take", retained(4.99) * 100, 0.5),
