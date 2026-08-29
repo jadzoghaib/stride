@@ -163,6 +163,39 @@ Without that, a club vouching for a healthy listed athlete would knock them to
 `draft` on a `pending` verdict — a third party's action costing someone their
 standing.
 
+### The second ratchet: listings that predate the gate
+
+The directory existed before this gate did. Athletes listed under the old rules
+are not retroactively re-audited — but the first version of that promise only
+held while they ignored the gate. Submitting the eligibility form scored them,
+found the claim insufficient, and dropped a healthy listed profile to `draft`
+for the act of filling in a form. Found by an outside walkthrough of the demo,
+not by the test suite, which had encoded the behaviour rather than questioned it.
+
+So the promise is now a rule with a stated end. **A listing granted before the
+gate survives a shortage of evidence and ends only on a finding.** Two things
+count as a finding, and they are named in `DISQUALIFYING_RULES` next to the
+decisions that produce them:
+
+| | | |
+|---|---|---|
+| `proof_rejected` | somebody opened the link and it did not support the claim | ends it |
+| `under_minimum_age` | an age the platform may not serve at all | ends it |
+| `credibility_below_review` | the claim is weak | does **not** end it |
+| `incomplete_application` | the form is unfinished | does **not** end it |
+
+The distinction is the whole point: *"we have not been shown enough"* is not the
+same statement as *"we looked, and you are fifteen"*. Only the second is about
+the applicant. Keying this to any rejection delists people for filling a form in
+badly; keying it to the proof status alone let a declared age below the minimum
+keep a listing, which is the one rule here nothing may buy its way past.
+
+The protection also ends when the gate itself grants a listing — recorded as
+`admitted_via`. From that point the listing was earned here rather than
+inherited, so weakening the claim behind it can take it away. Otherwise editing
+your application downwards would be a free way to keep a listing it no longer
+supports.
+
 ---
 
 ## Matching
