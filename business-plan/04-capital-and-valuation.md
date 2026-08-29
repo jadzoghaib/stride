@@ -87,7 +87,7 @@ Taking dilution before exhausting these is leaving money on the table.
 | **Ley de Startups** tax regime | — | **15% corporate tax** for first 4 profitable years vs 25% | Modelled — worth €209k across Y4–Y7 |
 | Beckham Law | — | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
 
-**A realistic non-dilutive stack is €300–500k**, which covers most of the €680k
+**A realistic non-dilutive stack is €300–500k**, which covers most of the €446k
 trough. Combined with a smaller pre-seed, the founder could reach the Seed gate
 holding materially more equity.
 

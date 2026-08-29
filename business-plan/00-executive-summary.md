@@ -88,8 +88,18 @@ fails the build if any of them drift from it.
 
 One assumption carries the plan: **niche-sport fans churn 45% slower than the
 Patreon benchmark**, because training content is habitual and competitive
-seasons create renewal moments. If that is wrong and we are merely at benchmark,
-roughly €7M of Y10 revenue disappears.
+seasons create renewal moments.
+
+Being wrong about it does not dent the revenue line, and we would rather explain
+that than have it found. This is a **target-driven model**: fan counts per
+athlete are the plan, and the model solves backwards for the acquisition needed
+to hit them. Churn therefore changes the *burden*, not the destination — at
+benchmark churn, holding the same Y10 fan base needs **1.65M gross adds a year
+instead of 1.32M**, a quarter more acquisition, every year, forever.
+
+**The model understates this risk by construction**, because it does not charge
+for fan acquisition. Treat the 45% as what it is: an operating assumption that
+decides how hard the plan is to hold, not a line item.
 
 Nothing in the product proves it today, and no amount of further engineering
 will. Three months of real subscription data from one anchor athlete answers it

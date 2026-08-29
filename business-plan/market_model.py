@@ -61,8 +61,22 @@ ANNUAL_PLAN_SHARE = 0.30
 
 #: THE MOST OPTIMISTIC JUDGEMENT IN THE MODEL, AND UNTESTED: niche fans churn
 #: 45% slower than the Patreon benchmark, because training content is habitual
-#: and competitive seasons create renewal moments. If this is wrong and we are
-#: merely at benchmark, Y10 revenue falls by roughly EUR 7M.
+#: and competitive seasons create renewal moments.
+#:
+#: This carried the note "if this is wrong, Y10 revenue falls by roughly EUR 7M"
+#: for a long time, and that was wrong by two orders of magnitude. Re-run at
+#: benchmark churn, Y10 revenue moves by +0.07M — it goes slightly *up*, and Y10
+#: paying fans are identical to the digit.
+#:
+#: They are identical because `fans_per_athlete` is a target this model solves
+#: backwards from, and marketing is driven by athlete adds rather than fan adds.
+#: Churn therefore does not change how many fans exist; it changes how many must
+#: be acquired to stand still — 1.32M gross adds a year becomes 1.65M, a 25%
+#: heavier acquisition burden, for EUR 0.86M of cumulative free cash flow.
+#:
+#: So the risk is real and this model understates it by construction. Being
+#: wrong here does not dent the revenue line; it means the fan targets the whole
+#: plan is built on need a quarter more acquisition than budgeted to hold.
 NICHE_ENGAGEMENT = 0.55
 #: 15% better than benchmark: impulse follows a result, with many free
 #: substitutes — but still a sport fan rather than a general creator audience.
