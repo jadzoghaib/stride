@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar, CoverageChip, EmptyNote, LoadError, Meter, PageHeader, PageLoading } from '../components/ui'
 import { api, errorText } from '../lib/api'
@@ -56,6 +56,12 @@ export default function AthletesDirectory() {
   }
 
   const [searching, setSearching] = useState(false)
+  //: Which query the visible rows belong to. Keeping the old results on screen
+  //  is what makes the box usable, and it is also what makes a late response
+  //  dangerous: two searches in flight can resolve out of order, and the loser
+  //  would quietly repaint the table with rows for a query the user has already
+  //  moved past. Only the newest request is allowed to write anything.
+  const latest = useRef(0)
   useEffect(() => {
     setError('')
     // Not `setAthletes(null)`. That tripped the `!athletes` guard below, which
@@ -63,15 +69,20 @@ export default function AthletesDirectory() {
     // field lost focus and dropped the keystroke that triggered it. The previous
     // results stay on screen while the next ones load, which is also the calmer
     // thing to look at.
+    const mine = ++latest.current
     setSearching(true)
     api.get<AthletePage>(`/api/athletes?${params()}`)
-      .then((page) => { setAthletes(page.athletes); setCursor(page.next_cursor) })
-      .catch((e) => setError(errorText(e)))
-      .finally(() => setSearching(false))
+      .then((page) => {
+        if (mine !== latest.current) return
+        setAthletes(page.athletes)
+        setCursor(page.next_cursor)
+      })
+      .catch((e) => { if (mine === latest.current) setError(errorText(e)) })
+      .finally(() => { if (mine === latest.current) setSearching(false) })
   }, [sport, country, q])
 
   const loadMore = async () => {
-    if (!cursor) return
+    if (!cursor || searching) return
     setLoadingMore(true)
     try {
       const page = await api.get<AthletePage>(`/api/athletes?${params(cursor)}`)
@@ -127,7 +138,7 @@ export default function AthletesDirectory() {
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
           <input
-            className="field w-56 py-1.5 text-sm"
+            className="field w-56 py-1.5 pr-[5.5rem] text-sm"
             placeholder="Search name or sport"
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
@@ -216,7 +227,10 @@ export default function AthletesDirectory() {
         </table>
         {cursor && (
           <div className="mt-4 flex justify-center">
-            <button className="btn" disabled={loadingMore} onClick={loadMore}>
+            {/* Disabled mid-search: `cursor` still points into the *previous*
+                query's results, so paging now would append rows the current
+                filters exclude — and they would look like matches. */}
+            <button className="btn" disabled={loadingMore || searching} onClick={loadMore}>
               {loadingMore ? 'Loading…' : 'Show more athletes'}
             </button>
           </div>

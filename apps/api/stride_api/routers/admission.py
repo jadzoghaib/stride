@@ -99,7 +99,28 @@ def _evaluate(conn, application: dict, profile: dict, *, via: str,
     without this that verdict would knock a perfectly healthy listed profile
     down to draft — someone else's action costing that athlete their standing.
     A nomination is a ratchet: it can raise a listing, never lower one.
+
+    A second, quieter ratchet is applied here rather than by the caller. A
+    profile listed before the gate existed keeps that listing through any
+    *inconclusive* verdict, however it was triggered: the seeded directory is
+    grandfathered on purpose, and an application is a request to be admitted,
+    not a re-audit of standing granted beforehand. Computing this at the call
+    site is what went wrong the first time — the self-submit path had it and the
+    two reviewer paths did not, so the protection held when the athlete touched
+    their own form and vanished when an admin touched it.
+
+    Two things end it, both adverse findings rather than absences:
+
+      * `admitted_via` set — the gate granted this listing, so the gate may take
+        it back when the claim behind it is weakened;
+      * a rejected proof — somebody looked and it did not stand up, which is a
+        finding about the applicant and outranks anything they inherited.
     """
+    if may_delist:
+        pre_gate = (profile["status"] == "listed"
+                    and not application["admitted_via"]
+                    and application["proof_status"] != "rejected")
+        may_delist = not pre_gate
     scored = athlete_credibility({**application, "sport": profile["sport"]})
     social = _social_score(conn, profile["creatorlens_creator_id"])
     decision = admission_decision(
@@ -189,28 +210,9 @@ def submit_application(body: ApplicationIn,
         application_id = cur.lastrowid
     application = row(conn, "SELECT * FROM athlete_applications WHERE id = ?", (application_id,))
 
-    # Applying must not cost an athlete the listing they already had.
-    #
-    # This module's docstring promises that profiles with no application are left
-    # alone, so the seeded directory is not retroactively delisted by a gate
-    # added after it. That promise quietly expired the moment such an athlete
-    # engaged with the gate: their first submission scored `review`, and a
-    # healthy listed profile dropped to draft for the crime of filling in a form.
-    # An application is a request to be admitted, not a re-audit of standing
-    # granted before the gate existed.
-    #
-    # The protection is the grandfathered *state*, not the first save. Keying it
-    # to "no application yet" would delist them on the second submission, so
-    # correcting a typo a minute later would do what the first attempt did not —
-    # a worse bug than the one being fixed, because it waits.
-    #
-    # What ends it is the gate admitting them: once `admitted_via` is set, the
-    # listing was earned here rather than inherited, and weakening the claim
-    # behind it has to be able to take it away. Otherwise editing your
-    # application down is a free way to keep a listing it no longer supports.
-    grandfathered = (profile["status"] == "listed"
-                     and not (existing and existing["admitted_via"]))
-    return _evaluate(conn, application, profile, via="self", may_delist=not grandfathered)
+    # Applying must not cost an athlete the listing they already had — see
+    # `_evaluate`, which owns that rule so every path through the gate gets it.
+    return _evaluate(conn, application, profile, via="self")
 
 
 @router.get("/athlete/application")

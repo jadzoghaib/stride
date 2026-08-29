@@ -201,11 +201,13 @@ export interface DealPerformance {
     title: string
     published_at: string
     permalink: string
-    reach: number
+    // null when the post is attached but its metrics have not been captured —
+    // `fmtNum` renders that as a dash, which is the truth about it
+    reach: number | null
     engagement_rate: number | null
   }[]
-  // reach and engagements are null until something is attached: nothing was
-  // delivered is not the same measurement as nobody was reached
+  // null until something is attached *and measured*: nothing delivered is not
+  // the same measurement as nobody reached
   delivered: { posts: number; reach: number | null; engagements: number | null }
   projected: { reach: number | null }
   variance_pct: number | null

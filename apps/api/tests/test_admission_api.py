@@ -542,3 +542,46 @@ def test_but_a_listing_the_gate_granted_can_be_lost_by_weakening_the_claim(athle
     assert weakened.json()["listing"] == "draft"
     assert row(db, "SELECT status FROM athlete_profiles WHERE slug = 'kaia-mercer'"
                )["status"] == "draft"
+
+
+def test_a_reviewer_cannot_delist_a_pre_gate_listing_by_finding_nothing(athlete, admin, db):
+    """The grandfathering rule was applied at one call site out of three.
+
+    It held when the athlete touched their own form and evaporated when a
+    reviewer touched it: `set_proof` and the auto-checker still delisted a
+    profile whose listing predates the gate. An inconclusive check is an absence
+    of evidence, and it must not cost somebody standing they were granted before
+    any of this existed.
+    """
+    def status():
+        return row(db, "SELECT status FROM athlete_profiles WHERE slug = 'kaia-mercer'")["status"]
+
+    assert status() == "listed"
+    athlete.post("/api/athlete/application", json={
+        "competition_level": "local", "years_competing": 1, "birth_year": 2004,
+        "proof_url": "https://club.example/roster", "proof_kind": "roster"})
+    assert status() == "listed"
+
+    application = _application(db)
+    checked = admin.post(f"/api/admin/applications/{application['id']}/proof",
+                         json={"proof_status": "unverified"})
+    assert checked.status_code == 200, checked.text
+    assert checked.json()["decision"] != "admitted"
+    assert checked.json()["listing"] == "listed", "an inconclusive check is not a finding"
+    assert status() == "listed"
+
+
+def test_but_a_rejected_proof_delists_even_a_pre_gate_listing(athlete, admin, db):
+    """The exception that makes the rule safe. A rejection is somebody looking
+    and finding the claim did not stand up — a finding about the applicant,
+    which outranks anything they were grandfathered into."""
+    athlete.post("/api/athlete/application", json={
+        "competition_level": "national", "years_competing": 6, "birth_year": 2002,
+        "proof_url": "https://usatf.example/r", "proof_kind": "results"})
+    application = _application(db)
+    rejected = admin.post(f"/api/admin/applications/{application['id']}/proof",
+                          json={"proof_status": "rejected"})
+    assert rejected.json()["decision"] == "rejected"
+    assert rejected.json()["listing"] == "draft"
+    assert row(db, "SELECT status FROM athlete_profiles WHERE slug = 'kaia-mercer'"
+               )["status"] == "draft"

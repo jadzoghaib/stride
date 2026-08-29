@@ -313,7 +313,10 @@ def deal_performance(deal_id: int, user: dict = Depends(require_role("sponsor"))
     if deal is None:
         raise HTTPException(404, "unknown_deal")
 
-    deliverables, reach, engagements = [], 0, 0.0
+    # `measured` rather than `len(deliverables)`: a post can be attached before
+    # its metrics are captured, and summing that as 0 puts the campaign back at
+    # "reached nobody" through a different door than the one just closed.
+    deliverables, reach, engagements, measured = [], 0, 0.0, 0
     for link in rows(conn, "SELECT * FROM deal_deliverables WHERE deal_id = ? ORDER BY id",
                      (deal_id,)):
         post = row(conn, """
@@ -325,9 +328,11 @@ def deal_performance(deal_id: int, user: dict = Depends(require_role("sponsor"))
         metric = row(conn, "SELECT * FROM post_metrics WHERE post_id = ?"
                      " ORDER BY captured_at DESC, id DESC LIMIT 1", (post["id"],))
         er = engagement_rate(post["platform"], metric) if metric else None
-        post_reach = (metric or {}).get("reach") or 0
-        reach += post_reach
-        engagements += post_reach * (er or 0)
+        post_reach = (metric or {}).get("reach")
+        if post_reach is not None:
+            measured += 1
+            reach += post_reach
+            engagements += post_reach * (er or 0)
         deliverables.append({
             "post_id": post["id"], "platform": post["platform"], "title": post["title"],
             "published_at": post["published_at"], "permalink": post["permalink"],
@@ -347,8 +352,8 @@ def deal_performance(deal_id: int, user: dict = Depends(require_role("sponsor"))
         # Rendering 0 told a sponsor their campaign reached nobody, when the
         # truth is that the athlete has not posted yet.
         "delivered": {"posts": len(deliverables),
-                      "reach": reach if deliverables else None,
-                      "engagements": round(engagements) if deliverables else None},
+                      "reach": reach if measured else None,
+                      "engagements": round(engagements) if measured else None},
         "projected": {"reach": projected},
         # None rather than 0 when there is nothing to divide by — an unmeasurable
         # campaign should read as unmeasured, not as free.
@@ -359,7 +364,7 @@ def deal_performance(deal_id: int, user: dict = Depends(require_role("sponsor"))
         # the zero it sat beside — it is an accusation about an athlete who has
         # simply not posted yet.
         "variance_pct": round(100 * (reach - projected) / projected, 1)
-                        if projected and deliverables else None,
+                        if projected and measured else None,
         "cost_per_1k_reach": round(amount / (reach / 1000), 2) if reach else None,
         "cost_per_engagement": round(amount / engagements, 2) if engagements >= 1 else None,
     }

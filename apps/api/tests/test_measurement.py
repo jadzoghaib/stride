@@ -577,3 +577,38 @@ def test_without_the_tolerance_the_losing_replica_crashes_on_boot(sqlite_backend
     finally:
         a.close()
         b.close()
+
+
+def test_an_attached_post_with_no_metrics_is_unmeasured_not_zero(sponsor, athlete, db):
+    """The same lie through a different door.
+
+    Guarding on "are there deliverables" instead of "did anything get measured"
+    left a post that is attached but whose metrics have not been captured
+    summing to reach 0 — so the report read "reached nobody", and with a
+    projection on file, "100% below plan", about a post that may have done well.
+    """
+    deal_id = _accepted_deal(sponsor, athlete, "attached but unmeasured")
+    offered = athlete.get("/api/athlete/posts").json()
+    post_id = offered[0]["post_id"]
+    assert athlete.post(f"/api/athlete/deals/{deal_id}/deliverables",
+                        json={"post_id": post_id}).status_code == 201
+
+    saved = db.execute("SELECT * FROM post_metrics WHERE post_id = ?", (post_id,)).fetchall()
+    assert saved, "this test needs a post that starts out measured"
+    db.execute("DELETE FROM post_metrics WHERE post_id = ?", (post_id,))
+    db.commit()
+    try:
+        perf = sponsor.get(f"/api/deals/{deal_id}/performance").json()
+        assert perf["delivered"]["posts"] == 1          # it is attached
+        assert perf["delivered"]["reach"] is None        # and it is not measured
+        assert perf["delivered"]["engagements"] is None
+        assert perf["variance_pct"] is None
+        assert perf["deliverables"][0]["reach"] is None
+    finally:
+        # session-scoped database: put the metrics back, column names and all,
+        # read from the rows themselves so this works on either backend
+        for m in saved:
+            keys = list(m.keys())
+            db.execute(f"INSERT INTO post_metrics ({', '.join(keys)}) VALUES"
+                       f" ({', '.join('?' for _ in keys)})", tuple(m[k] for k in keys))
+        db.commit()

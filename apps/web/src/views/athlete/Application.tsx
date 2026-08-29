@@ -88,10 +88,14 @@ export default function AthleteApplication() {
       // The verdict alone left the most consequential part unsaid: whether the
       // profile is still in the directory. Someone who submits a form and
       // silently drops out of matching has been told nothing that matters.
+      // "while this is checked" was only true for a review. The backend returns
+      // draft for a rejection, for a claim weakened after admission, and for an
+      // admitted athlete with no analytics yet — telling all of them to sit
+      // tight would be the same silence in a friendlier font.
       const outcome = DECISION_COPY[verdict.rule] ?? `Submitted — ${verdict.decision}`
       toast(verdict.listing === 'listed'
         ? `${outcome} Your profile stays in the directory.`
-        : `${outcome} Your profile is not listed while this is checked.`)
+        : `${outcome} Your profile is not in the directory — see the decision below for why.`)
       await load()
     } catch (err) {
       setError(errorText(err))
