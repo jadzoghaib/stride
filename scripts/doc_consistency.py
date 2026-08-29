@@ -175,6 +175,23 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("00-executive-summary.md", "revenue forfeited by the 15% take",
      r"forfeits €([\d.]+)M of Y7 revenue", take_rate_delta() / 1e6, 0.1),
 
+    # --- the preliminary full draft ---------------------------------------
+    # A draft is exactly where a figure goes stale, and this one repeats numbers
+    # from six other documents. The infrastructure pair is pinned because the
+    # first version of it was wrong: it quoted a EUR 3.9M naive cost from the 9x
+    # egress *rate*, when total infrastructure differs by 3.6x — compute and
+    # storage are unaffected by the egress decision.
+    ("stride-business-plan-draft.md", "capital the plan needs",
+     r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
+    ("stride-business-plan-draft.md", "Y7 net revenue in the seven-year table",
+     r"€8\.40M \| €16\.20M \| €([\d.]+)M", ROWS[6]["revenue"] / 1e6, 0.02),
+    ("stride-business-plan-draft.md", "Y7 infrastructure, engineered",
+     r"\*\*€0\.008\*\* \| \*\*€(\d+)k\*\*", ROWS[6]["infra"] / 1e3, 1.0),
+    ("stride-business-plan-draft.md", "Y7 infrastructure, naive",
+     r"€0\.075 \| €([\d.]+)M", ROWS[6]["infra_naive"] / 1e6, 0.02),
+    ("stride-business-plan-draft.md", "Y10 gross adds at benchmark churn",
+     r"needs \*\*([\d.]+)M gross adds", churn_gross_adds()[1] / 1e6, 0.02),
+
     ("07-open-questions.md", "EUR 4.99 retention",
      r"€4\.99 retains (\d+)% of our take", retained(4.99) * 100, 0.5),
     ("07-open-questions.md", "EUR 9.99 retention",
