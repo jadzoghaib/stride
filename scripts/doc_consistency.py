@@ -175,6 +175,39 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("00-executive-summary.md", "revenue forfeited by the 15% take",
      r"forfeits €([\d.]+)M of Y7 revenue", take_rate_delta() / 1e6, 0.1),
 
+    # --- the preliminary full draft ---------------------------------------
+    # A draft is exactly where a figure goes stale, and this one repeats numbers
+    # from six other documents. The infrastructure pair is pinned because the
+    # first version of it was wrong: it quoted a EUR 3.9M naive cost from the 9x
+    # egress *rate*, when total infrastructure differs by 3.6x — compute and
+    # storage are unaffected by the egress decision.
+    ("stride-business-plan-draft.md", "capital the plan needs",
+     r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
+    # Y5, Y6 and Y7 each anchored by position rather than by quoting their
+    # neighbours. The first version hardcoded "EUR 8.40M | EUR 16.20M |" as the
+    # anchor for Y7, which made two unwatched figures load-bearing: drift in Y5
+    # would have failed the *Y7* claim as "not found" and named the wrong column.
+    ("stride-business-plan-draft.md", "Y5 net revenue in the seven-year table",
+     r"\| Net revenue \|(?: €[\d.]+M \|){4} €([\d.]+)M", ROWS[4]["revenue"] / 1e6, 0.02),
+    ("stride-business-plan-draft.md", "Y6 net revenue in the seven-year table",
+     r"\| Net revenue \|(?: €[\d.]+M \|){5} €([\d.]+)M", ROWS[5]["revenue"] / 1e6, 0.02),
+    ("stride-business-plan-draft.md", "Y7 net revenue in the seven-year table",
+     r"\| Net revenue \|(?: €[\d.]+M \|){6} €([\d.]+)M", ROWS[6]["revenue"] / 1e6, 0.02),
+
+    # The document describes the guard that checks it, so the guard checks that
+    # description too. Self-referential on purpose: this count is exactly the
+    # kind of figure that goes stale the moment anyone adds a claim.
+    ("stride-business-plan-draft.md", "number of pinned claims",
+     r"checks \*\*(\d+) prose\s+claims", lambda: len(CLAIMS), 0.1),
+    ("stride-business-plan-draft.md", "number of documents checked",
+     r"prose\s+claims across (\d+)\s+documents", lambda: len({c[0] for c in CLAIMS}), 0.1),
+    ("stride-business-plan-draft.md", "Y7 infrastructure, engineered",
+     r"\*\*€0\.008\*\* \| \*\*€(\d+)k\*\*", ROWS[6]["infra"] / 1e3, 1.0),
+    ("stride-business-plan-draft.md", "Y7 infrastructure, naive",
+     r"€0\.075 \| €([\d.]+)M", ROWS[6]["infra_naive"] / 1e6, 0.02),
+    ("stride-business-plan-draft.md", "Y10 gross adds at benchmark churn",
+     r"needs \*\*([\d.]+)M gross adds", churn_gross_adds()[1] / 1e6, 0.02),
+
     ("07-open-questions.md", "EUR 4.99 retention",
      r"€4\.99 retains (\d+)% of our take", retained(4.99) * 100, 0.5),
     ("07-open-questions.md", "EUR 9.99 retention",
@@ -295,6 +328,9 @@ def main() -> int:
         if not m:
             failures.append(f"{doc}: claim not found — {label}  /{pattern}/")
             continue
+        # `expected` may be a callable for a claim about CLAIMS itself, which
+        # cannot be evaluated while the list is still being built.
+        expected = expected() if callable(expected) else expected
         raw = m.group(1)
         # `([\d.]+)` can swallow a sentence-ending full stop, and a `(\d+)`
         # pattern against a prose figure that later gains a decimal silently
