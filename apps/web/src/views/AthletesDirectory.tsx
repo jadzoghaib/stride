@@ -97,7 +97,11 @@ export default function AthletesDirectory() {
     } catch (e) {
       if (mine === latest.current) setError(errorText(e))
     } finally {
-      if (mine === latest.current) setLoadingMore(false)
+      // Unconditionally, unlike the writes above. The generation guard protects
+      // *data* — rows and the cursor — from a stale response. `loadingMore` is
+      // this request's own spinner, and skipping it when superseded left the
+      // button disabled and reading "Loading…" with nothing left to arrive.
+      setLoadingMore(false)
     }
   }
 

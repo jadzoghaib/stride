@@ -91,6 +91,20 @@ def _club_floor(conn, club_id: int | None) -> float:
     return club_legitimacy(app)["nomination_floor"]
 
 
+def _admitted_via(via: str, granted: bool, listing: str, application: dict) -> str:
+    """How this profile got into the directory, or "" if it is not in it.
+
+    The middle case is the one worth naming: a verdict that would have delisted
+    somebody but was held back by `may_delist=False` — a nomination arriving for
+    an athlete the gate had already admitted. Clearing the marker there left a
+    listing the gate granted looking like one that predates it, which made it
+    grandfathered, which meant no later reviewer could take it away.
+    """
+    if granted:
+        return via
+    return "" if listing == "draft" else application["admitted_via"]
+
+
 def _evaluate(conn, application: dict, profile: dict, *, via: str,
               may_delist: bool = True) -> dict:
     """Score, decide, persist, and align what the directory shows. Idempotent.
@@ -161,7 +175,8 @@ def _evaluate(conn, application: dict, profile: dict, *, via: str,
         "UPDATE athlete_applications SET credibility = ?, decision = ?, decision_rule = ?,"
         " admitted_via = ?, policy_version = ?, decided_at = ? WHERE id = ?",
         (scored["credibility"], decision["decision"], decision["rule"],
-         (via if granted else ""), POLICY_VERSION, now_iso(), application["id"]))
+         _admitted_via(via, granted, listing, application), POLICY_VERSION,
+         now_iso(), application["id"]))
     conn.execute("UPDATE athlete_profiles SET status = ? WHERE id = ?",
                  (listing, profile["id"]))
 

@@ -595,13 +595,16 @@ def test_an_attached_post_with_no_metrics_is_unmeasured_not_zero(sponsor, athlet
 
     saved = db.execute("SELECT * FROM post_metrics WHERE post_id = ?", (post_id,)).fetchall()
     assert saved, "this test needs a post that starts out measured"
+    deleted = False
     try:
-        # inside the try, not before it: this database is shared for the whole
-        # session, and a restore that only runs on failures *after* the delete
-        # is a restore that can be skipped by the delete's own failure. The demo
-        # post is read by later tests, which would then quietly see reach 0.
+        # Inside the try so the restore covers everything after it — but flagged,
+        # because `post_metrics` has no unique key on post_id and `id` is
+        # generated. Re-inserting rows that were never removed would not undo
+        # anything; it would double this shared demo post's metrics, and every
+        # later test reading it would see twice the reach.
         db.execute("DELETE FROM post_metrics WHERE post_id = ?", (post_id,))
         db.commit()
+        deleted = True
 
         perf = sponsor.get(f"/api/deals/{deal_id}/performance").json()
         assert perf["delivered"]["posts"] == 1          # it is attached
@@ -610,12 +613,16 @@ def test_an_attached_post_with_no_metrics_is_unmeasured_not_zero(sponsor, athlet
         assert perf["variance_pct"] is None
         assert perf["deliverables"][0]["reach"] is None
     finally:
-        # session-scoped database: put the metrics back, column names read from
-        # the rows themselves so this works on either backend — minus `id`,
-        # which Postgres declares GENERATED ALWAYS and refuses to be told. The
-        # new ids are immaterial: nothing looks a metric up by id.
-        for m in saved:
-            keys = [k for k in m.keys() if k != "id"]
-            db.execute(f"INSERT INTO post_metrics ({', '.join(keys)}) VALUES"
-                       f" ({', '.join('?' for _ in keys)})", tuple(m[k] for k in keys))
-        db.commit()
+        # A condition, not an early `return`: returning from a `finally` discards
+        # whatever exception was in flight, so a failing assertion above would
+        # have been swallowed and the test would have passed in silence.
+        if deleted:
+            # session-scoped database: put the metrics back, column names read
+            # from the rows themselves so this works on either backend — minus
+            # `id`, which Postgres declares GENERATED ALWAYS and refuses to be
+            # told. The new ids are immaterial: nothing looks a metric up by id.
+            for m in saved:
+                keys = [k for k in m.keys() if k != "id"]
+                db.execute(f"INSERT INTO post_metrics ({', '.join(keys)}) VALUES"
+                           f" ({', '.join('?' for _ in keys)})", tuple(m[k] for k in keys))
+            db.commit()
