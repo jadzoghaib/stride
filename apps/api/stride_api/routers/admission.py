@@ -34,7 +34,8 @@ from creatorlens.events import log_event
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from ..admission import (ADMIT_AT, COMPETITION_LEVELS, PROOF_KINDS, PROOF_STATUSES,
+from ..admission import (ADMIT_AT, COMPETITION_LEVELS, DISQUALIFYING_RULES,
+                         PROOF_KINDS, PROOF_STATUSES,
                          POLICY_VERSION, admission_decision, age_from,
                          athlete_credibility, club_legitimacy)
 from ..auth import get_db, require_role
@@ -113,14 +114,14 @@ def _evaluate(conn, application: dict, profile: dict, *, via: str,
 
       * `admitted_via` set — the gate granted this listing, so the gate may take
         it back when the claim behind it is weakened;
-      * a rejected proof — somebody looked and it did not stand up, which is a
-        finding about the applicant and outranks anything they inherited.
+      * a disqualifying *rule* — see `DISQUALIFYING_RULES`. Keying this to the
+        proof status alone let a declared age below the minimum keep a
+        grandfathered listing, and the age gate is the one rule here that
+        nothing may buy its way past. Keying it to any `rejected` decision went
+        too far the other way: a claim scoring below the review band is a weak
+        application, not a finding, and a listing that predates the gate should
+        survive an athlete filling the form in badly.
     """
-    if may_delist:
-        pre_gate = (profile["status"] == "listed"
-                    and not application["admitted_via"]
-                    and application["proof_status"] != "rejected")
-        may_delist = not pre_gate
     scored = athlete_credibility({**application, "sport": profile["sport"]})
     social = _social_score(conn, profile["creatorlens_creator_id"])
     decision = admission_decision(
@@ -132,17 +133,35 @@ def _evaluate(conn, application: dict, profile: dict, *, via: str,
         scoreable=scored["scoreable"],
     )
     admitted = decision["decision"] == "admitted"
+
+    # Computed here rather than at the top, because it depends on the verdict:
+    # a rejection ends grandfathering, and only the decision knows about the age
+    # gate. `may_delist=False` from a caller still wins — a nomination may never
+    # lower a listing whatever it concludes.
+    if may_delist:
+        pre_gate = (profile["status"] == "listed"
+                    and not application["admitted_via"]
+                    and decision["rule"] not in DISQUALIFYING_RULES)
+        may_delist = not pre_gate
+
+    # Gate on legitimacy, tier on value: admitted with no analytics is still a
+    # draft profile, because there is nothing for a sponsor to look at yet.
+    granted = admitted and bool(profile["creatorlens_creator_id"])
+    listing = "listed" if granted else "draft"
+    if listing == "draft" and not may_delist:
+        listing = profile["status"]
+
+    # `admitted_via` records how the gate put someone in the directory, and is
+    # what later tells us their listing was earned here rather than inherited.
+    # Writing it on an admission that produced no listing — admitted, but no
+    # analytics to show — ended a grandfathered athlete's protection by
+    # succeeding: the next inconclusive review then delisted them on the
+    # strength of a listing the gate had never actually granted.
     conn.execute(
         "UPDATE athlete_applications SET credibility = ?, decision = ?, decision_rule = ?,"
         " admitted_via = ?, policy_version = ?, decided_at = ? WHERE id = ?",
         (scored["credibility"], decision["decision"], decision["rule"],
-         (via if admitted else ""), POLICY_VERSION, now_iso(), application["id"]))
-
-    # Gate on legitimacy, tier on value: admitted with no analytics is still a
-    # draft profile, because there is nothing for a sponsor to look at yet.
-    listing = ("listed" if admitted and profile["creatorlens_creator_id"] else "draft")
-    if listing == "draft" and not may_delist:
-        listing = profile["status"]
+         (via if granted else ""), POLICY_VERSION, now_iso(), application["id"]))
     conn.execute("UPDATE athlete_profiles SET status = ? WHERE id = ?",
                  (listing, profile["id"]))
 

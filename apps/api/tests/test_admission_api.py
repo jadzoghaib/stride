@@ -585,3 +585,42 @@ def test_but_a_rejected_proof_delists_even_a_pre_gate_listing(athlete, admin, db
     assert rejected.json()["listing"] == "draft"
     assert row(db, "SELECT status FROM athlete_profiles WHERE slug = 'kaia-mercer'"
                )["status"] == "draft"
+
+
+def test_grandfathering_does_not_survive_a_declared_age_below_the_minimum(athlete, db):
+    """The hole the first version of this rule left open.
+
+    Grandfathering ended on a rejected *proof*, so an athlete declaring an age
+    under 16 kept a pre-gate listing: the one rule in this module that
+    nothing is allowed to buy its way past, bought past by having been listed
+    first. It ends on a disqualifying rule now, of which there are two.
+    """
+    def status():
+        return row(db, "SELECT status FROM athlete_profiles WHERE slug = 'kaia-mercer'")["status"]
+
+    assert status() == "listed"
+    verdict = athlete.post("/api/athlete/application", json={
+        "competition_level": "regional", "years_competing": 2,
+        "birth_year": 2026 - 15, "proof_kind": "none", "proof_url": ""}).json()
+
+    assert verdict["rule"] == "under_minimum_age"
+    assert verdict["listing"] == "draft"
+    assert status() == "draft"
+
+
+def test_but_a_merely_weak_claim_keeps_a_listing_that_predates_the_gate(athlete, db):
+    """The other side of that line. Scoring below the review band is a shortage
+    of evidence, not a finding — the athlete has told us nothing disqualifying,
+    only nothing persuasive, and that must not cost them what they had."""
+    def status():
+        return row(db, "SELECT status FROM athlete_profiles WHERE slug = 'kaia-mercer'")["status"]
+
+    assert status() == "listed"
+    verdict = athlete.post("/api/athlete/application", json={
+        "competition_level": "local", "years_competing": 1, "birth_year": 2004,
+        "proof_kind": "none", "proof_url": ""}).json()
+
+    assert verdict["decision"] == "rejected"
+    assert verdict["rule"] == "credibility_below_review"
+    assert verdict["listing"] == "listed"
+    assert status() == "listed"

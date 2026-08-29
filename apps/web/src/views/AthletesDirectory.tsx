@@ -83,15 +83,21 @@ export default function AthletesDirectory() {
 
   const loadMore = async () => {
     if (!cursor || searching) return
+    // Same generation check as the search effect. Changing a filter while page
+    // two is in flight would otherwise append the *previous* query's rows to
+    // the new results and overwrite the cursor with a pointer into the old
+    // query — rows that do not match, presented as though they do.
+    const mine = latest.current
     setLoadingMore(true)
     try {
       const page = await api.get<AthletePage>(`/api/athletes?${params(cursor)}`)
+      if (mine !== latest.current) return
       setAthletes((a) => [...(a ?? []), ...page.athletes])
       setCursor(page.next_cursor)
     } catch (e) {
-      setError(errorText(e))
+      if (mine === latest.current) setError(errorText(e))
     } finally {
-      setLoadingMore(false)
+      if (mine === latest.current) setLoadingMore(false)
     }
   }
 

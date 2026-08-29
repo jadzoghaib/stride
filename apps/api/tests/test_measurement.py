@@ -595,9 +595,14 @@ def test_an_attached_post_with_no_metrics_is_unmeasured_not_zero(sponsor, athlet
 
     saved = db.execute("SELECT * FROM post_metrics WHERE post_id = ?", (post_id,)).fetchall()
     assert saved, "this test needs a post that starts out measured"
-    db.execute("DELETE FROM post_metrics WHERE post_id = ?", (post_id,))
-    db.commit()
     try:
+        # inside the try, not before it: this database is shared for the whole
+        # session, and a restore that only runs on failures *after* the delete
+        # is a restore that can be skipped by the delete's own failure. The demo
+        # post is read by later tests, which would then quietly see reach 0.
+        db.execute("DELETE FROM post_metrics WHERE post_id = ?", (post_id,))
+        db.commit()
+
         perf = sponsor.get(f"/api/deals/{deal_id}/performance").json()
         assert perf["delivered"]["posts"] == 1          # it is attached
         assert perf["delivered"]["reach"] is None        # and it is not measured
