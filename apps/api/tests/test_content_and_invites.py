@@ -19,17 +19,28 @@ def clean_slate(db):
 
     The database is session-scoped, and both subjects here are cumulative: an
     accepted invitation makes the next invitation a 409, and published content
-    piles up in every later feed. Restoring the seeded rosters rather than
-    deleting everything, because the demo clubs really do have members.
+    piles up in every later feed. Both tables are *restored* rather than
+    emptied, because the seed legitimately puts rows in each of them -- the demo
+    clubs really do have members, and the demo athletes really do have a wall.
+    A blanket DELETE would quietly strip the seeded wall for every test that
+    ran afterwards, which is a failure that would surface far from its cause.
     """
-    before = [dict(r) for r in rows(db, "SELECT * FROM club_members")]
+    def snapshot(table):
+        return [dict(r) for r in rows(db, f"SELECT * FROM {table}")]
+
+    def restore(table, saved):
+        db.execute(f"DELETE FROM {table}")
+        for r in saved:
+            keys = list(r)
+            db.execute(f"INSERT INTO {table} ({', '.join(keys)}) VALUES"
+                       f" ({', '.join('?' for _ in keys)})", tuple(r[k] for k in keys))
+
+    before = {t: snapshot(t) for t in ("club_members", "content_items")}
     yield
-    db.execute("DELETE FROM content_items")
-    db.execute("DELETE FROM club_members")
-    for m in before:
-        keys = [k for k in m if k != "id"]
-        db.execute(f"INSERT INTO club_members ({', '.join(keys)}) VALUES"
-                   f" ({', '.join('?' for _ in keys)})", tuple(m[k] for k in keys))
+    # content first: a course part references a course, so the parents have to
+    # go back in the same order they came out
+    for table in ("content_items", "club_members"):
+        restore(table, before[table])
     db.commit()
 
 
@@ -206,3 +217,69 @@ def test_an_invitation_can_only_be_answered_by_its_athlete(athlete, clubu, db):
     res = athlete.post(f"/api/athlete/invitations/{theirs['id']}/respond",
                        json={"action": "accept"})
     assert res.status_code == 404
+
+
+# ── the wall's other half ─────────────────────────────────────────
+
+def test_the_wall_carries_platform_posts_before_anything_is_published(client):
+    """A profile has to be worth opening on day one.
+
+    Nothing here has been published in Stride, and the wall is still not empty:
+    it carries what the athlete already posts on their own platforms, which is
+    the same data the score is computed from.
+    """
+    news = client.get("/api/athletes/kaia-mercer/news").json()
+    assert news, "a connected athlete has a wall before they write anything"
+    assert all({"platform", "title", "published_at", "permalink"} <= set(n) for n in news)
+    dates = [n["published_at"] for n in news]
+    assert dates == sorted(dates, reverse=True), "newest first"
+
+
+def test_the_public_wall_shows_no_metrics(client):
+    """Reach is the athlete's analytics and the sponsor's evidence. A fan gets
+    the post, not the numbers behind it."""
+    news = client.get("/api/athletes/kaia-mercer/news").json()
+    leaked = {k for n in news for k in n} & {"reach", "impressions", "likes", "comments",
+                                             "shares", "saves", "engagement_rate"}
+    assert leaked == set(), f"metrics on a public wall: {leaked}"
+
+
+def test_disconnecting_a_platform_empties_its_half_of_the_wall(client, db):
+    """RULE 4 on a surface it did not previously reach.
+
+    `own_posts` already honoured this; the public wall is newer, and is exactly
+    the place where continuing to show withdrawn data would be worst.
+    """
+    account = row(db, """
+        SELECT pa.id, pa.platform FROM platform_accounts pa
+        JOIN athlete_profiles a ON a.creatorlens_creator_id = pa.creator_id
+        WHERE a.slug = 'kaia-mercer' AND pa.connection_status = 'connected' LIMIT 1""")
+    before = {n["platform"] for n in client.get("/api/athletes/kaia-mercer/news").json()}
+    assert account["platform"] in before
+
+    db.execute("UPDATE platform_accounts SET connection_status = 'disconnected' WHERE id = ?",
+               (account["id"],))
+    db.commit()
+    try:
+        # counting rows would prove nothing: the wall is capped at `limit`, and
+        # the remaining platforms simply fill the gap. The claim is about which
+        # platform is allowed to supply it.
+        after = {n["platform"] for n in
+                 client.get("/api/athletes/kaia-mercer/news", params={"limit": 60}).json()}
+        assert account["platform"] not in after, "a withdrawn platform still fed the wall"
+        assert after, "and the others still do"
+    finally:
+        db.execute("UPDATE platform_accounts SET connection_status = 'connected' WHERE id = ?",
+                   (account["id"],))
+        db.commit()
+
+
+def test_an_athlete_with_nothing_connected_has_an_empty_wall_not_an_error(client, db):
+    db.execute("UPDATE athlete_profiles SET creatorlens_creator_id = NULL WHERE slug = 'lena-virtanen'")
+    db.commit()
+    res = client.get("/api/athletes/lena-virtanen/news")
+    assert res.status_code == 200 and res.json() == []
+
+
+def test_the_wall_of_an_unknown_athlete_is_a_404(client):
+    assert client.get("/api/athletes/nobody-at-all/news").status_code == 404

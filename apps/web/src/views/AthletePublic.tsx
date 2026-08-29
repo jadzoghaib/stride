@@ -2,17 +2,18 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Board } from '../components/Board'
 import { AudiencePanel } from '../components/charts'
-import { ContentList } from '../components/content'
+import { Courses, Wall } from '../components/content'
 import { LoadError, PageLoading, CoverageChip, DimensionGrid, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { fmtMoney } from '../lib/format'
-import type { AthletePublic as Athlete, ContentItem } from '../types'
+import type { AthletePublic as Athlete, ContentItem, NewsItem } from '../types'
 import { dealTypeLabel, meanScore } from '../types'
 
 export default function AthletePublicView() {
   const { slug } = useParams()
   const [a, setA] = useState<Athlete | null>(null)
   const [content, setContent] = useState<ContentItem[] | null>(null)
+  const [news, setNews] = useState<NewsItem[]>([])
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -20,6 +21,8 @@ export default function AthletePublicView() {
     // Its own request and its own failure: an athlete who has published nothing
     // is the common case, and a content error must not blank out the profile.
     api.get<ContentItem[]>(`/api/athletes/${slug}/content`).then(setContent).catch(() => setContent([]))
+    // The wall is not empty just because nothing has been published here yet.
+    api.get<NewsItem[]>(`/api/athletes/${slug}/news`).then(setNews).catch(() => setNews([]))
   }, [slug])
 
   if (!a) return error ? <LoadError text={error} /> : <PageLoading />
@@ -92,10 +95,16 @@ export default function AthletePublicView() {
         </Section>
       )}
 
-      {content && content.length > 0 && (
-        <Section title="Content">
-          <ContentList items={content}
-                       empty="Nothing published yet." />
+      {content && content.some((i) => i.kind === 'course') && (
+        <Section title="Courses">
+          <Courses items={content} />
+        </Section>
+      )}
+
+      {content && (content.length > 0 || news.length > 0) && (
+        <Section title="Wall"
+                 aside={<span className="meta">what they publish here, and what they post elsewhere</span>}>
+          <Wall items={content} news={news} empty="Nothing on the wall yet." />
         </Section>
       )}
 

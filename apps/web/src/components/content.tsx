@@ -13,8 +13,9 @@
  *  shape. There is deliberately no checkout: no payments stack exists yet, and
  *  a button that took money nowhere would be the one dishonest control here.
  */
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import type { ContentItem } from '../types'
+import type { ContentItem, NewsItem } from '../types'
 import { EmptyNote } from './ui'
 
 /** A session or an event is scarce -- it costs the author a day -- so when it
@@ -92,6 +93,116 @@ export function ContentList({ items, showAuthor = false, empty }: {
         </div>
       ))}
       {loose.map((i) => <ContentCard key={i.id} item={i} showAuthor={showAuthor} />)}
+    </div>
+  )
+}
+
+
+function stamp(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined,
+    { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+/** Something the athlete posted on their own platform. It is not for sale and
+ *  never locked -- it is already public, and it is what keeps a wall worth
+ *  opening on a week the athlete has published nothing here. */
+function NewsCard({ item }: { item: NewsItem }) {
+  return (
+    <article className="panel p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="cap text-ink-3">{item.platform}</span>
+        <h3 className="min-w-0 font-medium text-ink-2">{item.title}</h3>
+        <a href={item.permalink} target="_blank" rel="noreferrer noopener"
+           className="ml-auto meta hover:text-accent">Open on {item.platform} &rarr;</a>
+      </div>
+      <p className="meta mt-1">{stamp(item.published_at)}</p>
+    </article>
+  )
+}
+
+/** The catalogue: what an athlete or club sells that keeps its value.
+ *
+ *  Courses sit apart from the wall on purpose. A wall is a stream you scroll
+ *  past; a course is a product you come back to, and burying a twelve-week
+ *  block under last Tuesday's news is how you stop selling it.
+ */
+export function Courses({ items }: { items: ContentItem[] }) {
+  const courses = items.filter((i) => i.kind === 'course')
+  if (courses.length === 0) return null
+  const partsOf = (id: number) =>
+    items.filter((i) => i.part_of === id).sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+
+  return (
+    <div className="space-y-3">
+      {courses.map((c) => (
+        <div key={c.id}>
+          <ContentCard item={c} />
+          {partsOf(c.id).length > 0 && (
+            <div className="mt-2 space-y-2 border-l border-line pl-4">
+              {partsOf(c.id).map((p) => <ContentCard key={p.id} item={p} />)}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** The wall: everything this person is doing, newest first.
+ *
+ *  Two streams in one, because a fan does not care which system produced a
+ *  row -- what the athlete published here, and what they posted on their own
+ *  platforms. Courses are excluded; they have a shelf of their own.
+ *
+ *  Anything still to come is pinned above the stream. A session on a date in
+ *  the future is the most perishable thing on the page and the only one with a
+ *  deadline, so letting it scroll away under yesterday's news would be the one
+ *  ordering mistake that costs the athlete money.
+ */
+export function Wall({ items, news = [], showAuthor = false, empty }: {
+  items: ContentItem[]
+  news?: NewsItem[]
+  showAuthor?: boolean
+  empty: string
+}) {
+  const now = Date.now()
+  const stream = items.filter((i) => i.kind !== 'course' && !i.part_of)
+  const upcoming = stream
+    .filter((i) => i.starts_at && new Date(i.starts_at).getTime() > now)
+    .sort((a, b) => +new Date(a.starts_at as string) - +new Date(b.starts_at as string))
+  const pinned = new Set(upcoming.map((i) => i.id))
+
+  const entries: { key: string; at: number; node: ReactNode }[] = [
+    ...stream.filter((i) => !pinned.has(i.id)).map((i) => ({
+      key: `c${i.id}`,
+      at: new Date(i.published_at ?? 0).getTime(),
+      node: <ContentCard item={i} showAuthor={showAuthor} />,
+    })),
+    ...news.map((n, idx) => ({
+      key: `n${idx}-${n.permalink}`,
+      at: new Date(n.published_at).getTime(),
+      node: <NewsCard item={n} />,
+    })),
+  ].sort((a, b) => b.at - a.at)
+
+  if (upcoming.length === 0 && entries.length === 0) return <EmptyNote text={empty} />
+
+  return (
+    <div className="space-y-4">
+      {upcoming.length > 0 && (
+        <div>
+          <p className="cap mb-2 text-accent-ink">Coming up</p>
+          <div className="space-y-2">
+            {upcoming.map((i) => <ContentCard key={i.id} item={i} showAuthor={showAuthor} />)}
+          </div>
+        </div>
+      )}
+      {entries.length > 0 && (
+        <div className="space-y-2">
+          {upcoming.length > 0 && <p className="cap mb-2 text-ink-3">Earlier</p>}
+          {entries.map((e) => <div key={e.key}>{e.node}</div>)}
+        </div>
+      )}
     </div>
   )
 }

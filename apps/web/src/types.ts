@@ -488,6 +488,17 @@ export interface MatchesResponse {
 
 // ── content ─────────────────────────────────────────────────────────────────
 
+/** A post the athlete made on one of their own platforms, surfaced on their
+ *  wall. Deliberately carries no metrics: reach is the athlete's analytics and
+ *  the sponsor's evidence, and a fan gets the post, not the numbers behind it. */
+export interface NewsItem {
+  platform: string
+  title: string
+  published_at: string
+  permalink: string
+  content_type: string
+}
+
 export interface ContentItem {
   id: number
   kind: 'post' | 'course' | 'session' | 'event'

@@ -61,7 +61,7 @@ export default function AthleteContent() {
       <PageHeader
         eyebrow="Athlete"
         title="Content"
-        lede="Posts, courses, sessions and events. A course is a series — add parts to it and they travel together. Sessions and events are the scarce ones: they cost you a day, which is why they sit in the top tier."
+        lede="Two places. Courses are the shelf — a series someone buys once and comes back to. The wall is the stream: posts, sessions and events, mixed in with what you already post on your own platforms, newest first."
         aside={<span className="meta">{published} published · {items.length - published} draft</span>}
       />
 
@@ -97,9 +97,12 @@ export default function AthleteContent() {
         )}
       </Section>
 
-      <Section title="Everything else">
+      <Section
+        title="Wall"
+        aside={<span className="meta">your posts here, plus your own platform posts, newest first</span>}
+      >
         {loose.length === 0 ? (
-          <EmptyNote text="Nothing here yet." />
+          <EmptyNote text="Nothing from you yet — your wall is already showing your recent platform posts, so it is not empty to a visitor." />
         ) : (
           <div className="space-y-2">
             {loose.map((i) => (

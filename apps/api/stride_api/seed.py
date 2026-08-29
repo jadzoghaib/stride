@@ -405,6 +405,42 @@ def seed(conn: sqlite3.Connection) -> dict:
         _insert_user(conn, f"fan{i}@demo.stride", f"Fan Account {i}", "fan")
         summary["users"] += 1
 
+    # ---- a wall with something on it -----------------------------------------
+    # A profile whose wall is empty demos the shape of the feature and none of
+    # the point. Two authors, one of each kind that matters: a course with a
+    # part (the shelf), a dated event (the scarce one that pins to the top), and
+    # a free post (the one a stranger can actually read). Platform news fills in
+    # around them on its own, from the synced accounts above.
+    def _content(author: str, owner_id: int, **f) -> int:
+        cur = conn.execute(
+            f"INSERT INTO content_items ({author}, kind, title, body, min_tier, label,"
+            " sponsor_name, part_of, position, starts_at, location, capacity, status,"
+            " published_at, created_at) VALUES (?, ?, ?, ?, ?, '', '', ?, ?, ?, ?, ?,"
+            " 'published', ?, ?)",
+            (owner_id, f["kind"], f["title"], f.get("body", ""), f.get("min_tier", ""),
+             f.get("part_of"), f.get("position"), f.get("starts_at"), f.get("location", ""),
+             f.get("capacity"), now_iso(), now_iso()))
+        return cur.lastrowid
+
+    kaia = athlete_ids["kaia-mercer"]
+    block = _content("athlete_id", kaia, kind="course", title="Twelve-week hill block",
+                     body="A winter of climbing, week by week, with the sessions I actually ran.",
+                     min_tier="insider")
+    _content("athlete_id", kaia, kind="post", title="Week 1 — easy volume", part_of=block,
+             position=1, min_tier="insider",
+             body="Two sessions, both easy. The point of week one is finishing it.")
+    _content("athlete_id", kaia, kind="event", title="Come train with me — Montseny",
+             min_tier="inner_circle", starts_at="2027-03-14T09:00:00Z",
+             location="Montseny", capacity=8,
+             body="A morning on the trails, eight people, breakfast after.")
+    _content("athlete_id", kaia, kind="post", title="Race report: what went wrong on the descent",
+             min_tier="", body="I went out too hard and paid for it in the last three kilometres."
+                               " Splits and what I would do differently.")
+    _content("club_id", meridian["id"], kind="session", title="Open training — first team",
+             min_tier="supporter", starts_at="2027-04-08T17:30:00Z",
+             location="Meridian Ground", capacity=40,
+             body="Watch a full session from the touchline, then meet the squad.")
+
     conn.commit()
     return summary
 
