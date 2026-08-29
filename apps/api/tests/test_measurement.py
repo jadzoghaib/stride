@@ -605,10 +605,12 @@ def test_an_attached_post_with_no_metrics_is_unmeasured_not_zero(sponsor, athlet
         assert perf["variance_pct"] is None
         assert perf["deliverables"][0]["reach"] is None
     finally:
-        # session-scoped database: put the metrics back, column names and all,
-        # read from the rows themselves so this works on either backend
+        # session-scoped database: put the metrics back, column names read from
+        # the rows themselves so this works on either backend — minus `id`,
+        # which Postgres declares GENERATED ALWAYS and refuses to be told. The
+        # new ids are immaterial: nothing looks a metric up by id.
         for m in saved:
-            keys = list(m.keys())
+            keys = [k for k in m.keys() if k != "id"]
             db.execute(f"INSERT INTO post_metrics ({', '.join(keys)}) VALUES"
                        f" ({', '.join('?' for _ in keys)})", tuple(m[k] for k in keys))
         db.commit()
