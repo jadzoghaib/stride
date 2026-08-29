@@ -54,7 +54,7 @@ fact you can demonstrate, not a milestone you can assert.
 | **Seed** | €2.0M | €10M | €80k MRR · fan churn < 8%/mo · CAC payback < 9mo · 2nd market opened · 30+ paying sponsors | Team to 24, second and third market, moderation infrastructure |
 | **Series A** | €8.0M | €40M | €300k MRR · net revenue retention > 110% · sponsorship take > 25% of revenue · unit economics stable across 3 markets | EU-wide, sales org, managed services |
 
-**The plan needs €952k. The rounds above raise €2.4M before Series A.** The
+**The plan needs €625k. The rounds above raise €2.4M before Series A.** The
 difference is deliberate: raising only what the model needs leaves no room for
 the assumption that turns out wrong, and a company that runs out of cash in Y3
 at the trough dies with a working product. Raise the buffer; do not spend it

@@ -114,6 +114,26 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"Verification peaks at\s+€([\d.]+)k a year",
      max(r["verification"] for r in ROWS) / 1e3, 0.6),
 
+    # --- the executive summary, and the figure it shares with 04 -----------
+    # 04 said the plan needed EUR 952k while 03 and the README said 625k: the
+    # same quantity, two numbers, in one document set. Nothing watched 04's copy,
+    # and it went stale when working capital and capex entered the free cash
+    # flow. A pitch reader finding that is a pitch reader who stops believing the
+    # rest, so both places are pinned now.
+    ("04-capital-and-valuation.md", "capital the plan needs",
+     r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
+    ("00-executive-summary.md", "capital the plan needs",
+     r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
+    ("00-executive-summary.md", "first EBITDA-positive year",
+     r"EBITDA turns positive in \*\*Y(\d+)\*\*",
+     next(r["year"] for r in ROWS if r["ebitda"] > 0), 0.1),
+    ("00-executive-summary.md", "fan take rate",
+     r"\*\*(\d+)% on\s+fan revenue", A.take_fan * 100, 0.1),
+    ("00-executive-summary.md", "sponsorship take rate",
+     r"fan revenue, (\d+)% on sponsorship\*\*", A.take_sponsorship * 100, 0.1),
+    ("00-executive-summary.md", "revenue forfeited by the 15% take",
+     r"forfeits €([\d.]+)M of Y7 revenue", take_rate_delta() / 1e6, 0.1),
+
     ("07-open-questions.md", "EUR 4.99 retention",
      r"€4\.99 retains (\d+)% of our take", retained(4.99) * 100, 0.5),
     ("07-open-questions.md", "EUR 9.99 retention",
