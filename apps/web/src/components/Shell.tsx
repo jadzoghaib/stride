@@ -15,7 +15,6 @@ const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]>
     { to: '/athlete', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/athlete/deals', label: 'Deals', icon: Briefcase },
     { to: '/athlete/profile', label: 'Profile', icon: Users },
-    { to: '/athlete/application', label: 'Eligibility', icon: BadgeCheck },
     { to: '/athletes', label: 'Directory', icon: Compass },
     { to: '/clubs', label: 'Clubs', icon: Shield },
   ],
@@ -32,7 +31,6 @@ const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]>
   ],
   club: [
     { to: '/club', label: 'Club HQ', icon: LayoutDashboard },
-    { to: '/club/eligibility', label: 'Eligibility', icon: BadgeCheck },
     { to: '/athletes', label: 'Directory', icon: Compass },
     { to: '/clubs', label: 'Clubs', icon: Shield },
   ],

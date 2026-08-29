@@ -187,6 +187,16 @@ export default function ClubDashboard() {
 
       <Section title="Club profile">
         <ProfileForm editable={ws.editable} onSaved={load} />
+        {/* Eligibility left the nav when it became a step of signing up, which
+            left "finish later" pointing at a page with no way back to it. A club
+            cannot nominate until this is checked, so the route has to exist. */}
+        <p className="meta mt-4">
+          Nominating athletes requires a verified club —{' '}
+          <Link to="/club/eligibility" className="text-accent-ink underline underline-offset-2">
+            see your eligibility application and its verdict
+          </Link>
+          .
+        </p>
       </Section>
       </div>
 

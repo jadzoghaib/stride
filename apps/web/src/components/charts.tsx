@@ -11,7 +11,7 @@
  *  themes, and they are legible on both grounds.
  */
 
-import type { ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 
 const AGE_ORDER = ['13-17', '18-24', '25-34', '35-44', '45-54', '55+']
 
@@ -33,6 +33,70 @@ function ChartCard({ title, children }: { title: string; children: ReactNode }) 
   )
 }
 
+/** A cursor-following tooltip, and the hovered key for cross-highlighting.
+ *
+ *  Every chart here shipped with an SVG `<title>`, which is a tooltip in the
+ *  same sense that a fire escape is a lift: it works, roughly a second later,
+ *  in the operating system's font, with no indication of which mark it belongs
+ *  to. The `key` is returned alongside so a chart can dim what is not hovered
+ *  and light up the matching row in its legend. */
+function useHover() {
+  const box = useRef<HTMLDivElement>(null)
+  const [tip, setTip] = useState<{ text: string; key: string; x: number; y: number } | null>(null)
+
+  const at = (e: { clientX: number; clientY: number }) => {
+    const r = box.current?.getBoundingClientRect()
+    return r ? { x: e.clientX - r.left, y: e.clientY - r.top } : { x: 0, y: 0 }
+  }
+  const enter = (key: string, text: string) => (e: React.MouseEvent) =>
+    setTip({ key, text, ...at(e) })
+  const move = (e: React.MouseEvent) => setTip((t) => (t ? { ...t, ...at(e) } : t))
+  const leave = () => setTip(null)
+  /** Spread on each mark. Four jobs:
+   *
+   *  - enter/leave per mark, because the wrapper's own leave fires only at the
+   *    edge of the chart, so the tip and the dimming used to survive the pointer
+   *    moving into empty space between marks;
+   *  - focus/blur, so the same tip is reachable with a keyboard;
+   *  - `aria-label` rather than an SVG `<title>`. `<title>` is what a screen
+   *    reader reads *and* what the browser renders as its own delayed tooltip,
+   *    so keeping it beside this one showed two tooltips for the same mark.
+   *    `aria-label` gives the description without the second tooltip. */
+  const on = (key: string, text: string) => ({
+    onMouseEnter: enter(key, text),
+    onMouseLeave: leave,
+    onFocus: (e: React.FocusEvent) => {
+      const r = box.current?.getBoundingClientRect()
+      const m = (e.target as SVGGraphicsElement).getBoundingClientRect()
+      setTip({ key, text, x: m.left - (r?.left ?? 0) + m.width / 2, y: m.top - (r?.top ?? 0) })
+    },
+    onBlur: leave,
+    tabIndex: 0,
+    role: 'img',
+    'aria-label': text,
+  })
+
+  const Tip = () =>
+    tip ? (
+      <div
+        className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[calc(100%+12px)]
+                   whitespace-nowrap rounded border border-line-strong bg-panel px-2.5 py-1.5
+                   font-mono text-[11px] text-ink shadow-lift"
+        style={{ left: tip.x, top: tip.y }}
+      >
+        {tip.text}
+      </div>
+    ) : null
+
+  return { box, key: tip?.key ?? null, enter, on, move, leave, Tip }
+}
+
+/** Dim what is not being hovered. Nothing dims until something is hovered, so
+ *  the chart's resting state is unchanged. */
+const focus = (hovered: string | null, key: string) =>
+  hovered && hovered !== key ? 'opacity-35' : 'opacity-100'
+
+
 // ── Age: bar chart ───────────────────────────────────────────────────────────
 
 export function AgeBars({ data }: { data: Record<string, number> }) {
@@ -41,8 +105,11 @@ export function AgeBars({ data }: { data: Record<string, number> }) {
   const W = 320
   const H = 150
   const bw = W / buckets.length
+  // `hov`, not `h`: the bar height inside the map below is already called `h`
+  const hov = useHover()
   return (
     <ChartCard title="Age">
+      <div ref={hov.box} className="relative" onMouseMove={hov.move} onMouseLeave={hov.leave}>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Audience by age">
         {buckets.map((b, i) => {
           const h = (data[b] / max) * (H - 46)
@@ -50,8 +117,11 @@ export function AgeBars({ data }: { data: Record<string, number> }) {
           const y = H - 26 - h
           const peak = data[b] === max
           return (
-            <g key={b} className="transition-opacity hover:opacity-80">
-              <title>{`${b}: ${pct(data[b])}`}</title>
+            <g
+              key={b}
+              className={`cursor-default transition-opacity ${focus(hov.key, b)}`}
+              {...hov.on(b, `${b} · ${pct(data[b])} of audience`)}
+            >
               {/* the modal bucket carries the accent; the rest stay neutral so
                   the shape of the distribution reads before the colour does */}
               <rect
@@ -79,6 +149,8 @@ export function AgeBars({ data }: { data: Record<string, number> }) {
           )
         })}
       </svg>
+      <hov.Tip />
+      </div>
     </ChartCard>
   )
 }
@@ -105,25 +177,39 @@ export function GenderDonut({ data }: { data: Record<string, number> }) {
     const d = `M ${p(s, R)} A ${R} ${R} 0 ${large} 1 ${p(e, R)} L ${p(e, r)} A ${r} ${r} 0 ${large} 0 ${p(s, r)} Z`
     return { key, color, frac, d }
   })
+  const h = useHover()
   return (
     <ChartCard title="Gender">
+      <div ref={h.box} className="relative" onMouseMove={h.move} onMouseLeave={h.leave}>
       <div className="flex items-center gap-4">
         <svg viewBox="0 0 124 124" className="w-28 shrink-0" role="img" aria-label="Audience by gender">
           {arcs.map((a) => (
-            <path key={a.key} d={a.d} fill={a.color} className="transition-opacity hover:opacity-80">
-              <title>{`${a.key}: ${pct(a.frac)}`}</title>
-            </path>
+            <path
+              key={a.key}
+              d={a.d}
+              fill={a.color}
+              className={`cursor-default transition-opacity ${focus(h.key, a.key)}`}
+              {...h.on(a.key, `${a.key} · ${pct(a.frac)} of audience`)}
+            />
           ))}
         </svg>
         <div className="space-y-1.5 text-xs">
           {arcs.map((a) => (
-            <div key={a.key} className="flex items-center gap-2">
+            <div
+              key={a.key}
+              className={`flex items-center gap-2 rounded px-1 transition-colors ${
+                h.key === a.key ? 'bg-raised' : ''
+              }`}
+              {...h.on(a.key, `${a.key} · ${pct(a.frac)} of audience`)}
+            >
               <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: a.color }} />
               <span className="capitalize text-ink-2">{a.key}</span>
               <span className="tnum ml-auto pl-3 font-display font-semibold text-ink">{pct(a.frac)}</span>
             </div>
           ))}
         </div>
+      </div>
+      <h.Tip />
       </div>
     </ChartCard>
   )
@@ -179,6 +265,7 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
    *  A fixed candidate order keeps placement stable between renders — a
    *  direction derived from the cluster's centre of mass just aims the label at
    *  whichever neighbour happens to be nearest. */
+  const h = useHover()
   const bubbles = mapped.map((b, i) => {
     const covered = mapped.some((o, j) => j < i && Math.hypot(o.x - b.x, o.y - b.y) < o.r)
     if (b.r >= 11 && !covered) return { ...b, inside: true, lx: b.x, ly: b.y + 3.5 }
@@ -198,6 +285,7 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
 
   return (
     <ChartCard title="Countries">
+      <div ref={h.box} className="relative" onMouseMove={h.move} onMouseLeave={h.leave}>
       <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded bg-ground-deep" role="img" aria-label="Audience by country">
           {/* graticule */}
@@ -226,8 +314,11 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
           {/* equator hint */}
           <line x1={8} y1={py(0)} x2={W - 8} y2={py(0)} className="stroke-line-strong" strokeWidth={1} strokeDasharray="3 5" />
           {bubbles.map((b) => (
-            <g key={b.code} className="transition-opacity hover:opacity-85">
-              <title>{`${CENTROIDS[b.code].name}: ${pct(b.share)}`}</title>
+            <g
+              key={b.code}
+              className={`cursor-default transition-opacity ${focus(h.key, b.code)}`}
+              {...h.on(b.code, `${CENTROIDS[b.code].name} · ${pct(b.share)} of audience`)}
+            >
               <circle
                 cx={b.x}
                 cy={b.y}
@@ -255,8 +346,20 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
           ))}
         </svg>
         <div className="space-y-1.5 self-center text-xs">
+          {/* Cross-highlighted with the map: hovering either lights the other,
+              which is the point of showing a chart and a table of the same
+              numbers side by side. `OTHER` has no bubble, so it dims nothing. */}
           {ranked.slice(0, 6).map(([code, share]) => (
-            <div key={code} className="flex items-center gap-2">
+            <div
+              key={code}
+              className={`flex items-center gap-2 rounded px-1 transition-colors ${
+                h.key === code ? 'bg-raised' : ''
+              }`}
+              {...h.on(
+                CENTROIDS[code] ? code : '',
+                `${CENTROIDS[code]?.name ?? code} · ${pct(share)} of audience`,
+              )}
+            >
               <span className="w-8 font-display font-semibold uppercase tracking-board text-ink-2">{code}</span>
               <span className="bar h-1.5 flex-1">
                 <i style={{ width: `${(100 * share) / (ranked[0][1] || 1)}%` }} />
@@ -265,6 +368,8 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
             </div>
           ))}
         </div>
+      </div>
+      <h.Tip />
       </div>
     </ChartCard>
   )

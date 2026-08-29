@@ -3,10 +3,67 @@ import { Link } from 'react-router-dom'
 import { Avatar, CoverageChip, EmptyNote, LoadError, PageHeader, PageLoading } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
-import type { AthletePublic } from '../../types'
+import type { AthletePublic, Facets } from '../../types'
 
-const INTERESTS = ['Athletics', 'Football', 'Basketball', 'Tennis', 'Cycling', 'Swimming', 'Boxing', 'MMA',
+// Kept only as the order to show first; the live list comes from the facets so
+// a sport nobody has yet does not appear, and a new one does not need a deploy.
+const INTEREST_ORDER = ['Athletics', 'Football', 'Basketball', 'Tennis', 'Cycling', 'Swimming', 'Boxing', 'MMA',
   'Surfing', 'Climbing', 'Golf', 'fitness', 'endurance', 'travel', 'wellness', 'lifestyle']
+
+/** Module scope, not inside `Discover`: a component declared in a render body is
+ *  a new type each time, so every state change remounted every card and dropped
+ *  focus from whichever Follow button was being used. */
+function DiscoverCard({ a, rank, me, onFollow }: {
+  a: AthletePublic
+  rank: number | null
+  me: boolean
+  onFollow: (a: AthletePublic) => void
+}) {
+  return (
+          <div
+            className={`panel panel-hover p-4 ${
+              rank === 0 ? 'border-accent/70 bg-accent/[0.04]' : ''
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Avatar name={a.display_name} size={42} />
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link to={`/athletes/${a.slug}`} className="font-medium text-ink hover:text-accent">
+                    {a.display_name}
+                  </Link>
+                  {rank === 0 && (
+                    <span className="rounded-full bg-accent px-2 py-0.5 font-display text-[10px]
+                                     font-bold uppercase tracking-board text-accent-on">
+                      Best match
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-ink-3">{a.sport} · {a.country}</div>
+              </div>
+              <div className="ml-auto flex items-center gap-2">
+                {rank !== null && a.affinity != null && (
+                  <span className="tnum font-display text-lg font-bold text-ink" title="Affinity score">
+                    {Math.round(a.affinity)}
+                  </span>
+                )}
+                <CoverageChip coverage={a.score?.coverage ?? null} />
+                {me && (
+                  <button className={`btn px-3 py-1 text-xs ${a.following ? 'border-accent text-ink' : ''}`}
+                          onClick={() => onFollow(a)}>
+                    {a.following ? 'Following' : 'Follow'}
+                  </button>
+                )}
+              </div>
+            </div>
+            {(a.reasons?.length ?? 0) > 0 && (
+              <ul className="mt-3 space-y-0.5 text-xs text-ink-3">
+                {a.reasons!.map((r) => <li key={r}>· {r}</li>)}
+              </ul>
+            )}
+          </div>
+  )
+}
 
 export default function Discover() {
   const { me } = useAuth()
@@ -14,6 +71,30 @@ export default function Discover() {
   const [country, setCountry] = useState('')
   const [athletes, setAthletes] = useState<AthletePublic[] | null>(null)
   const [error, setError] = useState('')
+  // The interests offered are the sports and themes that actually exist. The
+  // constant above only decides what comes first — a hard-coded list would both
+  // offer sports nobody competes in and hide the first athlete in a new one.
+  const [facets, setFacets] = useState<Facets | null>(null)
+  const [facetsFailed, setFacetsFailed] = useState(false)
+  useEffect(() => {
+    api.get<Facets>('/api/athletes/facets')
+      .then(setFacets)
+      .catch(() => setFacetsFailed(true))
+  }, [])
+  const interests = useMemo(() => {
+    // Sports and topics overlap — "Football" the sport and "football" the topic
+    // are the same server-side interest, and rendering both gave two buttons
+    // that did the same thing. First spelling seen wins.
+    const seen = new Map<string, string>()
+    for (const v of [...(facets?.sports ?? []), ...(facets?.topics ?? [])]) {
+      if (!seen.has(v.toLowerCase())) seen.set(v.toLowerCase(), v)
+    }
+    const rank = (v: string) => {
+      const i = INTEREST_ORDER.findIndex((o) => o.toLowerCase() === v.toLowerCase())
+      return i === -1 ? INTEREST_ORDER.length : i
+    }
+    return [...seen.values()].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
+  }, [facets])
 
   const query = useMemo(() => {
     const p = new URLSearchParams()
@@ -52,7 +133,12 @@ export default function Discover() {
       />
 
       <div className="flex flex-wrap items-center gap-2">
-        {INTERESTS.map((i) => (
+        {facetsFailed && (
+          <span className="meta text-critical">
+            Interest filters could not be loaded — showing everything.
+          </span>
+        )}
+        {interests.map((i: string) => (
           <button key={i}
                   onClick={() => setSelected((s) => (s.includes(i) ? s.filter((x) => x !== i) : [...s, i]))}
                   className={`tag cursor-pointer ${selected.includes(i) ? 'border-accent text-ink' : ''}`}>
@@ -71,35 +157,45 @@ export default function Discover() {
 
       {!athletes && <div className="mt-6"><PageLoading rows={2} /></div>}
 
-      <div className="mt-6 grid gap-3 md:grid-cols-2">
-        {athletes?.map((a) => (
-          <div key={a.id} className="panel panel-hover p-4">
-            <div className="flex items-center gap-3">
-              <Avatar name={a.display_name} size={42} />
-              <div className="min-w-0">
-                <Link to={`/athletes/${a.slug}`} className="font-medium text-ink hover:text-accent">
-                  {a.display_name}
-                </Link>
-                <div className="text-xs text-ink-3">{a.sport} · {a.country}</div>
-              </div>
-              <div className="ml-auto flex items-center gap-2">
-                <CoverageChip coverage={a.score?.coverage ?? null} />
-                {me && (
-                  <button className={`btn px-3 py-1 text-xs ${a.following ? 'border-accent text-ink' : ''}`}
-                          onClick={() => toggleFollow(a)}>
-                    {a.following ? 'Following' : 'Follow'}
-                  </button>
-                )}
-              </div>
-            </div>
-            {(a.reasons?.length ?? 0) > 0 && (
-              <ul className="mt-3 space-y-0.5 text-xs text-ink-3">
-                {a.reasons!.map((r) => <li key={r}>· {r}</li>)}
-              </ul>
+      {/* The ranking already produced an order and a reason for it; rendering
+          every card the same way threw that away. The top three are marked as
+          recommended and the best of them carries the accent, so the list reads
+          as ranked rather than merely sorted. */}
+      {(() => {
+        if (!athletes) return null
+        const top = athletes.slice(0, 3)
+        const rest = athletes.slice(3)
+
+        return (
+          <>
+            {top.length > 0 && (
+              <>
+                <div className="mt-6 flex items-baseline justify-between gap-3 border-b border-line pb-2">
+                  <span className="cap">Recommended for you</span>
+                  <span className="meta">ranked on your interests — every card says why</span>
+                </div>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  {top.map((a, i) => (
+                    <DiscoverCard key={a.id} a={a} rank={i} me={!!me} onFollow={toggleFollow} />
+                  ))}
+                </div>
+              </>
             )}
-          </div>
-        ))}
-      </div>
+            {rest.length > 0 && (
+              <>
+                <div className="mt-8 border-b border-line pb-2">
+                  <span className="cap">More athletes</span>
+                </div>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  {rest.map((a) => (
+                    <DiscoverCard key={a.id} a={a} rank={null} me={!!me} onFollow={toggleFollow} />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        )
+      })()}
       {athletes && athletes.length === 0 && <EmptyNote text="No athletes match those filters yet." />}
     </div>
   )

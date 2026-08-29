@@ -461,6 +461,16 @@ export const proofStatusLabel = (status: string) =>
 
 /** The directory is paged: a keyset cursor, not an offset, because the listed
  *  set shifts every time an athlete is admitted or delisted. */
+export interface Facets {
+  sports: string[]
+  countries: string[]
+  /** ISO codes — the buckets audience demographics use, and the only thing
+   *  campaign targeting can be compared against. Not the same vocabulary as
+   *  `countries`, which are profile countries as full names. */
+  audience_countries: string[]
+  topics: string[]
+}
+
 export interface AthletePage {
   athletes: AthletePublic[]
   next_cursor: string | null

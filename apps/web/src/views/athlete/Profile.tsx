@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { LoadError, PageHeader, PageLoading, Section } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { useToast } from '../../lib/toast'
@@ -103,6 +104,16 @@ export default function AthleteProfile() {
             </button>
           ))}
         </div>
+        {/* Eligibility left the primary nav when it became a step of signing up.
+            It belongs here instead: this is the screen where an athlete notices
+            they are Draft, and therefore the screen where they need the reason. */}
+        <p className="meta mt-3">
+          Listing also depends on your eligibility review —{' '}
+          <Link to="/athlete/application" className="text-accent-ink underline underline-offset-2">
+            see your application and its verdict
+          </Link>
+          .
+        </p>
       </Section>
 
       <div className="mt-8 flex items-center gap-3">
