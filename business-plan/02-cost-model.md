@@ -16,7 +16,7 @@ most of the cost, and it lands on our commission, not on the athlete's share.
 | €4.99 | €0.75 | €0.34 | €0.40 | 54% |
 | €9.99 | €1.50 | €0.44 | €1.06 | 71% |
 | €24.99 | €3.75 | €0.72 | €3.02 | 81% |
-| €89.00 | €13.35 | €1.94 | €11.41 | 85% |
+| €89.00 (annual) | €13.35 | €1.94 | €11.41 | 85% |
 <!-- /MODEL:unit_economics -->
 
 **Read that first row again.** At a €4.99 tier, nearly half our commission goes to the

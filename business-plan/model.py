@@ -674,12 +674,18 @@ def unit_economics() -> str:
     import market_model
 
     rows = []
-    for price in (*market_model.TIER_PRICES, market_model.SEASON_PASS_EUR):
+    tiers = [(p, "") for p in market_model.TIER_PRICES]
+    # The season pass is the only annual row, under a header that says monthly.
+    # The hand-typed table it replaced carried the annotation; losing it made the
+    # pass read as a EUR 89/month tier, directly under a paragraph arguing for
+    # annual billing.
+    tiers.append((market_model.SEASON_PASS_EUR, " (annual)"))
+    for price, period in tiers:
         take = price * A.take_fan
         psp = price * A.psp_pct + A.psp_fixed_eur
         net = take - psp
         rows.append([
-            f"€{price:,.2f}",
+            f"€{price:,.2f}{period}",
             f"€{take:,.2f}",
             f"€{psp:,.2f}",
             f"€{net:,.2f}",
