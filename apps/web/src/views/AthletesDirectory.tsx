@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar, CoverageChip, EmptyNote, LoadError, Meter, PageHeader, PageLoading } from '../components/ui'
 import { api, errorText } from '../lib/api'
@@ -34,7 +34,12 @@ export default function AthletesDirectory() {
   /** Typing is not a query. Every keystroke used to be a request that ran a
    *  LIKE across the directory and a score lookup per row; the search box now
    *  settles first. 250ms is below the threshold where a filter feels laggy and
-   *  well above a typing cadence. */
+   *  well above a typing cadence.
+   *
+   *  The input binds to `typed` and only this timer writes `q`. Binding it to
+   *  `q` directly — which it did — left this timer running over a value nothing
+   *  produced, so every keystroke still fetched and the debounce was decoration.
+   */
   const [typed, setTyped] = useState('')
   useEffect(() => {
     const t = setTimeout(() => setQ(typed), 250)
@@ -50,24 +55,52 @@ export default function AthletesDirectory() {
     return p
   }
 
+  const [searching, setSearching] = useState(false)
+  //: Which query the visible rows belong to. Keeping the old results on screen
+  //  is what makes the box usable, and it is also what makes a late response
+  //  dangerous: two searches in flight can resolve out of order, and the loser
+  //  would quietly repaint the table with rows for a query the user has already
+  //  moved past. Only the newest request is allowed to write anything.
+  const latest = useRef(0)
   useEffect(() => {
     setError('')
-    setAthletes(null)
+    // Not `setAthletes(null)`. That tripped the `!athletes` guard below, which
+    // returns a full-page skeleton — unmounting the search box mid-word, so the
+    // field lost focus and dropped the keystroke that triggered it. The previous
+    // results stay on screen while the next ones load, which is also the calmer
+    // thing to look at.
+    const mine = ++latest.current
+    setSearching(true)
     api.get<AthletePage>(`/api/athletes?${params()}`)
-      .then((page) => { setAthletes(page.athletes); setCursor(page.next_cursor) })
-      .catch((e) => setError(errorText(e)))
+      .then((page) => {
+        if (mine !== latest.current) return
+        setAthletes(page.athletes)
+        setCursor(page.next_cursor)
+      })
+      .catch((e) => { if (mine === latest.current) setError(errorText(e)) })
+      .finally(() => { if (mine === latest.current) setSearching(false) })
   }, [sport, country, q])
 
   const loadMore = async () => {
-    if (!cursor) return
+    if (!cursor || searching) return
+    // Same generation check as the search effect. Changing a filter while page
+    // two is in flight would otherwise append the *previous* query's rows to
+    // the new results and overwrite the cursor with a pointer into the old
+    // query — rows that do not match, presented as though they do.
+    const mine = latest.current
     setLoadingMore(true)
     try {
       const page = await api.get<AthletePage>(`/api/athletes?${params(cursor)}`)
+      if (mine !== latest.current) return
       setAthletes((a) => [...(a ?? []), ...page.athletes])
       setCursor(page.next_cursor)
     } catch (e) {
-      setError(errorText(e))
+      if (mine === latest.current) setError(errorText(e))
     } finally {
+      // Unconditionally, unlike the writes above. The generation guard protects
+      // *data* — rows and the cursor — from a stale response. `loadingMore` is
+      // this request's own spinner, and skipping it when superseded left the
+      // button disabled and reading "Loading…" with nothing left to arrive.
       setLoadingMore(false)
     }
   }
@@ -112,13 +145,23 @@ export default function AthletesDirectory() {
         }
       />
 
-      <div className="flex flex-wrap gap-2">
-        <input
-          className="field w-56 py-1.5 text-sm"
-          placeholder="Search name or sport"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative">
+          <input
+            className="field w-56 py-1.5 pr-[5.5rem] text-sm"
+            placeholder="Search name or sport"
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            aria-busy={searching}
+          />
+          {/* Keeping the previous results on screen means nothing else moves
+              while a search runs, so this is the only sign it is running. */}
+          {searching && (
+            <span className="meta absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-3">
+              searching…
+            </span>
+          )}
+        </div>
         <select className="field w-44 py-1.5 text-sm" value={sport} onChange={(e) => setSport(e.target.value)}>
           <option value="">All sports</option>
           {facets.sports.map((s) => (
@@ -194,7 +237,10 @@ export default function AthletesDirectory() {
         </table>
         {cursor && (
           <div className="mt-4 flex justify-center">
-            <button className="btn" disabled={loadingMore} onClick={loadMore}>
+            {/* Disabled mid-search: `cursor` still points into the *previous*
+                query's results, so paging now would append rows the current
+                filters exclude — and they would look like matches. */}
+            <button className="btn" disabled={loadingMore || searching} onClick={loadMore}>
               {loadingMore ? 'Loading…' : 'Show more athletes'}
             </button>
           </div>

@@ -111,6 +111,15 @@ ADMIT_AT = 55.0
 REVIEW_AT = 25.0
 
 MIN_AGE = 16                    # see business-plan/05-product-gaps.md — the age model
+
+#: Rules that are findings about the applicant rather than a shortage of
+#: evidence about them. The distinction matters exactly once — a profile listed
+#: before this gate existed keeps that listing through an insufficient claim,
+#: because an application is a request to be admitted and not a re-audit of what
+#: came before. It must not survive these two: one is somebody having checked
+#: the proof and rejected it, the other is an age the platform may not serve at
+#: all. "Your claim is weak" is not the same category as "you are 15".
+DISQUALIFYING_RULES = ("proof_rejected", "under_minimum_age")
 SOCIAL_REVIEW_FLOOR = 70.0      # a following this size behind a weak claim gets human eyes
 # Must sit BELOW REVIEW_AT, or the branch it guards is unreachable: anything at
 # or above the review floor has already been sent to a human by the band check.

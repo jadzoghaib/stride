@@ -34,7 +34,8 @@ from creatorlens.events import log_event
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from ..admission import (ADMIT_AT, COMPETITION_LEVELS, PROOF_KINDS, PROOF_STATUSES,
+from ..admission import (ADMIT_AT, COMPETITION_LEVELS, DISQUALIFYING_RULES,
+                         PROOF_KINDS, PROOF_STATUSES,
                          POLICY_VERSION, admission_decision, age_from,
                          athlete_credibility, club_legitimacy)
 from ..auth import get_db, require_role
@@ -90,6 +91,20 @@ def _club_floor(conn, club_id: int | None) -> float:
     return club_legitimacy(app)["nomination_floor"]
 
 
+def _admitted_via(via: str, granted: bool, listing: str, application: dict) -> str:
+    """How this profile got into the directory, or "" if it is not in it.
+
+    The middle case is the one worth naming: a verdict that would have delisted
+    somebody but was held back by `may_delist=False` — a nomination arriving for
+    an athlete the gate had already admitted. Clearing the marker there left a
+    listing the gate granted looking like one that predates it, which made it
+    grandfathered, which meant no later reviewer could take it away.
+    """
+    if granted:
+        return via
+    return "" if listing == "draft" else application["admitted_via"]
+
+
 def _evaluate(conn, application: dict, profile: dict, *, via: str,
               may_delist: bool = True) -> dict:
     """Score, decide, persist, and align what the directory shows. Idempotent.
@@ -99,6 +114,27 @@ def _evaluate(conn, application: dict, profile: dict, *, via: str,
     without this that verdict would knock a perfectly healthy listed profile
     down to draft — someone else's action costing that athlete their standing.
     A nomination is a ratchet: it can raise a listing, never lower one.
+
+    A second, quieter ratchet is applied here rather than by the caller. A
+    profile listed before the gate existed keeps that listing through any
+    *inconclusive* verdict, however it was triggered: the seeded directory is
+    grandfathered on purpose, and an application is a request to be admitted,
+    not a re-audit of standing granted beforehand. Computing this at the call
+    site is what went wrong the first time — the self-submit path had it and the
+    two reviewer paths did not, so the protection held when the athlete touched
+    their own form and vanished when an admin touched it.
+
+    Two things end it, both adverse findings rather than absences:
+
+      * `admitted_via` set — the gate granted this listing, so the gate may take
+        it back when the claim behind it is weakened;
+      * a disqualifying *rule* — see `DISQUALIFYING_RULES`. Keying this to the
+        proof status alone let a declared age below the minimum keep a
+        grandfathered listing, and the age gate is the one rule here that
+        nothing may buy its way past. Keying it to any `rejected` decision went
+        too far the other way: a claim scoring below the review band is a weak
+        application, not a finding, and a listing that predates the gate should
+        survive an athlete filling the form in badly.
     """
     scored = athlete_credibility({**application, "sport": profile["sport"]})
     social = _social_score(conn, profile["creatorlens_creator_id"])
@@ -111,17 +147,36 @@ def _evaluate(conn, application: dict, profile: dict, *, via: str,
         scoreable=scored["scoreable"],
     )
     admitted = decision["decision"] == "admitted"
+
+    # Computed here rather than at the top, because it depends on the verdict:
+    # a rejection ends grandfathering, and only the decision knows about the age
+    # gate. `may_delist=False` from a caller still wins — a nomination may never
+    # lower a listing whatever it concludes.
+    if may_delist:
+        pre_gate = (profile["status"] == "listed"
+                    and not application["admitted_via"]
+                    and decision["rule"] not in DISQUALIFYING_RULES)
+        may_delist = not pre_gate
+
+    # Gate on legitimacy, tier on value: admitted with no analytics is still a
+    # draft profile, because there is nothing for a sponsor to look at yet.
+    granted = admitted and bool(profile["creatorlens_creator_id"])
+    listing = "listed" if granted else "draft"
+    if listing == "draft" and not may_delist:
+        listing = profile["status"]
+
+    # `admitted_via` records how the gate put someone in the directory, and is
+    # what later tells us their listing was earned here rather than inherited.
+    # Writing it on an admission that produced no listing — admitted, but no
+    # analytics to show — ended a grandfathered athlete's protection by
+    # succeeding: the next inconclusive review then delisted them on the
+    # strength of a listing the gate had never actually granted.
     conn.execute(
         "UPDATE athlete_applications SET credibility = ?, decision = ?, decision_rule = ?,"
         " admitted_via = ?, policy_version = ?, decided_at = ? WHERE id = ?",
         (scored["credibility"], decision["decision"], decision["rule"],
-         (via if admitted else ""), POLICY_VERSION, now_iso(), application["id"]))
-
-    # Gate on legitimacy, tier on value: admitted with no analytics is still a
-    # draft profile, because there is nothing for a sponsor to look at yet.
-    listing = ("listed" if admitted and profile["creatorlens_creator_id"] else "draft")
-    if listing == "draft" and not may_delist:
-        listing = profile["status"]
+         _admitted_via(via, granted, listing, application), POLICY_VERSION,
+         now_iso(), application["id"]))
     conn.execute("UPDATE athlete_profiles SET status = ? WHERE id = ?",
                  (listing, profile["id"]))
 
@@ -188,6 +243,9 @@ def submit_application(body: ApplicationIn,
             (profile["id"], *fields, now_iso()))
         application_id = cur.lastrowid
     application = row(conn, "SELECT * FROM athlete_applications WHERE id = ?", (application_id,))
+
+    # Applying must not cost an athlete the listing they already had — see
+    # `_evaluate`, which owns that rule so every path through the gate gets it.
     return _evaluate(conn, application, profile, via="self")
 
 

@@ -33,9 +33,21 @@ class ChaosIn(BaseModel):
     db_down: bool = False
 
 
+def _chaos_state() -> dict:
+    """One shape for all three endpoints.
+
+    The GET returned `enabled` and both POSTs did not, and the client replaces
+    its whole state object with whatever comes back — so a successful injection
+    set `enabled` to undefined, which reads as false. The panel then announced
+    "disabled in this environment" and greyed out the buttons that had just
+    worked.
+    """
+    return {"enabled": settings.chaos_enabled, **chaos.as_dict()}
+
+
 @router.get("/chaos")
 def chaos_state(user: dict = Depends(require_role("admin"))):
-    return {"enabled": settings.chaos_enabled, **chaos.as_dict()}
+    return _chaos_state()
 
 
 @router.post("/chaos")
@@ -45,10 +57,10 @@ def set_chaos(body: ChaosIn, user: dict = Depends(require_role("admin"))):
     chaos.latency_ms = body.latency_ms
     chaos.error_rate = body.error_rate
     chaos.db_down = body.db_down
-    return chaos.as_dict()
+    return _chaos_state()
 
 
 @router.post("/chaos/reset")
 def reset_chaos(user: dict = Depends(require_role("admin"))):
     chaos.reset()
-    return chaos.as_dict()
+    return _chaos_state()

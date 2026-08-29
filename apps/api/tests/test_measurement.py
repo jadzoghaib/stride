@@ -190,13 +190,24 @@ def test_performance_is_scoped_to_the_owning_sponsor(sponsor, athlete, clubu):
 
 
 def test_unmeasured_campaign_reads_as_unmeasured_not_free(sponsor, athlete):
-    """No deliverables means no cost-per-engagement — not a zero, which would
-    read as an infinitely efficient campaign."""
+    """No deliverables means nothing measured — not a zero.
+
+    This test used to state that rule in its docstring and then assert
+    `reach == 0` two lines below it, so the endpoint reported a campaign that
+    reached nobody when the truth was that the athlete had not posted yet. The
+    cost fields were right all along; reach and engagements were the ones
+    quietly claiming a measurement nobody took.
+
+    `posts` stays 0 on purpose: that is a count, and it really is none.
+    """
     deal_id = _accepted_deal(sponsor, athlete, "unmeasured")
     perf = sponsor.get(f"/api/deals/{deal_id}/performance").json()
-    assert perf["delivered"]["reach"] == 0
+    assert perf["delivered"]["posts"] == 0
+    assert perf["delivered"]["reach"] is None
+    assert perf["delivered"]["engagements"] is None
     assert perf["cost_per_1k_reach"] is None
     assert perf["cost_per_engagement"] is None
+    assert perf["variance_pct"] is None
 
 
 def test_the_athlete_can_see_what_they_already_attached(sponsor, athlete, db):
@@ -566,3 +577,52 @@ def test_without_the_tolerance_the_losing_replica_crashes_on_boot(sqlite_backend
     finally:
         a.close()
         b.close()
+
+
+def test_an_attached_post_with_no_metrics_is_unmeasured_not_zero(sponsor, athlete, db):
+    """The same lie through a different door.
+
+    Guarding on "are there deliverables" instead of "did anything get measured"
+    left a post that is attached but whose metrics have not been captured
+    summing to reach 0 — so the report read "reached nobody", and with a
+    projection on file, "100% below plan", about a post that may have done well.
+    """
+    deal_id = _accepted_deal(sponsor, athlete, "attached but unmeasured")
+    offered = athlete.get("/api/athlete/posts").json()
+    post_id = offered[0]["post_id"]
+    assert athlete.post(f"/api/athlete/deals/{deal_id}/deliverables",
+                        json={"post_id": post_id}).status_code == 201
+
+    saved = db.execute("SELECT * FROM post_metrics WHERE post_id = ?", (post_id,)).fetchall()
+    assert saved, "this test needs a post that starts out measured"
+    deleted = False
+    try:
+        # Inside the try so the restore covers everything after it — but flagged,
+        # because `post_metrics` has no unique key on post_id and `id` is
+        # generated. Re-inserting rows that were never removed would not undo
+        # anything; it would double this shared demo post's metrics, and every
+        # later test reading it would see twice the reach.
+        db.execute("DELETE FROM post_metrics WHERE post_id = ?", (post_id,))
+        db.commit()
+        deleted = True
+
+        perf = sponsor.get(f"/api/deals/{deal_id}/performance").json()
+        assert perf["delivered"]["posts"] == 1          # it is attached
+        assert perf["delivered"]["reach"] is None        # and it is not measured
+        assert perf["delivered"]["engagements"] is None
+        assert perf["variance_pct"] is None
+        assert perf["deliverables"][0]["reach"] is None
+    finally:
+        # A condition, not an early `return`: returning from a `finally` discards
+        # whatever exception was in flight, so a failing assertion above would
+        # have been swallowed and the test would have passed in silence.
+        if deleted:
+            # session-scoped database: put the metrics back, column names read
+            # from the rows themselves so this works on either backend — minus
+            # `id`, which Postgres declares GENERATED ALWAYS and refuses to be
+            # told. The new ids are immaterial: nothing looks a metric up by id.
+            for m in saved:
+                keys = [k for k in m.keys() if k != "id"]
+                db.execute(f"INSERT INTO post_metrics ({', '.join(keys)}) VALUES"
+                           f" ({', '.join('?' for _ in keys)})", tuple(m[k] for k in keys))
+            db.commit()

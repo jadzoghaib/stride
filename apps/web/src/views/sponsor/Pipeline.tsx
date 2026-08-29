@@ -181,7 +181,11 @@ function Performance({ dealId }: { dealId: number }) {
   if (!perf) return <p className="meta py-2">Loading result…</p>
 
   const { delivered, projected } = perf
-  const hit = projected.reach ? (100 * delivered.reach) / projected.reach : null
+  // both sides have to exist: `100 * null` is 0, which would draw a full-width
+  // "0% of projection" meter for a deal that simply has not been posted yet
+  const hit = projected.reach && delivered.reach !== null
+    ? (100 * delivered.reach) / projected.reach
+    : null
 
   return (
     <div className="py-3">
