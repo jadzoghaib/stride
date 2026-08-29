@@ -181,6 +181,16 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # first version of it was wrong: it quoted a EUR 3.9M naive cost from the 9x
     # egress *rate*, when total infrastructure differs by 3.6x — compute and
     # storage are unaffected by the egress decision.
+    # The tier prices, pinned to the one place they are defined. They had already
+    # diverged once: model.py's unit-economics table carried a EUR 14.99 tier
+    # that exists nowhere else and priced the season pass at 99 against 89.
+    ("stride-business-plan-draft.md", "Insider tier price",
+     r"\| \*\*Insider\*\* \| €([\d.]+) \|", lambda: __import__("market_model").TIER_PRICES[1], 0.001),
+    ("stride-business-plan-draft.md", "Inner circle tier price",
+     r"\| \*\*Inner circle\*\* \| €([\d.]+) \|", lambda: __import__("market_model").TIER_PRICES[2], 0.001),
+    ("stride-business-plan-draft.md", "season pass price",
+     r"\| \*\*Season pass\*\* \| €(\d+)/yr", lambda: __import__("market_model").SEASON_PASS_EUR, 0.001),
+
     ("stride-business-plan-draft.md", "capital the plan needs",
      r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
     # Y5, Y6 and Y7 each anchored by position rather than by quoting their

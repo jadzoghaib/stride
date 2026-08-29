@@ -413,8 +413,16 @@ Four types, and the split that matters is **unlimited vs scarce**.
 | **Inner circle** | €24.99 | + event access or ballot priority, direct message window |
 | **Season pass** | €89/yr | Insider for a year — the churn lever, priced at ~9 months |
 
-Assumed mix **40 / 50 / 10** across the three monthly tiers, producing the €9.49
-blended ARPU the model runs on. `[to research: replace with real mix after P1]`
+These four are the whole set. They live in `market_model.py` and everything else
+reads them: the retention table, the unit-economics table and this document. A
+fifth tier at €14.99 used to appear in one place only, which is how we found out
+that a duplicated price is a price that drifts.
+
+Assumed mix **40 / 50 / 10** across the three monthly tiers. That mix produces
+**€9.49**, which is the *mature niche* subscription ARPU — not a blend across the
+plan. The model ramps to it: niche **€8.00 → €9.50** and popular **€7.00 → €8.30**
+over the ten years, because early cohorts skew to the cheap tier and the mix
+improves as the product does. `[to research: replace the mix with real data after P1]`
 
 ### 4.3.4 Labels — sponsored and highlighted
 
@@ -444,7 +452,7 @@ content, for three reasons:
    followers, its members' families, its local community.
 2. **It solves cold start.** A club with 30 athletes can publish from day one,
    while individual athletes are still building. The club channel is already the
-   cheapest acquisition route in §5.3; this makes it a revenue route too.
+   cheapest acquisition route in §5.2; this makes it a revenue route too.
 3. **Club content is naturally event-shaped** — open sessions, academy days,
    "train at our club" — which is the scarce, highest-margin type.
 
@@ -824,7 +832,7 @@ Ordered by how much the plan would change if the answer surprised us.
 - **Financial model:** `business-plan/model.py`. Ten-year projection, real
   working capital, capex, amortisation, loss carry-forward, Spanish Startup Law
   tax step (15% for four profitable years, then 25%).
-- **Consistency:** an automated guard checks **43 prose claims across 9
+- **Consistency:** an automated guard checks **46 prose claims across 9
   documents** against the model, plus the evidence chain from published
   comparables → derived assumptions. The build fails if any figure drifts —
   including this sentence, whose two numbers are themselves pinned to the

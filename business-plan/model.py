@@ -663,9 +663,17 @@ def render(rows: list[dict]) -> dict[str, str]:
 
 
 def unit_economics() -> str:
-    """The fixed-fee problem, per transaction size."""
+    """The fixed-fee problem, per transaction size.
+
+    Prices come from `market_model`, which is where the tier design lives. This
+    kept its own copy and the copy drifted: it carried a EUR 14.99 tier that
+    exists in no other document, and priced the season pass at EUR 99 while
+    01-revenue-model.md, the tier table and the retention guard all say EUR 89.
+    """
+    import market_model
+
     rows = []
-    for price in (4.99, 9.99, 14.99, 24.99, 99.00):
+    for price in (*market_model.TIER_PRICES, market_model.SEASON_PASS_EUR):
         take = price * A.take_fan
         psp = price * A.psp_pct + A.psp_fixed_eur
         net = take - psp
