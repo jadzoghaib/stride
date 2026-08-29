@@ -160,7 +160,16 @@ def _evaluate(conn, application: dict, profile: dict, *, via: str,
 
     # Gate on legitimacy, tier on value: admitted with no analytics is still a
     # draft profile, because there is nothing for a sponsor to look at yet.
-    granted = admitted and bool(profile["creatorlens_creator_id"])
+    #
+    # The test is a *score*, not a creator id. It used to be the id, which was a
+    # fair proxy while creator records were made on first platform connect — but
+    # registration creates one immediately, so the condition became "is an
+    # athlete" and was true for everybody. A newly admitted account with nothing
+    # connected went straight into the directory and into sponsor matching with
+    # no data behind it, which is the exact outcome this line exists to prevent.
+    has_analytics = (bool(profile["creatorlens_creator_id"])
+                     and latest_score(conn, profile["creatorlens_creator_id"]) is not None)
+    granted = admitted and has_analytics
     listing = "listed" if granted else "draft"
     if listing == "draft" and not may_delist:
         listing = profile["status"]

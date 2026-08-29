@@ -642,3 +642,60 @@ def test_the_applicant_is_shown_the_bar_they_are_judged_against(athlete):
     filled = athlete.get("/api/athlete/application").json()
     assert filled["application"] is not None
     assert filled["thresholds"]["admit"] == ADMIT_AT
+
+
+def test_an_admitted_athlete_with_no_analytics_is_not_listed(client, admin, db):
+    """Gate on legitimacy, tier on value.
+
+    This condition used to test `creatorlens_creator_id`, which was a fair proxy
+    for "has analytics" while creator records were made on first platform
+    connect. Registration creates one immediately, so the test became "is an
+    athlete" and passed for everybody: a newly admitted account with nothing
+    connected went straight into the directory and into sponsor matching with no
+    data behind it.
+    """
+    from fastapi.testclient import TestClient
+
+    from stride_api.main import app
+
+    # Its own client: registering on the shared session client would sign that
+    # client in as the new athlete and break every later test that expects it to
+    # be anonymous.
+    fresh_client = TestClient(app)
+    made = fresh_client.post("/api/auth/register", json={
+        "email": "noanalytics@test.local", "password": "longenough1",
+        "display_name": "No Analytics", "role": "athlete",
+        "sport": "Trail", "country": "Spain"})
+    assert made.status_code == 201, made.text
+
+    profile = row(db, "SELECT * FROM athlete_profiles WHERE display_name = 'No Analytics'")
+    try:
+        assert profile["creatorlens_creator_id"], "registration still makes a creator record"
+        assert not rows(db, "SELECT id FROM score_snapshots WHERE creator_id = ?",
+                        (profile["creatorlens_creator_id"],)), "and no scores yet"
+
+        strong = {"competition_level": "international", "years_competing": 10,
+                  "birth_year": 1995, "proof_kind": "results",
+                  "proof_url": "https://athletics.example/r"}
+        assert fresh_client.post("/api/athlete/application", json=strong).status_code == 201
+
+        application = row(db, "SELECT * FROM athlete_applications WHERE athlete_id = ?",
+                          (profile["id"],))
+        # Through the reviewer, not by re-submitting: re-submitting deliberately
+        # resets the proof to unverified, because changing the claim invalidates
+        # whatever was checked against the old one.
+        verdict = admin.post(f"/api/admin/applications/{application['id']}/proof",
+                             json={"proof_status": "verified"}).json()
+
+        assert verdict["decision"] == "admitted", "the gate lets them through on the claim"
+        assert verdict["listing"] == "draft", "but there is nothing for a sponsor to look at"
+
+        found = client.get("/api/athletes", params={"q": "No Analytics"}).json()["athletes"]
+        assert found == [], "and they are not in the directory"
+    finally:
+        # session-scoped database: take the whole account back out
+        db.execute("DELETE FROM athlete_applications WHERE athlete_id = ?", (profile["id"],))
+        db.execute("DELETE FROM athlete_profiles WHERE id = ?", (profile["id"],))
+        db.execute("DELETE FROM users WHERE email = 'noanalytics@test.local'")
+        db.commit()
+        fresh_client.close()
