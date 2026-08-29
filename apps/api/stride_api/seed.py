@@ -24,6 +24,10 @@ from creatorlens.analytics.scoring import InsufficientData, store_scores
 from creatorlens.events import log_event
 from creatorlens.ingestion import sync_account
 
+# The seeded queue is scored by the real policy rather than typed in: a
+# hand-written verdict disagrees with the scorer the first time a threshold moves.
+from .admission import (POLICY_VERSION, admission_decision, age_from,
+                        athlete_credibility, club_legitimacy)
 from .auth import hash_password
 from .db import now_iso, row
 
@@ -162,6 +166,7 @@ def seed(conn: sqlite3.Connection) -> dict:
 
     # ---- athletes + CreatorLens identities ---------------------------------
     athlete_ids: dict[str, int] = {}
+    athlete_sports: dict[str, str] = {}
     for slug, name, sport, country, region, topics, deal_types, rate, platforms in ATHLETES:
         creator = create_creator(conn, handle=slug, display_name=name,
                                  primary_topic=topics[0], actor="system")
@@ -176,6 +181,7 @@ def seed(conn: sqlite3.Connection) -> dict:
             (slug, name, sport, country, region, bio, json.dumps(highlights),
              json.dumps(topics), json.dumps(deal_types), rate, creator["id"], now_iso()))
         athlete_ids[slug] = cur.lastrowid
+        athlete_sports[slug] = sport      # competition level is read per sport
         summary["athletes"] += 1
         for platform in platforms:
             account = connect_platform(conn, creator["id"], platform, actor="system")
@@ -311,6 +317,78 @@ def seed(conn: sqlite3.Connection) -> dict:
     log_event(conn, "system", "package.committed", "package_commitment", cur.lastrowid,
               {"package_id": ironline_pkg, "org_id": org_ids[2], "amount_eur": pkg["price_eur"],
                "athlete_id": pkg["athlete_id"]})
+
+    # ---- applications waiting on a human ------------------------------------
+    # Without these the admission queue is empty on a fresh install, so the
+    # reviewer path — open the link, decide whether it names the applicant — is
+    # unreachable until somebody submits something, and the auto-checker has
+    # nothing to run against.
+    #
+    # Kaia is deliberately left out: she is the demo athlete account, and her
+    # eligibility form should open blank so that submitting one is part of the
+    # walkthrough rather than something already done for you.
+    #
+    # Every verdict here is computed by the real policy. Typing `review` into
+    # the seed would produce a queue that disagrees with the scorer the first
+    # time a threshold moves.
+    applications = [
+        # a strong claim with a page to open: the reviewer's main path
+        ("sofia-brandt", dict(
+            discipline="Marathon", club_name="Halifax Harriers", league_name="Athletics Canada",
+            competition_level="national", years_competing=7, birth_year=1999,
+            proof_url="https://athletics.example/ca/rankings/marathon",
+            proof_kind="results", proof_status="pending")),
+        # a weaker claim behind a different kind of page, so the queue is ranked
+        # rather than a single row — the reviewer sees the ordering the policy
+        # produces, not just one decision
+        ("elif-kaya", dict(
+            discipline="Outside hitter", club_name="Lyon Volley", league_name="Ligue A",
+            competition_level="regional", years_competing=4, birth_year=2003,
+            proof_url="https://lyonvolley.example/equipe/effectif",
+            proof_kind="roster", proof_status="pending")),
+    ]
+    for slug, fields in applications:
+        scored = athlete_credibility({**fields, "sport": athlete_sports[slug]})
+        verdict = admission_decision(
+            scored["credibility"], proof_status=fields["proof_status"],
+            social_score=None, age=age_from(fields["birth_year"]),
+            club_floor=None, scoreable=scored["scoreable"])
+        conn.execute(
+            "INSERT INTO athlete_applications (athlete_id, discipline, club_name, league_name,"
+            " competition_level, years_competing, birth_year, proof_url, proof_kind,"
+            " proof_status, credibility, decision, decision_rule, policy_version,"
+            " submitted_at, decided_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (athlete_ids[slug], fields["discipline"], fields["club_name"], fields["league_name"],
+             fields["competition_level"], fields["years_competing"], fields["birth_year"],
+             fields["proof_url"], fields["proof_kind"], fields["proof_status"],
+             scored["credibility"], verdict["decision"], verdict["rule"], POLICY_VERSION,
+             now_iso(), now_iso()))
+        summary["applications"] = summary.get("applications", 0) + 1
+
+    # The club's own application, left at whatever the policy makes of it. It is
+    # not pre-verified on purpose: a club cannot nominate until a human has
+    # checked its roster page, and watching that unlock is the point of the
+    # club onboarding demo. Seeding it verified would skip the argument.
+    club_fields = dict(
+        legal_name="Meridian Football Club Ltd", registration_id="09823117",
+        federation_name="London FA", federation_id="LFA-4471", founded_year=1968,
+        competition_level="regional", teams_count=7, registered_athletes=24,
+        roster_url="https://meridianfc.example/first-team", proof_kind="roster",
+        proof_status="pending")
+    club_scored = club_legitimacy(club_fields)
+    meridian = row(conn, "SELECT id FROM clubs WHERE slug = 'meridian-fc'")
+    conn.execute(
+        "INSERT INTO club_applications (club_id, legal_name, registration_id, federation_name,"
+        " federation_id, founded_year, competition_level, teams_count, registered_athletes,"
+        " roster_url, proof_kind, proof_status, legitimacy, decision, policy_version,"
+        " submitted_at, decided_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (meridian["id"], club_fields["legal_name"], club_fields["registration_id"],
+         club_fields["federation_name"], club_fields["federation_id"],
+         club_fields["founded_year"], club_fields["competition_level"],
+         club_fields["teams_count"], club_fields["registered_athletes"],
+         club_fields["roster_url"], club_fields["proof_kind"], club_fields["proof_status"],
+         club_scored["legitimacy"], club_scored["decision"], POLICY_VERSION,
+         now_iso(), now_iso()))
 
     # ---- fans ----------------------------------------------------------------
     fan_id = _insert_user(conn, "fan@demo.stride", "Jordan Ellis", "fan")
