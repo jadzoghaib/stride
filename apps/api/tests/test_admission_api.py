@@ -624,3 +624,21 @@ def test_but_a_merely_weak_claim_keeps_a_listing_that_predates_the_gate(athlete,
     assert verdict["rule"] == "credibility_below_review"
     assert verdict["listing"] == "listed"
     assert status() == "listed"
+
+
+def test_the_applicant_is_shown_the_bar_they_are_judged_against(athlete):
+    """The client falls back to a hard-coded 55 when the API omits thresholds,
+    and the API used to omit them exactly when an application existed — so every
+    real applicant saw a literal rather than the policy. Move ADMIT_AT and the
+    page would have shown one number while the gate used another."""
+    from stride_api.admission import ADMIT_AT
+
+    empty = athlete.get("/api/athlete/application").json()
+    assert empty["thresholds"]["admit"] == ADMIT_AT
+
+    athlete.post("/api/athlete/application", json={
+        "competition_level": "regional", "years_competing": 3, "birth_year": 2002,
+        "proof_kind": "none", "proof_url": ""})
+    filled = athlete.get("/api/athlete/application").json()
+    assert filled["application"] is not None
+    assert filled["thresholds"]["admit"] == ADMIT_AT

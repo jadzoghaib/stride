@@ -260,7 +260,14 @@ def my_application(user: dict = Depends(require_role("athlete")),
     if application is None:
         return {"application": None, "thresholds": {"admit": ADMIT_AT}}
     scored = athlete_credibility({**application, "sport": profile["sport"]})
+    # `thresholds` on both branches. It was sent only when there was no
+    # application, so every applicant who actually had one — i.e. everyone this
+    # page is for — fell through to the client's hard-coded `?? 55`. Move
+    # ADMIT_AT and the applicant would be shown one bar while being judged
+    # against another, which is precisely what a page that exists to explain a
+    # decision must not do.
     return {"application": application, "scored": scored,
+            "thresholds": {"admit": ADMIT_AT},
             "club_floor": _club_floor(conn, application["nominated_by_club"])}
 
 
