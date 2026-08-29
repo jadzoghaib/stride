@@ -141,6 +141,17 @@ demonstration of an unmeasured deal is an unmeasured deal. A sponsor opening it
 sees `—` rather than a zero, which is the rule the whole measurement view
 follows: unmeasured, not free.
 
+That rule was written here before the endpoint kept it. Delivered reach and
+engagements came back as `0`, and where a projection existed the variance read
+`-100%` — not "unmeasured" but "delivered a hundred per cent below plan", about
+an athlete who had not posted yet. The line runs between counts and
+measurements: `posts` is `0` because none are attached and that is a fact,
+while reach, engagements and variance are `null` because nothing was measured.
+
+The discriminator is **measurement, not attachment**. A post can be attached
+before its metrics are captured, and treating "has deliverables" as "has
+numbers" reproduces the same zero through a different door.
+
 `projected_reach` is captured **when the offer is sent**, from the athlete's
 median reach across platforms. Without it there is nothing to measure against,
 and it cannot be reconstructed later once the athlete's following has moved.
