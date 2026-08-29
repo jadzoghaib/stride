@@ -103,11 +103,40 @@ def list_athletes(sport: str | None = None, country: str | None = None,
 
 @router.get("/athletes/facets")
 def athlete_facets(conn: sqlite3.Connection = Depends(get_db)):
+    """Every filter list in the product, derived from what is actually there.
+
+    Two vocabularies live here on purpose, and confusing them is easy:
+
+      * `countries` are **profile** countries, as full names — where the athlete
+        competes. This is what the directory filters on.
+      * `audience_countries` are **ISO codes**, the buckets audience demographics
+        are stored in, and the only thing campaign targeting can be compared
+        against. `audience_fit` looks a campaign's target codes up directly in
+        the demographics dict, so a name here would silently score zero.
+
+    Everything is derived rather than listed. The campaign form and the fan
+    discover page each carried their own hard-coded array, which meant a sponsor
+    could not target a country we had athletes in unless somebody had thought of
+    it in advance — the first athlete from Zimbabwe would have been invisible to
+    targeting while appearing perfectly well in the directory beside them.
+    """
+    topics: set[str] = set()
+    for r in rows(conn, "SELECT topics FROM athlete_profiles WHERE status='listed'"):
+        try:
+            topics.update(t for t in json.loads(r["topics"] or "[]") if t)
+        except (ValueError, TypeError):
+            continue
     return {
         "sports": [r["sport"] for r in rows(conn,
                    "SELECT DISTINCT sport FROM athlete_profiles WHERE status='listed' ORDER BY sport")],
         "countries": [r["country"] for r in rows(conn,
                       "SELECT DISTINCT country FROM athlete_profiles WHERE status='listed' ORDER BY country")],
+        # `OTHER` is a real demographic bucket and not a targetable place
+        "audience_countries": [r["bucket"] for r in rows(conn,
+                               "SELECT DISTINCT bucket FROM audience_demographics"
+                               " WHERE dimension = 'country' AND bucket <> 'OTHER'"
+                               " ORDER BY bucket")],
+        "topics": sorted(topics),
     }
 
 

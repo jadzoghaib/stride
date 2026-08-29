@@ -5,7 +5,7 @@ import { Board } from '../../components/Board'
 import { LoadError, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtMoney } from '../../lib/format'
-import type { Campaign, Deal } from '../../types'
+import type { Campaign, Deal, Facets } from '../../types'
 import { CATEGORIES, DEAL_TYPES, dealTypeLabel } from '../../types'
 
 interface Workspace {
@@ -28,9 +28,9 @@ const fmtWait = (hours: number | null | undefined) => {
   return `${Math.round(hours / 24)}d`
 }
 
+// Age buckets stay fixed: they are the demographic schema itself, not a list of
+// what happens to exist. Countries and themes are derived — see /athletes/facets.
 const AGE_BUCKETS = ['13-17', '18-24', '25-34', '35-44', '45-54', '55+']
-const COUNTRY_CODES = ['US', 'GB', 'DE', 'FR', 'ES', 'BR', 'CA', 'AU', 'IN', 'MX']
-const TOPICS = ['fitness', 'training', 'running', 'cycling', 'endurance', 'wellness', 'lifestyle', 'travel', 'analytics', 'mindset']
 
 export default function SponsorCampaigns() {
   const [ws, setWs] = useState<Workspace | null>(null)
@@ -122,6 +122,14 @@ export default function SponsorCampaigns() {
 }
 
 function CampaignForm({ onDone }: { onDone: () => void }) {
+  // Countries and themes come from what the directory actually contains, so a
+  // sponsor can target the first athlete from a new country the day they list,
+  // rather than when somebody remembers to add the code to an array here.
+  const [facets, setFacets] = useState<Facets | null>(null)
+  useEffect(() => {
+    api.get<Facets>('/api/athletes/facets').then(setFacets).catch(() => {})
+  }, [])
+
   const [form, setForm] = useState({
     name: '', objective: '', category: CATEGORIES[0],
     deal_types: [] as string[], budget_eur_min: 2000, budget_eur_max: 20000,
@@ -168,8 +176,8 @@ function CampaignForm({ onDone }: { onDone: () => void }) {
       {([
         ['Deal formats', 'deal_types', DEAL_TYPES.map((d) => d.key)],
         ['Target ages', 'target_age_buckets', AGE_BUCKETS],
-        ['Target countries', 'target_countries', COUNTRY_CODES],
-        ['Target themes', 'target_topics', TOPICS],
+        ['Target countries', 'target_countries', facets?.audience_countries ?? []],
+        ['Target themes', 'target_topics', facets?.topics ?? []],
       ] as const).map(([label, key, options]) => (
         <div key={key}>
           <div className="cap mb-2">{label}</div>

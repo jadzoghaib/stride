@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Wordmark } from '../components/Shell'
 import { api, errorText } from '../lib/api'
 import { roleHome, useAuth } from '../lib/auth'
+import { COMPETITION_LEVELS, PROOF_KINDS } from '../types'
 import type { Me } from '../types'
 
 const ROLES = [
@@ -25,6 +26,12 @@ export default function Auth() {
   const [mode, setMode] = useState<'login' | 'register'>(params.get('mode') === 'register' ? 'register' : 'login')
   const [role, setRole] = useState('athlete')
   const [form, setForm] = useState({ email: '', password: '', display_name: '', sport: '', country: '', org_name: '', industry: 'Sportswear' })
+  /** Registration is two steps for the roles that have to qualify. Step one
+   *  creates the account — which lands as `draft`, invisible to the directory
+   *  and to matching — and step two is the eligibility check that decides
+   *  whether it becomes anything more. Putting the check behind a nav tab let
+   *  an athlete hold an account indefinitely without ever facing it. */
+  const [step, setStep] = useState<'account' | 'eligibility'>('account')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
@@ -49,12 +56,170 @@ export default function Auth() {
         return
       }
       await refresh()
+      if (mode === 'register' && (role === 'athlete' || role === 'club')) {
+        setStep('eligibility')
+        return
+      }
       navigate(roleHome(me.role))
     } catch (err) {
       setError(errorText(err))
     } finally {
       setBusy(false)
     }
+  }
+
+  const [gate, setGate] = useState({
+    competition_level: '', discipline: '', club_name: '', league_name: '',
+    years_competing: '', birth_year: '', proof_url: '', proof_kind: 'none',
+    legal_name: '', registration_id: '', federation_name: '', federation_id: '',
+    founded_year: '', teams_count: '', registered_athletes: '', roster_url: '',
+  })
+  const setGateField = (k: string, v: string) => setGate((g) => ({ ...g, [k]: v }))
+
+  /** Step two. The account exists and is `draft`; this is what decides whether
+   *  it becomes visible. Posted to the same endpoints the review queue reads,
+   *  so an application made at signup and one edited later are the same object. */
+  const submitGate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setBusy(true)
+    setError('')
+    try {
+      if (role === 'athlete') {
+        await api.post('/api/athlete/application', {
+          competition_level: gate.competition_level,
+          discipline: gate.discipline,
+          club_name: gate.club_name,
+          league_name: gate.league_name,
+          years_competing: gate.years_competing === '' ? null : Number(gate.years_competing),
+          birth_year: gate.birth_year === '' ? null : Number(gate.birth_year),
+          proof_url: gate.proof_url,
+          proof_kind: gate.proof_kind,
+        })
+      } else {
+        await api.post('/api/club/application', {
+          legal_name: gate.legal_name,
+          registration_id: gate.registration_id,
+          federation_name: gate.federation_name,
+          federation_id: gate.federation_id,
+          founded_year: gate.founded_year === '' ? null : Number(gate.founded_year),
+          competition_level: gate.competition_level,
+          teams_count: gate.teams_count === '' ? null : Number(gate.teams_count),
+          registered_athletes: gate.registered_athletes === '' ? 0 : Number(gate.registered_athletes),
+          roster_url: gate.roster_url,
+          proof_kind: gate.proof_kind,
+        })
+      }
+      navigate(roleHome(role))
+    } catch (err) {
+      setError(errorText(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const Field = ({ label, k, hint, type = 'text', placeholder = '' }:
+                 { label: string; k: string; hint?: string; type?: string; placeholder?: string }) => (
+    <label className="block">
+      <span className="cap">{label}</span>
+      <input className="field mt-1" type={type} placeholder={placeholder}
+             value={(gate as Record<string, string>)[k]}
+             onChange={(e) => setGateField(k, e.target.value)} />
+      {hint && <span className="meta mt-1 block">{hint}</span>}
+    </label>
+  )
+
+  if (step === 'eligibility') {
+    return (
+      <div className="min-h-screen bg-ground">
+        <header className="mx-auto flex h-16 max-w-[1140px] items-center px-7">
+          <Link to="/"><Wordmark size="text-[22px]" /></Link>
+        </header>
+        <div className="mx-auto max-w-2xl px-7 py-10">
+          <p className="cap">Step 2 of 2</p>
+          <h1 className="mt-1 font-display text-3xl font-bold text-ink">Eligibility</h1>
+          <p className="mt-2 text-sm text-ink-2">
+            {role === 'athlete'
+              ? 'Stride is for people who actually compete. Tell us where you compete and give us something we can check — that is the whole gate.'
+              : 'Tell us who the club is and give us a roster page we can open. A club has to be checked before it can vouch for anyone.'}
+          </p>
+          <p className="meta mt-3">
+            Your account exists already. It stays out of the directory until this is reviewed.
+          </p>
+
+          {error && (
+            <div className="mt-5 rounded border border-critical/45 bg-critical/10 px-3.5 py-2.5 text-sm text-critical">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={submitGate} className="mt-6 space-y-4">
+            <label className="block">
+              <span className="cap">Competition level *</span>
+              <select className="field mt-1" value={gate.competition_level}
+                      onChange={(e) => setGateField('competition_level', e.target.value)}>
+                <option value="">Select a level</option>
+                {COMPETITION_LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
+              </select>
+              <span className="meta mt-1 block">Required — nothing can be assessed without it.</span>
+            </label>
+
+            {role === 'athlete' ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Discipline or position" k="discipline" placeholder="800m, left back, singles" />
+                <Field label="Club" k="club_name" />
+                <Field label="League or competition" k="league_name" />
+                <Field label="Seasons competing" k="years_competing" type="number"
+                       hint="Eight or more is full marks. Blank scores zero." />
+                <Field label="Year of birth" k="birth_year" type="number"
+                       hint="Accounts are 16 and over." />
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Legal name" k="legal_name" />
+                <Field label="Registration number" k="registration_id" />
+                <Field label="Federation" k="federation_name" />
+                <Field label="Federation ID" k="federation_id" />
+                <Field label="Founded" k="founded_year" type="number" />
+                <Field label="Teams" k="teams_count" type="number" />
+                <Field label="Registered athletes" k="registered_athletes" type="number"
+                       hint="This is also your nomination budget." />
+              </div>
+            )}
+
+            <div className="rounded border border-line-strong bg-panel p-4">
+              <p className="cap">Proof</p>
+              <p className="meta mt-1">
+                A page a stranger can open and find {role === 'athlete' ? 'your name' : 'the club'} on.
+                This is the single biggest factor in the result.
+              </p>
+              <div className="mt-3 grid gap-4 md:grid-cols-2">
+                <label className="block">
+                  <span className="cap">Kind</span>
+                  <select className="field mt-1" value={gate.proof_kind}
+                          onChange={(e) => setGateField('proof_kind', e.target.value)}>
+                    {PROOF_KINDS.map((k) => (
+                      <option key={k} value={k}>{k === 'none' ? 'none yet' : k}</option>
+                    ))}
+                  </select>
+                </label>
+                <Field label="Link" k={role === 'athlete' ? 'proof_url' : 'roster_url'}
+                       placeholder="https://" />
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button className="btn-go" disabled={busy}>
+                {busy ? 'Submitting…' : 'Submit for review'}
+              </button>
+              <button type="button" className="btn" onClick={() => navigate(roleHome(role))}>
+                Finish later
+              </button>
+              <span className="meta">You can edit this any time from your profile.</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    )
   }
 
   return (
