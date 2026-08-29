@@ -147,9 +147,19 @@ def athlete_facets(conn: sqlite3.Connection = Depends(get_db)):
             JOIN athlete_profiles a ON a.creatorlens_creator_id = pa.creator_id
             WHERE d.dimension = 'country'
               AND d.bucket <> 'OTHER'
-              AND pa.connection_status <> 'disconnected'
+              -- `= 'connected'`, matching `demographic_kpis`, which is what
+              -- actually scores audience fit. An account in `error` is excluded
+              -- from scoring, so publishing its country would offer a target
+              -- that can never match. (The deliverables path deliberately uses
+              -- `<> 'disconnected'` instead: there the question is whether the
+              -- athlete may attach a post they really published, and an expired
+              -- token is not a withdrawal of consent.)
+              AND pa.connection_status = 'connected'
               AND a.status = 'listed'
-              AND d.captured_at = (SELECT MAX(x.captured_at)
+              -- by run, not by timestamp: two syncs finishing in the same second
+              -- would otherwise both count, and a country the newer one dropped
+              -- would stay targetable
+              AND d.sync_run_id = (SELECT MAX(x.sync_run_id)
                                    FROM audience_demographics x
                                    WHERE x.account_id = d.account_id
                                      AND x.dimension = 'country')

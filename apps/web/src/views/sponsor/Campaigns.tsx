@@ -195,8 +195,17 @@ function CampaignForm({ onDone }: { onDone: () => void }) {
         </div>
       ))}
       {error && <div className="text-sm text-critical">{error}</div>}
-      <button className="btn-go" disabled={!facets}>
-        {facets ? 'Create campaign' : facetsFailed ? 'Targeting unavailable' : 'Loading targeting…'}</button>
+      {facetsFailed && (
+        <p className="meta mb-2 text-critical">
+          Targeting options could not be loaded. You can still create the campaign — it will
+          match on budget and format, and countries and themes can be added by editing it.
+        </p>
+      )}
+      {/* Enabled even when the facets fail. Disabling it turned a missing
+          secondary list into a total block on the core action, which is a worse
+          outcome than an untargeted campaign that can be edited afterwards. */}
+      <button className="btn-go">
+        {facets || facetsFailed ? 'Create campaign' : 'Loading targeting…'}</button>
     </form>
   )
 }

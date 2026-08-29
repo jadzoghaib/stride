@@ -52,12 +52,28 @@ function useHover() {
     setTip({ key, text, ...at(e) })
   const move = (e: React.MouseEvent) => setTip((t) => (t ? { ...t, ...at(e) } : t))
   const leave = () => setTip(null)
-  /** Spread on each mark. The wrapper's own leave only fires at the edge of the
-   *  chart, so without this the tip and the dimming survive the pointer moving
-   *  into empty space between marks. */
+  /** Spread on each mark. Four jobs:
+   *
+   *  - enter/leave per mark, because the wrapper's own leave fires only at the
+   *    edge of the chart, so the tip and the dimming used to survive the pointer
+   *    moving into empty space between marks;
+   *  - focus/blur, so the same tip is reachable with a keyboard;
+   *  - `aria-label` rather than an SVG `<title>`. `<title>` is what a screen
+   *    reader reads *and* what the browser renders as its own delayed tooltip,
+   *    so keeping it beside this one showed two tooltips for the same mark.
+   *    `aria-label` gives the description without the second tooltip. */
   const on = (key: string, text: string) => ({
     onMouseEnter: enter(key, text),
     onMouseLeave: leave,
+    onFocus: (e: React.FocusEvent) => {
+      const r = box.current?.getBoundingClientRect()
+      const m = (e.target as SVGGraphicsElement).getBoundingClientRect()
+      setTip({ key, text, x: m.left - (r?.left ?? 0) + m.width / 2, y: m.top - (r?.top ?? 0) })
+    },
+    onBlur: leave,
+    tabIndex: 0,
+    role: 'img',
+    'aria-label': text,
   })
 
   const Tip = () =>
@@ -106,10 +122,6 @@ export function AgeBars({ data }: { data: Record<string, number> }) {
               className={`cursor-default transition-opacity ${focus(hov.key, b)}`}
               {...hov.on(b, `${b} · ${pct(data[b])} of audience`)}
             >
-              {/* Kept alongside the visual tip: this is the only per-mark
-                  description a screen reader or a touch device ever gets, and
-                  removing it traded one audience's tooltip for another's. */}
-              <title>{`${b}: ${pct(data[b])}`}</title>
               {/* the modal bucket carries the accent; the rest stay neutral so
                   the shape of the distribution reads before the colour does */}
               <rect
@@ -178,9 +190,7 @@ export function GenderDonut({ data }: { data: Record<string, number> }) {
               fill={a.color}
               className={`cursor-default transition-opacity ${focus(h.key, a.key)}`}
               {...h.on(a.key, `${a.key} · ${pct(a.frac)} of audience`)}
-            >
-              <title>{`${a.key}: ${pct(a.frac)}`}</title>
-            </path>
+            />
           ))}
         </svg>
         <div className="space-y-1.5 text-xs">
@@ -309,7 +319,6 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
               className={`cursor-default transition-opacity ${focus(h.key, b.code)}`}
               {...h.on(b.code, `${CENTROIDS[b.code].name} · ${pct(b.share)} of audience`)}
             >
-              <title>{`${CENTROIDS[b.code].name}: ${pct(b.share)}`}</title>
               <circle
                 cx={b.x}
                 cy={b.y}
