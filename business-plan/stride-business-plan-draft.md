@@ -414,9 +414,14 @@ Four types, and the split that matters is **unlimited vs scarce**.
 | **Season pass** | €89/yr | Insider for a year — the churn lever, priced at ~9 months |
 
 These four are the whole set. They live in `market_model.py` and everything else
-reads them: the retention table, the unit-economics table and this document. A
-fifth tier at €14.99 used to appear in one place only, which is how we found out
-that a duplicated price is a price that drifts.
+reads them — the retention table, the fee table in §2 of the cost model, and this
+document.
+
+A fifth tier at €14.99 used to exist in **two hand-typed copies of the fee table
+and nowhere else**: not in the tier design, not in the pricing decision, not in
+the model's inputs. Both copies are generated now. A duplicated price is a price
+that drifts, and this one drifted in two directions at once — one copy invented a
+tier, the other priced the season pass at €99.
 
 Assumed mix **40 / 50 / 10** across the three monthly tiers. That mix produces
 **€9.49**, which is the *mature niche* subscription ARPU — not a blend across the

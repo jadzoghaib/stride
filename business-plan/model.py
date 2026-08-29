@@ -657,7 +657,8 @@ def render(rows: list[dict]) -> dict[str, str]:
     segments = table(["Segment"] + ys, seg_rows)
 
     return dict(drivers=drivers, gmv=gmv, revenue=revenue, pl=pl, egress=egress,
-                summary=summary, valuation=val, multiples=mult, cash=cash, funding=funding,
+                summary=summary, unit_economics=unit_economics(),
+                valuation=val, multiples=mult, cash=cash, funding=funding,
                 segments=segments, churn=churn,
                 costs_y7=costs_y7, cac=cac, sensitivity=sensitivity)
 
@@ -692,7 +693,7 @@ def unit_economics() -> str:
 
 DOC_TABLES = {
     "00-executive-summary.md": ["summary"],
-    "02-cost-model.md": ["costs_y7", "cac"],
+    "02-cost-model.md": ["costs_y7", "cac", "unit_economics"],
     "03-financial-model.md": ["drivers", "churn", "segments", "gmv", "revenue", "pl", "cash", "funding"],
     "04-capital-and-valuation.md": ["valuation", "multiples", "sensitivity"],
 }
