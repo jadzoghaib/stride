@@ -198,13 +198,16 @@ function CampaignForm({ onDone }: { onDone: () => void }) {
       {facetsFailed && (
         <p className="meta mb-2 text-critical">
           Targeting options could not be loaded. You can still create the campaign — it will
-          match on budget and format, and countries and themes can be added by editing it.
+          match on budget and format only. There is no edit flow yet, so to add countries or
+          themes you would have to create it again.
         </p>
       )}
-      {/* Enabled even when the facets fail. Disabling it turned a missing
-          secondary list into a total block on the core action, which is a worse
-          outcome than an untargeted campaign that can be edited afterwards. */}
-      <button className="btn-go">
+      {/* Disabled only during the transient load. Gating on `facets` alone turned
+          a missing secondary list into a permanent block on the core action;
+          removing the guard entirely made the button clickable while it still
+          read "Loading targeting…", which quietly created the untargeted
+          campaign this whole change exists to prevent. */}
+      <button className="btn-go" disabled={!facets && !facetsFailed}>
         {facets || facetsFailed ? 'Create campaign' : 'Loading targeting…'}</button>
     </form>
   )
