@@ -120,10 +120,13 @@ def athlete_facets(conn: sqlite3.Connection = Depends(get_db)):
     it in advance — the first athlete from Zimbabwe would have been invisible to
     targeting while appearing perfectly well in the directory beside them.
     """
+    # Commas are excluded, not escaped: `/discover?interests=` is a
+    # comma-separated list and the server splits on commas, so a topic
+    # containing one could be offered as a filter and then never match itself.
     topics: set[str] = set()
     for r in rows(conn, "SELECT topics FROM athlete_profiles WHERE status='listed'"):
         try:
-            topics.update(t for t in json.loads(r["topics"] or "[]") if t)
+            topics.update(t for t in json.loads(r["topics"] or "[]") if t and "," not in t)
         except (ValueError, TypeError):
             continue
     return {
@@ -131,11 +134,26 @@ def athlete_facets(conn: sqlite3.Connection = Depends(get_db)):
                    "SELECT DISTINCT sport FROM athlete_profiles WHERE status='listed' ORDER BY sport")],
         "countries": [r["country"] for r in rows(conn,
                       "SELECT DISTINCT country FROM athlete_profiles WHERE status='listed' ORDER BY country")],
-        # `OTHER` is a real demographic bucket and not a targetable place
-        "audience_countries": [r["bucket"] for r in rows(conn,
-                               "SELECT DISTINCT bucket FROM audience_demographics"
-                               " WHERE dimension = 'country' AND bucket <> 'OTHER'"
-                               " ORDER BY bucket")],
+        # Scoped to what is targetable *now*: the latest capture for each
+        # account, on accounts still connected, belonging to listed athletes.
+        # Distinct-across-all-history would keep offering a country that a sync
+        # dropped or that left with a disconnected account — a target a sponsor
+        # can select and never match.
+        # `OTHER` is a real demographic bucket and not a place.
+        "audience_countries": [r["bucket"] for r in rows(conn, """
+            SELECT DISTINCT d.bucket
+            FROM audience_demographics d
+            JOIN platform_accounts pa ON pa.id = d.account_id
+            JOIN athlete_profiles a ON a.creatorlens_creator_id = pa.creator_id
+            WHERE d.dimension = 'country'
+              AND d.bucket <> 'OTHER'
+              AND pa.connection_status <> 'disconnected'
+              AND a.status = 'listed'
+              AND d.captured_at = (SELECT MAX(x.captured_at)
+                                   FROM audience_demographics x
+                                   WHERE x.account_id = d.account_id
+                                     AND x.dimension = 'country')
+            ORDER BY d.bucket""")],
         "topics": sorted(topics),
     }
 

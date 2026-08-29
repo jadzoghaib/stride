@@ -21,6 +21,29 @@ const DEMO = [
   { label: 'Admin', email: 'admin@demo.stride' },
 ]
 
+/** Declared at module scope on purpose. Defined inside `Auth` it became a new
+ *  component type on every render, so React remounted the input and the field
+ *  lost focus after a single character — the same fault that made the athlete
+ *  directory's search box unusable. */
+function GateField({ label, name, value, onChange, hint, type = 'text', placeholder = '' }: {
+  label: string
+  name: string
+  value: string
+  onChange: (name: string, value: string) => void
+  hint?: string
+  type?: string
+  placeholder?: string
+}) {
+  return (
+    <label className="block">
+      <span className="cap">{label}</span>
+      <input className="field mt-1" type={type} placeholder={placeholder} value={value}
+             onChange={(e) => onChange(name, e.target.value)} />
+      {hint && <span className="meta mt-1 block">{hint}</span>}
+    </label>
+  )
+}
+
 export default function Auth() {
   const [params] = useSearchParams()
   const [mode, setMode] = useState<'login' | 'register'>(params.get('mode') === 'register' ? 'register' : 'login')
@@ -109,24 +132,16 @@ export default function Auth() {
           proof_kind: gate.proof_kind,
         })
       }
-      navigate(roleHome(role))
+      // Straight to the verdict. Sending a new registrant "home" threw away the
+      // decision they had just triggered — pending, rejected or admitted — which
+      // is the one thing they signed up to find out.
+      navigate(role === 'athlete' ? '/athlete/application' : '/club/eligibility')
     } catch (err) {
       setError(errorText(err))
     } finally {
       setBusy(false)
     }
   }
-
-  const Field = ({ label, k, hint, type = 'text', placeholder = '' }:
-                 { label: string; k: string; hint?: string; type?: string; placeholder?: string }) => (
-    <label className="block">
-      <span className="cap">{label}</span>
-      <input className="field mt-1" type={type} placeholder={placeholder}
-             value={(gate as Record<string, string>)[k]}
-             onChange={(e) => setGateField(k, e.target.value)} />
-      {hint && <span className="meta mt-1 block">{hint}</span>}
-    </label>
-  )
 
   if (step === 'eligibility') {
     return (
@@ -155,7 +170,7 @@ export default function Auth() {
           <form onSubmit={submitGate} className="mt-6 space-y-4">
             <label className="block">
               <span className="cap">Competition level *</span>
-              <select className="field mt-1" value={gate.competition_level}
+              <select className="field mt-1" required value={gate.competition_level}
                       onChange={(e) => setGateField('competition_level', e.target.value)}>
                 <option value="">Select a level</option>
                 {COMPETITION_LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
@@ -165,23 +180,23 @@ export default function Auth() {
 
             {role === 'athlete' ? (
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Discipline or position" k="discipline" placeholder="800m, left back, singles" />
-                <Field label="Club" k="club_name" />
-                <Field label="League or competition" k="league_name" />
-                <Field label="Seasons competing" k="years_competing" type="number"
+                <GateField label="Discipline or position" name="discipline" value={gate.discipline} onChange={setGateField} placeholder="800m, left back, singles" />
+                <GateField label="Club" name="club_name" value={gate.club_name} onChange={setGateField} />
+                <GateField label="League or competition" name="league_name" value={gate.league_name} onChange={setGateField} />
+                <GateField label="Seasons competing" name="years_competing" value={gate.years_competing} onChange={setGateField} type="number"
                        hint="Eight or more is full marks. Blank scores zero." />
-                <Field label="Year of birth" k="birth_year" type="number"
+                <GateField label="Year of birth" name="birth_year" value={gate.birth_year} onChange={setGateField} type="number"
                        hint="Accounts are 16 and over." />
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Legal name" k="legal_name" />
-                <Field label="Registration number" k="registration_id" />
-                <Field label="Federation" k="federation_name" />
-                <Field label="Federation ID" k="federation_id" />
-                <Field label="Founded" k="founded_year" type="number" />
-                <Field label="Teams" k="teams_count" type="number" />
-                <Field label="Registered athletes" k="registered_athletes" type="number"
+                <GateField label="Legal name" name="legal_name" value={gate.legal_name} onChange={setGateField} />
+                <GateField label="Registration number" name="registration_id" value={gate.registration_id} onChange={setGateField} />
+                <GateField label="Federation" name="federation_name" value={gate.federation_name} onChange={setGateField} />
+                <GateField label="Federation ID" name="federation_id" value={gate.federation_id} onChange={setGateField} />
+                <GateField label="Founded" name="founded_year" value={gate.founded_year} onChange={setGateField} type="number" />
+                <GateField label="Teams" name="teams_count" value={gate.teams_count} onChange={setGateField} type="number" />
+                <GateField label="Registered athletes" name="registered_athletes" value={gate.registered_athletes} onChange={setGateField} type="number"
                        hint="This is also your nomination budget." />
               </div>
             )}
@@ -202,8 +217,9 @@ export default function Auth() {
                     ))}
                   </select>
                 </label>
-                <Field label="Link" k={role === 'athlete' ? 'proof_url' : 'roster_url'}
-                       placeholder="https://" />
+                <GateField label="Link" name={role === 'athlete' ? 'proof_url' : 'roster_url'}
+                           value={role === 'athlete' ? gate.proof_url : gate.roster_url}
+                           onChange={setGateField} placeholder="https://" />
               </div>
             </div>
 

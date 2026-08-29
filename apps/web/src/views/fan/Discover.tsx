@@ -10,6 +10,61 @@ import type { AthletePublic, Facets } from '../../types'
 const INTEREST_ORDER = ['Athletics', 'Football', 'Basketball', 'Tennis', 'Cycling', 'Swimming', 'Boxing', 'MMA',
   'Surfing', 'Climbing', 'Golf', 'fitness', 'endurance', 'travel', 'wellness', 'lifestyle']
 
+/** Module scope, not inside `Discover`: a component declared in a render body is
+ *  a new type each time, so every state change remounted every card and dropped
+ *  focus from whichever Follow button was being used. */
+function DiscoverCard({ a, rank, me, onFollow }: {
+  a: AthletePublic
+  rank: number | null
+  me: boolean
+  onFollow: (a: AthletePublic) => void
+}) {
+  return (
+          <div
+            className={`panel panel-hover p-4 ${
+              rank === 0 ? 'border-accent/70 bg-accent/[0.04]' : ''
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Avatar name={a.display_name} size={42} />
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link to={`/athletes/${a.slug}`} className="font-medium text-ink hover:text-accent">
+                    {a.display_name}
+                  </Link>
+                  {rank === 0 && (
+                    <span className="rounded-full bg-accent px-2 py-0.5 font-display text-[10px]
+                                     font-bold uppercase tracking-board text-accent-on">
+                      Best match
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-ink-3">{a.sport} · {a.country}</div>
+              </div>
+              <div className="ml-auto flex items-center gap-2">
+                {rank !== null && a.affinity != null && (
+                  <span className="tnum font-display text-lg font-bold text-ink" title="Affinity score">
+                    {Math.round(a.affinity)}
+                  </span>
+                )}
+                <CoverageChip coverage={a.score?.coverage ?? null} />
+                {me && (
+                  <button className={`btn px-3 py-1 text-xs ${a.following ? 'border-accent text-ink' : ''}`}
+                          onClick={() => onFollow(a)}>
+                    {a.following ? 'Following' : 'Follow'}
+                  </button>
+                )}
+              </div>
+            </div>
+            {(a.reasons?.length ?? 0) > 0 && (
+              <ul className="mt-3 space-y-0.5 text-xs text-ink-3">
+                {a.reasons!.map((r) => <li key={r}>· {r}</li>)}
+              </ul>
+            )}
+          </div>
+  )
+}
+
 export default function Discover() {
   const { me } = useAuth()
   const [selected, setSelected] = useState<string[]>([])
@@ -20,16 +75,25 @@ export default function Discover() {
   // constant above only decides what comes first — a hard-coded list would both
   // offer sports nobody competes in and hide the first athlete in a new one.
   const [facets, setFacets] = useState<Facets | null>(null)
+  const [facetsFailed, setFacetsFailed] = useState(false)
   useEffect(() => {
-    api.get<Facets>('/api/athletes/facets').then(setFacets).catch(() => {})
+    api.get<Facets>('/api/athletes/facets')
+      .then(setFacets)
+      .catch(() => setFacetsFailed(true))
   }, [])
   const interests = useMemo(() => {
-    const live = [...(facets?.sports ?? []), ...(facets?.topics ?? [])]
+    // Sports and topics overlap — "Football" the sport and "football" the topic
+    // are the same server-side interest, and rendering both gave two buttons
+    // that did the same thing. First spelling seen wins.
+    const seen = new Map<string, string>()
+    for (const v of [...(facets?.sports ?? []), ...(facets?.topics ?? [])]) {
+      if (!seen.has(v.toLowerCase())) seen.set(v.toLowerCase(), v)
+    }
     const rank = (v: string) => {
       const i = INTEREST_ORDER.findIndex((o) => o.toLowerCase() === v.toLowerCase())
       return i === -1 ? INTEREST_ORDER.length : i
     }
-    return live.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
+    return [...seen.values()].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
   }, [facets])
 
   const query = useMemo(() => {
@@ -69,6 +133,11 @@ export default function Discover() {
       />
 
       <div className="flex flex-wrap items-center gap-2">
+        {facetsFailed && (
+          <span className="meta text-critical">
+            Interest filters could not be loaded — showing everything.
+          </span>
+        )}
         {interests.map((i: string) => (
           <button key={i}
                   onClick={() => setSelected((s) => (s.includes(i) ? s.filter((x) => x !== i) : [...s, i]))}
@@ -97,51 +166,6 @@ export default function Discover() {
         const top = athletes.slice(0, 3)
         const rest = athletes.slice(3)
 
-        const Card = ({ a, rank }: { a: (typeof athletes)[number]; rank: number | null }) => (
-          <div
-            className={`panel panel-hover p-4 ${
-              rank === 0 ? 'border-accent/70 bg-accent/[0.04]' : ''
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <Avatar name={a.display_name} size={42} />
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Link to={`/athletes/${a.slug}`} className="font-medium text-ink hover:text-accent">
-                    {a.display_name}
-                  </Link>
-                  {rank === 0 && (
-                    <span className="rounded-full bg-accent px-2 py-0.5 font-display text-[10px]
-                                     font-bold uppercase tracking-board text-accent-on">
-                      Best match
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs text-ink-3">{a.sport} · {a.country}</div>
-              </div>
-              <div className="ml-auto flex items-center gap-2">
-                {rank !== null && a.affinity != null && (
-                  <span className="tnum font-display text-lg font-bold text-ink" title="Affinity score">
-                    {Math.round(a.affinity)}
-                  </span>
-                )}
-                <CoverageChip coverage={a.score?.coverage ?? null} />
-                {me && (
-                  <button className={`btn px-3 py-1 text-xs ${a.following ? 'border-accent text-ink' : ''}`}
-                          onClick={() => toggleFollow(a)}>
-                    {a.following ? 'Following' : 'Follow'}
-                  </button>
-                )}
-              </div>
-            </div>
-            {(a.reasons?.length ?? 0) > 0 && (
-              <ul className="mt-3 space-y-0.5 text-xs text-ink-3">
-                {a.reasons!.map((r) => <li key={r}>· {r}</li>)}
-              </ul>
-            )}
-          </div>
-        )
-
         return (
           <>
             {top.length > 0 && (
@@ -151,7 +175,9 @@ export default function Discover() {
                   <span className="meta">ranked on your interests — every card says why</span>
                 </div>
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  {top.map((a, i) => <Card key={a.id} a={a} rank={i} />)}
+                  {top.map((a, i) => (
+                    <DiscoverCard key={a.id} a={a} rank={i} me={!!me} onFollow={toggleFollow} />
+                  ))}
                 </div>
               </>
             )}
@@ -161,7 +187,9 @@ export default function Discover() {
                   <span className="cap">More athletes</span>
                 </div>
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  {rest.map((a) => <Card key={a.id} a={a} rank={null} />)}
+                  {rest.map((a) => (
+                    <DiscoverCard key={a.id} a={a} rank={null} me={!!me} onFollow={toggleFollow} />
+                  ))}
                 </div>
               </>
             )}

@@ -126,8 +126,11 @@ function CampaignForm({ onDone }: { onDone: () => void }) {
   // sponsor can target the first athlete from a new country the day they list,
   // rather than when somebody remembers to add the code to an array here.
   const [facets, setFacets] = useState<Facets | null>(null)
+  const [facetsFailed, setFacetsFailed] = useState(false)
   useEffect(() => {
-    api.get<Facets>('/api/athletes/facets').then(setFacets).catch(() => {})
+    api.get<Facets>('/api/athletes/facets')
+      .then(setFacets)
+      .catch(() => setFacetsFailed(true))
   }, [])
 
   const [form, setForm] = useState({
@@ -192,7 +195,8 @@ function CampaignForm({ onDone }: { onDone: () => void }) {
         </div>
       ))}
       {error && <div className="text-sm text-critical">{error}</div>}
-      <button className="btn-go">Create campaign</button>
+      <button className="btn-go" disabled={!facets}>
+        {facets ? 'Create campaign' : facetsFailed ? 'Targeting unavailable' : 'Loading targeting…'}</button>
     </form>
   )
 }

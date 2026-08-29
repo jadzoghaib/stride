@@ -52,6 +52,13 @@ function useHover() {
     setTip({ key, text, ...at(e) })
   const move = (e: React.MouseEvent) => setTip((t) => (t ? { ...t, ...at(e) } : t))
   const leave = () => setTip(null)
+  /** Spread on each mark. The wrapper's own leave only fires at the edge of the
+   *  chart, so without this the tip and the dimming survive the pointer moving
+   *  into empty space between marks. */
+  const on = (key: string, text: string) => ({
+    onMouseEnter: enter(key, text),
+    onMouseLeave: leave,
+  })
 
   const Tip = () =>
     tip ? (
@@ -65,7 +72,7 @@ function useHover() {
       </div>
     ) : null
 
-  return { box, key: tip?.key ?? null, enter, move, leave, Tip }
+  return { box, key: tip?.key ?? null, enter, on, move, leave, Tip }
 }
 
 /** Dim what is not being hovered. Nothing dims until something is hovered, so
@@ -97,8 +104,12 @@ export function AgeBars({ data }: { data: Record<string, number> }) {
             <g
               key={b}
               className={`cursor-default transition-opacity ${focus(hov.key, b)}`}
-              onMouseEnter={hov.enter(b, `${b} · ${pct(data[b])} of audience`)}
+              {...hov.on(b, `${b} · ${pct(data[b])} of audience`)}
             >
+              {/* Kept alongside the visual tip: this is the only per-mark
+                  description a screen reader or a touch device ever gets, and
+                  removing it traded one audience's tooltip for another's. */}
+              <title>{`${b}: ${pct(data[b])}`}</title>
               {/* the modal bucket carries the accent; the rest stay neutral so
                   the shape of the distribution reads before the colour does */}
               <rect
@@ -166,8 +177,10 @@ export function GenderDonut({ data }: { data: Record<string, number> }) {
               d={a.d}
               fill={a.color}
               className={`cursor-default transition-opacity ${focus(h.key, a.key)}`}
-              onMouseEnter={h.enter(a.key, `${a.key} · ${pct(a.frac)} of audience`)}
-            />
+              {...h.on(a.key, `${a.key} · ${pct(a.frac)} of audience`)}
+            >
+              <title>{`${a.key}: ${pct(a.frac)}`}</title>
+            </path>
           ))}
         </svg>
         <div className="space-y-1.5 text-xs">
@@ -177,7 +190,7 @@ export function GenderDonut({ data }: { data: Record<string, number> }) {
               className={`flex items-center gap-2 rounded px-1 transition-colors ${
                 h.key === a.key ? 'bg-raised' : ''
               }`}
-              onMouseEnter={h.enter(a.key, `${a.key} · ${pct(a.frac)} of audience`)}
+              {...h.on(a.key, `${a.key} · ${pct(a.frac)} of audience`)}
             >
               <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: a.color }} />
               <span className="capitalize text-ink-2">{a.key}</span>
@@ -294,8 +307,9 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
             <g
               key={b.code}
               className={`cursor-default transition-opacity ${focus(h.key, b.code)}`}
-              onMouseEnter={h.enter(b.code, `${CENTROIDS[b.code].name} · ${pct(b.share)} of audience`)}
+              {...h.on(b.code, `${CENTROIDS[b.code].name} · ${pct(b.share)} of audience`)}
             >
+              <title>{`${CENTROIDS[b.code].name}: ${pct(b.share)}`}</title>
               <circle
                 cx={b.x}
                 cy={b.y}
@@ -332,7 +346,10 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
               className={`flex items-center gap-2 rounded px-1 transition-colors ${
                 h.key === code ? 'bg-raised' : ''
               }`}
-              onMouseEnter={h.enter(code, `${CENTROIDS[code]?.name ?? code} · ${pct(share)} of audience`)}
+              {...h.on(
+                CENTROIDS[code] ? code : '',
+                `${CENTROIDS[code]?.name ?? code} · ${pct(share)} of audience`,
+              )}
             >
               <span className="w-8 font-display font-semibold uppercase tracking-board text-ink-2">{code}</span>
               <span className="bar h-1.5 flex-1">
