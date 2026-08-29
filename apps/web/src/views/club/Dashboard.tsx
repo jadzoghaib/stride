@@ -275,9 +275,9 @@ function MemberForm({ onDone }: { onDone: () => void }) {
         <span className="cap">Position / role</span>
         <input className="field mt-1 w-44" value={position} onChange={(e) => setPosition(e.target.value)} />
       </label>
-      <button className="btn-go">Add to roster</button>
+      <button className="btn-go">Send invitation</button>
       {error && <span className="text-sm text-critical">{error}</span>}
-      <span className="w-full text-xs text-ink-3">Handles are visible on athlete profile pages in the directory.</span>
+      <span className="w-full text-xs text-ink-3">Handles are visible on athlete profile pages in the directory. The athlete has to accept before they join the roster — until they do, they are not a member and no player-direct package can be sold around them.</span>
     </form>
   )
 }

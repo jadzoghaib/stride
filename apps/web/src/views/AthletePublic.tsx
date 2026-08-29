@@ -2,19 +2,24 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Board } from '../components/Board'
 import { AudiencePanel } from '../components/charts'
+import { ContentList } from '../components/content'
 import { LoadError, PageLoading, CoverageChip, DimensionGrid, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { fmtMoney } from '../lib/format'
-import type { AthletePublic as Athlete } from '../types'
+import type { AthletePublic as Athlete, ContentItem } from '../types'
 import { dealTypeLabel, meanScore } from '../types'
 
 export default function AthletePublicView() {
   const { slug } = useParams()
   const [a, setA] = useState<Athlete | null>(null)
+  const [content, setContent] = useState<ContentItem[] | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
     api.get<Athlete>(`/api/athletes/${slug}`).then(setA).catch((e) => setError(errorText(e)))
+    // Its own request and its own failure: an athlete who has published nothing
+    // is the common case, and a content error must not blank out the profile.
+    api.get<ContentItem[]>(`/api/athletes/${slug}/content`).then(setContent).catch(() => setContent([]))
   }, [slug])
 
   if (!a) return error ? <LoadError text={error} /> : <PageLoading />
@@ -84,6 +89,13 @@ export default function AthletePublicView() {
       {a.audience && Object.keys(a.audience).length > 0 && (
         <Section title="Audience">
           <AudiencePanel audience={a.audience} />
+        </Section>
+      )}
+
+      {content && content.length > 0 && (
+        <Section title="Content">
+          <ContentList items={content}
+                       empty="Nothing published yet." />
         </Section>
       )}
 

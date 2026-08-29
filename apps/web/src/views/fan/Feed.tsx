@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ContentList } from '../../components/content'
 import { LoadError, PageHeader, PageLoading, Avatar, CoverageChip, EmptyNote, Sparkline } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
-import type { AthletePublic } from '../../types'
+import type { AthletePublic, ContentItem } from '../../types'
 
 export default function Feed() {
   const [athletes, setAthletes] = useState<AthletePublic[] | null>(null)
+  const [posts, setPosts] = useState<ContentItem[] | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
     api.get<AthletePublic[]>('/api/feed').then(setAthletes).catch((e) => setError(errorText(e)))
+    // The free layer, and the reason a fan opens the app between paid drops.
+    // Its own failure: losing the posts must not cost the reader the trajectory
+    // panel underneath, which is the part that is always there.
+    api.get<ContentItem[]>('/api/feed/content').then(setPosts).catch(() => setPosts([]))
   }, [])
 
   if (!athletes) return error ? <LoadError text={error} /> : <PageLoading />
@@ -19,9 +25,23 @@ export default function Feed() {
       <PageHeader
         eyebrow="Supporter"
         title="Following"
-        lede="Trajectory of the athletes you follow — audience scale over recent score snapshots."
+        lede="What the athletes you follow have published, and how their audience is moving."
         aside={<span className="meta">{athletes.length} followed</span>}
       />
+
+      {athletes.length > 0 && posts && posts.length > 0 && (
+        <div className="mb-8">
+          <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-line pb-2">
+            <span className="cap">Latest</span>
+            <span className="meta">newest first · locked items show what they would take</span>
+          </div>
+          <ContentList items={posts} showAuthor empty="Nothing published yet." />
+        </div>
+      )}
+
+      {athletes.length > 0 && (
+        <div className="mb-3 border-b border-line pb-2"><span className="cap">Trajectory</span></div>
+      )}
 
       {athletes.length === 0 ? (
         <div>
