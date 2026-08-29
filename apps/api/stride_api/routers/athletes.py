@@ -509,3 +509,49 @@ def respond_to_deal(deal_id: int, body: RespondIn,
               {"athlete_id": profile["id"], "amount_eur": deal["amount_eur"]})
     conn.commit()
     return row(conn, "SELECT * FROM deals WHERE id = ?", (deal_id,))
+
+
+# ── club invitations ────────────────────────────────────────────────────────
+
+@router.get("/athlete/invitations")
+def my_invitations(user: dict = Depends(require_role("athlete")),
+                   conn: sqlite3.Connection = Depends(get_db)):
+    """Clubs that have asked this athlete to join their roster.
+
+    A club used to be able to add anyone straight to its roster, which mattered
+    because player-direct sponsorship packages are sold against membership — so
+    a club could claim an athlete and monetise their audience while the athlete
+    found out by looking at their own profile. Now it asks, and this is where
+    the asking arrives.
+    """
+    profile = _own_profile(conn, user)
+    return rows(conn, """
+        SELECT cm.id AS invitation_id, cm.position, cm.joined_at AS invited_at,
+               c.id AS club_id, c.slug, c.name, c.sport, c.country
+        FROM club_members cm JOIN clubs c ON c.id = cm.club_id
+        WHERE cm.athlete_id = ? AND cm.status = 'invited'
+        ORDER BY cm.joined_at DESC""", (profile["id"],))
+
+
+class InvitationResponse(BaseModel):
+    action: str = Field(pattern="^(accept|decline)$")
+
+
+@router.post("/athlete/invitations/{invitation_id}/respond")
+def respond_to_invitation(invitation_id: int, body: InvitationResponse,
+                          user: dict = Depends(require_role("athlete")),
+                          conn: sqlite3.Connection = Depends(get_db)):
+    profile = _own_profile(conn, user)
+    invite = row(conn, "SELECT * FROM club_members WHERE id = ? AND athlete_id = ?",
+                 (invitation_id, profile["id"]))
+    if invite is None:
+        raise HTTPException(404, "unknown_invitation")
+    if invite["status"] != "invited":
+        raise HTTPException(409, "invitation_already_answered")
+    status = "active" if body.action == "accept" else "declined"
+    conn.execute("UPDATE club_members SET status = ?, responded_at = ? WHERE id = ?",
+                 (status, now_iso(), invite["id"]))
+    log_event(conn, "user", f"club.invitation_{body.action}ed", "club", invite["club_id"],
+              {"athlete_id": profile["id"]})
+    conn.commit()
+    return {"ok": True, "status": status}

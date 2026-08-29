@@ -14,6 +14,7 @@ const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]>
   athlete: [
     { to: '/athlete', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/athlete/deals', label: 'Deals', icon: Briefcase },
+    { to: '/athlete/content', label: 'Content', icon: BadgeCheck },
     { to: '/athlete/profile', label: 'Profile', icon: Users },
     { to: '/athletes', label: 'Directory', icon: Compass },
     { to: '/clubs', label: 'Clubs', icon: Shield },

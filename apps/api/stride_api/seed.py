@@ -296,8 +296,13 @@ def seed(conn: sqlite3.Connection) -> dict:
         log_event(conn, "system", "club.created", "club", club_id, {"name": cname})
         summary["users"] += 1
         for slug, position in members:
-            conn.execute("INSERT INTO club_members (club_id, athlete_id, position, joined_at)"
-                         " VALUES (?, ?, ?, ?)", (club_id, athlete_ids[slug], position, now_iso()))
+            # `active` explicitly: the column now defaults to `invited`, because a
+            # club adding an athlete is a request. These are established members
+            # of a seeded club, not pending asks — without this the whole demo
+            # roster silently became a pile of unanswered invitations.
+            conn.execute("INSERT INTO club_members (club_id, athlete_id, position, status, joined_at)"
+                         " VALUES (?, ?, ?, 'active', ?)",
+                         (club_id, athlete_ids[slug], position, now_iso()))
         for pname, ptype, price, desc, athlete_slug, perks in packages:
             cur = conn.execute(
                 "INSERT INTO club_packages (club_id, athlete_id, name, description, package_type,"

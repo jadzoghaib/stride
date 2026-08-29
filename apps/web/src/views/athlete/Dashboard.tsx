@@ -14,9 +14,10 @@ import {
   StatusChip,
 } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
+import { useToast } from '../../lib/toast'
 import { fmtDT, fmtMoney, fmtNum } from '../../lib/format'
 import { POLICY_VERSION } from '../../lib/legal'
-import type { AthleteWorkspace } from '../../types'
+import type { AthleteWorkspace, ClubInvitation } from '../../types'
 import { DIMENSIONS, meanScore, platformLabel } from '../../types'
 
 const PLATFORMS = ['instagram', 'youtube', 'tiktok']
@@ -266,6 +267,8 @@ export default function AthleteDashboard() {
           </div>
         </div>
 
+        <ClubInvitations />
+
         <Section title="Audience" id="audience">
           {Object.keys(ws.audience).length ? (
             <AudiencePanel audience={ws.audience} />
@@ -414,5 +417,64 @@ function EvidenceTable({ inputs, dimension }: { inputs: NonNullable<AthleteWorks
         </tbody>
       </table>
     </div>
+  )
+}
+
+/** Clubs that have asked this athlete to join their roster.
+ *
+ *  A club used to be able to add anyone straight to its roster. That mattered
+ *  beyond manners: player-direct sponsorship packages are sold against roster
+ *  membership, so a club could claim an athlete and monetise their audience
+ *  while the athlete found out by looking at their own profile. Now it asks,
+ *  and this is where the asking lands.
+ */
+function ClubInvitations() {
+  const [invites, setInvites] = useState<ClubInvitation[] | null>(null)
+  const [busy, setBusy] = useState<number | null>(null)
+  const toast = useToast()
+
+  const load = () =>
+    api.get<ClubInvitation[]>('/api/athlete/invitations').then(setInvites).catch(() => setInvites([]))
+  useEffect(() => { void load() }, [])
+
+  const respond = async (invite: ClubInvitation, action: 'accept' | 'decline') => {
+    setBusy(invite.invitation_id)
+    try {
+      await api.post(`/api/athlete/invitations/${invite.invitation_id}/respond`, { action })
+      toast(action === 'accept' ? `You are on ${invite.name}'s roster` : `Declined ${invite.name}`)
+      await load()
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  if (!invites || invites.length === 0) return null
+
+  return (
+    <Section title="Club invitations"
+             aside={<span className="meta">a club cannot add you without this</span>}>
+      <div className="space-y-2">
+        {invites.map((i) => (
+          <div key={i.invitation_id} className="panel flex flex-wrap items-center gap-3 p-4">
+            <div className="min-w-0">
+              <div className="font-medium text-ink">{i.name}</div>
+              <div className="text-xs text-ink-3">
+                {i.sport} · {i.country}{i.position ? ` · as ${i.position}` : ''}
+              </div>
+            </div>
+            <p className="meta max-w-md">
+              Joining lets them build sponsorship packages around you, and vouch for you
+              in admission. You can leave later.
+            </p>
+            <div className="ml-auto flex gap-2">
+              <button className="btn-go px-3 py-1.5 text-xs" disabled={busy === i.invitation_id}
+                      onClick={() => respond(i, 'accept')}>Accept</button>
+              <button className="btn px-3 py-1.5 text-xs" disabled={busy === i.invitation_id}
+                      onClick={() => respond(i, 'decline')}>Decline</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Section>
   )
 }

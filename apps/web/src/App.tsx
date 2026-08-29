@@ -16,6 +16,7 @@ import ClubsDirectory from './views/ClubsDirectory'
 import Landing from './views/Landing'
 import NotFound from './views/NotFound'
 import ClubDashboard from './views/club/Dashboard'
+import AthleteContent from './views/athlete/Content'
 import ClubEligibility from './views/club/Eligibility'
 import AthleteApplication from './views/athlete/Application'
 import AthleteDashboard from './views/athlete/Dashboard'
@@ -86,6 +87,7 @@ export default function App() {
           <Route path="/athlete" element={<Guard roles={['athlete']}><AthleteDashboard /></Guard>} />
           <Route path="/athlete/deals" element={<Guard roles={['athlete']}><AthleteDeals /></Guard>} />
           <Route path="/athlete/profile" element={<Guard roles={['athlete']}><AthleteProfile /></Guard>} />
+          <Route path="/athlete/content" element={<Guard roles={['athlete']}><AthleteContent /></Guard>} />
           <Route path="/athlete/application" element={<Guard roles={['athlete']}><AthleteApplication /></Guard>} />
 
           <Route path="/sponsor" element={<Guard roles={['sponsor']}><SponsorCampaigns /></Guard>} />
