@@ -77,6 +77,8 @@ export const ERROR_TEXT: Record<string, string> = {
   player_direct_requires_athlete: 'Choose which roster athlete this package backs.',
   not_on_roster: 'This athlete is not on your active roster.',
   unknown_athlete: 'No athlete found with that handle.',
+  unknown_campaign: 'That campaign does not exist, or it belongs to another organization.',
+  unknown_deal: 'That deal no longer exists.',
 }
 
 export function errorText(err: unknown): string {

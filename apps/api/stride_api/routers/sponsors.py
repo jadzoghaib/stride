@@ -341,13 +341,25 @@ def deal_performance(deal_id: int, user: dict = Depends(require_role("sponsor"))
                                       "created_at", "responded_at", "completed_at",
                                       "athlete_name", "athlete_slug", "campaign_name")},
         "deliverables": deliverables,
-        "delivered": {"posts": len(deliverables), "reach": reach,
-                      "engagements": round(engagements)},
+        # `posts` is a count and is honestly 0. Reach and engagements are
+        # measurements, and with nothing attached there is nothing to measure —
+        # so they are null, the same rule the cost figures below already follow.
+        # Rendering 0 told a sponsor their campaign reached nobody, when the
+        # truth is that the athlete has not posted yet.
+        "delivered": {"posts": len(deliverables),
+                      "reach": reach if deliverables else None,
+                      "engagements": round(engagements) if deliverables else None},
         "projected": {"reach": projected},
         # None rather than 0 when there is nothing to divide by — an unmeasurable
         # campaign should read as unmeasured, not as free.
+        #
+        # `deliverables and` matters as much as `projected`. With a projection on
+        # file and nothing posted yet, this read -100.0: not "unmeasured" but
+        # "delivered a hundred per cent below plan", which is a worse lie than
+        # the zero it sat beside — it is an accusation about an athlete who has
+        # simply not posted yet.
         "variance_pct": round(100 * (reach - projected) / projected, 1)
-                        if projected else None,
+                        if projected and deliverables else None,
         "cost_per_1k_reach": round(amount / (reach / 1000), 2) if reach else None,
         "cost_per_engagement": round(amount / engagements, 2) if engagements >= 1 else None,
     }

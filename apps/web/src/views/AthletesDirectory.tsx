@@ -34,7 +34,12 @@ export default function AthletesDirectory() {
   /** Typing is not a query. Every keystroke used to be a request that ran a
    *  LIKE across the directory and a score lookup per row; the search box now
    *  settles first. 250ms is below the threshold where a filter feels laggy and
-   *  well above a typing cadence. */
+   *  well above a typing cadence.
+   *
+   *  The input binds to `typed` and only this timer writes `q`. Binding it to
+   *  `q` directly — which it did — left this timer running over a value nothing
+   *  produced, so every keystroke still fetched and the debounce was decoration.
+   */
   const [typed, setTyped] = useState('')
   useEffect(() => {
     const t = setTimeout(() => setQ(typed), 250)
@@ -50,12 +55,19 @@ export default function AthletesDirectory() {
     return p
   }
 
+  const [searching, setSearching] = useState(false)
   useEffect(() => {
     setError('')
-    setAthletes(null)
+    // Not `setAthletes(null)`. That tripped the `!athletes` guard below, which
+    // returns a full-page skeleton — unmounting the search box mid-word, so the
+    // field lost focus and dropped the keystroke that triggered it. The previous
+    // results stay on screen while the next ones load, which is also the calmer
+    // thing to look at.
+    setSearching(true)
     api.get<AthletePage>(`/api/athletes?${params()}`)
       .then((page) => { setAthletes(page.athletes); setCursor(page.next_cursor) })
       .catch((e) => setError(errorText(e)))
+      .finally(() => setSearching(false))
   }, [sport, country, q])
 
   const loadMore = async () => {
@@ -112,13 +124,23 @@ export default function AthletesDirectory() {
         }
       />
 
-      <div className="flex flex-wrap gap-2">
-        <input
-          className="field w-56 py-1.5 text-sm"
-          placeholder="Search name or sport"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative">
+          <input
+            className="field w-56 py-1.5 text-sm"
+            placeholder="Search name or sport"
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            aria-busy={searching}
+          />
+          {/* Keeping the previous results on screen means nothing else moves
+              while a search runs, so this is the only sign it is running. */}
+          {searching && (
+            <span className="meta absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-3">
+              searching…
+            </span>
+          )}
+        </div>
         <select className="field w-44 py-1.5 text-sm" value={sport} onChange={(e) => setSport(e.target.value)}>
           <option value="">All sports</option>
           {facets.sports.map((s) => (

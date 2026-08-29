@@ -204,7 +204,9 @@ export interface DealPerformance {
     reach: number
     engagement_rate: number | null
   }[]
-  delivered: { posts: number; reach: number; engagements: number }
+  // reach and engagements are null until something is attached: nothing was
+  // delivered is not the same measurement as nobody was reached
+  delivered: { posts: number; reach: number | null; engagements: number | null }
   projected: { reach: number | null }
   variance_pct: number | null
   cost_per_1k_reach: number | null

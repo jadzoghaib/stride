@@ -188,7 +188,29 @@ def submit_application(body: ApplicationIn,
             (profile["id"], *fields, now_iso()))
         application_id = cur.lastrowid
     application = row(conn, "SELECT * FROM athlete_applications WHERE id = ?", (application_id,))
-    return _evaluate(conn, application, profile, via="self")
+
+    # Applying must not cost an athlete the listing they already had.
+    #
+    # This module's docstring promises that profiles with no application are left
+    # alone, so the seeded directory is not retroactively delisted by a gate
+    # added after it. That promise quietly expired the moment such an athlete
+    # engaged with the gate: their first submission scored `review`, and a
+    # healthy listed profile dropped to draft for the crime of filling in a form.
+    # An application is a request to be admitted, not a re-audit of standing
+    # granted before the gate existed.
+    #
+    # The protection is the grandfathered *state*, not the first save. Keying it
+    # to "no application yet" would delist them on the second submission, so
+    # correcting a typo a minute later would do what the first attempt did not —
+    # a worse bug than the one being fixed, because it waits.
+    #
+    # What ends it is the gate admitting them: once `admitted_via` is set, the
+    # listing was earned here rather than inherited, and weakening the claim
+    # behind it has to be able to take it away. Otherwise editing your
+    # application down is a free way to keep a listing it no longer supports.
+    grandfathered = (profile["status"] == "listed"
+                     and not (existing and existing["admitted_via"]))
+    return _evaluate(conn, application, profile, via="self", may_delist=not grandfathered)
 
 
 @router.get("/athlete/application")

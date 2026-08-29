@@ -490,3 +490,55 @@ def test_a_bare_scheme_cannot_be_marked_checked(athlete, admin, db):
                          json={"proof_status": "verified"})
     assert refused.status_code == 409
     assert refused.json()["detail"] == "no_proof_to_check"
+
+
+def test_applying_does_not_cost_an_athlete_the_listing_they_already_had(athlete, admin, db):
+    """Found by a friend clicking through the demo: Kaia was Listed, he
+    submitted the eligibility form, and she was Draft when he got back to the
+    profile — out of matching, with nothing said about it.
+
+    The seeded directory predates the gate on purpose (see the router
+    docstring), and that grandfathering used to evaporate the moment such an
+    athlete engaged with the gate. A weak claim leaves them un-admitted, which
+    is right; it must not also take away what they had before they asked.
+    """
+    def status():
+        return row(db, "SELECT status FROM athlete_profiles WHERE slug = 'kaia-mercer'")["status"]
+
+    assert status() == "listed", "this test starts from a grandfathered listing"
+    weak = {"competition_level": "local", "years_competing": 1, "birth_year": 2004,
+            "proof_kind": "none", "proof_url": ""}
+
+    first = athlete.post("/api/athlete/application", json=weak)
+    assert first.status_code == 201, first.text
+    assert first.json()["decision"] != "admitted"
+    assert first.json()["listing"] == "listed"
+    assert status() == "listed"
+
+    # and again: keying this to "no application yet" would spring the same trap
+    # on the second save, which is worse than the original bug because it waits
+    assert athlete.post("/api/athlete/application", json=weak).json()["listing"] == "listed"
+    assert status() == "listed"
+
+
+def test_but_a_listing_the_gate_granted_can_be_lost_by_weakening_the_claim(athlete, admin, db):
+    """The other half. Grandfathering protects standing that predates the gate;
+    it must not protect a listing the gate itself granted, or editing your
+    application down would be a free way to keep one it no longer supports."""
+    athlete.post("/api/athlete/application", json={
+        "competition_level": "national", "years_competing": 6, "birth_year": 2002,
+        "proof_url": "https://usatf.example/results/2026", "proof_kind": "results"})
+    application = _application(db)
+    admitted = admin.post(f"/api/admin/applications/{application['id']}/proof",
+                          json={"proof_status": "verified"})
+    assert admitted.json()["decision"] == "admitted"
+    assert _application(db)["admitted_via"] == "self"
+
+    # now withdraw the evidence the admission rested on
+    weakened = athlete.post("/api/athlete/application", json={
+        "competition_level": "local", "years_competing": 1, "birth_year": 2004,
+        "proof_kind": "none", "proof_url": ""})
+    assert weakened.json()["decision"] != "admitted"
+    assert weakened.json()["listing"] == "draft"
+    assert row(db, "SELECT status FROM athlete_profiles WHERE slug = 'kaia-mercer'"
+               )["status"] == "draft"

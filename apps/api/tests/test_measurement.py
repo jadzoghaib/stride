@@ -190,13 +190,24 @@ def test_performance_is_scoped_to_the_owning_sponsor(sponsor, athlete, clubu):
 
 
 def test_unmeasured_campaign_reads_as_unmeasured_not_free(sponsor, athlete):
-    """No deliverables means no cost-per-engagement — not a zero, which would
-    read as an infinitely efficient campaign."""
+    """No deliverables means nothing measured — not a zero.
+
+    This test used to state that rule in its docstring and then assert
+    `reach == 0` two lines below it, so the endpoint reported a campaign that
+    reached nobody when the truth was that the athlete had not posted yet. The
+    cost fields were right all along; reach and engagements were the ones
+    quietly claiming a measurement nobody took.
+
+    `posts` stays 0 on purpose: that is a count, and it really is none.
+    """
     deal_id = _accepted_deal(sponsor, athlete, "unmeasured")
     perf = sponsor.get(f"/api/deals/{deal_id}/performance").json()
-    assert perf["delivered"]["reach"] == 0
+    assert perf["delivered"]["posts"] == 0
+    assert perf["delivered"]["reach"] is None
+    assert perf["delivered"]["engagements"] is None
     assert perf["cost_per_1k_reach"] is None
     assert perf["cost_per_engagement"] is None
+    assert perf["variance_pct"] is None
 
 
 def test_the_athlete_can_see_what_they_already_attached(sponsor, athlete, db):

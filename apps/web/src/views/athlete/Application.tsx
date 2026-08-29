@@ -85,7 +85,13 @@ export default function AthleteApplication() {
         proof_kind: form.proof_kind,
         proof_url: form.proof_url,
       })
-      toast(DECISION_COPY[verdict.rule] ?? `Submitted — ${verdict.decision}`)
+      // The verdict alone left the most consequential part unsaid: whether the
+      // profile is still in the directory. Someone who submits a form and
+      // silently drops out of matching has been told nothing that matters.
+      const outcome = DECISION_COPY[verdict.rule] ?? `Submitted — ${verdict.decision}`
+      toast(verdict.listing === 'listed'
+        ? `${outcome} Your profile stays in the directory.`
+        : `${outcome} Your profile is not listed while this is checked.`)
       await load()
     } catch (err) {
       setError(errorText(err))
