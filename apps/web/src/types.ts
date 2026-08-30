@@ -501,7 +501,7 @@ export interface NewsItem {
 
 export interface ContentItem {
   id: number
-  kind: 'post' | 'course' | 'session' | 'event'
+  kind: 'post' | 'course' | 'session' | 'event' | 'product'
   title: string
   body: string
   min_tier: string
@@ -513,6 +513,9 @@ export interface ContentItem {
   starts_at: string | null
   location: string
   capacity: number | null
+  /** Products only: where the thing is actually sold. Stride never takes the
+   *  money, so this is the whole point of the row. */
+  external_url: string
   status: 'draft' | 'published'
   published_at: string | null
   /** True when the reader's tier is below `min_tier`. The body is empty then;
@@ -533,7 +536,7 @@ export interface ClubInvitation {
   country: string
 }
 
-export const CONTENT_KINDS = ['post', 'course', 'session', 'event'] as const
+export const CONTENT_KINDS = ['post', 'course', 'session', 'event', 'product'] as const
 /** The scarce kinds: they cost the author a day, so they carry a date, a place
  *  and a capacity — and they are the argument for the top tier. */
 export const SCHEDULED_KINDS = ['session', 'event'] as const

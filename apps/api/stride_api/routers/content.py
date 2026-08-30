@@ -1,13 +1,18 @@
 """Content: what an athlete or a club publishes, and who can see it.
 
 The specification is §4.3 of the business plan. The shape worth keeping in mind
-while reading this file is that **the four kinds split into two groups**:
+while reading this file is that the kinds fall into three groups:
 
     post, course     unlimited — cost nothing to serve to one more fan
     session, event   scarce    — cost the author a Saturday
+    product          sold somewhere else entirely
 
 That difference is why events carry a time, a place and a capacity, and why they
 are the argument for the top tier rather than just another perk.
+
+A **product** is merch, and it is the one kind Stride does not deliver: the
+athlete sells it on Shopify or Amazon, and this row is a link with a title on
+it. That is also why a product is never locked — see `_validate`.
 
 **Nothing here charges money.** `min_tier` records what a fan would need, and
 `locked` says whether they have it — which, with no subscriptions in the product
@@ -27,10 +32,11 @@ from pydantic import BaseModel, Field
 
 from ..auth import get_db, optional_user, require_role
 from ..db import now_iso, row, rows
+from ..proofcheck import looks_openable
 
 router = APIRouter(prefix="/api", tags=["content"])
 
-KINDS = ("post", "course", "session", "event")
+KINDS = ("post", "course", "session", "event", "product")
 #: Ordered weakest to strongest. A fan sees an item when their tier is at least
 #: its `min_tier`, so the comparison is an index into this tuple.
 TIERS = ("", "supporter", "insider", "inner_circle")
@@ -57,6 +63,7 @@ class ContentIn(BaseModel):
     starts_at: str = Field(default="", max_length=40)
     location: str = Field(default="", max_length=160)
     capacity: int | None = Field(default=None, ge=1, le=100000)
+    external_url: str = Field(default="", max_length=500)
 
 
 def _validate(body: ContentIn) -> None:
@@ -73,6 +80,25 @@ def _validate(body: ContentIn) -> None:
         raise HTTPException(422, "sponsored_needs_sponsor_name")
     if body.kind in SCHEDULED and not body.starts_at.strip():
         raise HTTPException(422, "scheduled_content_needs_a_date")
+
+    if body.kind == "product":
+        # A product with no link is a photograph of a t-shirt. The link is the
+        # entire content of the row.
+        if not body.external_url.strip():
+            raise HTTPException(422, "product_needs_a_link")
+        # Structural check only, and the same one the admission proof uses: no
+        # DNS, no fetch, nothing that turns a form field into a request from
+        # our network. It rejects the shapes a browser cannot open at all.
+        if not looks_openable(body.external_url.strip()):
+            raise HTTPException(422, "product_link_is_not_openable")
+        # Never locked. Stride does not take the money for a product -- the
+        # store does, and that store is public -- so gating the link behind a
+        # Stride tier would hide a page anyone can already reach and charge for
+        # the privilege. Sell it, or do not list it.
+        if body.min_tier:
+            raise HTTPException(422, "a_product_cannot_be_locked")
+    elif body.external_url.strip():
+        raise HTTPException(422, "only_a_product_takes_a_link")
 
 
 def _own_athlete(conn, user) -> dict:
@@ -99,7 +125,7 @@ def _view(item: dict, *, locked: bool) -> dict:
     out = {k: item[k] for k in (
         "id", "kind", "title", "min_tier", "label", "sponsor_name",
         "part_of", "position", "starts_at", "location", "capacity",
-        "status", "published_at",
+        "status", "published_at", "external_url",
     )}
     out["tier_label"] = TIER_LABEL.get(item["min_tier"], item["min_tier"])
     out["locked"] = locked
@@ -179,11 +205,11 @@ def _insert(conn, body: ContentIn, *, athlete_id=None, club_id=None) -> int:
             raise HTTPException(403, "not_your_course")
     cur = conn.execute(
         "INSERT INTO content_items (athlete_id, club_id, kind, title, body, min_tier, label,"
-        " sponsor_name, part_of, position, starts_at, location, capacity, created_at)"
-        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        " sponsor_name, part_of, position, starts_at, location, capacity, external_url,"
+        " created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (athlete_id, club_id, body.kind, body.title, body.body, body.min_tier, body.label,
          body.sponsor_name, body.part_of, body.position, body.starts_at or None,
-         body.location, body.capacity, now_iso()))
+         body.location, body.capacity, body.external_url.strip(), now_iso()))
     return cur.lastrowid
 
 

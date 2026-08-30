@@ -414,12 +414,12 @@ def seed(conn: sqlite3.Connection) -> dict:
     def _content(author: str, owner_id: int, **f) -> int:
         cur = conn.execute(
             f"INSERT INTO content_items ({author}, kind, title, body, min_tier, label,"
-            " sponsor_name, part_of, position, starts_at, location, capacity, status,"
-            " published_at, created_at) VALUES (?, ?, ?, ?, ?, '', '', ?, ?, ?, ?, ?,"
-            " 'published', ?, ?)",
+            " sponsor_name, part_of, position, starts_at, location, capacity, external_url,"
+            " status, published_at, created_at) VALUES (?, ?, ?, ?, ?, '', '', ?, ?, ?, ?, ?,"
+            " ?, 'published', ?, ?)",
             (owner_id, f["kind"], f["title"], f.get("body", ""), f.get("min_tier", ""),
              f.get("part_of"), f.get("position"), f.get("starts_at"), f.get("location", ""),
-             f.get("capacity"), now_iso(), now_iso()))
+             f.get("capacity"), f.get("external_url", ""), now_iso(), now_iso()))
         return cur.lastrowid
 
     kaia = athlete_ids["kaia-mercer"]
@@ -436,6 +436,9 @@ def seed(conn: sqlite3.Connection) -> dict:
     _content("athlete_id", kaia, kind="post", title="Race report: what went wrong on the descent",
              min_tier="", body="I went out too hard and paid for it in the last three kilometres."
                                " Splits and what I would do differently.")
+    _content("athlete_id", kaia, kind="product", title="Signed trail cap",
+             external_url="https://shop.example/kaia-mercer/trail-cap",
+             body="Cotton, one size, signed on the brim. Ships from the store, not from Stride.")
     _content("club_id", meridian["id"], kind="session", title="Open training — first team",
              min_tier="supporter", starts_at="2027-04-08T17:30:00Z",
              location="Meridian Ground", capacity=40,

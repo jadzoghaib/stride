@@ -6,6 +6,7 @@ import { LoadError, Modal, PageLoading, Avatar, EmptyNote, Section, StatusChip }
 import { api, errorText } from '../../lib/api'
 import { CONTENT_KINDS, CONTENT_TIERS } from '../../types'
 import { useToast } from '../../lib/toast'
+import { openable } from '../../lib/url'
 import { fmtDate, fmtMoney } from '../../lib/format'
 import type { ClubWorkspace, ContentItem, RosterMember } from '../../types'
 
@@ -401,7 +402,7 @@ function ProfileForm({ editable, onSaved }: { editable: ClubWorkspace['editable'
  */
 function ClubContent() {
   const [items, setItems] = useState<ContentItem[] | null>(null)
-  const [form, setForm] = useState({ kind: 'post', title: '', body: '', min_tier: '', starts_at: '', location: '', capacity: '' })
+  const [form, setForm] = useState({ kind: 'post', title: '', body: '', min_tier: '', starts_at: '', location: '', capacity: '', external_url: '' })
   const [open, setOpen] = useState(false)
   const [error, setError] = useState('')
   const toast = useToast()
@@ -410,14 +411,19 @@ function ClubContent() {
   useEffect(() => { void load() }, [])
 
   const scheduled = form.kind === 'session' || form.kind === 'event'
+  const isProduct = form.kind === 'product'
 
   const create = async () => {
     setError('')
     try {
       await api.post('/api/club/content', {
-        ...form, capacity: form.capacity === '' ? null : Number(form.capacity),
+        ...form,
+        // a product is never locked and only a product carries a link
+        min_tier: isProduct ? '' : form.min_tier,
+        external_url: isProduct ? form.external_url : '',
+        capacity: form.capacity === '' ? null : Number(form.capacity),
       })
-      setForm({ kind: 'post', title: '', body: '', min_tier: '', starts_at: '', location: '', capacity: '' })
+      setForm({ kind: 'post', title: '', body: '', min_tier: '', starts_at: '', location: '', capacity: '', external_url: '' })
       setOpen(false)
       toast('Saved as draft')
       await load()
@@ -454,11 +460,20 @@ function ClubContent() {
             <textarea className="field mt-1 min-h-[5rem]" value={form.body}
                       onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))} /></label>
           <div className="grid gap-3 md:grid-cols-4">
-            <label className="block"><span className="cap">Fans need</span>
-              <select className="field mt-1" value={form.min_tier}
-                      onChange={(e) => setForm((f) => ({ ...f, min_tier: e.target.value }))}>
-                {CONTENT_TIERS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select></label>
+            {isProduct ? (
+              <label className="block md:col-span-2"><span className="cap">Where it is sold *</span>
+                <input className="field mt-1" value={form.external_url}
+                       onChange={(e) => setForm((f) => ({ ...f, external_url: e.target.value }))}
+                       placeholder="https://shop.example/club-scarf" />
+                <span className="meta mt-1 block">Stride links to your store and never takes a cut, so a product is not locked.</span>
+              </label>
+            ) : (
+              <label className="block"><span className="cap">Fans need</span>
+                <select className="field mt-1" value={form.min_tier}
+                        onChange={(e) => setForm((f) => ({ ...f, min_tier: e.target.value }))}>
+                  {CONTENT_TIERS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select></label>
+            )}
             {scheduled && (
               <>
                 <label className="block"><span className="cap">Starts</span>
@@ -473,7 +488,9 @@ function ClubContent() {
               </>
             )}
           </div>
-          <button className="btn-go" disabled={!form.title.trim()} onClick={create}>Save as draft</button>
+          <button className="btn-go"
+                  disabled={!form.title.trim() || (isProduct && !openable(form.external_url.trim()))}
+                  onClick={create}>Save as draft</button>
         </div>
       )}
 
@@ -485,7 +502,7 @@ function ClubContent() {
         // club the open session is the product and the posts are the trailer.
         <div className="space-y-6">
           {[
-            { label: 'Train with us', rows: items.filter((i) => i.kind === 'course' || i.starts_at) },
+            { label: 'Shop', rows: items.filter((i) => i.kind === 'course' || i.starts_at) },
             { label: 'Wall', rows: items.filter((i) => i.kind === 'post' && !i.part_of) },
           ].filter((g) => g.rows.length > 0).map((group) => (
             <div key={group.label}>

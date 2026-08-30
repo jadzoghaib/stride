@@ -97,7 +97,7 @@ export default function AthletePublicView() {
 
       {content && (content.length > 0 || news.length > 0) && (
         <Section title="From this athlete">
-          <ContentTabs items={content} news={news} offeringsLabel="Train with me" />
+          <ContentTabs items={content} news={news} />
         </Section>
       )}
 

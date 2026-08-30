@@ -353,7 +353,7 @@ CREATE TABLE IF NOT EXISTS content_items (
     id           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     athlete_id   INTEGER REFERENCES athlete_profiles(id),
     club_id      INTEGER REFERENCES clubs(id),
-    kind         TEXT NOT NULL CHECK (kind IN ('post','course','session','event')),
+    kind         TEXT NOT NULL CHECK (kind IN ('post','course','session','event','product')),
     title        TEXT NOT NULL,
     body         TEXT NOT NULL DEFAULT '',
     min_tier     TEXT NOT NULL DEFAULT ''
@@ -369,6 +369,8 @@ CREATE TABLE IF NOT EXISTS content_items (
     starts_at    TEXT,
     location     TEXT NOT NULL DEFAULT '',
     capacity     INTEGER,
+    -- products: Stride does not sell them, it points at wherever they are sold
+    external_url TEXT NOT NULL DEFAULT '',
     status       TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published')),
     created_at   TEXT NOT NULL,
     published_at TEXT,

@@ -13,6 +13,7 @@
 import { useEffect, useState } from 'react'
 import { EmptyNote, LoadError, Modal, PageHeader, PageLoading, Section, Tabs } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
+import { openable } from '../../lib/url'
 import { useToast } from '../../lib/toast'
 import type { ContentItem } from '../../types'
 import { CONTENT_KINDS, CONTENT_LABELS, CONTENT_TIERS, SCHEDULED_KINDS } from '../../types'
@@ -20,14 +21,14 @@ import { CONTENT_KINDS, CONTENT_LABELS, CONTENT_TIERS, SCHEDULED_KINDS } from '.
 const BLANK = {
   kind: 'post', title: '', body: '', min_tier: '', label: '', sponsor_name: '',
   part_of: null as number | null, position: '' as string,
-  starts_at: '', location: '', capacity: '' as string,
+  starts_at: '', location: '', capacity: '' as string, external_url: '',
 }
 
 export default function AthleteContent() {
   const [items, setItems] = useState<ContentItem[] | null>(null)
   const [error, setError] = useState('')
   const [composing, setComposing] = useState(false)
-  const [tab, setTab] = useState<'wall' | 'offerings'>('wall')
+  const [tab, setTab] = useState<'wall' | 'shop'>('wall')
   const toast = useToast()
 
   const load = () =>
@@ -66,7 +67,7 @@ export default function AthleteContent() {
       <PageHeader
         eyebrow="Athlete"
         title="Content"
-        lede="Two surfaces, and a fan meets them differently. Your wall is what they follow: posts, some free, some behind a tier, mixed in with what you already post on your own platforms. Train with me is what they buy — a course, a session, a day out with you."
+        lede="Two surfaces, and a fan meets them differently. Your wall is what they follow: posts, some free, some behind a tier, mixed in with what you already post on your own platforms. Your shop is what they buy — a course, a session, a day out with you."
         aside={<span className="meta">{published} published · {items.length - published} draft</span>}
       />
 
@@ -83,7 +84,7 @@ export default function AthleteContent() {
             onChange={setTab}
             tabs={[
               { key: 'wall', label: 'Wall', count: posts.length },
-              { key: 'offerings', label: 'Train with me', count: courses.length + dated.length },
+              { key: 'shop', label: 'Shop', count: courses.length + dated.length },
             ]}
           />
         </div>
@@ -194,6 +195,7 @@ function Compose({ courses, onClose, onDone }: {
   const set = (k: keyof typeof BLANK, v: string | number | null) =>
     setForm((f) => ({ ...f, [k]: v }))
   const scheduled = SCHEDULED_KINDS.includes(form.kind as never)
+  const isProduct = form.kind === 'product'
 
   const submit = async (close: () => void) => {
     setBusy(true)
@@ -201,6 +203,10 @@ function Compose({ courses, onClose, onDone }: {
     try {
       await api.post('/api/athlete/content', {
         ...form,
+        // the server refuses a tier on a product and a link on anything else;
+        // send the shape it expects rather than let a stale field 422 them
+        min_tier: form.kind === 'product' ? '' : form.min_tier,
+        external_url: form.kind === 'product' ? form.external_url : '',
         position: form.position === '' ? null : Number(form.position),
         capacity: form.capacity === '' ? null : Number(form.capacity),
       })
@@ -223,16 +229,29 @@ function Compose({ courses, onClose, onDone }: {
                 {CONTENT_KINDS.map((k) => <option key={k} value={k}>{k}</option>)}
               </select>
               <span className="meta mt-1 block">
-                {scheduled
-                  ? 'Scarce: it costs you a day, so it is priced like one.'
-                  : 'Unlimited: costs nothing to serve to one more fan.'}
+                {isProduct
+                  ? 'Sold on your own store. Stride links to it and never takes a cut, so it is not locked.'
+                  : scheduled
+                    ? 'Scarce: it costs you a day, so it is priced like one.'
+                    : 'Unlimited: costs nothing to serve to one more fan.'}
               </span>
             </label>
-            <label className="block"><span className="cap">Fans need</span>
-              <select className="field mt-1" value={form.min_tier} onChange={(e) => set('min_tier', e.target.value)}>
-                {CONTENT_TIERS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-            </label>
+            {isProduct ? (
+              <label className="block"><span className="cap">Where it is sold *</span>
+                <input className="field mt-1" value={form.external_url}
+                       onChange={(e) => set('external_url', e.target.value)}
+                       placeholder="https://your-shop.myshopify.com/products/..." />
+                <span className="meta mt-1 block">
+                  Shopify, Amazon, your own store — wherever the checkout already is.
+                </span>
+              </label>
+            ) : (
+              <label className="block"><span className="cap">Fans need</span>
+                <select className="field mt-1" value={form.min_tier} onChange={(e) => set('min_tier', e.target.value)}>
+                  {CONTENT_TIERS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </label>
+            )}
           </div>
 
           <label className="block"><span className="cap">Title</span>
@@ -242,7 +261,11 @@ function Compose({ courses, onClose, onDone }: {
           <label className="block"><span className="cap">Body</span>
             <textarea className="field mt-1 min-h-[7rem]" value={form.body}
                       onChange={(e) => set('body', e.target.value)} />
-            <span className="meta mt-1 block">This is the part a locked item withholds. Everything else stays visible, so a fan can decide whether to pay.</span>
+            <span className="meta mt-1 block">
+              {isProduct
+                ? 'What it is. A product is never locked, so this is always visible.'
+                : 'This is the part a locked item withholds. Everything else stays visible, so a fan can decide whether to pay.'}
+            </span>
           </label>
 
           {scheduled && (
@@ -298,7 +321,10 @@ function Compose({ courses, onClose, onDone }: {
           {error && <p className="text-sm text-critical">{error}</p>}
 
           <div className="flex items-center gap-3">
-            <button className="btn-go" disabled={busy || !form.title.trim()} onClick={() => submit(close)}>
+            <button className="btn-go"
+                    disabled={busy || !form.title.trim()
+                              || (isProduct && !openable(form.external_url.trim()))}
+                    onClick={() => submit(close)}>
               {busy ? 'Saving…' : 'Save as draft'}
             </button>
             <button className="btn" onClick={close}>Cancel</button>

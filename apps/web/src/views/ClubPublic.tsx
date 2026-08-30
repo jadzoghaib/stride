@@ -106,7 +106,7 @@ export default function ClubPublic() {
 
       {content && content.length > 0 && (
         <Section title="From this club">
-          <ContentTabs items={content} offeringsLabel="Train with us" />
+          <ContentTabs items={content} />
         </Section>
       )}
 

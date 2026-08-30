@@ -2,12 +2,12 @@
  *
  *  Two surfaces, not one list:
  *
- *    Wall          posts, newest first, some free and some locked, mixed in
- *                  with what this person posts on their own platforms. You do
- *                  not buy a wall, you follow it.
- *    Train with me courses, sessions and events -- the things a fan decides on,
- *                  pays for once, and receives. A price and a date are the
- *                  point here rather than an interruption.
+ *    Wall   posts, newest first, some free and some locked, mixed in with
+ *           what this person posts on their own platforms. You do not buy a
+ *           wall, you follow it.
+ *    Shop   courses, sessions and events -- the things a fan decides on, pays
+ *           for once, and receives. A price and a date are the point here
+ *           rather than an interruption.
  *
  *  The first cut of this split on scarcity instead, which put "come train with
  *  me" on the wall: the highest-value thing on the page, buried in a stream and
@@ -47,9 +47,15 @@ export function ContentCard({ item, showAuthor = false }: {
           <span className="tag border-warn text-warn">Sponsored · {item.sponsor_name}</span>
         )}
         {item.label === 'highlighted' && <span className="tag text-accent-ink">Highlighted</span>}
-        <span className={`ml-auto tag ${item.locked ? '' : 'text-ok'}`}>
-          {item.locked ? item.tier_label : 'Free'}
-        </span>
+        {/* "Free" means "not locked", which is true of a product and also
+            entirely the wrong word for a signed cap that costs money on the
+            store. A product carries no tier tag at all; its price lives where
+            it is actually sold. */}
+        {item.kind !== 'product' && (
+          <span className={`ml-auto tag ${item.locked ? '' : 'text-ok'}`}>
+            {item.locked ? item.tier_label : 'Free'}
+          </span>
+        )}
       </div>
 
       {showAuthor && item.author && item.author_slug && (
@@ -59,6 +65,15 @@ export function ContentCard({ item, showAuthor = false }: {
       )}
 
       {item.starts_at && <p className="meta mt-1">{occasion(item)}</p>}
+
+      {item.kind === 'product' && item.external_url && (
+        <p className="mt-2">
+          <a href={item.external_url} target="_blank" rel="noreferrer noopener"
+             className="meta hover:text-accent">
+            Buy on {storeName(item.external_url)} &rarr;
+          </a>
+        </p>
+      )}
 
       {item.locked ? (
         <p className="mt-3 rounded border border-line bg-raised px-3 py-2 text-sm text-ink-3">
@@ -70,6 +85,16 @@ export function ContentCard({ item, showAuthor = false }: {
       )}
     </article>
   )
+}
+
+/** The domain a product link points at, so a fan knows where they are going
+ *  before they click. Stride does not sell merch -- it says who does. */
+function storeName(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return 'their store'
+  }
 }
 
 function stamp(iso: string): string {
@@ -94,7 +119,13 @@ function NewsCard({ item }: { item: NewsItem }) {
   )
 }
 
-/** What a fan can buy or book: courses, sessions, events.
+/** The shop: what a fan can buy or book -- courses, sessions, events.
+
+ *  Named for the category rather than for anything in it. An early version
+ *  called this "Train with me", which was the title of one event inside it and
+ *  would have had to be renamed the day an athlete sold a race analysis or a
+ *  1:1 call. "Shop" is also the same word for an athlete and a club, so the two
+ *  pages stop needing different pronouns for the same idea.
  *
  *  The line here is what the fan *does*, not what it costs the athlete to make.
  *  A course and a "come train with me" morning feel unrelated -- one is a file,
@@ -107,10 +138,11 @@ function NewsCard({ item }: { item: NewsItem }) {
  *  stay, muted: nobody can attend last month's session, but "they have run nine
  *  of these" is the strongest argument for booking the tenth.
  */
-export function Offerings({ items, empty }: { items: ContentItem[]; empty: string }) {
+export function Shop({ items, empty }: { items: ContentItem[]; empty: string }) {
   const now = Date.now()
   const own = items.filter((i) => i.kind !== 'post' || i.part_of == null)
   const courses = own.filter((i) => i.kind === 'course')
+  const products = own.filter((i) => i.kind === 'product')
   const dated = own.filter((i) => i.starts_at)
   const upcoming = dated
     .filter((i) => new Date(i.starts_at as string).getTime() > now)
@@ -121,7 +153,9 @@ export function Offerings({ items, empty }: { items: ContentItem[]; empty: strin
   const partsOf = (id: number) =>
     items.filter((i) => i.part_of === id).sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
 
-  if (courses.length === 0 && dated.length === 0) return <EmptyNote text={empty} />
+  if (courses.length === 0 && dated.length === 0 && products.length === 0) {
+    return <EmptyNote text={empty} />
+  }
 
   return (
     <div className="space-y-6">
@@ -152,6 +186,15 @@ export function Offerings({ items, empty }: { items: ContentItem[]; empty: strin
         </div>
       )}
 
+      {products.length > 0 && (
+        <div>
+          <p className="cap mb-2">Merch</p>
+          <div className="space-y-2">
+            {products.map((i) => <ContentCard key={i.id} item={i} />)}
+          </div>
+        </div>
+      )}
+
       {past.length > 0 && (
         <div className="opacity-60">
           <p className="cap mb-2 text-ink-3">Already happened</p>
@@ -168,8 +211,8 @@ export function Offerings({ items, empty }: { items: ContentItem[]; empty: strin
  *
  *  Two streams in one, because a fan does not care which system produced a row
  *  -- what this person wrote here, and what they posted on their own platforms.
- *  Nothing bookable appears; that has a tab of its own, where a price and a date
- *  are the point rather than an interruption.
+ *  Nothing bookable appears; that has a tab of its own, where a price and a
+ *  date are the point rather than an interruption.
  */
 export function Wall({ items, news = [], showAuthor = false, empty }: {
   items: ContentItem[]
@@ -196,22 +239,20 @@ export function Wall({ items, news = [], showAuthor = false, empty }: {
   return <div className="space-y-2">{entries.map((e) => <div key={e.key}>{e.node}</div>)}</div>
 }
 
-/** The public pair, so a profile and a club page cannot drift on either the
- *  split or the words for it. `offeringsLabel` is the only thing that differs:
- *  an athlete says "Train with me", a club says "Train with us". */
-export function ContentTabs({ items, news = [], offeringsLabel }: {
+/** The public pair, so an athlete profile and a club page cannot drift on
+ *  either the split or the words for it. */
+export function ContentTabs({ items, news = [] }: {
   items: ContentItem[]
   news?: NewsItem[]
-  offeringsLabel: string
 }) {
   const posts = items.filter((i) => i.kind === 'post' && i.part_of == null)
-  const offerings = items.filter((i) => i.kind === 'course'
+  const offerings = items.filter((i) => i.kind === 'course' || i.kind === 'product'
     || (i.starts_at != null && i.kind !== 'post'))
   // Open on the wall, except when there is no wall to open on. A club that
   // runs one open session and posts nothing would otherwise greet every
   // visitor with an empty panel and its only product one click away.
-  const [tab, setTab] = useState<'wall' | 'offerings'>(
-    posts.length + news.length === 0 && offerings.length > 0 ? 'offerings' : 'wall')
+  const [tab, setTab] = useState<'wall' | 'shop'>(
+    posts.length + news.length === 0 && offerings.length > 0 ? 'shop' : 'wall')
 
   return (
     <div>
@@ -220,15 +261,14 @@ export function ContentTabs({ items, news = [], offeringsLabel }: {
         onChange={setTab}
         tabs={[
           { key: 'wall', label: 'Wall', count: posts.length + news.length },
-          { key: 'offerings', label: offeringsLabel, count: offerings.length },
+          { key: 'shop', label: 'Shop', count: offerings.length },
         ]}
       />
       <div className="mt-4">
         {tab === 'wall'
           ? <Wall items={items} news={news}
                   empty="Nothing on the wall yet." />
-          : <Offerings items={items}
-                       empty="Nothing to book yet." />}
+          : <Shop items={items} empty="Nothing to book yet." />}
       </div>
     </div>
   )

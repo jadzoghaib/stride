@@ -294,3 +294,58 @@ def test_an_athlete_with_nothing_connected_has_an_empty_wall_not_an_error(client
 
 def test_the_wall_of_an_unknown_athlete_is_a_404(client):
     assert client.get("/api/athletes/nobody-at-all/news").status_code == 404
+
+
+# ── products: the one kind Stride does not deliver ────────────────────────
+
+def test_a_product_needs_a_link(athlete):
+    """Merch lives on Shopify or Amazon. Without the link the row is a
+    photograph of a t-shirt."""
+    res = athlete.post("/api/athlete/content", json={"kind": "product", "title": "Team tee"})
+    assert res.status_code == 422
+    assert res.json()["detail"] == "product_needs_a_link"
+
+
+def test_a_product_link_has_to_be_openable(athlete):
+    """Structural check only -- the same one admission proofs use. It never
+    resolves or fetches the URL, so a form field cannot become a request from
+    our network."""
+    res = athlete.post("/api/athlete/content", json={
+        "kind": "product", "title": "Team tee", "external_url": "not a url"})
+    assert res.status_code == 422
+    assert res.json()["detail"] == "product_link_is_not_openable"
+
+
+def test_a_product_cannot_be_locked(athlete):
+    """The store takes the money and the store is public. Locking the link
+    behind a Stride tier would hide a page anyone can already reach."""
+    res = athlete.post("/api/athlete/content", json={
+        "kind": "product", "title": "Team tee", "min_tier": "insider",
+        "external_url": "https://shop.example/tee"})
+    assert res.status_code == 422
+    assert res.json()["detail"] == "a_product_cannot_be_locked"
+
+
+def test_only_a_product_carries_a_link(athlete):
+    """Otherwise every post becomes a place to park an outbound link, which is
+    the shape spam takes on a creator platform."""
+    res = athlete.post("/api/athlete/content", json={
+        "kind": "post", "title": "Read this", "external_url": "https://shop.example/tee"})
+    assert res.status_code == 422
+    assert res.json()["detail"] == "only_a_product_takes_a_link"
+
+
+def test_a_published_product_reaches_a_stranger_with_its_link(athlete, client):
+    made = athlete.post("/api/athlete/content", json={
+        "kind": "product", "title": "Trail cap", "body": "Cotton, one size.",
+        "external_url": "https://shop.example/trail-cap"})
+    assert made.status_code == 201, made.text
+    athlete.post(f"/api/content/{made.json()['id']}/publish")
+
+    seen = [i for i in client.get("/api/athletes/kaia-mercer/content").json()
+            if i["title"] == "Trail cap"]
+    assert len(seen) == 1
+    item = seen[0]
+    assert item["locked"] is False, "a product is never locked"
+    assert item["external_url"] == "https://shop.example/trail-cap"
+    assert item["body"] == "Cotton, one size."
