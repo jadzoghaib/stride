@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ContentList } from '../../components/content'
+import { ContentCard, Wall } from '../../components/content'
 import { LoadError, PageHeader, PageLoading, Avatar, CoverageChip, EmptyNote, Sparkline } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import type { AthletePublic, ContentItem } from '../../types'
@@ -20,6 +20,13 @@ export default function Feed() {
 
   if (!athletes) return error ? <LoadError text={error} /> : <PageLoading />
 
+  const now = Date.now()
+  const items = posts ?? []
+  const upcoming = items
+    .filter((i) => i.starts_at && new Date(i.starts_at).getTime() > now)
+    .sort((a, b) => +new Date(a.starts_at as string) - +new Date(b.starts_at as string))
+  const wallPosts = items.filter((i) => i.kind === 'post' && !i.part_of)
+
   return (
     <div>
       <PageHeader
@@ -29,13 +36,28 @@ export default function Feed() {
         aside={<span className="meta">{athletes.length} followed</span>}
       />
 
-      {athletes.length > 0 && posts && posts.length > 0 && (
+      {/* A feed is a stream, but the one thing in it with a deadline should
+          not have to be scrolled to. Anything bookable and still to come sits
+          above the wall; everything else is the wall, newest first. */}
+      {athletes.length > 0 && upcoming.length > 0 && (
         <div className="mb-8">
           <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-line pb-2">
-            <span className="cap">Latest</span>
+            <span className="cap text-accent-ink">Coming up</span>
+            <span className="meta">from the athletes you follow</span>
+          </div>
+          <div className="space-y-2">
+            {upcoming.map((i) => <ContentCard key={i.id} item={i} showAuthor />)}
+          </div>
+        </div>
+      )}
+
+      {athletes.length > 0 && wallPosts.length > 0 && (
+        <div className="mb-8">
+          <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-line pb-2">
+            <span className="cap">Wall</span>
             <span className="meta">newest first · locked items show what they would take</span>
           </div>
-          <ContentList items={posts} showAuthor empty="Nothing published yet." />
+          <Wall items={wallPosts} showAuthor empty="Nothing published yet." />
         </div>
       )}
 

@@ -1,11 +1,17 @@
-/** The reader's half of the content model.
+/** The reader's half of the content model, split the way a fan meets it.
  *
- *  `/api/athletes/{slug}/content`, `/api/clubs/{slug}/content` and
- *  `/api/feed/content` all shipped with tests, and none of them had a caller.
- *  An athlete could write a course, publish it, and no screen in the product
- *  would ever show it to anybody: the server was right and the app was empty.
- *  This is the missing half, shared by the athlete profile, the club profile
- *  and the feed so those three cannot drift on what a lock is allowed to hide.
+ *  Two surfaces, not one list:
+ *
+ *    Wall          posts, newest first, some free and some locked, mixed in
+ *                  with what this person posts on their own platforms. You do
+ *                  not buy a wall, you follow it.
+ *    Train with me courses, sessions and events -- the things a fan decides on,
+ *                  pays for once, and receives. A price and a date are the
+ *                  point here rather than an interruption.
+ *
+ *  The first cut of this split on scarcity instead, which put "come train with
+ *  me" on the wall: the highest-value thing on the page, buried in a stream and
+ *  scrolling away. What a fan *does* is the line that matters.
  *
  *  A locked item withholds the body and only the body. Kind, title, schedule,
  *  sponsor disclosure and the tier it would take all stay visible, because
@@ -13,10 +19,10 @@
  *  shape. There is deliberately no checkout: no payments stack exists yet, and
  *  a button that took money nowhere would be the one dishonest control here.
  */
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { ContentItem, NewsItem } from '../types'
-import { EmptyNote } from './ui'
+import { EmptyNote, Tabs } from './ui'
 
 /** A session or an event is scarce -- it costs the author a day -- so when it
  *  happens, where, and how many places are left are part of the offer. */
@@ -66,38 +72,6 @@ export function ContentCard({ item, showAuthor = false }: {
   )
 }
 
-export function ContentList({ items, showAuthor = false, empty }: {
-  items: ContentItem[]
-  showAuthor?: boolean
-  empty: string
-}) {
-  if (items.length === 0) return <EmptyNote text={empty} />
-
-  // A course is a series; its parts belong under it rather than loose in the
-  // list, in the order the author gave them.
-  const courses = items.filter((i) => i.kind === 'course')
-  const partsOf = (id: number) =>
-    items.filter((i) => i.part_of === id).sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
-  const loose = items.filter((i) => i.kind !== 'course' && !i.part_of)
-
-  return (
-    <div className="space-y-3">
-      {courses.map((c) => (
-        <div key={c.id}>
-          <ContentCard item={c} showAuthor={showAuthor} />
-          {partsOf(c.id).length > 0 && (
-            <div className="mt-2 space-y-2 border-l border-line pl-4">
-              {partsOf(c.id).map((p) => <ContentCard key={p.id} item={p} showAuthor={false} />)}
-            </div>
-          )}
-        </div>
-      ))}
-      {loose.map((i) => <ContentCard key={i.id} item={i} showAuthor={showAuthor} />)}
-    </div>
-  )
-}
-
-
 function stamp(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined,
     { day: 'numeric', month: 'short', year: 'numeric' })
@@ -120,44 +94,82 @@ function NewsCard({ item }: { item: NewsItem }) {
   )
 }
 
-/** The catalogue: what an athlete or club sells that keeps its value.
+/** What a fan can buy or book: courses, sessions, events.
  *
- *  Courses sit apart from the wall on purpose. A wall is a stream you scroll
- *  past; a course is a product you come back to, and burying a twelve-week
- *  block under last Tuesday's news is how you stop selling it.
+ *  The line here is what the fan *does*, not what it costs the athlete to make.
+ *  A course and a "come train with me" morning feel unrelated -- one is a file,
+ *  one is a Saturday -- but a fan meets them the same way: decide, pay once,
+ *  receive a specific thing. A post is the opposite: you do not buy it, you
+ *  subscribe and it arrives. Splitting on scarcity instead put the session on
+ *  the wall, which buried the highest-value thing on the page in a stream.
+ *
+ *  Dated things come first and soonest-first, because they expire. Past ones
+ *  stay, muted: nobody can attend last month's session, but "they have run nine
+ *  of these" is the strongest argument for booking the tenth.
  */
-export function Courses({ items }: { items: ContentItem[] }) {
-  const courses = items.filter((i) => i.kind === 'course')
-  if (courses.length === 0) return null
+export function Offerings({ items, empty }: { items: ContentItem[]; empty: string }) {
+  const now = Date.now()
+  const own = items.filter((i) => i.kind !== 'post' || i.part_of == null)
+  const courses = own.filter((i) => i.kind === 'course')
+  const dated = own.filter((i) => i.starts_at)
+  const upcoming = dated
+    .filter((i) => new Date(i.starts_at as string).getTime() > now)
+    .sort((a, b) => +new Date(a.starts_at as string) - +new Date(b.starts_at as string))
+  const past = dated
+    .filter((i) => new Date(i.starts_at as string).getTime() <= now)
+    .sort((a, b) => +new Date(b.starts_at as string) - +new Date(a.starts_at as string))
   const partsOf = (id: number) =>
     items.filter((i) => i.part_of === id).sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
 
+  if (courses.length === 0 && dated.length === 0) return <EmptyNote text={empty} />
+
   return (
-    <div className="space-y-3">
-      {courses.map((c) => (
-        <div key={c.id}>
-          <ContentCard item={c} />
-          {partsOf(c.id).length > 0 && (
-            <div className="mt-2 space-y-2 border-l border-line pl-4">
-              {partsOf(c.id).map((p) => <ContentCard key={p.id} item={p} />)}
-            </div>
-          )}
+    <div className="space-y-6">
+      {upcoming.length > 0 && (
+        <div>
+          <p className="cap mb-2 text-accent-ink">Coming up</p>
+          <div className="space-y-2">
+            {upcoming.map((i) => <ContentCard key={i.id} item={i} />)}
+          </div>
         </div>
-      ))}
+      )}
+
+      {courses.length > 0 && (
+        <div>
+          {(upcoming.length > 0 || past.length > 0) && <p className="cap mb-2">Courses</p>}
+          <div className="space-y-3">
+            {courses.map((c) => (
+              <div key={c.id}>
+                <ContentCard item={c} />
+                {partsOf(c.id).length > 0 && (
+                  <div className="mt-2 space-y-2 border-l border-line pl-4">
+                    {partsOf(c.id).map((part) => <ContentCard key={part.id} item={part} />)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {past.length > 0 && (
+        <div className="opacity-60">
+          <p className="cap mb-2 text-ink-3">Already happened</p>
+          <div className="space-y-2">
+            {past.map((i) => <ContentCard key={i.id} item={i} />)}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-/** The wall: everything this person is doing, newest first.
+/** The wall: posts, newest first, some free and some not.
  *
- *  Two streams in one, because a fan does not care which system produced a
- *  row -- what the athlete published here, and what they posted on their own
- *  platforms. Courses are excluded; they have a shelf of their own.
- *
- *  Anything still to come is pinned above the stream. A session on a date in
- *  the future is the most perishable thing on the page and the only one with a
- *  deadline, so letting it scroll away under yesterday's news would be the one
- *  ordering mistake that costs the athlete money.
+ *  Two streams in one, because a fan does not care which system produced a row
+ *  -- what this person wrote here, and what they posted on their own platforms.
+ *  Nothing bookable appears; that has a tab of its own, where a price and a date
+ *  are the point rather than an interruption.
  */
 export function Wall({ items, news = [], showAuthor = false, empty }: {
   items: ContentItem[]
@@ -165,15 +177,10 @@ export function Wall({ items, news = [], showAuthor = false, empty }: {
   showAuthor?: boolean
   empty: string
 }) {
-  const now = Date.now()
-  const stream = items.filter((i) => i.kind !== 'course' && !i.part_of)
-  const upcoming = stream
-    .filter((i) => i.starts_at && new Date(i.starts_at).getTime() > now)
-    .sort((a, b) => +new Date(a.starts_at as string) - +new Date(b.starts_at as string))
-  const pinned = new Set(upcoming.map((i) => i.id))
+  const posts = items.filter((i) => i.kind === 'post' && i.part_of == null)
 
   const entries: { key: string; at: number; node: ReactNode }[] = [
-    ...stream.filter((i) => !pinned.has(i.id)).map((i) => ({
+    ...posts.map((i) => ({
       key: `c${i.id}`,
       at: new Date(i.published_at ?? 0).getTime(),
       node: <ContentCard item={i} showAuthor={showAuthor} />,
@@ -185,24 +192,44 @@ export function Wall({ items, news = [], showAuthor = false, empty }: {
     })),
   ].sort((a, b) => b.at - a.at)
 
-  if (upcoming.length === 0 && entries.length === 0) return <EmptyNote text={empty} />
+  if (entries.length === 0) return <EmptyNote text={empty} />
+  return <div className="space-y-2">{entries.map((e) => <div key={e.key}>{e.node}</div>)}</div>
+}
+
+/** The public pair, so a profile and a club page cannot drift on either the
+ *  split or the words for it. `offeringsLabel` is the only thing that differs:
+ *  an athlete says "Train with me", a club says "Train with us". */
+export function ContentTabs({ items, news = [], offeringsLabel }: {
+  items: ContentItem[]
+  news?: NewsItem[]
+  offeringsLabel: string
+}) {
+  const posts = items.filter((i) => i.kind === 'post' && i.part_of == null)
+  const offerings = items.filter((i) => i.kind === 'course'
+    || (i.starts_at != null && i.kind !== 'post'))
+  // Open on the wall, except when there is no wall to open on. A club that
+  // runs one open session and posts nothing would otherwise greet every
+  // visitor with an empty panel and its only product one click away.
+  const [tab, setTab] = useState<'wall' | 'offerings'>(
+    posts.length + news.length === 0 && offerings.length > 0 ? 'offerings' : 'wall')
 
   return (
-    <div className="space-y-4">
-      {upcoming.length > 0 && (
-        <div>
-          <p className="cap mb-2 text-accent-ink">Coming up</p>
-          <div className="space-y-2">
-            {upcoming.map((i) => <ContentCard key={i.id} item={i} showAuthor={showAuthor} />)}
-          </div>
-        </div>
-      )}
-      {entries.length > 0 && (
-        <div className="space-y-2">
-          {upcoming.length > 0 && <p className="cap mb-2 text-ink-3">Earlier</p>}
-          {entries.map((e) => <div key={e.key}>{e.node}</div>)}
-        </div>
-      )}
+    <div>
+      <Tabs
+        active={tab}
+        onChange={setTab}
+        tabs={[
+          { key: 'wall', label: 'Wall', count: posts.length + news.length },
+          { key: 'offerings', label: offeringsLabel, count: offerings.length },
+        ]}
+      />
+      <div className="mt-4">
+        {tab === 'wall'
+          ? <Wall items={items} news={news}
+                  empty="Nothing on the wall yet." />
+          : <Offerings items={items}
+                       empty="Nothing to book yet." />}
+      </div>
     </div>
   )
 }

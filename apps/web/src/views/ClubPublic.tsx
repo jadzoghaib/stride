@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Courses, Wall } from '../components/content'
+import { ContentTabs } from '../components/content'
 import { LoadError, PageHeader, PageLoading, Avatar, EmptyNote, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { useAuth } from '../lib/auth'
@@ -104,15 +104,9 @@ export default function ClubPublic() {
         )}
       </Section>
 
-      {content && content.some((i) => i.kind === 'course') && (
-        <Section title="Courses">
-          <Courses items={content} />
-        </Section>
-      )}
-
       {content && content.length > 0 && (
-        <Section title="Wall">
-          <Wall items={content} empty="Nothing on the wall yet." />
+        <Section title="From this club">
+          <ContentTabs items={content} offeringsLabel="Train with us" />
         </Section>
       )}
 

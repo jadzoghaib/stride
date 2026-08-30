@@ -480,21 +480,34 @@ function ClubContent() {
       {!items || items.length === 0 ? (
         <EmptyNote text="Nothing published yet. A club's own audience is one no single athlete has, and open sessions are the kind fans pay most for." />
       ) : (
-        <div className="space-y-2">
-          {items.map((i) => (
-            <div key={i.id} className="panel flex flex-wrap items-center gap-3 p-3">
-              <span className="cap w-16 shrink-0 text-ink-3">{i.kind}</span>
-              <span className="text-sm font-medium text-ink">{i.title}</span>
-              <span className="tag">{i.tier_label}</span>
-              {i.starts_at && (
-                <span className="meta">{new Date(i.starts_at).toLocaleDateString()} · {i.location || 'TBC'}</span>
-              )}
-              <div className="ml-auto flex items-center gap-2">
-                <span className={`tag ${i.status === 'published' ? 'border-ok/50 text-ok' : ''}`}>{i.status}</span>
-                {i.status === 'draft' && (
-                  <button className="btn px-3 py-1 text-xs" onClick={() => publish(i)}>Publish</button>
-                )}
-                <button className="btn px-3 py-1 text-xs" onClick={() => remove(i)}>Delete</button>
+        // The same two surfaces the club's public page shows, in the same
+        // order: what a fan buys sits above what a fan follows, because for a
+        // club the open session is the product and the posts are the trailer.
+        <div className="space-y-6">
+          {[
+            { label: 'Train with us', rows: items.filter((i) => i.kind === 'course' || i.starts_at) },
+            { label: 'Wall', rows: items.filter((i) => i.kind === 'post' && !i.part_of) },
+          ].filter((g) => g.rows.length > 0).map((group) => (
+            <div key={group.label}>
+              <p className="cap mb-2 text-ink-3">{group.label}</p>
+              <div className="space-y-2">
+                {group.rows.map((i) => (
+                  <div key={i.id} className="panel flex flex-wrap items-center gap-3 p-3">
+                    <span className="cap w-16 shrink-0 text-ink-3">{i.kind}</span>
+                    <span className="text-sm font-medium text-ink">{i.title}</span>
+                    <span className="tag">{i.tier_label}</span>
+                    {i.starts_at && (
+                      <span className="meta">{new Date(i.starts_at).toLocaleDateString()} · {i.location || 'TBC'}</span>
+                    )}
+                    <div className="ml-auto flex items-center gap-2">
+                      <span className={`tag ${i.status === 'published' ? 'border-ok/50 text-ok' : ''}`}>{i.status}</span>
+                      {i.status === 'draft' && (
+                        <button className="btn px-3 py-1 text-xs" onClick={() => publish(i)}>Publish</button>
+                      )}
+                      <button className="btn px-3 py-1 text-xs" onClick={() => remove(i)}>Delete</button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}

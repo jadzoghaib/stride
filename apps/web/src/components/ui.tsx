@@ -217,6 +217,41 @@ export function Section({ title, aside, id, children }: { title: string; aside?:
   )
 }
 
+/** Two or three panels that answer different questions, one at a time.
+ *
+ *  Same register as the sign-in / create-account switch, because it is the same
+ *  gesture. The count sits in the tab so a reader can tell a full panel from an
+ *  empty one without opening it -- otherwise a tab is a guess.
+ */
+export function Tabs<T extends string>({ tabs, active, onChange }: {
+  tabs: { key: T; label: string; count?: number }[]
+  active: T
+  onChange: (key: T) => void
+}) {
+  return (
+    <div className="flex gap-1 rounded-card border border-line bg-panel p-1" role="tablist">
+      {tabs.map((t) => (
+        <button
+          key={t.key}
+          role="tab"
+          aria-selected={active === t.key}
+          onClick={() => onChange(t.key)}
+          className={`flex-1 rounded py-2 font-display text-[13px] font-semibold uppercase tracking-micro transition-colors ${
+            active === t.key ? 'bg-track text-ink' : 'text-ink-3 hover:text-ink-2'
+          }`}
+        >
+          {t.label}
+          {t.count !== undefined && (
+            <span className={`tnum ml-2 text-[11px] ${active === t.key ? 'text-accent-ink' : 'text-ink-3'}`}>
+              {t.count}
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // ── meters ───────────────────────────────────────────────────────────────────
 
 /** Bar wipes out from left on mount; `delay` staggers a stack of them. */

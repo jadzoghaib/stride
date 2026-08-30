@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Board } from '../components/Board'
 import { AudiencePanel } from '../components/charts'
-import { Courses, Wall } from '../components/content'
+import { ContentTabs } from '../components/content'
 import { LoadError, PageLoading, CoverageChip, DimensionGrid, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { fmtMoney } from '../lib/format'
@@ -95,16 +95,9 @@ export default function AthletePublicView() {
         </Section>
       )}
 
-      {content && content.some((i) => i.kind === 'course') && (
-        <Section title="Courses">
-          <Courses items={content} />
-        </Section>
-      )}
-
       {content && (content.length > 0 || news.length > 0) && (
-        <Section title="Wall"
-                 aside={<span className="meta">what they publish here, and what they post elsewhere</span>}>
-          <Wall items={content} news={news} empty="Nothing on the wall yet." />
+        <Section title="From this athlete">
+          <ContentTabs items={content} news={news} offeringsLabel="Train with me" />
         </Section>
       )}
 

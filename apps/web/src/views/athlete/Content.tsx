@@ -11,7 +11,7 @@
  *  otherwise would be the one dishonest screen in the product.
  */
 import { useEffect, useState } from 'react'
-import { EmptyNote, LoadError, Modal, PageHeader, PageLoading, Section } from '../../components/ui'
+import { EmptyNote, LoadError, Modal, PageHeader, PageLoading, Section, Tabs } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { useToast } from '../../lib/toast'
 import type { ContentItem } from '../../types'
@@ -27,6 +27,7 @@ export default function AthleteContent() {
   const [items, setItems] = useState<ContentItem[] | null>(null)
   const [error, setError] = useState('')
   const [composing, setComposing] = useState(false)
+  const [tab, setTab] = useState<'wall' | 'offerings'>('wall')
   const toast = useToast()
 
   const load = () =>
@@ -51,9 +52,13 @@ export default function AthleteContent() {
 
   if (!items) return error ? <LoadError text={error} /> : <PageLoading />
 
+  // The same two surfaces a fan sees, in the same words. What you manage and
+  // what they meet should not be different shapes with different names.
   const courses = items.filter((i) => i.kind === 'course')
-  const partsOf = (id: number) => items.filter((i) => i.part_of === id)
-  const loose = items.filter((i) => i.kind !== 'course' && !i.part_of)
+  const partsOf = (id: number) =>
+    items.filter((i) => i.part_of === id).sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+  const posts = items.filter((i) => i.kind === 'post' && !i.part_of)
+  const dated = items.filter((i) => i.starts_at && i.kind !== 'post')
   const published = items.filter((i) => i.status === 'published').length
 
   return (
@@ -61,7 +66,7 @@ export default function AthleteContent() {
       <PageHeader
         eyebrow="Athlete"
         title="Content"
-        lede="Two places. Courses are the shelf — a series someone buys once and comes back to. The wall is the stream: posts, sessions and events, mixed in with what you already post on your own platforms, newest first."
+        lede="Two surfaces, and a fan meets them differently. Your wall is what they follow: posts, some free, some behind a tier, mixed in with what you already post on your own platforms. Train with me is what they buy — a course, a session, a day out with you."
         aside={<span className="meta">{published} published · {items.length - published} draft</span>}
       />
 
@@ -71,48 +76,72 @@ export default function AthleteContent() {
         </div>
       )}
 
-      <Section
-        title="Courses"
-        aside={<button className="btn-go px-3 py-1.5 text-xs" onClick={() => setComposing(true)}>+ New</button>}
-      >
-        {courses.length === 0 ? (
-          <EmptyNote text="No courses yet. A course holds an ordered series — a twelve-week block, a technique series — and its parts inherit nothing, so each can sit at its own tier." />
-        ) : (
-          <div className="space-y-3">
-            {courses.map((c) => (
-              <div key={c.id} className="panel p-4">
-                <Row item={c} onPublish={publish} onDelete={remove} />
-                <div className="mt-3 space-y-1.5 border-l border-line pl-4">
-                  {partsOf(c.id).length === 0 ? (
-                    <p className="meta">No parts yet.</p>
-                  ) : (
-                    partsOf(c.id)
-                      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
-                      .map((p) => <Row key={p.id} item={p} onPublish={publish} onDelete={remove} compact />)
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Section>
+      <div className="mb-5 flex items-center gap-3">
+        <div className="flex-1">
+          <Tabs
+            active={tab}
+            onChange={setTab}
+            tabs={[
+              { key: 'wall', label: 'Wall', count: posts.length },
+              { key: 'offerings', label: 'Train with me', count: courses.length + dated.length },
+            ]}
+          />
+        </div>
+        <button className="btn-go px-3 py-2 text-xs" onClick={() => setComposing(true)}>+ New</button>
+      </div>
 
-      <Section
-        title="Wall"
-        aside={<span className="meta">your posts here, plus your own platform posts, newest first</span>}
-      >
-        {loose.length === 0 ? (
-          <EmptyNote text="Nothing from you yet — your wall is already showing your recent platform posts, so it is not empty to a visitor." />
+      {tab === 'wall' ? (
+        posts.length === 0 ? (
+          <EmptyNote text="Nothing from you yet — your wall already shows your recent platform posts, so it is not empty to a visitor." />
         ) : (
           <div className="space-y-2">
-            {loose.map((i) => (
+            {posts.map((i) => (
               <div key={i.id} className="panel p-4">
                 <Row item={i} onPublish={publish} onDelete={remove} />
               </div>
             ))}
           </div>
-        )}
-      </Section>
+        )
+      ) : (
+        <div className="space-y-6">
+          <Section title="Sessions & events">
+            {dated.length === 0 ? (
+              <EmptyNote text="Nothing dated yet. A session or an event costs you a day, which is why it sits in the top tier and why it needs a date, a place and a number of places." />
+            ) : (
+              <div className="space-y-2">
+                {dated.map((i) => (
+                  <div key={i.id} className="panel p-4">
+                    <Row item={i} onPublish={publish} onDelete={remove} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          <Section title="Courses">
+            {courses.length === 0 ? (
+              <EmptyNote text="No courses yet. A course holds an ordered series — a twelve-week block, a technique series — and its parts inherit nothing, so each can sit at its own tier." />
+            ) : (
+              <div className="space-y-3">
+                {courses.map((c) => (
+                  <div key={c.id} className="panel p-4">
+                    <Row item={c} onPublish={publish} onDelete={remove} />
+                    <div className="mt-3 space-y-1.5 border-l border-line pl-4">
+                      {partsOf(c.id).length === 0 ? (
+                        <p className="meta">No parts yet.</p>
+                      ) : (
+                        partsOf(c.id).map((part) => (
+                          <Row key={part.id} item={part} onPublish={publish} onDelete={remove} compact />
+                        ))
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+        </div>
+      )}
 
       {composing && (
         <Compose courses={courses} onClose={() => setComposing(false)}
