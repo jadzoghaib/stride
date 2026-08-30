@@ -23,12 +23,31 @@ def _load_dotenv() -> None:
                 os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
 
+def _default_db_path() -> Path:
+    """The demo database, anchored to the repo instead of to the shell's cwd.
+
+    This was `Path.cwd() / "data" / "stride.db"`, which meant two processes could
+    disagree about which database they were talking to purely because they had
+    been started from different directories -- silently, both succeeding. Seeding
+    from `apps/api` and serving from the repo root produced two databases and no
+    error, which reads exactly like a fixed bug coming back: the seeder reports
+    24 athletes, the server keeps showing the old ones, and nothing complains.
+
+    `STRIDE_DB` still overrides, which is how the tests and any real deployment
+    point somewhere else.
+    """
+    root = Path(__file__).resolve().parents[3]      # .../apps/api/stride_api -> repo root
+    if not (root / "apps" / "api").is_dir():        # installed rather than checked out
+        return Path.cwd() / "data" / "stride.db"
+    return root / "data" / "stride.db"
+
+
 class Settings:
     def __init__(self) -> None:
         _load_dotenv()
         self.env = os.environ.get("STRIDE_ENV", "dev")
-        self.db_path = Path(os.environ.get("STRIDE_DB", "")) if os.environ.get("STRIDE_DB") \
-            else Path.cwd() / "data" / "stride.db"
+        env_db = os.environ.get("STRIDE_DB")
+        self.db_path = Path(env_db) if env_db else _default_db_path()
         # Dev default only (>=32 bytes for HS256) — outside dev/test the process
         # refuses to boot without a real secret.
         _DEV_SECRET = "dev-secret-not-for-production-use-only!!"

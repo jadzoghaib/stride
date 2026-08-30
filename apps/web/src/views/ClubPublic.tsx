@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { ContentTabs } from '../components/content'
 import { LoadError, PageHeader, PageLoading, Avatar, EmptyNote, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { fmtMoney } from '../lib/format'
-import type { Club, ClubPackage, RosterMember } from '../types'
+import type { Club, ClubPackage, ContentItem, RosterMember } from '../types'
 
 interface ClubDetail extends Club {
   roster: RosterMember[]
@@ -15,6 +16,7 @@ export default function ClubPublic() {
   const { slug } = useParams()
   const { me } = useAuth()
   const [club, setClub] = useState<ClubDetail | null>(null)
+  const [content, setContent] = useState<ContentItem[] | null>(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -22,6 +24,9 @@ export default function ClubPublic() {
     api.get<ClubDetail>(`/api/clubs/${slug}`).then(setClub).catch((e) => setError(errorText(e)))
   useEffect(() => {
     void load()
+    // Separate failure: a club with no published sessions is ordinary, and a
+    // content error must not take the packages and the roster down with it.
+    api.get<ContentItem[]>(`/api/clubs/${slug}/content`).then(setContent).catch(() => setContent([]))
   }, [slug])
 
   const back = async (p: ClubPackage) => {
@@ -98,6 +103,12 @@ export default function ClubPublic() {
           <p className="mt-3 text-xs text-ink-3">Sponsors can back packages from their account.</p>
         )}
       </Section>
+
+      {content && content.length > 0 && (
+        <Section title="From this club">
+          <ContentTabs items={content} />
+        </Section>
+      )}
 
       <Section title={`Roster (${club.roster.length})`}>
         <div className="grid gap-2 md:grid-cols-2">

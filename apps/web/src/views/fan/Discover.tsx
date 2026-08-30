@@ -13,16 +13,17 @@ const INTEREST_ORDER = ['Athletics', 'Football', 'Basketball', 'Tennis', 'Cyclin
 /** Module scope, not inside `Discover`: a component declared in a render body is
  *  a new type each time, so every state change remounted every card and dropped
  *  focus from whichever Follow button was being used. */
-function DiscoverCard({ a, rank, me, onFollow }: {
+function DiscoverCard({ a, rank, best = false, me, onFollow }: {
   a: AthletePublic
   rank: number | null
+  best?: boolean
   me: boolean
   onFollow: (a: AthletePublic) => void
 }) {
   return (
           <div
             className={`panel panel-hover p-4 ${
-              rank === 0 ? 'border-accent/70 bg-accent/[0.04]' : ''
+              best ? 'border-accent/70 bg-accent/[0.04]' : ''
             }`}
           >
             <div className="flex items-center gap-3">
@@ -32,7 +33,7 @@ function DiscoverCard({ a, rank, me, onFollow }: {
                   <Link to={`/athletes/${a.slug}`} className="font-medium text-ink hover:text-accent">
                     {a.display_name}
                   </Link>
-                  {rank === 0 && (
+                  {best && (
                     <span className="rounded-full bg-accent px-2 py-0.5 font-display text-[10px]
                                      font-bold uppercase tracking-board text-accent-on">
                       Best match
@@ -111,8 +112,13 @@ export default function Discover() {
   // mutation failures report in place; only a failed first load takes the page
   const firstLoadFailed = !athletes && error
 
+  // Admin reaches this page (ops look at the ranking) but cannot follow: the
+  // API allows athlete, fan and sponsor only. Showing the control to a role the
+  // server will refuse produces a button whose entire behaviour is an error.
+  const canFollow = !!me && ['athlete', 'fan', 'sponsor'].includes(me.role)
+
   const toggleFollow = async (a: AthletePublic) => {
-    if (!me) return
+    if (!canFollow) return
     try {
       if (a.following) await api.del(`/api/follows/${a.id}`)
       else await api.post(`/api/follows/${a.id}`)
@@ -165,6 +171,15 @@ export default function Discover() {
         if (!athletes) return null
         const top = athletes.slice(0, 3)
         const rest = athletes.slice(3)
+        // "Best match" is a claim about evidence, not about sort order. Equal
+        // affinities break alphabetically, so crowning the first of three tied
+        // athletes told a fan that Andre beat Kaia on merit when he beat her on
+        // the letter A. Pick one interest — the commonest first move — and all
+        // three carried the same score and the same single reason. Mark a winner
+        // only when there is one; otherwise the three stand as equals, which is
+        // what the ranking actually found.
+        const clearWinner = top.length > 0 && top[0].affinity != null
+          && (top.length === 1 || top[1].affinity == null || top[0].affinity > top[1].affinity)
 
         return (
           <>
@@ -176,7 +191,8 @@ export default function Discover() {
                 </div>
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   {top.map((a, i) => (
-                    <DiscoverCard key={a.id} a={a} rank={i} me={!!me} onFollow={toggleFollow} />
+                    <DiscoverCard key={a.id} a={a} rank={i} best={i === 0 && clearWinner}
+                                  me={canFollow} onFollow={toggleFollow} />
                   ))}
                 </div>
               </>
@@ -188,7 +204,7 @@ export default function Discover() {
                 </div>
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   {rest.map((a) => (
-                    <DiscoverCard key={a.id} a={a} rank={null} me={!!me} onFollow={toggleFollow} />
+                    <DiscoverCard key={a.id} a={a} rank={null} me={canFollow} onFollow={toggleFollow} />
                   ))}
                 </div>
               </>

@@ -247,7 +247,8 @@ CREATE TABLE IF NOT EXISTS club_members (
     club_id    BIGINT NOT NULL REFERENCES clubs(id),
     athlete_id BIGINT NOT NULL REFERENCES athlete_profiles(id),
     position   TEXT NOT NULL DEFAULT '',
-    status     TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','former')),
+    status     TEXT NOT NULL DEFAULT 'invited'
+               CHECK (status IN ('invited','active','former','declined')),
     joined_at  TEXT NOT NULL,
     UNIQUE (club_id, athlete_id)
 );
@@ -335,3 +336,47 @@ CREATE TABLE IF NOT EXISTS package_commitments (
     cancelled_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_commitments_org ON package_commitments(org_id, status);
+
+-- Content. §4.3 of the plan specifies four kinds, and the split that matters is
+-- unlimited versus scarce: posts and courses cost nothing to serve to one more
+-- fan, while sessions and events cost the athlete a Saturday. That is why the
+-- scarce ones carry a time, a place and a capacity, and the others do not.
+--
+-- Exactly one author. A row belongs to an athlete or to a club, never both and
+-- never neither — clubs publish too (academy days, open sessions), which is a
+-- second audience no individual athlete has.
+--
+-- `min_tier` is the tier a fan needs, '' meaning free. Nothing charges money
+-- yet, so everything above free reads as locked for everybody; that is honest
+-- rather than a stub, and the lock is what the product is for.
+CREATE TABLE IF NOT EXISTS content_items (
+    id           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    athlete_id   INTEGER REFERENCES athlete_profiles(id),
+    club_id      INTEGER REFERENCES clubs(id),
+    kind         TEXT NOT NULL CHECK (kind IN ('post','course','session','event','product')),
+    title        TEXT NOT NULL,
+    body         TEXT NOT NULL DEFAULT '',
+    min_tier     TEXT NOT NULL DEFAULT ''
+                 CHECK (min_tier IN ('','supporter','insider','inner_circle')),
+    -- `sponsored` is a disclosure obligation, not decoration, so the brand has
+    -- to be named; `highlighted` is merchandising and carries no legal weight.
+    label        TEXT NOT NULL DEFAULT '' CHECK (label IN ('','sponsored','highlighted')),
+    sponsor_name TEXT NOT NULL DEFAULT '',
+    -- a course is a parent; its parts point at it and carry an order
+    part_of      INTEGER REFERENCES content_items(id),
+    position     INTEGER,
+    -- sessions and events: the scarce kinds
+    starts_at    TEXT,
+    location     TEXT NOT NULL DEFAULT '',
+    capacity     INTEGER,
+    -- products: Stride does not sell them, it points at wherever they are sold
+    external_url TEXT NOT NULL DEFAULT '',
+    status       TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published')),
+    created_at   TEXT NOT NULL,
+    published_at TEXT,
+    CHECK ((athlete_id IS NULL) <> (club_id IS NULL)),
+    CHECK (label <> 'sponsored' OR sponsor_name <> '')
+);
+CREATE INDEX IF NOT EXISTS idx_content_athlete ON content_items(athlete_id, status);
+CREATE INDEX IF NOT EXISTS idx_content_club ON content_items(club_id, status);
+CREATE INDEX IF NOT EXISTS idx_content_part_of ON content_items(part_of);

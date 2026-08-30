@@ -4,9 +4,11 @@ import { Link } from 'react-router-dom'
 import { Board } from '../../components/Board'
 import { LoadError, Modal, PageLoading, Avatar, EmptyNote, Section, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
+import { CONTENT_KINDS, CONTENT_TIERS } from '../../types'
 import { useToast } from '../../lib/toast'
+import { openable } from '../../lib/url'
 import { fmtDate, fmtMoney } from '../../lib/format'
-import type { ClubWorkspace, RosterMember } from '../../types'
+import type { ClubWorkspace, ContentItem, RosterMember } from '../../types'
 
 export default function ClubDashboard() {
   const [ws, setWs] = useState<ClubWorkspace | null>(null)
@@ -128,19 +130,35 @@ export default function ClubDashboard() {
         {ws.packages.length === 0 && <EmptyNote text="No packages yet — a package is what sponsors commit to." />}
       </Section>
 
+      {/* "Invite", not "Add". A club used to write itself onto an athlete's
+          record directly, which is how it could sell a player-direct package
+          around someone who had never agreed to be on the roster. */}
       <Section title="Roster" id="roster"
                aside={<button className="btn px-3 py-1 text-xs" onClick={() => setAddingMember((v) => !v)}>
-                 <Plus size={13} /> Add athlete</button>}>
-        {addingMember && <MemberForm onDone={() => { setAddingMember(false); toast('Athlete added to roster'); void load() }} />}
+                 <Plus size={13} /> Invite athlete</button>}>
+        {addingMember && <MemberForm onDone={() => { setAddingMember(false); toast('Invitation sent — it counts once they accept'); void load() }} />}
         <div className="grid gap-2 md:grid-cols-2">
           {ws.roster.map((m) => (
-            <div key={m.athlete_id} className="panel flex items-center gap-3 p-3">
+            <div key={m.athlete_id}
+                 className={`panel flex items-center gap-3 p-3 ${
+                   m.membership_status === 'invited' ? 'border-dashed opacity-80' : ''
+                 }`}>
               <Avatar name={m.display_name} size={36} />
               <div className="min-w-0">
-                <Link to={`/athletes/${m.slug}`} className="text-sm font-medium text-ink hover:text-accent">
-                  {m.display_name}
-                </Link>
-                <div className="text-xs text-ink-3">{m.position || m.sport} · joined {fmtDate(m.joined_at)}</div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link to={`/athletes/${m.slug}`} className="text-sm font-medium text-ink hover:text-accent">
+                    {m.display_name}
+                  </Link>
+                  {m.membership_status === 'invited' && (
+                    <span className="tag border-warn/50 text-warn">Invited</span>
+                  )}
+                </div>
+                <div className="text-xs text-ink-3">
+                  {m.position || m.sport} ·{' '}
+                  {m.membership_status === 'invited'
+                    ? `asked ${fmtDate(m.joined_at)} — waiting on them`
+                    : `joined ${fmtDate(m.joined_at)}`}
+                </div>
               </div>
               <button className="ml-auto text-ink-3 hover:text-critical"
                       title={`Remove ${m.display_name} from roster`}
@@ -151,8 +169,10 @@ export default function ClubDashboard() {
             </div>
           ))}
         </div>
-        {ws.roster.length === 0 && <EmptyNote text="No athletes on the roster yet — add athletes by their Stride handle." />}
+        {ws.roster.length === 0 && <EmptyNote text="Nobody on the roster yet — invite athletes by their Stride handle. They have to accept before packages can be built around them." />}
       </Section>
+
+      <ClubContent />
 
       <Section title="Commitments" id="commitments">
         {ws.commitments.length === 0 ? (
@@ -256,9 +276,9 @@ function MemberForm({ onDone }: { onDone: () => void }) {
         <span className="cap">Position / role</span>
         <input className="field mt-1 w-44" value={position} onChange={(e) => setPosition(e.target.value)} />
       </label>
-      <button className="btn-go">Add to roster</button>
+      <button className="btn-go">Send invitation</button>
       {error && <span className="text-sm text-critical">{error}</span>}
-      <span className="w-full text-xs text-ink-3">Handles are visible on athlete profile pages in the directory.</span>
+      <span className="w-full text-xs text-ink-3">Handles are visible on athlete profile pages in the directory. The athlete has to accept before they join the roster — until they do, they are not a member and no player-direct package can be sold around them.</span>
     </form>
   )
 }
@@ -364,5 +384,190 @@ function ProfileForm({ editable, onSaved }: { editable: ClubWorkspace['editable'
         {error && <span className="text-sm text-critical">{error}</span>}
       </div>
     </form>
+  )
+}
+
+/** A club publishes too.
+ *
+ *  It has an audience no individual athlete has — its own followers, its
+ *  members' families, its town — and its content is naturally event-shaped:
+ *  academy days, open sessions, "train at our club". Those are the scarce,
+ *  highest-margin kind, and they are also the club's answer to cold start: a
+ *  club with thirty athletes can publish on day one while each of them is still
+ *  building an audience.
+ *
+ *  Note the plan does not yet claim a euro of this. The financial model has
+ *  three revenue lines and none of them is club fan revenue, so everything here
+ *  is upside it does not count.
+ */
+/** A stored instant, as wall-clock time in *this* browser -- the only form a
+ *  `datetime-local` input understands. `slice(0, 16)` was wrong in a way that
+ *  looked right: it took the UTC digits and put them in a field that means
+ *  local, so 09:00Z was shown as 09:00 and saved back as 09:00 local, moving
+ *  the event by the reader's offset on every save. This is the exact inverse of
+ *  the `toISOString()` on the way out, so the value round-trips unchanged. */
+function toLocalInput(iso: string): string {
+  const at = new Date(iso)
+  if (Number.isNaN(at.getTime())) return ''
+  return new Date(at.getTime() - at.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+}
+
+function ClubContent() {
+  const [items, setItems] = useState<ContentItem[] | null>(null)
+  const [form, setForm] = useState({ kind: 'post', title: '', body: '', min_tier: '', starts_at: '', location: '', capacity: '', external_url: '' })
+  const [open, setOpen] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [error, setError] = useState('')
+  const toast = useToast()
+
+  const load = () => api.get<ContentItem[]>('/api/club/content').then(setItems).catch(() => setItems([]))
+  useEffect(() => { void load() }, [])
+
+  const scheduled = form.kind === 'session' || form.kind === 'event'
+  const isProduct = form.kind === 'product'
+
+  const reset = () => {
+    setForm({ kind: 'post', title: '', body: '', min_tier: '', starts_at: '', location: '', capacity: '', external_url: '' })
+    setEditingId(null)
+    setOpen(false)
+  }
+
+  /** New or existing: same body, different address. Editing keeps the id, so a
+   *  published item stays published and keeps its date. */
+  const save = async () => {
+    setError('')
+    try {
+      await api.post(editingId ? `/api/content/${editingId}` : '/api/club/content', {
+        ...form,
+        // a product is never locked and only a product carries a link
+        min_tier: isProduct ? '' : form.min_tier,
+        external_url: isProduct ? form.external_url : '',
+        // only this browser knows its own offset; resolve the instant here
+        starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : '',
+        capacity: form.capacity === '' ? null : Number(form.capacity),
+      })
+      toast(editingId ? 'Saved' : 'Saved as draft')
+      reset()
+      await load()
+    } catch (e) { setError(errorText(e)) }
+  }
+
+  const edit = (i: ContentItem) => {
+    setForm({
+      kind: i.kind, title: i.title, body: i.body, min_tier: i.min_tier,
+      starts_at: i.starts_at ? toLocalInput(i.starts_at) : '',
+      location: i.location, capacity: i.capacity == null ? '' : String(i.capacity),
+      external_url: i.external_url ?? '',
+    })
+    setEditingId(i.id)
+    setOpen(true)
+  }
+
+  const publish = async (i: ContentItem) => {
+    try { await api.post(`/api/content/${i.id}/publish`); toast(`“${i.title}” is live`); await load() }
+    catch (e) { setError(errorText(e)) }
+  }
+  const remove = async (i: ContentItem) => {
+    try { await api.del(`/api/content/${i.id}`); await load() } catch (e) { setError(errorText(e)) }
+  }
+
+  return (
+    <Section title="Content" id="content"
+             aside={<button className="btn px-3 py-1 text-xs"
+                            onClick={() => { if (open) { reset() } else { setEditingId(null); setOpen(true) } }}>
+               <Plus size={13} /> New</button>}>
+      {error && <p className="mb-3 text-sm text-critical">{error}</p>}
+
+      {open && (
+        <div className="panel mb-3 space-y-3 p-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <label className="block"><span className="cap">Kind</span>
+              <select className="field mt-1" value={form.kind}
+                      onChange={(e) => setForm((f) => ({ ...f, kind: e.target.value }))}>
+                {CONTENT_KINDS.map((k) => <option key={k} value={k}>{k}</option>)}
+              </select></label>
+            <label className="block md:col-span-2"><span className="cap">Title</span>
+              <input className="field mt-1" value={form.title}
+                     onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} /></label>
+          </div>
+          <label className="block"><span className="cap">Body</span>
+            <textarea className="field mt-1 min-h-[5rem]" value={form.body}
+                      onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))} /></label>
+          <div className="grid gap-3 md:grid-cols-4">
+            {isProduct ? (
+              <label className="block md:col-span-2"><span className="cap">Where it is sold *</span>
+                <input className="field mt-1" value={form.external_url}
+                       onChange={(e) => setForm((f) => ({ ...f, external_url: e.target.value }))}
+                       placeholder="https://shop.example/club-scarf" />
+                <span className="meta mt-1 block">Stride links to your store and never takes a cut, so a product is not locked.</span>
+              </label>
+            ) : (
+              <label className="block"><span className="cap">Fans need</span>
+                <select className="field mt-1" value={form.min_tier}
+                        onChange={(e) => setForm((f) => ({ ...f, min_tier: e.target.value }))}>
+                  {CONTENT_TIERS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select></label>
+            )}
+            {scheduled && (
+              <>
+                <label className="block"><span className="cap">Starts</span>
+                  <input className="field mt-1" type="datetime-local" value={form.starts_at}
+                         onChange={(e) => setForm((f) => ({ ...f, starts_at: e.target.value }))} /></label>
+                <label className="block"><span className="cap">Where</span>
+                  <input className="field mt-1" value={form.location}
+                         onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} /></label>
+                <label className="block"><span className="cap">Places</span>
+                  <input className="field mt-1" type="number" min={1} value={form.capacity}
+                         onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))} /></label>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="btn-go"
+                    disabled={!form.title.trim() || (isProduct && !openable(form.external_url.trim()))}
+                    onClick={save}>{editingId ? 'Save changes' : 'Save as draft'}</button>
+            {editingId && <button className="btn" onClick={reset}>Cancel</button>}
+          </div>
+        </div>
+      )}
+
+      {!items || items.length === 0 ? (
+        <EmptyNote text="Nothing published yet. A club's own audience is one no single athlete has, and open sessions are the kind fans pay most for." />
+      ) : (
+        // The same two surfaces the club's public page shows, in the same
+        // order: what a fan buys sits above what a fan follows, because for a
+        // club the open session is the product and the posts are the trailer.
+        <div className="space-y-6">
+          {[
+            { label: 'Shop', rows: items.filter((i) => i.kind === 'course' || i.starts_at) },
+            { label: 'Wall', rows: items.filter((i) => i.kind === 'post' && !i.part_of) },
+          ].filter((g) => g.rows.length > 0).map((group) => (
+            <div key={group.label}>
+              <p className="cap mb-2 text-ink-3">{group.label}</p>
+              <div className="space-y-2">
+                {group.rows.map((i) => (
+                  <div key={i.id} className="panel flex flex-wrap items-center gap-3 p-3">
+                    <span className="cap w-16 shrink-0 text-ink-3">{i.kind}</span>
+                    <span className="text-sm font-medium text-ink">{i.title}</span>
+                    <span className="tag">{i.tier_label}</span>
+                    {i.starts_at && (
+                      <span className="meta">{new Date(i.starts_at).toLocaleDateString()} · {i.location || 'TBC'}</span>
+                    )}
+                    <div className="ml-auto flex items-center gap-2">
+                      <span className={`tag ${i.status === 'published' ? 'border-ok/50 text-ok' : ''}`}>{i.status}</span>
+                      {i.status === 'draft' && (
+                        <button className="btn px-3 py-1 text-xs" onClick={() => publish(i)}>Publish</button>
+                      )}
+                      <button className="btn px-3 py-1 text-xs" onClick={() => edit(i)}>Edit</button>
+                      <button className="btn px-3 py-1 text-xs" onClick={() => remove(i)}>Delete</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Section>
   )
 }

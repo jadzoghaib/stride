@@ -26,6 +26,7 @@ _PG_SCHEMA = Path(__file__).with_name("schema_pg.sql")
 
 # Every table the app owns, child-first, for a clean Postgres reset.
 _ALL_TABLES = (
+    "content_items",
     "deal_deliverables", "athlete_applications", "club_applications",
     "package_commitments", "club_packages", "club_members", "clubs",
     "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
@@ -190,7 +191,11 @@ CREATE TABLE IF NOT EXISTS club_members (
     club_id    INTEGER NOT NULL REFERENCES clubs(id),
     athlete_id INTEGER NOT NULL REFERENCES athlete_profiles(id),
     position   TEXT NOT NULL DEFAULT '',
-    status     TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','former')),
+    -- `invited` is the default because a club adding an athlete is a request,
+    -- not a fact. Roster membership is load-bearing — player-direct packages are
+    -- sold against it — so it cannot be created by one party alone.
+    status     TEXT NOT NULL DEFAULT 'invited'
+               CHECK (status IN ('invited','active','former','declined')),
     joined_at  TEXT NOT NULL,
     UNIQUE (club_id, athlete_id)
 );
@@ -279,6 +284,50 @@ CREATE TABLE IF NOT EXISTS package_commitments (
     cancelled_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_commitments_org ON package_commitments(org_id, status);
+
+-- Content. §4.3 of the plan specifies four kinds, and the split that matters is
+-- unlimited versus scarce: posts and courses cost nothing to serve to one more
+-- fan, while sessions and events cost the athlete a Saturday. That is why the
+-- scarce ones carry a time, a place and a capacity, and the others do not.
+--
+-- Exactly one author. A row belongs to an athlete or to a club, never both and
+-- never neither — clubs publish too (academy days, open sessions), which is a
+-- second audience no individual athlete has.
+--
+-- `min_tier` is the tier a fan needs, '' meaning free. Nothing charges money
+-- yet, so everything above free reads as locked for everybody; that is honest
+-- rather than a stub, and the lock is what the product is for.
+CREATE TABLE IF NOT EXISTS content_items (
+    id           INTEGER PRIMARY KEY,
+    athlete_id   INTEGER REFERENCES athlete_profiles(id),
+    club_id      INTEGER REFERENCES clubs(id),
+    kind         TEXT NOT NULL CHECK (kind IN ('post','course','session','event','product')),
+    title        TEXT NOT NULL,
+    body         TEXT NOT NULL DEFAULT '',
+    min_tier     TEXT NOT NULL DEFAULT ''
+                 CHECK (min_tier IN ('','supporter','insider','inner_circle')),
+    -- `sponsored` is a disclosure obligation, not decoration, so the brand has
+    -- to be named; `highlighted` is merchandising and carries no legal weight.
+    label        TEXT NOT NULL DEFAULT '' CHECK (label IN ('','sponsored','highlighted')),
+    sponsor_name TEXT NOT NULL DEFAULT '',
+    -- a course is a parent; its parts point at it and carry an order
+    part_of      INTEGER REFERENCES content_items(id),
+    position     INTEGER,
+    -- sessions and events: the scarce kinds
+    starts_at    TEXT,
+    location     TEXT NOT NULL DEFAULT '',
+    capacity     INTEGER,
+    -- products: Stride does not sell them, it points at wherever they are sold
+    external_url TEXT NOT NULL DEFAULT '',
+    status       TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published')),
+    created_at   TEXT NOT NULL,
+    published_at TEXT,
+    CHECK ((athlete_id IS NULL) <> (club_id IS NULL)),
+    CHECK (label <> 'sponsored' OR sponsor_name <> '')
+);
+CREATE INDEX IF NOT EXISTS idx_content_athlete ON content_items(athlete_id, status);
+CREATE INDEX IF NOT EXISTS idx_content_club ON content_items(club_id, status);
+CREATE INDEX IF NOT EXISTS idx_content_part_of ON content_items(part_of);
 """
 
 
@@ -293,6 +342,8 @@ _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     ("deals", "completed_at", "TEXT"),
     ("deals", "projected_reach", "INTEGER"),
     ("campaigns", "require_verified_athletes", "BOOLEAN NOT NULL DEFAULT FALSE"),
+    ("club_members", "responded_at", "TEXT"),
+    ("content_items", "external_url", "TEXT NOT NULL DEFAULT ''"),
 )
 
 
@@ -396,6 +447,39 @@ def _add_missing_columns(conn) -> None:
             _migrate(conn, f"ALTER TABLE {table} ADD COLUMN {column} {decl}", table, column)
 
 
+def _refresh_kind_check(conn) -> None:
+    """Widen `content_items.kind` when the set of kinds has grown.
+
+    `CREATE TABLE IF NOT EXISTS` writes the new CHECK only on a database that
+    does not have the table yet, so an existing one keeps the old list and
+    rejects the new kind at insert time -- with an IntegrityError, from the
+    database, long after the API has already accepted the request. Adding a
+    column is covered by `_ADDED_COLUMNS`; changing an enumerated CHECK is not,
+    and `kind` is the one column whose valid set is a product decision that
+    keeps growing (post, then course/session/event, now product).
+
+    SQLite cannot alter a constraint, so the table is rebuilt: rename it aside,
+    let the schema recreate it -- from the same string, so there is no second
+    copy of the DDL to drift -- copy the rows over, drop the old one. Postgres
+    just swaps the constraint.
+    """
+    if settings.db_backend == "postgres":
+        conn.execute("ALTER TABLE content_items DROP CONSTRAINT IF EXISTS content_items_kind_check")
+        conn.execute("ALTER TABLE content_items ADD CONSTRAINT content_items_kind_check"
+                     " CHECK (kind IN ('post','course','session','event','product'))")
+        return
+
+    existing = row(conn, "SELECT sql FROM sqlite_master WHERE type = 'table'"
+                         " AND name = 'content_items'")
+    if existing is None or "'product'" in existing["sql"]:
+        return
+    conn.execute("ALTER TABLE content_items RENAME TO content_items_stale")
+    conn.executescript(STRIDE_SCHEMA)                      # recreates it with the new CHECK
+    columns = ", ".join(c for c in _columns(conn, "content_items_stale"))
+    conn.execute(f"INSERT INTO content_items ({columns}) SELECT {columns} FROM content_items_stale")
+    conn.execute("DROP TABLE content_items_stale")
+
+
 def init_db(conn) -> None:
     if settings.db_backend == "postgres":
         conn.executescript(_PG_SCHEMA.read_text(encoding="utf-8"))
@@ -406,6 +490,7 @@ def init_db(conn) -> None:
     # second would find the new column already created empty beside the old one
     _rename_columns(conn)
     _add_missing_columns(conn)
+    _refresh_kind_check(conn)   # after the columns exist: the rebuild copies them
     conn.commit()
 
 

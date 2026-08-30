@@ -14,9 +14,10 @@ import {
   StatusChip,
 } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
+import { useToast } from '../../lib/toast'
 import { fmtDT, fmtMoney, fmtNum } from '../../lib/format'
 import { POLICY_VERSION } from '../../lib/legal'
-import type { AthleteWorkspace } from '../../types'
+import type { AthleteWorkspace, ClubInvitation } from '../../types'
 import { DIMENSIONS, meanScore, platformLabel } from '../../types'
 
 const PLATFORMS = ['instagram', 'youtube', 'tiktok']
@@ -27,6 +28,11 @@ export default function AthleteDashboard() {
   const [busy, setBusy] = useState(false)
   const [evidence, setEvidence] = useState<string | null>(null)
   const [connecting, setConnecting] = useState<string | null>(null)
+  // The withdrawal is consequential enough to confirm: it takes the platform's
+  // posts off the public wall and out of the deliverables an athlete can
+  // attach. Holding the account here rather than a boolean means the dialog
+  // can name what is being withdrawn.
+  const [dropping, setDropping] = useState<AthleteWorkspace['accounts'][number] | null>(null)
 
   const load = () => api.get<AthleteWorkspace>('/api/athlete/workspace').then(setWs).catch((e) => setError(errorText(e)))
   useEffect(() => {
@@ -184,13 +190,18 @@ export default function AthleteDashboard() {
                       </td>
                       <td className="table-cell text-right">
                         {a.connection_status === 'connected' && (
-                          <button
-                            className="btn"
-                            disabled={busy}
-                            onClick={() => act(() => api.post(`/api/athlete/platforms/${a.id}/sync`))}
-                          >
-                            <RefreshCw size={12} /> Sync
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              className="btn"
+                              disabled={busy}
+                              onClick={() => act(() => api.post(`/api/athlete/platforms/${a.id}/sync`))}
+                            >
+                              <RefreshCw size={12} /> Sync
+                            </button>
+                            <button className="btn" disabled={busy} onClick={() => setDropping(a)}>
+                              Disconnect
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -266,6 +277,8 @@ export default function AthleteDashboard() {
           </div>
         </div>
 
+        <ClubInvitations />
+
         <Section title="Audience" id="audience">
           {Object.keys(ws.audience).length ? (
             <AudiencePanel audience={ws.audience} />
@@ -274,6 +287,29 @@ export default function AthleteDashboard() {
           )}
         </Section>
       </div>
+
+      {dropping && (
+        <Modal title={`Disconnect ${dropping.platform}?`} onClose={() => setDropping(null)}>
+          {(close) => (
+            <div className="space-y-4">
+              <p className="text-sm text-ink-2">
+                Its posts come off your public wall immediately and stop being available to
+                attach to a deal. Your scores keep the history they were computed from, so
+                past deals stay auditable — but nothing new is collected from {dropping.platform}.
+              </p>
+              <p className="meta">You can connect it again later. The withdrawal is recorded either way.</p>
+              <div className="flex items-center gap-3">
+                <button className="btn-go" disabled={busy}
+                        onClick={() => { close(); setDropping(null)
+                          void act(() => api.post(`/api/athlete/platforms/${dropping.id}/disconnect`)) }}>
+                  Disconnect {dropping.platform}
+                </button>
+                <button className="btn" onClick={() => { close(); setDropping(null) }}>Keep it connected</button>
+              </div>
+            </div>
+          )}
+        </Modal>
+      )}
 
       {connecting && (
         <ConsentDialog
@@ -414,5 +450,64 @@ function EvidenceTable({ inputs, dimension }: { inputs: NonNullable<AthleteWorks
         </tbody>
       </table>
     </div>
+  )
+}
+
+/** Clubs that have asked this athlete to join their roster.
+ *
+ *  A club used to be able to add anyone straight to its roster. That mattered
+ *  beyond manners: player-direct sponsorship packages are sold against roster
+ *  membership, so a club could claim an athlete and monetise their audience
+ *  while the athlete found out by looking at their own profile. Now it asks,
+ *  and this is where the asking lands.
+ */
+function ClubInvitations() {
+  const [invites, setInvites] = useState<ClubInvitation[] | null>(null)
+  const [busy, setBusy] = useState<number | null>(null)
+  const toast = useToast()
+
+  const load = () =>
+    api.get<ClubInvitation[]>('/api/athlete/invitations').then(setInvites).catch(() => setInvites([]))
+  useEffect(() => { void load() }, [])
+
+  const respond = async (invite: ClubInvitation, action: 'accept' | 'decline') => {
+    setBusy(invite.invitation_id)
+    try {
+      await api.post(`/api/athlete/invitations/${invite.invitation_id}/respond`, { action })
+      toast(action === 'accept' ? `You are on ${invite.name}'s roster` : `Declined ${invite.name}`)
+      await load()
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  if (!invites || invites.length === 0) return null
+
+  return (
+    <Section title="Club invitations"
+             aside={<span className="meta">a club cannot add you without this</span>}>
+      <div className="space-y-2">
+        {invites.map((i) => (
+          <div key={i.invitation_id} className="panel flex flex-wrap items-center gap-3 p-4">
+            <div className="min-w-0">
+              <div className="font-medium text-ink">{i.name}</div>
+              <div className="text-xs text-ink-3">
+                {i.sport} · {i.country}{i.position ? ` · as ${i.position}` : ''}
+              </div>
+            </div>
+            <p className="meta max-w-md">
+              Joining lets them build sponsorship packages around you, and vouch for you
+              in admission. You can leave later.
+            </p>
+            <div className="ml-auto flex gap-2">
+              <button className="btn-go px-3 py-1.5 text-xs" disabled={busy === i.invitation_id}
+                      onClick={() => respond(i, 'accept')}>Accept</button>
+              <button className="btn px-3 py-1.5 text-xs" disabled={busy === i.invitation_id}
+                      onClick={() => respond(i, 'decline')}>Decline</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Section>
   )
 }

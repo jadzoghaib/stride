@@ -160,7 +160,16 @@ def _evaluate(conn, application: dict, profile: dict, *, via: str,
 
     # Gate on legitimacy, tier on value: admitted with no analytics is still a
     # draft profile, because there is nothing for a sponsor to look at yet.
-    granted = admitted and bool(profile["creatorlens_creator_id"])
+    #
+    # The test is a *score*, not a creator id. It used to be the id, which was a
+    # fair proxy while creator records were made on first platform connect — but
+    # registration creates one immediately, so the condition became "is an
+    # athlete" and was true for everybody. A newly admitted account with nothing
+    # connected went straight into the directory and into sponsor matching with
+    # no data behind it, which is the exact outcome this line exists to prevent.
+    has_analytics = (bool(profile["creatorlens_creator_id"])
+                     and latest_score(conn, profile["creatorlens_creator_id"]) is not None)
+    granted = admitted and has_analytics
     listing = "listed" if granted else "draft"
     if listing == "draft" and not may_delist:
         listing = profile["status"]
@@ -260,7 +269,14 @@ def my_application(user: dict = Depends(require_role("athlete")),
     if application is None:
         return {"application": None, "thresholds": {"admit": ADMIT_AT}}
     scored = athlete_credibility({**application, "sport": profile["sport"]})
+    # `thresholds` on both branches. It was sent only when there was no
+    # application, so every applicant who actually had one — i.e. everyone this
+    # page is for — fell through to the client's hard-coded `?? 55`. Move
+    # ADMIT_AT and the applicant would be shown one bar while being judged
+    # against another, which is precisely what a page that exists to explain a
+    # decision must not do.
     return {"application": application, "scored": scored,
+            "thresholds": {"admit": ADMIT_AT},
             "club_floor": _club_floor(conn, application["nominated_by_club"])}
 
 

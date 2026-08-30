@@ -61,7 +61,12 @@ def _roster_view(conn, club_id: int) -> list[dict]:
         SELECT cm.id AS membership_id, cm.position, cm.status AS membership_status, cm.joined_at,
                a.id AS athlete_id, a.slug, a.display_name, a.sport, a.country
         FROM club_members cm JOIN athlete_profiles a ON a.id = cm.athlete_id
-        WHERE cm.club_id = ? AND cm.status = 'active' ORDER BY a.display_name""", (club_id,))
+        -- `invited` too: a club has to see who it has asked and who has not
+        -- answered. The two guards that matter -- player-direct packages and
+        -- nominations -- both require `active`, so an unanswered invitation
+        -- shows up here and counts for nothing.
+        WHERE cm.club_id = ? AND cm.status IN ('active', 'invited')
+        ORDER BY CASE cm.status WHEN 'active' THEN 0 ELSE 1 END, a.display_name""", (club_id,))
 
 
 # ---- public directory ----------------------------------------------------------
@@ -149,8 +154,19 @@ class MemberIn(BaseModel):
 
 
 @router.post("/club/members", status_code=201)
-def add_member(body: MemberIn, user: dict = Depends(require_role("club")),
-               conn: sqlite3.Connection = Depends(get_db)):
+def invite_member(body: MemberIn, user: dict = Depends(require_role("club")),
+                  conn: sqlite3.Connection = Depends(get_db)):
+    """Invite an athlete to the roster. It is a request, not an addition.
+
+    This used to write `active` directly, which let a club put any listed
+    athlete on its roster without asking them. That is not merely impolite:
+    **player-direct sponsorship packages are sold against roster membership**,
+    so a club could have claimed an athlete and monetised their audience while
+    the athlete found out by looking at their own profile.
+
+    The athlete answers at `POST /api/athlete/invitations/{id}/respond`. Until
+    they accept, the row is `invited` and counts for nothing.
+    """
     c = _own_club(conn, user)
     athlete = row(conn, "SELECT * FROM athlete_profiles WHERE slug = ? AND status = 'listed'",
                   (body.athlete_slug,))
@@ -160,13 +176,18 @@ def add_member(body: MemberIn, user: dict = Depends(require_role("club")),
                    (c["id"], athlete["id"]))
     if existing and existing["status"] == "active":
         raise HTTPException(409, "already_on_roster")
+    if existing and existing["status"] == "invited":
+        raise HTTPException(409, "already_invited")
     if existing:
-        conn.execute("UPDATE club_members SET status = 'active', position = ?, joined_at = ? WHERE id = ?",
+        # a former member, or one who declined, may be asked again
+        conn.execute("UPDATE club_members SET status = 'invited', position = ?, joined_at = ?,"
+                     " responded_at = NULL WHERE id = ?",
                      (body.position, now_iso(), existing["id"]))
     else:
-        conn.execute("INSERT INTO club_members (club_id, athlete_id, position, joined_at)"
-                     " VALUES (?, ?, ?, ?)", (c["id"], athlete["id"], body.position, now_iso()))
-    log_event(conn, "user", "club.member_added", "club", c["id"],
+        conn.execute("INSERT INTO club_members (club_id, athlete_id, position, status, joined_at)"
+                     " VALUES (?, ?, ?, 'invited', ?)",
+                     (c["id"], athlete["id"], body.position, now_iso()))
+    log_event(conn, "user", "club.member_invited", "club", c["id"],
               {"athlete_id": athlete["id"], "slug": athlete["slug"]})
     conn.commit()
     return {"ok": True, "roster": _roster_view(conn, c["id"])}

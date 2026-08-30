@@ -296,8 +296,13 @@ def seed(conn: sqlite3.Connection) -> dict:
         log_event(conn, "system", "club.created", "club", club_id, {"name": cname})
         summary["users"] += 1
         for slug, position in members:
-            conn.execute("INSERT INTO club_members (club_id, athlete_id, position, joined_at)"
-                         " VALUES (?, ?, ?, ?)", (club_id, athlete_ids[slug], position, now_iso()))
+            # `active` explicitly: the column now defaults to `invited`, because a
+            # club adding an athlete is a request. These are established members
+            # of a seeded club, not pending asks — without this the whole demo
+            # roster silently became a pile of unanswered invitations.
+            conn.execute("INSERT INTO club_members (club_id, athlete_id, position, status, joined_at)"
+                         " VALUES (?, ?, ?, 'active', ?)",
+                         (club_id, athlete_ids[slug], position, now_iso()))
         for pname, ptype, price, desc, athlete_slug, perks in packages:
             cur = conn.execute(
                 "INSERT INTO club_packages (club_id, athlete_id, name, description, package_type,"
@@ -399,6 +404,45 @@ def seed(conn: sqlite3.Connection) -> dict:
     for i in range(2, 6):
         _insert_user(conn, f"fan{i}@demo.stride", f"Fan Account {i}", "fan")
         summary["users"] += 1
+
+    # ---- a wall with something on it -----------------------------------------
+    # A profile whose wall is empty demos the shape of the feature and none of
+    # the point. Two authors, one of each kind that matters: a course with a
+    # part (the shelf), a dated event (the scarce one that pins to the top), and
+    # a free post (the one a stranger can actually read). Platform news fills in
+    # around them on its own, from the synced accounts above.
+    def _content(author: str, owner_id: int, **f) -> int:
+        cur = conn.execute(
+            f"INSERT INTO content_items ({author}, kind, title, body, min_tier, label,"
+            " sponsor_name, part_of, position, starts_at, location, capacity, external_url,"
+            " status, published_at, created_at) VALUES (?, ?, ?, ?, ?, '', '', ?, ?, ?, ?, ?,"
+            " ?, 'published', ?, ?)",
+            (owner_id, f["kind"], f["title"], f.get("body", ""), f.get("min_tier", ""),
+             f.get("part_of"), f.get("position"), f.get("starts_at"), f.get("location", ""),
+             f.get("capacity"), f.get("external_url", ""), now_iso(), now_iso()))
+        return cur.lastrowid
+
+    kaia = athlete_ids["kaia-mercer"]
+    block = _content("athlete_id", kaia, kind="course", title="Twelve-week hill block",
+                     body="A winter of climbing, week by week, with the sessions I actually ran.",
+                     min_tier="insider")
+    _content("athlete_id", kaia, kind="post", title="Week 1 — easy volume", part_of=block,
+             position=1, min_tier="insider",
+             body="Two sessions, both easy. The point of week one is finishing it.")
+    _content("athlete_id", kaia, kind="event", title="Come train with me — Montseny",
+             min_tier="inner_circle", starts_at="2027-03-14T09:00:00Z",
+             location="Montseny", capacity=8,
+             body="A morning on the trails, eight people, breakfast after.")
+    _content("athlete_id", kaia, kind="post", title="Race report: what went wrong on the descent",
+             min_tier="", body="I went out too hard and paid for it in the last three kilometres."
+                               " Splits and what I would do differently.")
+    _content("athlete_id", kaia, kind="product", title="Signed trail cap",
+             external_url="https://shop.example/kaia-mercer/trail-cap",
+             body="Cotton, one size, signed on the brim. Ships from the store, not from Stride.")
+    _content("club_id", meridian["id"], kind="session", title="Open training — first team",
+             min_tier="supporter", starts_at="2027-04-08T17:30:00Z",
+             location="Meridian Ground", capacity=40,
+             body="Watch a full session from the touchline, then meet the squad.")
 
     conn.commit()
     return summary

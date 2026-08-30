@@ -485,3 +485,69 @@ export interface MatchesResponse {
   duration_ms: number
   recorded?: boolean
 }
+
+// ── content ─────────────────────────────────────────────────────────────────
+
+/** A post the athlete made on one of their own platforms, surfaced on their
+ *  wall. Deliberately carries no metrics: reach is the athlete's analytics and
+ *  the sponsor's evidence, and a fan gets the post, not the numbers behind it. */
+export interface NewsItem {
+  platform: string
+  title: string
+  published_at: string
+  permalink: string
+  content_type: string
+}
+
+export interface ContentItem {
+  id: number
+  kind: 'post' | 'course' | 'session' | 'event' | 'product'
+  title: string
+  body: string
+  min_tier: string
+  tier_label: string
+  label: '' | 'sponsored' | 'highlighted'
+  sponsor_name: string
+  part_of: number | null
+  position: number | null
+  starts_at: string | null
+  location: string
+  capacity: number | null
+  /** Products only: where the thing is actually sold. Stride never takes the
+   *  money, so this is the whole point of the row. */
+  external_url: string
+  status: 'draft' | 'published'
+  published_at: string | null
+  /** True when the reader's tier is below `min_tier`. The body is empty then;
+   *  everything else stays, so a fan can decide whether it is worth paying for. */
+  locked: boolean
+  author?: string
+  author_slug?: string
+}
+
+export interface ClubInvitation {
+  invitation_id: number
+  position: string
+  invited_at: string
+  club_id: number
+  slug: string
+  name: string
+  sport: string
+  country: string
+}
+
+export const CONTENT_KINDS = ['post', 'course', 'session', 'event', 'product'] as const
+/** The scarce kinds: they cost the author a day, so they carry a date, a place
+ *  and a capacity — and they are the argument for the top tier. */
+export const SCHEDULED_KINDS = ['session', 'event'] as const
+export const CONTENT_TIERS = [
+  { value: '', label: 'Free — anyone following' },
+  { value: 'supporter', label: 'Supporter · €4.99' },
+  { value: 'insider', label: 'Insider · €9.99' },
+  { value: 'inner_circle', label: 'Inner circle · €24.99' },
+] as const
+export const CONTENT_LABELS = [
+  { value: '', label: 'None' },
+  { value: 'sponsored', label: 'Sponsored — a brand paid for this' },
+  { value: 'highlighted', label: 'Highlighted — feature it' },
+] as const
