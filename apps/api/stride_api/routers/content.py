@@ -25,6 +25,7 @@ changes.
 from __future__ import annotations
 
 import sqlite3
+from datetime import datetime, timezone
 
 from creatorlens.events import log_event
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -66,6 +67,30 @@ class ContentIn(BaseModel):
     external_url: str = Field(default="", max_length=500)
 
 
+def _instant(value: str) -> str:
+    """A scheduled time, normalised to one canonical UTC instant.
+
+    A `datetime-local` input yields `2027-03-14T09:00` -- no seconds, no zone --
+    and stored as-is it is not a moment in time at all. Everything that reads it
+    back then guesses: `new Date()` in a browser reads it as local, the seed
+    writes proper ISO, and an event drifts by the reader's UTC offset every time
+    it is saved. The same field was already doing this on create; editing only
+    made it visible, because saving twice moved the event twice.
+
+    Naive input is refused rather than assumed to be UTC. The server does not
+    know the author's offset, and silently picking one is how a session ends up
+    an hour out for everyone who did not create it.
+    """
+    text = value.strip().replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        raise HTTPException(422, "starts_at_is_not_a_time") from None
+    if parsed.tzinfo is None:
+        raise HTTPException(422, "starts_at_needs_a_timezone")
+    return parsed.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def _validate(body: ContentIn) -> None:
     if body.kind not in KINDS:
         raise HTTPException(422, "unknown_content_kind")
@@ -80,6 +105,8 @@ def _validate(body: ContentIn) -> None:
         raise HTTPException(422, "sponsored_needs_sponsor_name")
     if body.kind in SCHEDULED and not body.starts_at.strip():
         raise HTTPException(422, "scheduled_content_needs_a_date")
+    if body.starts_at.strip():
+        body.starts_at = _instant(body.starts_at)
 
     if body.kind == "product":
         # A product with no link is a photograph of a t-shirt. The link is the
@@ -234,12 +261,19 @@ def update_content(item_id: int, body: ContentIn,
                    conn: sqlite3.Connection = Depends(get_db)):
     _validate(body)
     item = _owned(conn, item_id, user)
+    # `part_of` and `status` are deliberately not editable here. Moving an item
+    # between courses and publishing it are separate decisions with their own
+    # consequences, and folding them into a general save is how a form ends up
+    # publishing something by accident.
     conn.execute(
         "UPDATE content_items SET kind = ?, title = ?, body = ?, min_tier = ?, label = ?,"
-        " sponsor_name = ?, position = ?, starts_at = ?, location = ?, capacity = ?"
-        " WHERE id = ?",
+        " sponsor_name = ?, position = ?, starts_at = ?, location = ?, capacity = ?,"
+        " external_url = ? WHERE id = ?",
         (body.kind, body.title, body.body, body.min_tier, body.label, body.sponsor_name,
-         body.position, body.starts_at or None, body.location, body.capacity, item["id"]))
+         body.position, body.starts_at or None, body.location, body.capacity,
+         body.external_url.strip(), item["id"]))
+    log_event(conn, "user", "content.updated", "content", item["id"],
+              {"kind": body.kind, "title": body.title, "min_tier": body.min_tier})
     conn.commit()
     return _view(row(conn, "SELECT * FROM content_items WHERE id = ?", (item["id"],)), locked=False)
 

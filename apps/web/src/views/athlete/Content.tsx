@@ -29,6 +29,7 @@ export default function AthleteContent() {
   const [error, setError] = useState('')
   const [composing, setComposing] = useState(false)
   const [tab, setTab] = useState<'wall' | 'shop'>('wall')
+  const [editing, setEditing] = useState<ContentItem | null>(null)
   const toast = useToast()
 
   const load = () =>
@@ -98,7 +99,7 @@ export default function AthleteContent() {
           <div className="space-y-2">
             {posts.map((i) => (
               <div key={i.id} className="panel p-4">
-                <Row item={i} onPublish={publish} onDelete={remove} />
+                <Row item={i} onPublish={publish} onEdit={setEditing} onDelete={remove} />
               </div>
             ))}
           </div>
@@ -112,7 +113,7 @@ export default function AthleteContent() {
               <div className="space-y-2">
                 {dated.map((i) => (
                   <div key={i.id} className="panel p-4">
-                    <Row item={i} onPublish={publish} onDelete={remove} />
+                    <Row item={i} onPublish={publish} onEdit={setEditing} onDelete={remove} />
                   </div>
                 ))}
               </div>
@@ -126,13 +127,13 @@ export default function AthleteContent() {
               <div className="space-y-3">
                 {courses.map((c) => (
                   <div key={c.id} className="panel p-4">
-                    <Row item={c} onPublish={publish} onDelete={remove} />
+                    <Row item={c} onPublish={publish} onEdit={setEditing} onDelete={remove} />
                     <div className="mt-3 space-y-1.5 border-l border-line pl-4">
                       {partsOf(c.id).length === 0 ? (
                         <p className="meta">No parts yet.</p>
                       ) : (
                         partsOf(c.id).map((part) => (
-                          <Row key={part.id} item={part} onPublish={publish} onDelete={remove} compact />
+                          <Row key={part.id} item={part} onPublish={publish} onEdit={setEditing} onDelete={remove} compact />
                         ))
                       )}
                     </div>
@@ -144,17 +145,23 @@ export default function AthleteContent() {
         </div>
       )}
 
-      {composing && (
-        <Compose courses={courses} onClose={() => setComposing(false)}
-                 onDone={() => { setComposing(false); void load() }} />
+      {(composing || editing) && (
+        // keyed so switching from one item to another remounts the form rather
+        // than leaving the previous item's values in it
+        <Compose key={editing ? `edit-${editing.id}` : 'new'}
+                 courses={courses}
+                 editing={editing}
+                 onClose={() => { setComposing(false); setEditing(null) }}
+                 onDone={() => { setComposing(false); setEditing(null); void load() }} />
       )}
     </div>
   )
 }
 
-function Row({ item, onPublish, onDelete, compact = false }: {
+function Row({ item, onPublish, onEdit, onDelete, compact = false }: {
   item: ContentItem
   onPublish: (i: ContentItem) => void
+  onEdit: (i: ContentItem) => void
   onDelete: (i: ContentItem) => void
   compact?: boolean
 }) {
@@ -178,18 +185,53 @@ function Row({ item, onPublish, onDelete, compact = false }: {
         {item.status === 'draft' && (
           <button className="btn px-3 py-1 text-xs" onClick={() => onPublish(item)}>Publish</button>
         )}
+        <button className="btn px-3 py-1 text-xs" onClick={() => onEdit(item)}>Edit</button>
         <button className="btn px-3 py-1 text-xs" onClick={() => onDelete(item)}>Delete</button>
       </div>
     </div>
   )
 }
 
-function Compose({ courses, onClose, onDone }: {
+/** A stored instant, as wall-clock time in *this* browser -- the only form a
+ *  `datetime-local` input understands. `slice(0, 16)` was wrong in a way that
+ *  looked right: it took the UTC digits and put them in a field that means
+ *  local, so 09:00Z was shown as 09:00 and saved back as 09:00 local, moving
+ *  the event by the reader's offset on every save. This is the exact inverse of
+ *  the `toISOString()` on the way out, so the value round-trips unchanged. */
+function toLocalInput(iso: string): string {
+  const at = new Date(iso)
+  if (Number.isNaN(at.getTime())) return ''
+  return new Date(at.getTime() - at.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+}
+
+/** An existing item, in the shape the form holds. `datetime-local` wants
+ *  `YYYY-MM-DDTHH:mm` and the API returns an ISO instant, so the tail is cut
+ *  off rather than parsed -- the value round-trips through the same field it
+ *  came from. */
+function toForm(item: ContentItem): typeof BLANK {
+  return {
+    kind: item.kind,
+    title: item.title,
+    body: item.body,
+    min_tier: item.min_tier,
+    label: item.label,
+    sponsor_name: item.sponsor_name,
+    part_of: item.part_of,
+    position: item.position == null ? '' : String(item.position),
+    starts_at: item.starts_at ? toLocalInput(item.starts_at) : '',
+    location: item.location,
+    capacity: item.capacity == null ? '' : String(item.capacity),
+    external_url: item.external_url ?? '',
+  }
+}
+
+function Compose({ courses, editing, onClose, onDone }: {
   courses: ContentItem[]
+  editing: ContentItem | null
   onClose: () => void
   onDone: () => void
 }) {
-  const [form, setForm] = useState(BLANK)
+  const [form, setForm] = useState(() => (editing ? toForm(editing) : BLANK))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const set = (k: keyof typeof BLANK, v: string | number | null) =>
@@ -201,12 +243,18 @@ function Compose({ courses, onClose, onDone }: {
     setBusy(true)
     setError('')
     try {
-      await api.post('/api/athlete/content', {
+      // Same body either way; only the address differs. Editing keeps the id,
+      // which is what a course part hangs off and what a published_at belongs
+      // to -- delete-and-recreate would lose both.
+      await api.post(editing ? `/api/content/${editing.id}` : '/api/athlete/content', {
         ...form,
         // the server refuses a tier on a product and a link on anything else;
         // send the shape it expects rather than let a stale field 422 them
         min_tier: form.kind === 'product' ? '' : form.min_tier,
         external_url: form.kind === 'product' ? form.external_url : '',
+        // a datetime-local value is wall-clock time in this browser's zone, and
+        // only this browser knows that zone -- so the instant is resolved here
+        starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : '',
         position: form.position === '' ? null : Number(form.position),
         capacity: form.capacity === '' ? null : Number(form.capacity),
       })
@@ -220,7 +268,7 @@ function Compose({ courses, onClose, onDone }: {
   }
 
   return (
-    <Modal title="New content" onClose={onClose} wide>
+    <Modal title={editing ? `Edit ${editing.kind}` : 'New content'} onClose={onClose} wide>
       {(close) => (
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -325,10 +373,14 @@ function Compose({ courses, onClose, onDone }: {
                     disabled={busy || !form.title.trim()
                               || (isProduct && !openable(form.external_url.trim()))}
                     onClick={() => submit(close)}>
-              {busy ? 'Saving…' : 'Save as draft'}
+              {busy ? 'Saving…' : editing ? 'Save changes' : 'Save as draft'}
             </button>
             <button className="btn" onClick={close}>Cancel</button>
-            <span className="meta">Drafts are private until you publish them.</span>
+            <span className="meta">
+              {editing
+                ? 'Saving does not publish or unpublish — that stays a separate decision.'
+                : 'Drafts are private until you publish them.'}
+            </span>
           </div>
         </div>
       )}

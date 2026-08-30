@@ -349,3 +349,87 @@ def test_a_published_product_reaches_a_stranger_with_its_link(athlete, client):
     assert item["locked"] is False, "a product is never locked"
     assert item["external_url"] == "https://shop.example/trail-cap"
     assert item["body"] == "Cotton, one size."
+
+
+# ── editing ───────────────────────────────────────────────────
+
+def test_a_product_link_can_be_corrected(athlete):
+    """The update used to leave `external_url` alone, so a moved store link
+    silently kept pointing at the old page -- the request succeeded and nothing
+    changed, which is the worst way for an edit to fail."""
+    made = athlete.post("/api/athlete/content", json={
+        "kind": "product", "title": "Trail cap",
+        "external_url": "https://old-shop.example/cap"}).json()
+
+    edited = athlete.post(f"/api/content/{made['id']}", json={
+        "kind": "product", "title": "Trail cap (restocked)",
+        "external_url": "https://new-shop.example/cap"})
+    assert edited.status_code == 200, edited.text
+    assert edited.json()["external_url"] == "https://new-shop.example/cap"
+    assert edited.json()["title"] == "Trail cap (restocked)"
+
+
+def test_editing_keeps_the_item_and_its_place_in_a_course(athlete, db):
+    """Delete-and-recreate would have been the alternative, and it loses the id
+    a course part hangs off."""
+    course = athlete.post("/api/athlete/content", json={
+        "kind": "course", "title": "Block"}).json()
+    part = athlete.post("/api/athlete/content", json={
+        "kind": "post", "title": "Week 1", "part_of": course["id"], "position": 1}).json()
+
+    athlete.post(f"/api/content/{part['id']}", json={
+        "kind": "post", "title": "Week 1: easy volume", "position": 1})
+
+    after = row(db, "SELECT * FROM content_items WHERE id = ?", (part["id"],))
+    assert after["title"] == "Week 1: easy volume"
+    assert after["part_of"] == course["id"], "the edit kept it in its course"
+
+
+def test_editing_does_not_publish(athlete):
+    """Status is a separate decision. A save that also published would make the
+    edit button the most dangerous control on the page."""
+    made = athlete.post("/api/athlete/content", json={
+        "kind": "post", "title": "Half-written"}).json()
+    assert made["status"] == "draft"
+    edited = athlete.post(f"/api/content/{made['id']}", json={
+        "kind": "post", "title": "Still half-written"}).json()
+    assert edited["status"] == "draft"
+
+
+def test_you_cannot_edit_someone_elses_item(athlete, clubu):
+    theirs = clubu.post("/api/club/content", json={"kind": "post", "title": "Club post"}).json()
+    res = athlete.post(f"/api/content/{theirs['id']}", json={"kind": "post", "title": "Mine now"})
+    assert res.status_code == 404
+
+
+def test_a_scheduled_time_is_stored_as_one_canonical_instant(athlete, db):
+    """`2027-03-14T09:00` is not a moment in time, and storing it meant the
+    event drifted by the reader's offset every time it was saved."""
+    made = athlete.post("/api/athlete/content", json={
+        "kind": "event", "title": "Trail morning",
+        "starts_at": "2027-03-14T09:00:00+02:00"}).json()
+    assert made["starts_at"] == "2027-03-14T07:00:00Z", "normalised to UTC"
+
+    stored = row(db, "SELECT starts_at FROM content_items WHERE id = ?", (made["id"],))
+    assert stored["starts_at"] == "2027-03-14T07:00:00Z"
+
+    # and saving again does not move it
+    again = athlete.post(f"/api/content/{made['id']}", json={
+        "kind": "event", "title": "Trail morning", "starts_at": made["starts_at"]}).json()
+    assert again["starts_at"] == "2027-03-14T07:00:00Z"
+
+
+def test_a_time_without_a_zone_is_refused(athlete):
+    """The server does not know the author's offset, and guessing one is how a
+    session ends up an hour out for everybody who did not create it."""
+    res = athlete.post("/api/athlete/content", json={
+        "kind": "event", "title": "Trail morning", "starts_at": "2027-03-14T09:00"})
+    assert res.status_code == 422
+    assert res.json()["detail"] == "starts_at_needs_a_timezone"
+
+
+def test_a_time_that_is_not_a_time_is_refused(athlete):
+    res = athlete.post("/api/athlete/content", json={
+        "kind": "event", "title": "Trail morning", "starts_at": "next tuesday"})
+    assert res.status_code == 422
+    assert res.json()["detail"] == "starts_at_is_not_a_time"

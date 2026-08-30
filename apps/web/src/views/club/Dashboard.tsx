@@ -400,10 +400,23 @@ function ProfileForm({ editable, onSaved }: { editable: ClubWorkspace['editable'
  *  three revenue lines and none of them is club fan revenue, so everything here
  *  is upside it does not count.
  */
+/** A stored instant, as wall-clock time in *this* browser -- the only form a
+ *  `datetime-local` input understands. `slice(0, 16)` was wrong in a way that
+ *  looked right: it took the UTC digits and put them in a field that means
+ *  local, so 09:00Z was shown as 09:00 and saved back as 09:00 local, moving
+ *  the event by the reader's offset on every save. This is the exact inverse of
+ *  the `toISOString()` on the way out, so the value round-trips unchanged. */
+function toLocalInput(iso: string): string {
+  const at = new Date(iso)
+  if (Number.isNaN(at.getTime())) return ''
+  return new Date(at.getTime() - at.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+}
+
 function ClubContent() {
   const [items, setItems] = useState<ContentItem[] | null>(null)
   const [form, setForm] = useState({ kind: 'post', title: '', body: '', min_tier: '', starts_at: '', location: '', capacity: '', external_url: '' })
   const [open, setOpen] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [error, setError] = useState('')
   const toast = useToast()
 
@@ -413,21 +426,41 @@ function ClubContent() {
   const scheduled = form.kind === 'session' || form.kind === 'event'
   const isProduct = form.kind === 'product'
 
-  const create = async () => {
+  const reset = () => {
+    setForm({ kind: 'post', title: '', body: '', min_tier: '', starts_at: '', location: '', capacity: '', external_url: '' })
+    setEditingId(null)
+    setOpen(false)
+  }
+
+  /** New or existing: same body, different address. Editing keeps the id, so a
+   *  published item stays published and keeps its date. */
+  const save = async () => {
     setError('')
     try {
-      await api.post('/api/club/content', {
+      await api.post(editingId ? `/api/content/${editingId}` : '/api/club/content', {
         ...form,
         // a product is never locked and only a product carries a link
         min_tier: isProduct ? '' : form.min_tier,
         external_url: isProduct ? form.external_url : '',
+        // only this browser knows its own offset; resolve the instant here
+        starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : '',
         capacity: form.capacity === '' ? null : Number(form.capacity),
       })
-      setForm({ kind: 'post', title: '', body: '', min_tier: '', starts_at: '', location: '', capacity: '', external_url: '' })
-      setOpen(false)
-      toast('Saved as draft')
+      toast(editingId ? 'Saved' : 'Saved as draft')
+      reset()
       await load()
     } catch (e) { setError(errorText(e)) }
+  }
+
+  const edit = (i: ContentItem) => {
+    setForm({
+      kind: i.kind, title: i.title, body: i.body, min_tier: i.min_tier,
+      starts_at: i.starts_at ? toLocalInput(i.starts_at) : '',
+      location: i.location, capacity: i.capacity == null ? '' : String(i.capacity),
+      external_url: i.external_url ?? '',
+    })
+    setEditingId(i.id)
+    setOpen(true)
   }
 
   const publish = async (i: ContentItem) => {
@@ -440,7 +473,8 @@ function ClubContent() {
 
   return (
     <Section title="Content" id="content"
-             aside={<button className="btn px-3 py-1 text-xs" onClick={() => setOpen((v) => !v)}>
+             aside={<button className="btn px-3 py-1 text-xs"
+                            onClick={() => { if (open) { reset() } else { setEditingId(null); setOpen(true) } }}>
                <Plus size={13} /> New</button>}>
       {error && <p className="mb-3 text-sm text-critical">{error}</p>}
 
@@ -488,9 +522,12 @@ function ClubContent() {
               </>
             )}
           </div>
-          <button className="btn-go"
-                  disabled={!form.title.trim() || (isProduct && !openable(form.external_url.trim()))}
-                  onClick={create}>Save as draft</button>
+          <div className="flex items-center gap-3">
+            <button className="btn-go"
+                    disabled={!form.title.trim() || (isProduct && !openable(form.external_url.trim()))}
+                    onClick={save}>{editingId ? 'Save changes' : 'Save as draft'}</button>
+            {editingId && <button className="btn" onClick={reset}>Cancel</button>}
+          </div>
         </div>
       )}
 
@@ -521,6 +558,7 @@ function ClubContent() {
                       {i.status === 'draft' && (
                         <button className="btn px-3 py-1 text-xs" onClick={() => publish(i)}>Publish</button>
                       )}
+                      <button className="btn px-3 py-1 text-xs" onClick={() => edit(i)}>Edit</button>
                       <button className="btn px-3 py-1 text-xs" onClick={() => remove(i)}>Delete</button>
                     </div>
                   </div>
