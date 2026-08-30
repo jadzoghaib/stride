@@ -55,6 +55,38 @@ jobs:
       - run: uv run python business-plan/build_workbook.py
       - run: uv run python scripts/verify_workbook.py
 
+  live:
+    # The three scripts that drive a running server rather than the app object.
+    # Everything above imports the code; this boots it, and that difference is
+    # where "all tests pass but the demo is broken" lives -- a stale route, an
+    # endpoint with no caller, a permission that disagrees with the one next to
+    # it. None of it is visible to pytest.
+    name: Live server - journey, permissions, propagation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - run: uv run python -m stride_api.cli init
+        working-directory: apps/api
+      - name: Start the API
+        run: |
+          uv run uvicorn stride_api.main:app --port 8490 &
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:8490/healthz >/dev/null && exit 0
+            sleep 1
+          done
+          echo "the API never came up"; exit 1
+        working-directory: apps/api
+      - run: uv run python scripts/journey.py http://localhost:8490
+      # Each script signs in as every demo account, and the auth limiter allows
+      # about six credential attempts a minute per IP. Without the pause the
+      # next script reads its own 429 as a product failure.
+      - run: sleep 60
+      - run: uv run python scripts/permissions.py http://localhost:8490
+      - run: sleep 60
+      - run: uv run python scripts/propagation.py http://localhost:8490
+
   web:
     name: Web — typecheck + production build
     runs-on: ubuntu-latest

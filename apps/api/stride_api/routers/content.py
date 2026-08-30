@@ -334,9 +334,15 @@ def _published(conn, where: str, params: tuple, user: dict | None) -> list[dict]
 
 @router.get("/feed/content")
 def followed_content(limit: int = Query(40, ge=1, le=200),
-                     user: dict = Depends(require_role("fan", "sponsor", "athlete", "club")),
+                     user: dict = Depends(require_role("fan", "sponsor", "athlete")),
                      conn: sqlite3.Connection = Depends(get_db)):
     """Everything published by the athletes this reader follows.
+
+    The roles here match `POST /api/follows` exactly, and have to. `club` was
+    listed and could never have a row to read: a club cannot follow anybody, so
+    the permission bought it a guaranteed empty list. A grant that leads nowhere
+    is not harmless -- it is the kind of thing that gets copied to the next
+    endpoint as if it meant something.
 
     The free layer of §4.3: this is what a fan opens the app for between paid
     drops, and it costs almost nothing to build because the rows already exist.

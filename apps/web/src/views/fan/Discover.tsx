@@ -112,8 +112,13 @@ export default function Discover() {
   // mutation failures report in place; only a failed first load takes the page
   const firstLoadFailed = !athletes && error
 
+  // Admin reaches this page (ops look at the ranking) but cannot follow: the
+  // API allows athlete, fan and sponsor only. Showing the control to a role the
+  // server will refuse produces a button whose entire behaviour is an error.
+  const canFollow = !!me && ['athlete', 'fan', 'sponsor'].includes(me.role)
+
   const toggleFollow = async (a: AthletePublic) => {
-    if (!me) return
+    if (!canFollow) return
     try {
       if (a.following) await api.del(`/api/follows/${a.id}`)
       else await api.post(`/api/follows/${a.id}`)
@@ -187,7 +192,7 @@ export default function Discover() {
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   {top.map((a, i) => (
                     <DiscoverCard key={a.id} a={a} rank={i} best={i === 0 && clearWinner}
-                                  me={!!me} onFollow={toggleFollow} />
+                                  me={canFollow} onFollow={toggleFollow} />
                   ))}
                 </div>
               </>
@@ -199,7 +204,7 @@ export default function Discover() {
                 </div>
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   {rest.map((a) => (
-                    <DiscoverCard key={a.id} a={a} rank={null} me={!!me} onFollow={toggleFollow} />
+                    <DiscoverCard key={a.id} a={a} rank={null} me={canFollow} onFollow={toggleFollow} />
                   ))}
                 </div>
               </>

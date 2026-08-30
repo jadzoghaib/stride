@@ -28,6 +28,11 @@ export default function AthleteDashboard() {
   const [busy, setBusy] = useState(false)
   const [evidence, setEvidence] = useState<string | null>(null)
   const [connecting, setConnecting] = useState<string | null>(null)
+  // The withdrawal is consequential enough to confirm: it takes the platform's
+  // posts off the public wall and out of the deliverables an athlete can
+  // attach. Holding the account here rather than a boolean means the dialog
+  // can name what is being withdrawn.
+  const [dropping, setDropping] = useState<AthleteWorkspace['accounts'][number] | null>(null)
 
   const load = () => api.get<AthleteWorkspace>('/api/athlete/workspace').then(setWs).catch((e) => setError(errorText(e)))
   useEffect(() => {
@@ -185,13 +190,18 @@ export default function AthleteDashboard() {
                       </td>
                       <td className="table-cell text-right">
                         {a.connection_status === 'connected' && (
-                          <button
-                            className="btn"
-                            disabled={busy}
-                            onClick={() => act(() => api.post(`/api/athlete/platforms/${a.id}/sync`))}
-                          >
-                            <RefreshCw size={12} /> Sync
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              className="btn"
+                              disabled={busy}
+                              onClick={() => act(() => api.post(`/api/athlete/platforms/${a.id}/sync`))}
+                            >
+                              <RefreshCw size={12} /> Sync
+                            </button>
+                            <button className="btn" disabled={busy} onClick={() => setDropping(a)}>
+                              Disconnect
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -277,6 +287,29 @@ export default function AthleteDashboard() {
           )}
         </Section>
       </div>
+
+      {dropping && (
+        <Modal title={`Disconnect ${dropping.platform}?`} onClose={() => setDropping(null)}>
+          {(close) => (
+            <div className="space-y-4">
+              <p className="text-sm text-ink-2">
+                Its posts come off your public wall immediately and stop being available to
+                attach to a deal. Your scores keep the history they were computed from, so
+                past deals stay auditable — but nothing new is collected from {dropping.platform}.
+              </p>
+              <p className="meta">You can connect it again later. The withdrawal is recorded either way.</p>
+              <div className="flex items-center gap-3">
+                <button className="btn-go" disabled={busy}
+                        onClick={() => { close(); setDropping(null)
+                          void act(() => api.post(`/api/athlete/platforms/${dropping.id}/disconnect`)) }}>
+                  Disconnect {dropping.platform}
+                </button>
+                <button className="btn" onClick={() => { close(); setDropping(null) }}>Keep it connected</button>
+              </div>
+            </div>
+          )}
+        </Modal>
+      )}
 
       {connecting && (
         <ConsentDialog
