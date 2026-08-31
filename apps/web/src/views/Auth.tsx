@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Wordmark } from '../components/Shell'
 import { api, errorText } from '../lib/api'
+import { COUNTRIES, SPORTS, withCurrent } from '../lib/reference'
 import { roleHome, useAuth } from '../lib/auth'
 import { COMPETITION_LEVELS, PROOF_KINDS } from '../types'
 import type { Me } from '../types'
@@ -300,11 +301,17 @@ export default function Auth() {
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
                 <span className="cap">Sport</span>
-                <input className="field mt-1" value={form.sport} onChange={(e) => set('sport', e.target.value)} placeholder="Athletics" />
+                <select className="field mt-1" value={form.sport} onChange={(e) => set('sport', e.target.value)}>
+                  <option value="">Choose a sport</option>
+                  {withCurrent(SPORTS, form.sport).map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
               </label>
               <label className="block">
                 <span className="cap">Country</span>
-                <input className="field mt-1" value={form.country} onChange={(e) => set('country', e.target.value)} placeholder="United States" />
+                <select className="field mt-1" value={form.country} onChange={(e) => set('country', e.target.value)}>
+                  <option value="">Choose a country</option>
+                  {withCurrent(COUNTRIES, form.country).map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
               </label>
             </div>
           )}
@@ -323,11 +330,17 @@ export default function Auth() {
               <div className="grid grid-cols-2 gap-3">
                 <label className="block">
                   <span className="cap">Sport</span>
-                  <input className="field mt-1" value={form.sport} onChange={(e) => set('sport', e.target.value)} placeholder="Football" />
+                  <select className="field mt-1" value={form.sport} onChange={(e) => set('sport', e.target.value)}>
+                    <option value="">Choose a sport</option>
+                    {withCurrent(SPORTS, form.sport).map((o) => <option key={o} value={o}>{o}</option>)}
+                  </select>
                 </label>
                 <label className="block">
                   <span className="cap">Country</span>
-                  <input className="field mt-1" value={form.country} onChange={(e) => set('country', e.target.value)} placeholder="United Kingdom" />
+                  <select className="field mt-1" value={form.country} onChange={(e) => set('country', e.target.value)}>
+                    <option value="">Choose a country</option>
+                    {withCurrent(COUNTRIES, form.country).map((o) => <option key={o} value={o}>{o}</option>)}
+                  </select>
                 </label>
               </div>
             </div>

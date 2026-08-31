@@ -71,6 +71,12 @@ ROUTES: list[tuple[str, str, tuple[str, ...]]] = [
     ("POST", f"/api/deals/{GONE}/withdraw", ("sponsor",)),
     ("POST", f"/api/follows/{GONE}", ("athlete", "fan", "sponsor")),
     ("DELETE", f"/api/follows/{GONE}", ("athlete", "fan", "sponsor")),
+    # subscribing is what opens a paywall, so it has to refuse exactly who
+    # following refuses -- a club that could subscribe would be reading paid
+    # content it has no relationship to
+    ("POST", f"/api/subscriptions/athlete/{GONE}", ("athlete", "fan", "sponsor")),
+    ("DELETE", f"/api/subscriptions/athlete/{GONE}", ("athlete", "fan", "sponsor")),
+    ("POST", f"/api/subscriptions/club/{GONE}", ("athlete", "fan", "sponsor")),
     ("POST", f"/api/admin/applications/{GONE}/proof", ("admin",)),
     ("POST", f"/api/admin/clubs/{GONE}/proof", ("admin",)),
     ("POST", f"/api/admin/clubs/{GONE}/revoke", ("admin",)),

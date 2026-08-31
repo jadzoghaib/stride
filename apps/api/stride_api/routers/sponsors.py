@@ -384,7 +384,7 @@ def athlete_analytics(slug: str, campaign_id: int | None = None,
     target_id = None
     if campaign_id:
         target_id = _own_campaign(conn, org, campaign_id)["sponsor_target_id"]
-    result: dict = {"athlete": athlete_public(conn, athlete), "analytics": None,
+    result: dict = {"athlete": athlete_public(conn, athlete, commercial=True), "analytics": None,
                     "audience": {}, "posts": []}
     if creator_id:
         try:

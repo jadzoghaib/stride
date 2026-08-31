@@ -5,6 +5,7 @@ import { AudiencePanel } from '../components/charts'
 import { ContentTabs } from '../components/content'
 import { LoadError, PageLoading, CoverageChip, DimensionGrid, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
+import { useAuth } from '../lib/auth'
 import { fmtMoney } from '../lib/format'
 import type { AthletePublic as Athlete, ContentItem, NewsItem } from '../types'
 import { dealTypeLabel, meanScore } from '../types'
@@ -14,6 +15,18 @@ export default function AthletePublicView() {
   const [a, setA] = useState<Athlete | null>(null)
   const [content, setContent] = useState<ContentItem[] | null>(null)
   const [news, setNews] = useState<NewsItem[]>([])
+  const { me } = useAuth()
+  // Follow and subscribe are two different relationships, so they are two
+  // controls. Only the roles the API will accept get to see them.
+  const canRelate = !!me && ['athlete', 'fan', 'sponsor'].includes(me.role)
+  const relate = async (kind: 'follow' | 'subscribe', on: boolean) => {
+    if (!a) return
+    const path = kind === 'follow' ? `/api/follows/${a.id}` : `/api/subscriptions/athlete/${a.id}`
+    try {
+      await (on ? api.del(path) : api.post(path))
+      setA((prev) => prev && { ...prev, [kind === 'follow' ? 'following' : 'subscribed']: !on })
+    } catch (e) { setError(errorText(e)) }
+  }
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -64,7 +77,11 @@ export default function AthletePublicView() {
         trend={history}
         trendLabel={history.length > 1 ? `audience scale · last ${history.length} snapshots` : undefined}
         figures={[
-          { label: 'Rate card', value: fmtMoney(a.base_rate_eur) },
+          // The rate card is a sponsorship asking price. It is absent from the
+          // payload entirely for a fan, so this row simply is not there.
+          ...(a.base_rate_eur === undefined
+            ? []
+            : [{ label: 'Rate card', value: fmtMoney(a.base_rate_eur) }]),
           { label: 'Region', value: a.region },
           {
             label: 'Club',
@@ -77,6 +94,37 @@ export default function AthletePublicView() {
       <div>
       {a.bio && <p className="mt-6 max-w-2xl text-sm text-ink-2">{a.bio}</p>}
 
+      {(canRelate || a.socials.length > 0) && (
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          {canRelate && (
+            <>
+              <button className={`btn ${a.following ? 'border-accent text-ink' : ''}`}
+                      onClick={() => relate('follow', !!a.following)}>
+                {a.following ? 'Following' : 'Follow'}
+              </button>
+              <button className={a.subscribed ? 'btn border-accent text-ink' : 'btn-go'}
+                      onClick={() => relate('subscribe', !!a.subscribed)}>
+                {a.subscribed ? 'Subscribed' : 'Subscribe'}
+              </button>
+              <span className="meta">
+                Follow for their posts and platform news. Subscribe to open the
+                subscribers-only ones.
+              </span>
+            </>
+          )}
+          {a.socials.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 md:ml-auto">
+              {a.socials.map((s) => (
+                <a key={s.platform} href={s.url} target="_blank" rel="noreferrer noopener"
+                   className="tag hover:text-accent">
+                  {s.platform}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {a.career_highlights.length > 0 && (
         <Section title="Career highlights">
           <ul className="space-y-1 text-sm text-ink-2">
@@ -85,9 +133,14 @@ export default function AthletePublicView() {
         </Section>
       )}
 
-      <Section title="Marketability">
-        <DimensionGrid score={a.score} />
-      </Section>
+      {/* Marketability and the audience breakdown are the sponsor's evidence.
+          The API omits both for a fan, so these sections disappear rather than
+          render an empty shell. */}
+      {a.score !== undefined && (
+        <Section title="Marketability">
+          <DimensionGrid score={a.score} />
+        </Section>
+      )}
 
       {a.audience && Object.keys(a.audience).length > 0 && (
         <Section title="Audience">

@@ -349,6 +349,17 @@ CREATE INDEX IF NOT EXISTS idx_commitments_org ON package_commitments(org_id, st
 -- `min_tier` is the tier a fan needs, '' meaning free. Nothing charges money
 -- yet, so everything above free reads as locked for everybody; that is honest
 -- rather than a stub, and the lock is what the product is for.
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id    BIGINT NOT NULL REFERENCES users(id),
+    athlete_id BIGINT REFERENCES athlete_profiles(id),
+    club_id    BIGINT REFERENCES clubs(id),
+    created_at TEXT NOT NULL,
+    CHECK ((athlete_id IS NULL) <> (club_id IS NULL)),
+    UNIQUE (user_id, athlete_id),
+    UNIQUE (user_id, club_id)
+);
+
 CREATE TABLE IF NOT EXISTS content_items (
     id           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     athlete_id   INTEGER REFERENCES athlete_profiles(id),

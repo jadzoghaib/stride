@@ -26,9 +26,11 @@ const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]>
     { to: '/clubs', label: 'Clubs', icon: Shield },
   ],
   fan: [
+    // No Clubs tab: a separate directory of clubs is a second place to search
+    // for the same thing. Discover filters by athlete or club instead, so there
+    // is one search box and one set of filters.
     { to: '/discover', label: 'Discover', icon: Compass },
     { to: '/feed', label: 'Following', icon: Radio },
-    { to: '/clubs', label: 'Clubs', icon: Shield },
   ],
   club: [
     { to: '/club', label: 'Club HQ', icon: LayoutDashboard },

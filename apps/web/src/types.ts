@@ -92,13 +92,22 @@ export interface AthletePublic {
   career_highlights: string[]
   topics: string[]
   deal_types: string[]
-  base_rate_eur: number
   status: string
   claimed: boolean
-  score: ScoreSummary | null
+  /** Where to find them off Stride. Everyone gets these. */
+  socials: { platform: string; handle: string; url: string }[]
+  /** Sales material: the asking price and the evidence behind it. Present only
+   *  for a sponsor, a club, an admin, or the athlete reading their own profile
+   *  — which is why both are optional rather than nullable. A fan is buying a
+   *  post, not the athlete's audience. */
+  base_rate_eur?: number
+  score?: ScoreSummary | null
   affinity?: number
   reasons?: string[]
+  /** follow = their free posts and their platform news.
+   *  subscribe = the posts they marked subscribers-only. */
   following?: boolean
+  subscribed?: boolean
   audience?: Record<string, Record<string, number>>
   score_history?: { computed_at: string; audience_scale: number | null }[]
   clubs?: { name: string; slug: string; position: string }[]
@@ -270,7 +279,11 @@ export const DEAL_TYPES = [
   { key: 'product_collab', label: 'Product Collaboration' },
 ] as const
 
-export const CATEGORIES = ['Sportswear', 'Nutrition', 'Technology', 'Automotive', 'Beverages', 'Finance', 'Travel', 'Wellness']
+// 'Other' last, and deliberately: a fixed list with no escape hatch makes a
+// sponsor pick the nearest wrong answer, which then poisons category-based
+// matching for every athlete it touches.
+export const CATEGORIES = ['Sportswear', 'Nutrition', 'Technology', 'Automotive',
+  'Beverages', 'Finance', 'Travel', 'Wellness', 'Other']
 
 export const dealTypeLabel = (key: string) =>
   DEAL_TYPES.find((d) => d.key === key)?.label ?? key.replace(/_/g, ' ')
@@ -541,10 +554,8 @@ export const CONTENT_KINDS = ['post', 'course', 'session', 'event', 'product'] a
  *  and a capacity — and they are the argument for the top tier. */
 export const SCHEDULED_KINDS = ['session', 'event'] as const
 export const CONTENT_TIERS = [
-  { value: '', label: 'Free — anyone following' },
-  { value: 'supporter', label: 'Supporter · €4.99' },
-  { value: 'insider', label: 'Insider · €9.99' },
-  { value: 'inner_circle', label: 'Inner circle · €24.99' },
+  { value: '', label: 'Everyone' },
+  { value: 'supporter', label: 'Subscribers only' },
 ] as const
 export const CONTENT_LABELS = [
   { value: '', label: 'None' },

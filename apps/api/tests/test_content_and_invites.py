@@ -48,9 +48,10 @@ def clean_slate(db):
             db.execute(f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in cols)}"
                        f" WHERE id = ?", tuple(saved_row[c] for c in cols) + (row_id,))
 
-    before = {t: snapshot(t) for t in ("club_members", "content_items")}
+    tables = ("club_members", "content_items", "subscriptions", "follows")
+    before = {t: snapshot(t) for t in tables}
     yield
-    for table in ("content_items", "club_members"):
+    for table in tables:
         restore(table, before[table])
     db.commit()
 
@@ -87,7 +88,7 @@ def test_an_athlete_can_publish_and_a_stranger_sees_only_the_free_part(athlete, 
     assert shut["locked"] is True
     assert shut["body"] == ""              # the only thing withheld
     assert shut["title"] and shut["kind"] == "course"
-    assert shut["tier_label"] == "Insider · €9.99"   # and what it would take
+    assert shut["tier_label"] == "Subscribers"       # and what it would take
 
 
 def test_a_draft_is_not_published(athlete, client):
@@ -433,3 +434,73 @@ def test_a_time_that_is_not_a_time_is_refused(athlete):
         "kind": "event", "title": "Trail morning", "starts_at": "next tuesday"})
     assert res.status_code == 422
     assert res.json()["detail"] == "starts_at_is_not_a_time"
+
+
+# ── follow is free, subscribe opens the lock ─────────────────────────
+
+def _published(author, **fields):
+    made = author.post("/api/athlete/content", json=fields)
+    assert made.status_code == 201, made.text
+    author.post(f"/api/content/{made.json()['id']}/publish")
+    return made.json()["id"]
+
+
+def test_subscribing_opens_that_authors_locked_posts(athlete, fan, db):
+    """The lock used to be permanent: `_visible_tier` answered "free" for
+    everybody, so a subscribers-only post could be shown but never opened."""
+    _published(athlete, kind="post", title="Members only", body="The good stuff.",
+               min_tier="supporter")
+
+    before = {i["title"]: i for i in fan.get("/api/athletes/kaia-mercer/content").json()}
+    assert before["Members only"]["locked"] is True
+    assert before["Members only"]["body"] == ""
+
+    kaia = row(db, "SELECT id FROM athlete_profiles WHERE slug = 'kaia-mercer'")
+    assert fan.post(f"/api/subscriptions/athlete/{kaia['id']}").status_code == 201
+
+    after = {i["title"]: i for i in fan.get("/api/athletes/kaia-mercer/content").json()}
+    assert after["Members only"]["locked"] is False
+    assert after["Members only"]["body"] == "The good stuff."
+
+    assert fan.delete(f"/api/subscriptions/athlete/{kaia['id']}").status_code == 200
+    again = {i["title"]: i for i in fan.get("/api/athletes/kaia-mercer/content").json()}
+    assert again["Members only"]["locked"] is True, "unsubscribing closes it again"
+
+
+def test_a_subscription_opens_one_author_not_all_of_them(athlete, clubu, fan, db):
+    """The lock is per author. Paying one person does not open everyone."""
+    _published(athlete, kind="post", title="Athlete members only", min_tier="supporter",
+               body="Mine.")
+    theirs = clubu.post("/api/club/content", json={
+        "kind": "post", "title": "Club members only", "min_tier": "supporter",
+        "body": "Ours."}).json()
+    clubu.post(f"/api/content/{theirs['id']}/publish")
+
+    kaia = row(db, "SELECT id FROM athlete_profiles WHERE slug = 'kaia-mercer'")
+    fan.post(f"/api/subscriptions/athlete/{kaia['id']}")
+    try:
+        mine = {i["title"]: i for i in fan.get("/api/athletes/kaia-mercer/content").json()}
+        club = {i["title"]: i for i in fan.get("/api/clubs/meridian-fc/content").json()}
+        assert mine["Athlete members only"]["locked"] is False
+        assert club["Club members only"]["locked"] is True, "a different author stays shut"
+    finally:
+        fan.delete(f"/api/subscriptions/athlete/{kaia['id']}")
+
+
+def test_a_signed_out_reader_sees_the_free_layer_only(athlete, client):
+    _published(athlete, kind="post", title="Open to all", body="Read away.", min_tier="")
+    _published(athlete, kind="post", title="Shut to all", body="Not this.",
+               min_tier="supporter")
+    seen = {i["title"]: i for i in client.get("/api/athletes/kaia-mercer/content").json()}
+    assert seen["Open to all"]["locked"] is False and seen["Open to all"]["body"]
+    assert seen["Shut to all"]["locked"] is True and seen["Shut to all"]["body"] == ""
+
+
+def test_following_does_not_open_the_lock(athlete, fan, db):
+    """Follow and subscribe are different relationships, and the whole point of
+    naming them differently is that one of them does not pay."""
+    _published(athlete, kind="post", title="Paywalled", body="x", min_tier="supporter")
+    kaia = row(db, "SELECT id FROM athlete_profiles WHERE slug = 'kaia-mercer'")
+    fan.post(f"/api/follows/{kaia['id']}")
+    seen = {i["title"]: i for i in fan.get("/api/athletes/kaia-mercer/content").json()}
+    assert seen["Paywalled"]["locked"] is True

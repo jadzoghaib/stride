@@ -29,7 +29,7 @@ _ALL_TABLES = (
     "content_items",
     "deal_deliverables", "athlete_applications", "club_applications",
     "package_commitments", "club_packages", "club_members", "clubs",
-    "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
+    "subscriptions", "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
     "events", "score_snapshots", "sponsor_targets", "audience_demographics",
     "account_snapshots", "post_metrics", "posts", "sync_runs", "platform_accounts", "creators",
 )
@@ -171,6 +171,18 @@ CREATE TABLE IF NOT EXISTS follows (
     athlete_id INTEGER NOT NULL REFERENCES athlete_profiles(id),
     created_at TEXT NOT NULL,
     UNIQUE (user_id, athlete_id)
+);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id         INTEGER PRIMARY KEY,
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    athlete_id INTEGER REFERENCES athlete_profiles(id),
+    club_id    INTEGER REFERENCES clubs(id),
+    created_at TEXT NOT NULL,
+    -- exactly one subject, the same shape content_items uses
+    CHECK ((athlete_id IS NULL) <> (club_id IS NULL)),
+    UNIQUE (user_id, athlete_id),
+    UNIQUE (user_id, club_id)
 );
 
 CREATE TABLE IF NOT EXISTS clubs (

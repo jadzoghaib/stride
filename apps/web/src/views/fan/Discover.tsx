@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Avatar, CoverageChip, EmptyNote, LoadError, PageHeader, PageLoading } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
-import type { AthletePublic, Facets } from '../../types'
+import type { AthletePublic, Club, Facets } from '../../types'
 
 // Kept only as the order to show first; the live list comes from the facets so
 // a sport nobody has yet does not appear, and a new one does not need a deploy.
@@ -13,12 +13,13 @@ const INTEREST_ORDER = ['Athletics', 'Football', 'Basketball', 'Tennis', 'Cyclin
 /** Module scope, not inside `Discover`: a component declared in a render body is
  *  a new type each time, so every state change remounted every card and dropped
  *  focus from whichever Follow button was being used. */
-function DiscoverCard({ a, rank, best = false, me, onFollow }: {
+function DiscoverCard({ a, rank, best = false, me, onFollow, onSubscribe }: {
   a: AthletePublic
   rank: number | null
   best?: boolean
   me: boolean
   onFollow: (a: AthletePublic) => void
+  onSubscribe: (a: AthletePublic) => void
 }) {
   return (
           <div
@@ -48,12 +49,23 @@ function DiscoverCard({ a, rank, best = false, me, onFollow }: {
                     {Math.round(a.affinity)}
                   </span>
                 )}
-                <CoverageChip coverage={a.score?.coverage ?? null} />
+                {/* Coverage says how complete our analytics are. That is a
+                    sponsor's question; it is absent from a fan's payload, so
+                    the chip only appears when the score came with it. */}
+                {a.score !== undefined && <CoverageChip coverage={a.score?.coverage ?? null} />}
                 {me && (
-                  <button className={`btn px-3 py-1 text-xs ${a.following ? 'border-accent text-ink' : ''}`}
-                          onClick={() => onFollow(a)}>
-                    {a.following ? 'Following' : 'Follow'}
-                  </button>
+                  <>
+                    <button className={`btn px-3 py-1 text-xs ${a.following ? 'border-accent text-ink' : ''}`}
+                            onClick={() => onFollow(a)}>
+                      {a.following ? 'Following' : 'Follow'}
+                    </button>
+                    <button className={a.subscribed
+                              ? 'btn border-accent px-3 py-1 text-xs text-ink'
+                              : 'btn-go px-3 py-1 text-xs'}
+                            onClick={() => onSubscribe(a)}>
+                      {a.subscribed ? 'Subscribed' : 'Subscribe'}
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -75,6 +87,10 @@ export default function Discover() {
   // The interests offered are the sports and themes that actually exist. The
   // constant above only decides what comes first — a hard-coded list would both
   // offer sports nobody competes in and hide the first athlete in a new one.
+  const [clubs, setClubs] = useState<Club[]>([])
+  const [q, setQ] = useState('')
+  const [sport, setSport] = useState('')
+  const [kind, setKind] = useState<'all' | 'athlete' | 'club'>('all')
   const [facets, setFacets] = useState<Facets | null>(null)
   const [facetsFailed, setFacetsFailed] = useState(false)
   useEffect(() => {
@@ -101,12 +117,17 @@ export default function Discover() {
     const p = new URLSearchParams()
     if (selected.length) p.set('interests', selected.join(','))
     if (country) p.set('country', country)
+    if (q.trim()) p.set('q', q.trim())
+    if (sport) p.set('sport', sport)
+    if (kind !== 'all') p.set('kind', kind)
     return p.toString()
-  }, [selected, country])
+  }, [selected, country, q, sport, kind])
 
   useEffect(() => {
     setError('')
-    api.get<AthletePublic[]>(`/api/discover?${query}`).then(setAthletes).catch((e) => setError(errorText(e)))
+    api.get<{ athletes: AthletePublic[]; clubs: Club[] }>(`/api/discover?${query}`)
+      .then((r) => { setAthletes(r.athletes); setClubs(r.clubs) })
+      .catch((e) => setError(errorText(e)))
   }, [query])
 
   // mutation failures report in place; only a failed first load takes the page
@@ -123,6 +144,18 @@ export default function Discover() {
       if (a.following) await api.del(`/api/follows/${a.id}`)
       else await api.post(`/api/follows/${a.id}`)
       setAthletes((list) => list?.map((x) => (x.id === a.id ? { ...x, following: !a.following } : x)) ?? null)
+    } catch (e) {
+      setError(errorText(e))
+    }
+  }
+
+  const toggleSubscribe = async (a: AthletePublic) => {
+    if (!canFollow) return
+    const path = `/api/subscriptions/athlete/${a.id}`
+    try {
+      if (a.subscribed) await api.del(path)
+      else await api.post(path)
+      setAthletes((list) => list?.map((x) => (x.id === a.id ? { ...x, subscribed: !a.subscribed } : x)) ?? null)
     } catch (e) {
       setError(errorText(e))
     }
@@ -151,8 +184,33 @@ export default function Discover() {
             {i}
           </button>
         ))}
-        <input className="field w-44 py-1 text-xs" placeholder="Your country (optional)"
-               value={country} onChange={(e) => setCountry(e.target.value)} />
+      </div>
+
+      {/* One search box and one set of filters, because clubs and athletes are
+          both things a reader is looking for and splitting them into two
+          directories meant asking the same question twice. */}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <input className="field w-64 py-1.5 text-sm" placeholder="Search athletes and clubs"
+               value={q} onChange={(e) => setQ(e.target.value)} />
+        <select className="field w-40 py-1.5 text-xs" value={sport}
+                onChange={(e) => setSport(e.target.value)}>
+          <option value="">All sports</option>
+          {(facets?.sports ?? []).map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select className="field w-44 py-1.5 text-xs" value={country}
+                onChange={(e) => setCountry(e.target.value)}>
+          <option value="">All countries</option>
+          {(facets?.countries ?? []).map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <div className="flex gap-1 rounded border border-line p-0.5">
+          {(['all', 'athlete', 'club'] as const).map((k) => (
+            <button key={k} onClick={() => setKind(k)}
+                    className={`rounded px-3 py-1 font-display text-[11px] uppercase tracking-micro ${
+                      kind === k ? 'bg-track text-ink' : 'text-ink-3 hover:text-ink-2'}`}>
+              {k === 'all' ? 'Everyone' : k === 'athlete' ? 'Athletes' : 'Clubs'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {error && (
@@ -192,7 +250,7 @@ export default function Discover() {
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   {top.map((a, i) => (
                     <DiscoverCard key={a.id} a={a} rank={i} best={i === 0 && clearWinner}
-                                  me={canFollow} onFollow={toggleFollow} />
+                                  me={canFollow} onFollow={toggleFollow} onSubscribe={toggleSubscribe} />
                   ))}
                 </div>
               </>
@@ -204,7 +262,7 @@ export default function Discover() {
                 </div>
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   {rest.map((a) => (
-                    <DiscoverCard key={a.id} a={a} rank={null} me={canFollow} onFollow={toggleFollow} />
+                    <DiscoverCard key={a.id} a={a} rank={null} me={canFollow} onFollow={toggleFollow} onSubscribe={toggleSubscribe} />
                   ))}
                 </div>
               </>
@@ -212,7 +270,27 @@ export default function Discover() {
           </>
         )
       })()}
-      {athletes && athletes.length === 0 && <EmptyNote text="No athletes match those filters yet." />}
+      {clubs.length > 0 && (
+        <>
+          <div className="mt-8 border-b border-line pb-2"><span className="cap">Clubs</span></div>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            {clubs.map((c) => (
+              <Link key={c.slug} to={`/clubs/${c.slug}`}
+                    className="panel panel-hover flex items-center gap-3 p-4">
+                <Avatar name={c.name} size={42} />
+                <div className="min-w-0">
+                  <div className="font-medium text-ink">{c.name}</div>
+                  <div className="text-xs text-ink-3">{c.sport} · {c.country}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
+
+      {athletes && athletes.length === 0 && clubs.length === 0 && (
+        <EmptyNote text="Nothing matches those filters yet." />
+      )}
     </div>
   )
 }

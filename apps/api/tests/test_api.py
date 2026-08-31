@@ -23,12 +23,23 @@ def test_public_directory(client):
     page = client.get("/api/athletes").json()
     athletes = page["athletes"]
     assert len(athletes) == page["limit"] == 24
-    scored = [a for a in athletes if a["score"]]
-    assert len(scored) >= 20
-    assert any(a["score"] is None for a in athletes)  # unconnected stays unscored
+    # No rate card and no score for a signed-out reader: both are sales material
+    # aimed at a buyer, and a visitor browsing athletes is not one.
+    assert all("base_rate_eur" not in a and "score" not in a for a in athletes)
+    assert all("socials" in a for a in athletes)
 
     facets = client.get("/api/athletes/facets").json()
     assert "Athletics" in facets["sports"]
+
+
+def test_a_sponsor_sees_the_commercials_a_fan_does_not(sponsor, fan, client):
+    """The same endpoint, three readers, three answers."""
+    for reader, expected in ((sponsor, True), (fan, False), (client, False)):
+        athletes = reader.get("/api/athletes").json()["athletes"]
+        scored = [a for a in athletes if a.get("score")]
+        priced = [a for a in athletes if a.get("base_rate_eur")]
+        assert bool(scored) is expected, "score"
+        assert bool(priced) is expected, "rate card"
 
 
 def test_the_directory_pages_without_skipping_or_repeating(client):
@@ -67,11 +78,18 @@ def test_a_malformed_cursor_is_refused_rather_than_ignored(client):
     assert client.get("/api/athletes", params={"cursor": "nonsense"}).status_code == 422
 
 
-def test_public_athlete_detail(client):
+def test_public_athlete_detail(client, sponsor):
     detail = client.get("/api/athletes/kaia-mercer").json()
-    assert detail["score"]["coverage"]["connected"] == 3
-    assert "age" in detail["audience"]
+    assert "score" not in detail and "base_rate_eur" not in detail
+    assert "audience" not in detail, "a fan has no use for their own age bracket"
     assert detail["clubs"] == []  # independent athlete says so explicitly
+    assert [s["platform"] for s in detail["socials"]], "but they do get the handles"
+
+    # the same profile, read by a buyer
+    commercial = sponsor.get("/api/athletes/kaia-mercer").json()
+    assert commercial["score"]["coverage"]["connected"] == 3
+    assert "age" in commercial["audience"]
+    assert commercial["base_rate_eur"] > 0
 
     club_member = client.get("/api/athletes/luca-ferreira").json()
     assert [c["name"] for c in club_member["clubs"]] == ["Meridian FC"]
@@ -235,7 +253,10 @@ def test_roster_removal_ends_commitments(client, sponsor, clubu):
 
 
 def test_discovery_and_feed(fan):
-    ranked = fan.get("/api/discover?interests=running,cycling&country=Germany").json()
+    # discover answers with both kinds now: clubs used to have their own tab and
+    # their own filters, which meant two places to ask the same question
+    found = fan.get("/api/discover?interests=running,cycling&country=Germany").json()
+    ranked = found["athletes"]
     assert ranked[0]["affinity"] > 0
     assert ranked[0]["reasons"]
     feed = fan.get("/api/feed").json()
@@ -356,3 +377,22 @@ def test_login_brute_force_rate_limited(client):
              for _ in range(30)]
     assert 401 in codes
     assert codes[-1] == 429
+
+
+def test_discover_searches_athletes_and_clubs_together(fan):
+    """One search box, four questions: name, sport, country, kind."""
+    everyone = fan.get("/api/discover").json()
+    assert everyone["athletes"] and everyone["clubs"]
+
+    only_clubs = fan.get("/api/discover", params={"kind": "club"}).json()
+    assert only_clubs["athletes"] == [] and only_clubs["clubs"]
+
+    only_athletes = fan.get("/api/discover", params={"kind": "athlete"}).json()
+    assert only_athletes["clubs"] == [] and only_athletes["athletes"]
+
+    by_name = fan.get("/api/discover", params={"q": "meridian"}).json()
+    assert [c["name"] for c in by_name["clubs"]] == ["Meridian FC"]
+    assert by_name["athletes"] == [], "the search applies to both halves"
+
+    by_sport = fan.get("/api/discover", params={"sport": "Boxing"}).json()
+    assert [c["name"] for c in by_sport["clubs"]] == ["Ironline Combat Club"]

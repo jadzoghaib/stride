@@ -14,12 +14,13 @@ A **product** is merch, and it is the one kind Stride does not deliver: the
 athlete sells it on Shopify or Amazon, and this row is a link with a title on
 it. That is also why a product is never locked — see `_validate`.
 
-**Nothing here charges money.** `min_tier` records what a fan would need, and
-`locked` says whether they have it — which, with no subscriptions in the product
-yet, is "no" for everything above free. That is deliberate: the lock is the
-product, and showing it honestly is more useful than a stub that pretends to
-sell. When entitlements arrive, `_visible_tier` is the only function that
-changes.
+**Nothing here charges money.** An author marks an item for everyone or for
+subscribers, and `locked` says whether *this* reader has a subscription to
+*that* author. Subscribing is free and immediate in the demo, which is a
+deliberate choice: a paywall that can never open demonstrates the lock but never
+the thing the lock is protecting. `min_tier` keeps its tier values so the
+business plan's tier economics stay modelled; the composer offers the two
+choices an author actually thinks in.
 """
 
 from __future__ import annotations
@@ -41,11 +42,14 @@ KINDS = ("post", "course", "session", "event", "product")
 #: Ordered weakest to strongest. A fan sees an item when their tier is at least
 #: its `min_tier`, so the comparison is an index into this tuple.
 TIERS = ("", "supporter", "insider", "inner_circle")
+#: What a reader is told. The prices live in the business plan, not on the card:
+#: subscribing is free in the demo, so printing "€4.99" beside a lock nobody
+#: pays to open would be the one dishonest label on the page.
 TIER_LABEL = {
-    "": "Free",
-    "supporter": "Supporter · €4.99",
-    "insider": "Insider · €9.99",
-    "inner_circle": "Inner circle · €24.99",
+    "": "Everyone",
+    "supporter": "Subscribers",
+    "insider": "Subscribers",
+    "inner_circle": "Subscribers",
 }
 LABELS = ("", "sponsored", "highlighted")
 #: The kinds that are scarce, and therefore the ones a date and a place belong to.
@@ -160,18 +164,30 @@ def _view(item: dict, *, locked: bool) -> dict:
     return out
 
 
-def _visible_tier(user: dict | None) -> str:
-    """The tier the reader has paid for.
+def _subscriptions(conn, user: dict | None) -> tuple[set[int], set[int]]:
+    """The athletes and clubs this reader subscribes to.
 
-    Everyone is on the free tier: there are no subscriptions in the product yet
-    (P1 in the build sequence), so nothing above free unlocks for anybody. This
-    is the single place that changes when entitlements ship.
+    Read once per request and passed down, because a feed spans many authors and
+    the lock is per-author: subscribing to one athlete does not open another's
+    posts. The previous version answered "free tier" for everybody, which meant
+    every locked item stayed locked for everyone forever -- the paywall could be
+    demonstrated but never resolved.
     """
-    return ""
+    if user is None:
+        return set(), set()
+    subs = rows(conn, "SELECT athlete_id, club_id FROM subscriptions WHERE user_id = ?",
+                (user["id"],))
+    return ({r["athlete_id"] for r in subs if r["athlete_id"] is not None},
+            {r["club_id"] for r in subs if r["club_id"] is not None})
 
 
-def _locked(item: dict, viewer_tier: str) -> bool:
-    return TIERS.index(item["min_tier"]) > TIERS.index(viewer_tier)
+def _locked(item: dict, athletes: set[int], clubs: set[int]) -> bool:
+    """Free for everyone, or open only to a subscriber of *this* author."""
+    if not item["min_tier"]:
+        return False
+    if item["athlete_id"] is not None:
+        return item["athlete_id"] not in athletes
+    return item["club_id"] not in clubs
 
 
 # ── the author's own library ────────────────────────────────────────────────
@@ -326,10 +342,10 @@ def public_club_content(slug: str, user: dict | None = Depends(optional_user),
 
 
 def _published(conn, where: str, params: tuple, user: dict | None) -> list[dict]:
-    tier = _visible_tier(user)
+    athletes, clubs = _subscriptions(conn, user)
     items = rows(conn, f"SELECT * FROM content_items WHERE {where} AND status = 'published'"
                        " ORDER BY published_at DESC, id DESC", params)
-    return [_view(i, locked=_locked(i, tier)) for i in items]
+    return [_view(i, locked=_locked(i, athletes, clubs)) for i in items]
 
 
 @router.get("/feed/content")
@@ -347,7 +363,7 @@ def followed_content(limit: int = Query(40, ge=1, le=200),
     The free layer of §4.3: this is what a fan opens the app for between paid
     drops, and it costs almost nothing to build because the rows already exist.
     """
-    tier = _visible_tier(user)
+    athletes, clubs = _subscriptions(conn, user)
     items = rows(conn, """
         SELECT c.*, a.display_name AS author, a.slug AS author_slug
         FROM content_items c
@@ -358,7 +374,7 @@ def followed_content(limit: int = Query(40, ge=1, le=200),
         LIMIT ?""", (user["id"], limit))
     out = []
     for i in items:
-        entry = _view(i, locked=_locked(i, tier))
+        entry = _view(i, locked=_locked(i, athletes, clubs))
         entry["author"] = i["author"]
         entry["author_slug"] = i["author_slug"]
         out.append(entry)

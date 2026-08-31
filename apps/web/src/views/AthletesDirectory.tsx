@@ -15,6 +15,14 @@ const COLUMNS: { key: SortKey; label: string; align?: string }[] = [
   { key: 'base_rate_eur', label: 'Rate card', align: 'text-right' },
 ]
 
+/** Marketability, the rate card and analytics coverage are sales material, and
+ *  the API omits all three for a reader who is not buying. Rather than render
+ *  empty cells, the table drops the columns — so the same page is a pricing
+ *  sheet to a sponsor and a plain index to everyone else. */
+function commercialColumns(athletes: AthletePublic[]): boolean {
+  return athletes.some((a) => a.base_rate_eur !== undefined || a.score !== undefined)
+}
+
 export default function AthletesDirectory() {
   const [athletes, setAthletes] = useState<AthletePublic[] | null>(null)
   const [facets, setFacets] = useState<{ sports: string[]; countries: string[] }>({ sports: [], countries: [] })
@@ -114,13 +122,15 @@ export default function AthletesDirectory() {
     const dir = desc ? -1 : 1
     return scored.sort((a, b) => {
       if (sort === 'display_name') return dir * a.display_name.localeCompare(b.display_name)
-      if (sort === 'base_rate_eur') return dir * (a.base_rate_eur - b.base_rate_eur)
+      if (sort === 'base_rate_eur') return dir * ((a.base_rate_eur ?? 0) - (b.base_rate_eur ?? 0))
       // unscored athletes sort last in both directions — an absent score is not
       // a low score, so it never displaces a measured one at the top
       if (a.mean === null || b.mean === null) return a.mean === b.mean ? 0 : a.mean === null ? 1 : -1
       return dir * (a.mean - b.mean)
     })
   }, [athletes, sort, desc])
+
+  const commercial = commercialColumns(athletes ?? [])
 
   if (!athletes) return error ? <LoadError text={error} /> : <PageLoading />
 
@@ -186,7 +196,7 @@ export default function AthletesDirectory() {
         <table className="w-full text-sm">
           <thead>
             <tr>
-              {COLUMNS.map((col) => (
+              {COLUMNS.filter((c) => c.key === 'display_name' || commercial).map((col) => (
                 <th key={col.key} className={`table-head ${col.align ?? ''}`} aria-sort={sort === col.key ? (desc ? 'descending' : 'ascending') : 'none'}>
                   <button
                     className="inline-flex items-center gap-1 uppercase tracking-micro transition-colors hover:text-ink"
@@ -200,7 +210,7 @@ export default function AthletesDirectory() {
               ))}
               <th className="table-head">Sport</th>
               <th className="table-head">Country</th>
-              <th className="table-head">Analytics coverage</th>
+              {commercial && <th className="table-head">Analytics coverage</th>}
             </tr>
           </thead>
           <tbody>
@@ -211,26 +221,32 @@ export default function AthletesDirectory() {
                     <Avatar name={a.display_name} size={28} /> {a.display_name}
                   </Link>
                 </td>
-                <td className="table-cell">
-                  {a.mean === null ? (
-                    <span className="cap block text-right text-ink-3">not scored</span>
-                  ) : (
-                    <div className="ml-auto w-24">
-                      <div className="tnum text-right font-display text-[19px] font-bold leading-none text-ink">
-                        {Math.round(a.mean)}
-                      </div>
-                      <div className="mt-1.5">
-                        <Meter value={a.mean} height={4} muted={a.mean < 65} />
-                      </div>
-                    </div>
-                  )}
-                </td>
-                <td className="table-cell tnum text-right">{fmtMoney(a.base_rate_eur)}</td>
+                {commercial && (
+                  <>
+                    <td className="table-cell">
+                      {a.mean === null ? (
+                        <span className="cap block text-right text-ink-3">not scored</span>
+                      ) : (
+                        <div className="ml-auto w-24">
+                          <div className="tnum text-right font-display text-[19px] font-bold leading-none text-ink">
+                            {Math.round(a.mean)}
+                          </div>
+                          <div className="mt-1.5">
+                            <Meter value={a.mean} height={4} muted={a.mean < 65} />
+                          </div>
+                        </div>
+                      )}
+                    </td>
+                    <td className="table-cell tnum text-right">{fmtMoney(a.base_rate_eur ?? 0)}</td>
+                  </>
+                )}
                 <td className="table-cell">{a.sport}</td>
                 <td className="table-cell">{a.country}</td>
-                <td className="table-cell">
-                  <CoverageChip coverage={a.score?.coverage ?? null} />
-                </td>
+                {commercial && (
+                  <td className="table-cell">
+                    <CoverageChip coverage={a.score?.coverage ?? null} />
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
