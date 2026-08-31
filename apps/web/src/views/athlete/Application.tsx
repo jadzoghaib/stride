@@ -112,6 +112,8 @@ export default function AthleteApplication() {
 
   return (
     <>
+      {view?.frozen && <Frozen frozen={view.frozen} onRedeemed={load} />}
+
       {application && scored ? (
         <Board
           eyebrow="Athlete"
@@ -274,5 +276,59 @@ export default function AthleteApplication() {
         </Section>
       </div>
     </>
+  )
+}
+
+
+/** What a frozen athlete is told, and the two doors out of it.
+ *
+ *  Freezing happens when the club that vouched for someone withdraws it, which
+ *  removes the only evidence their listing stood on. Saying just "you are not
+ *  listed" would be true and useless: the page has to name who withdrew it and
+ *  both routes back, because neither is discoverable otherwise.
+ */
+function Frozen({ frozen, onRedeemed }: {
+  frozen: { at: string; club: string | null }
+  onRedeemed: () => void
+}) {
+  const [token, setToken] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const redeem = async () => {
+    setBusy(true)
+    setError('')
+    try {
+      await api.post(`/api/athlete/invite-links/${token.trim()}/redeem`, {})
+      setToken('')
+      onRedeemed()
+    } catch (e) { setError(errorText(e)) } finally { setBusy(false) }
+  }
+
+  return (
+    <div className="mb-6 rounded-card border border-critical/45 bg-critical/10 p-5">
+      <p className="cap text-critical">Profile frozen</p>
+      <p className="mt-2 text-sm text-ink-2">
+        {frozen.club ?? 'The club that vouched for you'} withdrew their invitation, so your
+        profile is out of the directory. Your account and everything you have published are
+        untouched.
+      </p>
+      <p className="mt-3 text-sm text-ink-2">There are two ways back:</p>
+      <ol className="mt-1 list-inside list-decimal space-y-1 text-sm text-ink-2">
+        <li>Redeem a new invite link from a verified club.</li>
+        <li>Submit a proof link of your own below and have it checked.</li>
+      </ol>
+
+      <div className="mt-4 flex flex-wrap items-end gap-2">
+        <label className="block"><span className="cap">Invite link or code</span>
+          <input className="field mt-1 w-72" value={token} placeholder="Paste the code"
+                 onChange={(e) => setToken(e.target.value.trim().split('invite=').pop() ?? '')} />
+        </label>
+        <button className="btn-go" disabled={busy || !token.trim()} onClick={redeem}>
+          {busy ? 'Checking…' : 'Redeem'}
+        </button>
+      </div>
+      {error && <p className="mt-2 text-sm text-critical">{error}</p>}
+    </div>
   )
 }

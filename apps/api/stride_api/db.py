@@ -29,7 +29,7 @@ _ALL_TABLES = (
     "content_items",
     "deal_deliverables", "athlete_applications", "club_applications",
     "package_commitments", "club_packages", "club_members", "clubs",
-    "email_outbox", "poll_votes", "poll_options", "messages", "conversations", "notifications", "subscriptions", "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
+    "club_invite_links", "email_outbox", "poll_votes", "poll_options", "messages", "conversations", "notifications", "subscriptions", "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
     "events", "score_snapshots", "sponsor_targets", "audience_demographics",
     "account_snapshots", "post_metrics", "posts", "sync_runs", "platform_accounts", "creators",
 )
@@ -91,6 +91,9 @@ CREATE TABLE IF NOT EXISTS athlete_profiles (
     deal_types              TEXT NOT NULL DEFAULT '[]',            -- json list of DEAL_TYPES
     base_rate_eur           INTEGER NOT NULL DEFAULT 1000,         -- per engagement, rate card anchor
     status                  TEXT NOT NULL DEFAULT 'listed' CHECK (status IN ('draft','listed','hidden')),
+    -- set when the club that vouched for them withdrew it
+    frozen_at               TEXT,
+    frozen_by_club          INTEGER,
     creatorlens_creator_id  INTEGER,                               -- analytics identity (creators.id)
     created_at              TEXT NOT NULL
 );
@@ -172,6 +175,20 @@ CREATE TABLE IF NOT EXISTS follows (
     created_at TEXT NOT NULL,
     UNIQUE (user_id, athlete_id)
 );
+
+CREATE TABLE IF NOT EXISTS club_invite_links (
+    id           INTEGER PRIMARY KEY,
+    club_id      INTEGER NOT NULL REFERENCES clubs(id),
+    token        TEXT NOT NULL UNIQUE,
+    created_at   TEXT NOT NULL,
+    expires_at   TEXT NOT NULL,
+    -- single use: a link is issued to one athlete, so a leaked one onboards one
+    -- person rather than becoming an open door to the club's credibility
+    redeemed_by  INTEGER REFERENCES athlete_profiles(id),
+    redeemed_at  TEXT,
+    revoked_at   TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_invite_links_club ON club_invite_links(club_id);
 
 CREATE TABLE IF NOT EXISTS email_outbox (
     id         INTEGER PRIMARY KEY,
@@ -432,6 +449,13 @@ _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     ("athlete_applications", "review_reason", "TEXT NOT NULL DEFAULT ''"),
     ("athlete_applications", "review_note", "TEXT NOT NULL DEFAULT ''"),
     ("athlete_applications", "reviewed_by", "INTEGER"),
+    # Freezing is an event with an actor, not a fourth status. Modelling it
+    # as a column pair records *who* froze them and when -- which the product
+    # needs anyway, since the way out is "get a new link from that club" --
+    # and avoids widening an enumerated CHECK on a table half the schema
+    # has foreign keys into.
+    ("athlete_profiles", "frozen_at", "TEXT"),
+    ("athlete_profiles", "frozen_by_club", "INTEGER"),
 )
 
 

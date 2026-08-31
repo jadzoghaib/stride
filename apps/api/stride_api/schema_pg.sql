@@ -155,6 +155,8 @@ CREATE TABLE IF NOT EXISTS athlete_profiles (
     deal_types              TEXT NOT NULL DEFAULT '[]',
     base_rate_eur           INTEGER NOT NULL DEFAULT 1000,
     status                  TEXT NOT NULL DEFAULT 'listed' CHECK (status IN ('draft','listed','hidden')),
+    frozen_at               TEXT,
+    frozen_by_club          BIGINT,
     creatorlens_creator_id  BIGINT,
     created_at              TEXT NOT NULL
 );
@@ -428,6 +430,18 @@ CREATE TABLE IF NOT EXISTS content_items (
 CREATE INDEX IF NOT EXISTS idx_content_athlete ON content_items(athlete_id, status);
 CREATE INDEX IF NOT EXISTS idx_content_club ON content_items(club_id, status);
 CREATE INDEX IF NOT EXISTS idx_content_part_of ON content_items(part_of);
+
+CREATE TABLE IF NOT EXISTS club_invite_links (
+    id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    club_id      BIGINT NOT NULL REFERENCES clubs(id),
+    token        TEXT NOT NULL UNIQUE,
+    created_at   TEXT NOT NULL,
+    expires_at   TEXT NOT NULL,
+    redeemed_by  BIGINT REFERENCES athlete_profiles(id),
+    redeemed_at  TEXT,
+    revoked_at   TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_invite_links_club ON club_invite_links(club_id);
 
 CREATE TABLE IF NOT EXISTS email_outbox (
     id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

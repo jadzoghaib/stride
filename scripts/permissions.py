@@ -40,8 +40,13 @@ ACCOUNTS = {
     "admin": "admin@demo.stride",
 }
 
-#: (method, path, roles allowed) — mirrors the `require_role` on each route.
-ROUTES: list[tuple[str, str, tuple[str, ...]]] = [
+#: (method, path, roles allowed) -- mirrors the `require_role` on each route.
+#: A fourth element marks a route where the *permitted* role can still be
+#: refused for a reason that is not about authorisation: an unverified club may
+#: post to `/club/invite-links` and be told to get verified first. Those routes
+#: are checked only in the direction that matters -- that everybody else is
+#: still stopped at the guard.
+ROUTES: list[tuple] = [
     ("POST", f"/api/athlete/content", ("athlete",)),
     ("POST", f"/api/club/content", ("club",)),
     ("POST", f"/api/content/{GONE}", ("athlete", "club")),
@@ -63,6 +68,12 @@ ROUTES: list[tuple[str, str, tuple[str, ...]]] = [
     ("POST", f"/api/club/packages", ("club",)),
     ("POST", f"/api/club/packages/{GONE}/archive", ("club",)),
     ("POST", f"/api/club/nominations", ("club",)),
+    # a link lends the club's verification to an athlete, so only a club issues
+    # one and only an athlete spends one
+    ("POST", f"/api/club/invite-links", ("club",), "state-gated"),
+    ("GET", f"/api/club/invite-links", ("club",)),
+    ("POST", f"/api/club/invite-links/{GONE}/revoke", ("club",)),
+    ("POST", f"/api/athlete/invite-links/nope/redeem", ("athlete",)),
     ("POST", f"/api/clubs/packages/{GONE}/commit", ("sponsor",)),
     ("POST", f"/api/commitments/{GONE}/cancel", ("sponsor",)),
     ("POST", f"/api/campaigns", ("sponsor",)),
@@ -121,7 +132,8 @@ checked = 0
 
 print(f"{'ROUTE':<52} " + " ".join(f"{r[:6]:>6}" for r in ACCOUNTS))
 print("-" * 100)
-for method, path, allowed in ROUTES:
+for method, path, allowed, *flags in ROUTES:
+    state_gated = "state-gated" in flags
     cells = []
     for role, _ in ACCOUNTS.items():
         res = sessions[role].request(method, path, json={})
@@ -129,7 +141,7 @@ for method, path, allowed in ROUTES:
         checked += 1
         permitted = role in allowed
         if permitted:
-            leaked = code in REFUSED
+            leaked = code in REFUSED and not state_gated
             if leaked:
                 findings.append(f"{method} {path}: {role} is allowed but got {code}")
         else:

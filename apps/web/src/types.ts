@@ -388,6 +388,9 @@ export interface AdmissionVerdict extends Credibility {
 }
 
 export interface AthleteApplicationView {
+  /** Set when the club that vouched for this athlete withdrew it. There are
+   *  exactly two ways out and the page has to name both. */
+  frozen?: { at: string; club: string | null } | null
   application: AthleteApplication | null
   scored?: Credibility
   club_floor?: number

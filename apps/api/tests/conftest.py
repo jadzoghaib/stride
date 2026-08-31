@@ -88,6 +88,16 @@ def athlete(client):
 
 
 @pytest.fixture(scope="session")
+def athlete2(client):
+    """Sofia Brandt: claimed, and still waiting on the review queue.
+
+    The other athlete account. `athlete` is Kaia Mercer, who is already listed,
+    so anything about getting *into* the directory needs somebody who is not.
+    """
+    return make_session("athlete2@demo.stride")
+
+
+@pytest.fixture(scope="session")
 def sponsor(client):
     return make_session("sponsor@demo.stride")
 
@@ -117,11 +127,14 @@ def _fresh_api_rate_limit():
     a failure with no relationship to the code under test, appearing in a file
     that had not changed.
 
-    Only the general bucket is reset. The `auth:` bucket is left alone on
-    purpose: `test_login_brute_force_rate_limited` drains it deliberately, and
-    `test_measurement` documents working around the drained state.
+    Both buckets, including `auth:`. Leaving that one alone was the smaller
+    change and the wrong one: `test_login_brute_force_rate_limited` drains it on
+    purpose, so every session fixture that first logs in *after* that test --
+    which is every one added later, in a file that sorts after `test_api` --
+    fails on a 429 that has nothing to do with what it is testing. The
+    brute-force test still passes: it makes thirty attempts against a bucket of
+    twenty inside its own test, so it exhausts it either way.
     """
     from stride_api.security import buckets
-    for key in [k for k in buckets._state if k.startswith("api:")]:
-        del buckets._state[key]
+    buckets._state.clear()
     yield

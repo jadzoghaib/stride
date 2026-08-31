@@ -175,6 +175,8 @@ export default function ClubDashboard() {
 
       <ClubContent />
 
+      <InviteLinks />
+
       <Section title="Commitments" id="commitments">
         {ws.commitments.length === 0 ? (
           <EmptyNote text="No sponsor commitments yet. Sponsors back packages from your public page." />
@@ -411,10 +413,116 @@ function ProfileForm({ editable, onSaved }: { editable: ClubWorkspace['editable'
  *  local, so 09:00Z was shown as 09:00 and saved back as 09:00 local, moving
  *  the event by the reader's offset on every save. This is the exact inverse of
  *  the `toISOString()` on the way out, so the value round-trips unchanged. */
+interface InviteLink {
+  id: number; token: string; state: 'open' | 'redeemed' | 'revoked' | 'expired'
+  created_at: string; expires_at: string
+  athlete: { slug: string; display_name: string; frozen_at: string | null } | null
+}
+
 function toLocalInput(iso: string): string {
   const at = new Date(iso)
   if (Number.isNaN(at.getTime())) return ''
   return new Date(at.getTime() - at.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+}
+
+
+/** Invite links: onboarding your own athletes without the proof queue.
+ *
+ *  The link is this club saying "this person is ours", which is the same thing
+ *  a reviewer would otherwise be checking on the roster page. It replaces that
+ *  check and nothing else — the athlete still fills in their own age and level,
+ *  because a club cannot supply either.
+ *
+ *  Revoking is the other half and the reason clubs are trusted with this at
+ *  all: the club is the only evidence behind a link-admitted athlete, so
+ *  withdrawing it freezes them out of the directory.
+ */
+function InviteLinks() {
+  const [links, setLinks] = useState<InviteLink[] | null>(null)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [copied, setCopied] = useState<number | null>(null)
+  const toast = useToast()
+
+  const load = () =>
+    api.get<InviteLink[]>('/api/club/invite-links').then(setLinks).catch(() => setLinks([]))
+  useEffect(() => { void load() }, [])
+
+  const issue = async () => {
+    setBusy(true)
+    setError('')
+    try {
+      await api.post('/api/club/invite-links')
+      toast('Link created — send it to the athlete')
+      await load()
+    } catch (e) { setError(errorText(e)) } finally { setBusy(false) }
+  }
+
+  const revoke = async (link: InviteLink) => {
+    setError('')
+    try {
+      const res = await api.post<{ froze: string | null }>(
+        `/api/club/invite-links/${link.id}/revoke`)
+      toast(res.froze ? `${link.athlete?.display_name} is frozen` : 'Link revoked')
+      await load()
+    } catch (e) { setError(errorText(e)) }
+  }
+
+  const copy = async (link: InviteLink) => {
+    const url = `${window.location.origin}/auth?invite=${link.token}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(link.id)
+      setTimeout(() => setCopied(null), 2000)
+    } catch { setError('Could not reach the clipboard — the link is shown above.') }
+  }
+
+  return (
+    <Section title="Invite links" id="invites"
+             aside={<button className="btn px-3 py-1 text-xs" disabled={busy} onClick={issue}>
+               <Plus size={13} /> New link</button>}>
+      {error && <p className="mb-3 text-sm text-critical">{error}</p>}
+
+      <p className="meta mb-3">
+        An athlete who redeems one skips the proof queue — you are the proof. They still
+        give their own age and competition level, and the 16+ gate still applies.
+        Revoking freezes them out of the directory until another club vouches or they
+        pass verification on their own.
+      </p>
+
+      {!links || links.length === 0 ? (
+        <EmptyNote text="No links yet. Each one admits one athlete, and counts against the roster size you declared." />
+      ) : (
+        <div className="space-y-2">
+          {links.map((l) => (
+            <div key={l.id} className="panel flex flex-wrap items-center gap-3 p-3">
+              <span className={`tag ${l.state === 'open' ? 'text-ok' : ''}`}>{l.state}</span>
+              {l.athlete ? (
+                <span className="text-sm text-ink">
+                  {l.athlete.display_name}
+                  {l.athlete.frozen_at && <span className="tag ml-2 text-critical">frozen</span>}
+                </span>
+              ) : (
+                <code className="truncate text-xs text-ink-3">{l.token.slice(0, 18)}…</code>
+              )}
+              <div className="ml-auto flex items-center gap-2">
+                {l.state === 'open' && (
+                  <button className="btn px-3 py-1 text-xs" onClick={() => copy(l)}>
+                    {copied === l.id ? 'Copied' : 'Copy link'}
+                  </button>
+                )}
+                {l.state !== 'revoked' && (
+                  <button className="btn px-3 py-1 text-xs" onClick={() => revoke(l)}>
+                    {l.athlete ? 'Revoke and freeze' : 'Revoke'}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Section>
+  )
 }
 
 function ClubContent() {
