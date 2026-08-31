@@ -119,9 +119,28 @@ ROUTES: list[tuple] = [
     ("GET", f"/api/feed", ("athlete", "fan", "sponsor")),
 ]
 
+class Patient(httpx.Client):
+    """A client that waits for the rate limiter instead of losing to it.
+
+    The sweep makes 348 requests against a burst of 300, and drains it faster on
+    a quick machine -- so this passed locally and failed in CI, which is the
+    classic shape of a test that depends on how fast the box is. A 429 says
+    nothing about authorisation, so it waits for the refill and asks again. Six
+    tries in, the 429 is returned and reported rather than taken for a pass.
+    """
+
+    def request(self, *args, **kwargs):          # type: ignore[override]
+        for attempt in range(6):
+            res = super().request(*args, **kwargs)
+            if res.status_code != 429:
+                return res
+            time.sleep(1.5 * (attempt + 1))
+        return res
+
+
 sessions: dict[str, httpx.Client] = {}
 for role, email in ACCOUNTS.items():
-    c = httpx.Client(base_url=BASE, timeout=30.0, follow_redirects=True)
+    c = Patient(base_url=BASE, timeout=30.0, follow_redirects=True)
     if email:
         r = c.post("/api/auth/login", json={"email": email, "password": PASSWORD})
         assert r.status_code == 200, f"login {email}: {r.status_code}"
@@ -130,22 +149,6 @@ for role, email in ACCOUNTS.items():
 REFUSED = {401, 403}
 
 
-def attempt(session: httpx.Client, method: str, path: str) -> int:
-    """One request, retried past the rate limiter.
-
-    The sweep is now large enough to exhaust the general bucket -- 348 requests
-    against a burst of 300 -- and it drains faster on a fast machine, so this
-    passed locally and failed in CI. A 429 says nothing about authorisation, so
-    waiting for the refill and asking again measures the thing this script is
-    for. Giving up returns the 429 and it is reported, rather than being taken
-    for a pass.
-    """
-    for attempt_number in range(6):
-        res = session.request(method, path, json={})
-        if res.status_code != 429:
-            return res.status_code
-        time.sleep(1.5 * (attempt_number + 1))
-    return 429
 findings: list[str] = []
 checked = 0
 
@@ -155,7 +158,7 @@ for method, path, allowed, *flags in ROUTES:
     state_gated = "state-gated" in flags
     cells = []
     for role, _ in ACCOUNTS.items():
-        code = attempt(sessions[role], method, path)
+        code = sessions[role].request(method, path, json={}).status_code
         checked += 1
         permitted = role in allowed
         if permitted:
