@@ -21,6 +21,7 @@ failure here. Leave a minute between runs.
 from __future__ import annotations
 
 import sys
+import time
 
 import httpx
 
@@ -127,6 +128,24 @@ for role, email in ACCOUNTS.items():
     sessions[role] = c
 
 REFUSED = {401, 403}
+
+
+def attempt(session: httpx.Client, method: str, path: str) -> int:
+    """One request, retried past the rate limiter.
+
+    The sweep is now large enough to exhaust the general bucket -- 348 requests
+    against a burst of 300 -- and it drains faster on a fast machine, so this
+    passed locally and failed in CI. A 429 says nothing about authorisation, so
+    waiting for the refill and asking again measures the thing this script is
+    for. Giving up returns the 429 and it is reported, rather than being taken
+    for a pass.
+    """
+    for attempt_number in range(6):
+        res = session.request(method, path, json={})
+        if res.status_code != 429:
+            return res.status_code
+        time.sleep(1.5 * (attempt_number + 1))
+    return 429
 findings: list[str] = []
 checked = 0
 
@@ -136,8 +155,7 @@ for method, path, allowed, *flags in ROUTES:
     state_gated = "state-gated" in flags
     cells = []
     for role, _ in ACCOUNTS.items():
-        res = sessions[role].request(method, path, json={})
-        code = res.status_code
+        code = attempt(sessions[role], method, path)
         checked += 1
         permitted = role in allowed
         if permitted:

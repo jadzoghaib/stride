@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import sqlite3
 import sys
+import time
 
 import httpx
 
@@ -43,7 +44,14 @@ def check(author: str, reader: str, claim: str, ok: bool, detail: str = "") -> N
 def session(email: str | None = None) -> httpx.Client:
     c = httpx.Client(base_url=BASE, timeout=30.0, follow_redirects=True)
     if email:
-        r = c.post("/api/auth/login", json={"email": email, "password": PASSWORD})
+        # Six sign-ins in a row is exactly what the auth limiter is built to
+        # slow down, so wait for the refill rather than reading our own 429 as
+        # a broken login.
+        for wait in (0, 3, 6, 12):
+            time.sleep(wait)
+            r = c.post("/api/auth/login", json={"email": email, "password": PASSWORD})
+            if r.status_code != 429:
+                break
         assert r.status_code == 200, f"login {email}: {r.status_code} {r.text[:120]}"
     return c
 
