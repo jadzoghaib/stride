@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Avatar, CoverageChip, EmptyNote, LoadError, PageHeader, PageLoading } from '../../components/ui'
+import { Avatar, CoverageChip, EmptyNote, LoadError, MessageButton, PageHeader, PageLoading } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
 import type { AthletePublic, Club, Facets } from '../../types'
@@ -53,6 +53,7 @@ function DiscoverCard({ a, rank, best = false, me, onFollow, onSubscribe }: {
                     sponsor's question; it is absent from a fan's payload, so
                     the chip only appears when the score came with it. */}
                 {a.score !== undefined && <CoverageChip coverage={a.score?.coverage ?? null} />}
+                {a.can_message && <MessageButton to={{ athlete: a.slug }} name={a.display_name} />}
                 {me && (
                   <>
                     <button className={`btn px-3 py-1 text-xs ${a.following ? 'border-accent text-ink' : ''}`}

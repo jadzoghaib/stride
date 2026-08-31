@@ -2,13 +2,18 @@
  *  theme control, session. The active tab is marked by an amber underscore —
  *  the same rule that closes the board header, so the two read as one system. */
 
-import { BadgeCheck, BarChart3, Briefcase, ClipboardCheck, Compass, FileSearch, LayoutDashboard, LogOut, Moon, Radio, Shield, Sun, Users } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { BadgeCheck, BarChart3, Bell, Briefcase, ClipboardCheck, Compass, FileSearch, LayoutDashboard, LogOut, Mail, Moon, Radio, Shield, Sun, Users } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { api } from '../lib/api'
 import { roleHome, useAuth } from '../lib/auth'
 import { useTheme } from '../lib/theme'
 import Footer from './Footer'
 import { Avatar } from './ui'
+
+interface NotificationItem {
+  id: number; kind: string; title: string; body: string; link: string; read: boolean
+}
 
 const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]> = {
   athlete: [
@@ -69,6 +74,83 @@ export function ThemeToggle() {
   )
 }
 
+
+/** Envelope and bell, for every signed-in role.
+ *
+ *  Counts are fetched once on mount rather than polled: this is a demo without
+ *  a socket, and a timer that re-fetched every few seconds would spend the
+ *  whole session making requests to discover nothing changed. The counts
+ *  refresh on navigation, which is when a reader would look.
+ */
+function Signals() {
+  const [unreadMail, setUnreadMail] = useState(0)
+  const [unreadBells, setUnreadBells] = useState(0)
+  const [open, setOpen] = useState(false)
+  const [items, setItems] = useState<NotificationItem[]>([])
+  const location = useLocation()
+
+  useEffect(() => {
+    api.get<{ id: number; unread: number }[]>('/api/inbox')
+      .then((t) => setUnreadMail(t.reduce((n, x) => n + (x.unread ?? 0), 0)))
+      .catch(() => setUnreadMail(0))
+    api.get<{ unread: number; items: NotificationItem[] }>('/api/notifications')
+      .then((r) => { setUnreadBells(r.unread); setItems(r.items) })
+      .catch(() => setUnreadBells(0))
+  }, [location.pathname])
+
+  const readAll = async () => {
+    try {
+      await api.post('/api/notifications/read')
+      setUnreadBells(0)
+      setItems((list) => list.map((i) => ({ ...i, read: true })))
+    } catch { /* the badge is not worth an error banner */ }
+  }
+
+  return (
+    <>
+      <Link to="/inbox" className="relative text-ink-3 transition-colors hover:text-ink"
+            title="Inbox" aria-label={`Inbox${unreadMail ? `, ${unreadMail} unread` : ''}`}>
+        <Mail size={16} strokeWidth={1.9} />
+        {unreadMail > 0 && <Dot n={unreadMail} />}
+      </Link>
+
+      <div className="relative">
+        <button className="relative text-ink-3 transition-colors hover:text-ink"
+                title="Notifications"
+                aria-label={`Notifications${unreadBells ? `, ${unreadBells} unread` : ''}`}
+                onClick={() => { setOpen((v) => !v); if (!open && unreadBells) void readAll() }}>
+          <Bell size={16} strokeWidth={1.9} />
+          {unreadBells > 0 && <Dot n={unreadBells} />}
+        </button>
+        {open && (
+          <div className="panel absolute right-0 z-30 mt-2 max-h-96 w-80 overflow-y-auto p-2">
+            {items.length === 0 ? (
+              <p className="meta p-3">Nothing yet.</p>
+            ) : (
+              items.map((n) => (
+                <Link key={n.id} to={n.link || '#'} onClick={() => setOpen(false)}
+                      className="block rounded p-2.5 hover:bg-raised">
+                  <div className="text-sm font-medium text-ink">{n.title}</div>
+                  {n.body && <div className="mt-0.5 text-xs text-ink-3">{n.body}</div>}
+                </Link>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+function Dot({ n }: { n: number }) {
+  return (
+    <span className="tnum absolute -right-1.5 -top-1.5 rounded-full bg-accent px-1 text-[10px]
+                     font-bold leading-[1.35] text-accent-on">
+      {n > 9 ? '9+' : n}
+    </span>
+  )
+}
+
 export default function Shell({ children }: { children: ReactNode }) {
   const { me, logout } = useAuth()
   const navigate = useNavigate()
@@ -111,6 +193,7 @@ export default function Shell({ children }: { children: ReactNode }) {
             <ThemeToggle />
             {me ? (
               <>
+                <Signals />
                 <span className="tag capitalize">{me.role}</span>
                 <Avatar name={me.display_name} size={30} />
                 <button

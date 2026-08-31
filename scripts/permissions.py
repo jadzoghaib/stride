@@ -94,6 +94,13 @@ ROUTES: list[tuple[str, str, tuple[str, ...]]] = [
     # these three have to agree: a role that can read the followed-content feed
     # must be a role that can follow, or the grant buys it an empty list
     ("GET", f"/api/feed/content", ("athlete", "fan", "sponsor")),
+    # messaging is open to every signed-in role; *who they may write to* is the
+    # rule, and that is enforced inside the endpoint rather than at the guard
+    ("GET", f"/api/inbox", ("athlete", "club", "sponsor", "fan", "admin")),
+    ("GET", f"/api/inbox/{GONE}", ("athlete", "club", "sponsor", "fan", "admin")),
+    ("POST", f"/api/messages", ("athlete", "club", "sponsor", "fan", "admin")),
+    ("GET", f"/api/notifications", ("athlete", "club", "sponsor", "fan", "admin")),
+    ("POST", f"/api/notifications/read", ("athlete", "club", "sponsor", "fan", "admin")),
     ("GET", f"/api/feed", ("athlete", "fan", "sponsor")),
 ]
 

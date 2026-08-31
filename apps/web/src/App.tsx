@@ -11,6 +11,7 @@ import YourData from './views/legal/YourData'
 import AthletePublicView from './views/AthletePublic'
 import AthletesDirectory from './views/AthletesDirectory'
 import Auth from './views/Auth'
+import Inbox from './views/Inbox'
 import ClubPublic from './views/ClubPublic'
 import ClubsDirectory from './views/ClubsDirectory'
 import Landing from './views/Landing'
@@ -99,6 +100,7 @@ export default function App() {
               /api/feed does not (a following feed needs follows, which an admin
               account has none of). A client guard that is more permissive than
               require_role just routes people to a 403. */}
+          <Route path="/inbox" element={<Guard roles={['athlete', 'club', 'sponsor', 'fan', 'admin']}><Inbox /></Guard>} />
           <Route path="/discover" element={<Guard roles={['fan', 'athlete', 'sponsor', 'admin']}><Discover /></Guard>} />
           <Route path="/feed" element={<Guard roles={['fan', 'athlete', 'sponsor']}><Feed /></Guard>} />
 

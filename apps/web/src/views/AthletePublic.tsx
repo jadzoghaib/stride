@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { Board } from '../components/Board'
 import { AudiencePanel } from '../components/charts'
 import { ContentTabs } from '../components/content'
-import { LoadError, PageLoading, CoverageChip, DimensionGrid, Section } from '../components/ui'
+import { LoadError, PageLoading, CoverageChip, DimensionGrid, MessageButton, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { fmtMoney } from '../lib/format'
@@ -106,6 +106,7 @@ export default function AthletePublicView() {
                       onClick={() => relate('subscribe', !!a.subscribed)}>
                 {a.subscribed ? 'Subscribed' : 'Subscribe'}
               </button>
+              {a.can_message && <MessageButton to={{ athlete: a.slug }} name={a.display_name} />}
               <span className="meta">
                 Follow for their posts and platform news. Subscribe to open the
                 subscribers-only ones.

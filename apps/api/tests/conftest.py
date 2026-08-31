@@ -105,3 +105,23 @@ def clubu(client):
 @pytest.fixture(scope="session")
 def admin(client):
     return make_session("admin@demo.stride")
+
+
+@pytest.fixture(autouse=True)
+def _fresh_api_rate_limit():
+    """Give each test its own general-API budget.
+
+    Every request in the suite comes from one client host, so they all share a
+    single 300-token bucket. The suite passed until it grew past 300 requests,
+    at which point whichever tests ran last began failing with `rate_limited` --
+    a failure with no relationship to the code under test, appearing in a file
+    that had not changed.
+
+    Only the general bucket is reset. The `auth:` bucket is left alone on
+    purpose: `test_login_brute_force_rate_limited` drains it deliberately, and
+    `test_measurement` documents working around the drained state.
+    """
+    from stride_api.security import buckets
+    for key in [k for k in buckets._state if k.startswith("api:")]:
+        del buckets._state[key]
+    yield

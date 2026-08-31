@@ -20,6 +20,7 @@ from creatorlens.actions import create_target
 
 from ..auth import get_db, require_role
 from ..db import now_iso, row, rows
+from .messaging import notify
 from ..matching import (MODEL_VERSION, WEIGHTS, rank_athletes, slate,
                         slate_fingerprint)
 from .athletes import athlete_public
@@ -272,6 +273,13 @@ def send_offer(campaign_id: int, body: OfferIn, user: dict = Depends(require_rol
     log_event(conn, "user", "deal.created", "deal", cur.lastrowid,
               {"campaign_id": campaign_id, "athlete_id": body.athlete_id,
                "amount_eur": body.amount_eur, "org_id": org["id"]})
+    # An offer is the clearest case of something arriving uninvited: the athlete
+    # did not ask for it and has a decision to make.
+    recipient = row(conn, "SELECT user_id FROM athlete_profiles WHERE id = ?", (body.athlete_id,))
+    if recipient and recipient["user_id"]:
+        notify(conn, recipient["user_id"], "offer",
+               f"{org['name']} sent you an offer",
+               f"{body.deal_type.replace('_', ' ')} · EUR {body.amount_eur:,}", "/athlete/deals")
     conn.commit()
     return row(conn, "SELECT * FROM deals WHERE id = ?", (cur.lastrowid,))
 

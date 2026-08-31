@@ -238,6 +238,10 @@ def athlete_detail(slug: str, user: dict | None = Depends(optional_user),
         out["subscribed"] = row(conn, "SELECT id FROM subscriptions"
                                       " WHERE user_id = ? AND athlete_id = ?",
                                 (user["id"], a["id"])) is not None
+        from .messaging import may_message
+        owner = row(conn, "SELECT id, display_name, role FROM users WHERE id = ?",
+                    (a["user_id"],)) if a["user_id"] else None
+        out["can_message"] = owner is not None and may_message(conn, user, owner)
     # club affiliation is part of the public identity — an empty list means
     # independent, so the UI can say so instead of leaving the question open
     out["clubs"] = rows(conn, """

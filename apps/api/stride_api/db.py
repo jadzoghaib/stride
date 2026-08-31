@@ -29,7 +29,7 @@ _ALL_TABLES = (
     "content_items",
     "deal_deliverables", "athlete_applications", "club_applications",
     "package_commitments", "club_packages", "club_members", "clubs",
-    "subscriptions", "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
+    "messages", "conversations", "notifications", "subscriptions", "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
     "events", "score_snapshots", "sponsor_targets", "audience_demographics",
     "account_snapshots", "post_metrics", "posts", "sync_runs", "platform_accounts", "creators",
 )
@@ -172,6 +172,40 @@ CREATE TABLE IF NOT EXISTS follows (
     created_at TEXT NOT NULL,
     UNIQUE (user_id, athlete_id)
 );
+
+CREATE TABLE IF NOT EXISTS conversations (
+    id              INTEGER PRIMARY KEY,
+    -- normalised so user_a < user_b: a pair has exactly one thread, whichever
+    -- of them opened it, and "did we already talk" is a primary-key lookup
+    user_a          INTEGER NOT NULL REFERENCES users(id),
+    user_b          INTEGER NOT NULL REFERENCES users(id),
+    created_at      TEXT NOT NULL,
+    last_message_at TEXT NOT NULL,
+    CHECK (user_a < user_b),
+    UNIQUE (user_a, user_b)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id              INTEGER PRIMARY KEY,
+    conversation_id INTEGER NOT NULL REFERENCES conversations(id),
+    sender_id       INTEGER NOT NULL REFERENCES users(id),
+    body            TEXT NOT NULL,
+    created_at      TEXT NOT NULL,
+    read_at         TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id, id);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id           INTEGER PRIMARY KEY,
+    user_id      INTEGER NOT NULL REFERENCES users(id),
+    kind         TEXT NOT NULL,
+    title        TEXT NOT NULL,
+    body         TEXT NOT NULL DEFAULT '',
+    link         TEXT NOT NULL DEFAULT '',
+    created_at   TEXT NOT NULL,
+    read_at      TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, id);
 
 CREATE TABLE IF NOT EXISTS subscriptions (
     id         INTEGER PRIMARY KEY,

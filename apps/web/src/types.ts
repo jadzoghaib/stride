@@ -108,6 +108,10 @@ export interface AthletePublic {
    *  subscribe = the posts they marked subscribers-only. */
   following?: boolean
   subscribed?: boolean
+  /** The server decides, so the envelope cannot appear where the send
+   *  would be refused — and it is false for an unclaimed profile, which
+   *  has no inbox to deliver to. */
+  can_message?: boolean
   audience?: Record<string, Record<string, number>>
   score_history?: { computed_at: string; audience_scale: number | null }[]
   clubs?: { name: string; slug: string; position: string }[]

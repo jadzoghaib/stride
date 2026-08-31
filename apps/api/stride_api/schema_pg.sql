@@ -349,6 +349,38 @@ CREATE INDEX IF NOT EXISTS idx_commitments_org ON package_commitments(org_id, st
 -- `min_tier` is the tier a fan needs, '' meaning free. Nothing charges money
 -- yet, so everything above free reads as locked for everybody; that is honest
 -- rather than a stub, and the lock is what the product is for.
+CREATE TABLE IF NOT EXISTS conversations (
+    id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_a          BIGINT NOT NULL REFERENCES users(id),
+    user_b          BIGINT NOT NULL REFERENCES users(id),
+    created_at      TEXT NOT NULL,
+    last_message_at TEXT NOT NULL,
+    CHECK (user_a < user_b),
+    UNIQUE (user_a, user_b)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    conversation_id BIGINT NOT NULL REFERENCES conversations(id),
+    sender_id       BIGINT NOT NULL REFERENCES users(id),
+    body            TEXT NOT NULL,
+    created_at      TEXT NOT NULL,
+    read_at         TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id, id);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id      BIGINT NOT NULL REFERENCES users(id),
+    kind         TEXT NOT NULL,
+    title        TEXT NOT NULL,
+    body         TEXT NOT NULL DEFAULT '',
+    link         TEXT NOT NULL DEFAULT '',
+    created_at   TEXT NOT NULL,
+    read_at       TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, id);
+
 CREATE TABLE IF NOT EXISTS subscriptions (
     id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id    BIGINT NOT NULL REFERENCES users(id),

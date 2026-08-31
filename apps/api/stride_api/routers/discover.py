@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..auth import get_db, optional_user, require_role
 from ..db import now_iso, row, rows
+from .messaging import notify
 from ..matching import fan_ranking
 from .athletes import athlete_public
 
@@ -47,6 +48,13 @@ def discover(interests: str = Query("", description="comma-separated sports/topi
         entry["reasons"] = r["reasons"]
         entry["following"] = r["id"] in followed
         entry["subscribed"] = r["id"] in subscribed
+        # Computed from what we already hold rather than asked per row: the rule
+        # is role plus subscription plus "is there anybody behind this profile",
+        # and all three are in hand.
+        entry["can_message"] = bool(r["user_id"]) and user is not None and (
+            user["role"] == "athlete"
+            or user["role"] == "sponsor"
+            or (user["role"] == "fan" and r["id"] in subscribed)) and r["user_id"] != user["id"]
         out.append(entry)
 
     def matches(name: str, a_sport: str, a_country: str) -> bool:
@@ -146,6 +154,12 @@ def subscribe(kind: str, subject_id: int,
     column = "athlete_id" if kind == "athlete" else "club_id"
     conn.execute(f"INSERT OR IGNORE INTO subscriptions (user_id, {column}, created_at)"
                  " VALUES (?, ?, ?)", (user["id"], subject_id, now_iso()))
+    table = "athlete_profiles" if kind == "athlete" else "clubs"
+    owner = row(conn, f"SELECT user_id FROM {table} WHERE id = ?", (subject_id,))
+    if owner and owner["user_id"]:
+        notify(conn, owner["user_id"], "subscriber",
+               f"{user['display_name']} subscribed to you",
+               "They can now open everything you mark subscribers-only.", "")
     log_event(conn, "user", "subscription.started", kind, subject_id, {"user_id": user["id"]})
     conn.commit()
     return {"ok": True}
