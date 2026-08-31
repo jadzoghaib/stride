@@ -230,6 +230,13 @@ def athlete_detail(slug: str, user: dict | None = Depends(optional_user),
     if a["creatorlens_creator_id"] and sees_commercials(user, a):
         out["audience"] = _combined_demographics(
             conn, creator_kpis(conn, a["creatorlens_creator_id"]))["dimensions"]
+    # An audience size is the one number a fan-facing profile should carry: it
+    # is social proof rather than sales material, and it is what every creator
+    # page in the category shows.
+    out["followers"] = row(conn, "SELECT COUNT(*) AS n FROM follows WHERE athlete_id = ?",
+                           (a["id"],))["n"]
+    out["subscribers"] = row(conn, "SELECT COUNT(*) AS n FROM subscriptions"
+                                   " WHERE athlete_id = ?", (a["id"],))["n"]
     # Whether this reader already follows or subscribes, so the profile can show
     # the state rather than a guess that flickers after the first click.
     if user:

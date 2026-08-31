@@ -106,6 +106,11 @@ export interface AthletePublic {
   reasons?: string[]
   /** follow = their free posts and their platform news.
    *  subscribe = the posts they marked subscribers-only. */
+  /** Audience size. Social proof, not sales material — every creator page
+   *  in the category shows it, and a fan reads it as "is this worth my
+   *  time" rather than "what does this person cost". */
+  followers?: number
+  subscribers?: number
   following?: boolean
   subscribed?: boolean
   /** The server decides, so the envelope cannot appear where the send

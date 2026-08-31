@@ -156,12 +156,15 @@
      scrollbar on Windows and would scroll the body sideways.
      Views render their content as a direct child of <main> (fragments flatten),
      so untouched views keep their column with no changes. */
+  /* Narrower gutters than the old centred bar wanted: the rail already
+     provides the left margin, and a second 28px+1fr gutter inside it pushed
+     every page into a column far narrower than the window. */
   .stride-main {
     display: grid;
     grid-template-columns:
-      [full-start] minmax(28px, 1fr)
-      [content-start] minmax(0, 1084px) [content-end]
-      minmax(28px, 1fr) [full-end];
+      [full-start] minmax(20px, 1fr)
+      [content-start] minmax(0, 1180px) [content-end]
+      minmax(20px, 1fr) [full-end];
     padding-bottom: 76px;
   }
   .stride-main > * {
