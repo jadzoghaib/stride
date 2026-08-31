@@ -29,7 +29,7 @@ _ALL_TABLES = (
     "content_items",
     "deal_deliverables", "athlete_applications", "club_applications",
     "package_commitments", "club_packages", "club_members", "clubs",
-    "poll_votes", "poll_options", "messages", "conversations", "notifications", "subscriptions", "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
+    "email_outbox", "poll_votes", "poll_options", "messages", "conversations", "notifications", "subscriptions", "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
     "events", "score_snapshots", "sponsor_targets", "audience_demographics",
     "account_snapshots", "post_metrics", "posts", "sync_runs", "platform_accounts", "creators",
 )
@@ -173,6 +173,20 @@ CREATE TABLE IF NOT EXISTS follows (
     UNIQUE (user_id, athlete_id)
 );
 
+CREATE TABLE IF NOT EXISTS email_outbox (
+    id         INTEGER PRIMARY KEY,
+    to_email   TEXT NOT NULL,
+    to_user_id INTEGER REFERENCES users(id),
+    subject    TEXT NOT NULL,
+    body       TEXT NOT NULL,
+    kind       TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    -- NULL forever until a provider is attached. Nothing here sends: the row is
+    -- the record that a message was owed, and a reviewer can read exactly what
+    -- the applicant would have received.
+    sent_at    TEXT
+);
+
 CREATE TABLE IF NOT EXISTS poll_options (
     id         INTEGER PRIMARY KEY,
     content_id INTEGER NOT NULL REFERENCES content_items(id),
@@ -291,8 +305,11 @@ CREATE TABLE IF NOT EXISTS athlete_applications (
                       CHECK (admitted_via IN ('','self','club_nomination','manual')),
     policy_version    TEXT NOT NULL DEFAULT '',
     submitted_at      TEXT NOT NULL,
-    decided_at        TEXT
-);
+    decided_at        TEXT,
+    -- what the reviewer decided and why, in their words
+    review_reason     TEXT NOT NULL DEFAULT '',
+    review_note       TEXT NOT NULL DEFAULT '',
+    reviewed_by       INTEGER);
 CREATE INDEX IF NOT EXISTS idx_applications_decision ON athlete_applications(decision);
 CREATE INDEX IF NOT EXISTS idx_applications_club ON athlete_applications(nominated_by_club);
 
@@ -412,6 +429,9 @@ _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     ("content_items", "external_url", "TEXT NOT NULL DEFAULT ''"),
     ("content_items", "media_url", "TEXT NOT NULL DEFAULT ''"),
     ("content_items", "media_kind", "TEXT NOT NULL DEFAULT ''"),
+    ("athlete_applications", "review_reason", "TEXT NOT NULL DEFAULT ''"),
+    ("athlete_applications", "review_note", "TEXT NOT NULL DEFAULT ''"),
+    ("athlete_applications", "reviewed_by", "INTEGER"),
 )
 
 

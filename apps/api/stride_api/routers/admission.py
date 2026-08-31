@@ -41,6 +41,7 @@ from ..admission import (ADMIT_AT, COMPETITION_LEVELS, DISQUALIFYING_RULES,
 from ..auth import get_db, require_role
 from .. import proofcheck
 from ..db import lock_for_update, now_iso, row, rows
+from .messaging import notify
 
 router = APIRouter(prefix="/api", tags=["admission"])
 
@@ -491,8 +492,24 @@ def club_queue(decision: str = Query("review"), limit: int = Query(100, le=500),
     return queued
 
 
+#: Why a proof was refused. A fixed list because "rejected" on its own tells
+#: the applicant nothing and tells the next reviewer less -- and because these
+#: are the five things that actually go wrong, so they can be counted.
+REJECTION_REASONS = {
+    "name_not_on_page": "We could not find your name on the page you linked.",
+    "link_did_not_open": "The link did not open for us.",
+    "wrong_person": "The page shows a different person with a similar name.",
+    "not_competitive": "The page does not show competition at the level claimed.",
+    "other": "",
+}
+
+
 class ProofIn(BaseModel):
     proof_status: str
+    #: required when rejecting, ignored otherwise
+    reason: str = Field(default="", max_length=40)
+    #: the reviewer's own words, sent to the applicant as written
+    note: str = Field(default="", max_length=2000)
 
 
 @router.post("/admin/applications/{application_id}/proof")
@@ -517,8 +534,17 @@ def set_proof(application_id: int, body: ProofIn,
     # with no page behind it, and it used to pass straight through to `verified`.
     if body.proof_status == "verified" and not proofcheck.looks_openable(application["proof_url"]):
         raise HTTPException(409, "no_proof_to_check")
-    conn.execute("UPDATE athlete_applications SET proof_status = ? WHERE id = ?",
-                 (body.proof_status, application_id))
+    # A rejection that does not say why is a dead end for the applicant and for
+    # whoever picks the case up next, so the reason is required rather than
+    # optional. "other" is the escape hatch, and it demands the note instead.
+    if body.proof_status == "rejected":
+        if body.reason not in REJECTION_REASONS:
+            raise HTTPException(422, "unknown_rejection_reason")
+        if body.reason == "other" and not body.note.strip():
+            raise HTTPException(422, "other_needs_a_note")
+    conn.execute("UPDATE athlete_applications SET proof_status = ?, review_reason = ?,"
+                 " review_note = ?, reviewed_by = ? WHERE id = ?",
+                 (body.proof_status, body.reason, body.note.strip(), user["id"], application_id))
     application = row(conn, "SELECT * FROM athlete_applications WHERE id = ?", (application_id,))
     profile = row(conn, "SELECT * FROM athlete_profiles WHERE id = ?",
                   (application["athlete_id"],))
@@ -526,7 +552,97 @@ def set_proof(application_id: int, body: ProofIn,
               {"application_id": application_id, "proof_status": body.proof_status,
                "source": "admin", "reviewer": user["id"]})
     via = "club_nomination" if application["nominated_by_club"] else "self"
-    return _evaluate(conn, application, profile, via=via)
+    verdict = _evaluate(conn, application, profile, via=via)
+
+    # Tell the applicant. Composed here, where the decision and its reason are
+    # both in hand, and queued rather than sent -- see `queue_email`.
+    if body.proof_status in ("verified", "rejected"):
+        queue_email(conn, profile, decision=verdict, proof_status=body.proof_status,
+                    reason=body.reason, note=body.note.strip())
+    conn.commit()
+    return verdict
+
+
+def queue_email(conn, profile: dict, *, decision: dict, proof_status: str,
+                reason: str, note: str) -> None:
+    """Write the message the applicant is owed into the outbox.
+
+    Nothing is sent. There is no mail provider wired up, and a function that
+    claimed to send while doing nothing would be the one lie in an admission
+    trail whose whole point is that every step is auditable. The row records
+    exactly what would go out, a reviewer can read it back, and attaching a
+    provider later means draining this table rather than rewriting this call.
+    """
+    account = row(conn, "SELECT id, email, display_name FROM users WHERE id = ?",
+                  (profile["user_id"],)) if profile["user_id"] else None
+    if account is None:
+        return          # an unclaimed profile has nobody to write to
+
+    name = account["display_name"]
+    listed = decision.get("listing") == "listed"
+    if proof_status == "verified" and listed:
+        subject = "Your Stride profile is live"
+        lines = [
+            f"Hi {name},",
+            "We checked the page you linked, found your name on it, and your profile is now"
+            " listed in the athlete directory.",
+            "Sponsors can see your marketability score and make you offers, and you can post"
+            " to your wall whenever you like.",
+        ]
+    elif proof_status == "verified":
+        subject = "Your proof checked out"
+        lines = [
+            f"Hi {name},",
+            "We found your name on the page you linked.",
+            "Your profile is not listed yet because there is no analytics behind it. Connect"
+            " a platform and it goes live on the next sync.",
+        ]
+    else:
+        subject = "About your Stride application"
+        lines = [
+            f"Hi {name},",
+            "We looked at the proof link on your application and could not accept it."
+            + (" " + REJECTION_REASONS[reason] if REJECTION_REASONS.get(reason) else ""),
+            "You can submit a different link at any time. A page a stranger can open, with"
+            " your name on it, is all we need.",
+        ]
+    if note:
+        lines.append("From the reviewer:\n" + note)
+    lines.append("-- Stride")
+    body = "\n\n".join(lines)
+
+    conn.execute("INSERT INTO email_outbox (to_email, to_user_id, subject, body, kind,"
+                 " created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                 (account["email"], account["id"], subject, body,
+                  f"admission.{proof_status}", now_iso()))
+    notify(conn, account["id"], f"admission.{proof_status}", subject, lines[1][:140],
+           "/athlete/application")
+
+
+@router.get("/admin/rejection-reasons")
+def rejection_reasons(_: dict = Depends(require_role("admin"))):
+    """The reviewer's dropdown, served rather than duplicated in the client.
+
+    Two copies of this list drift, and the copy that drifts is always the one
+    the reviewer sees, so a reason the server refuses is offered in the UI.
+    """
+    return [{"value": k, "label": v or "Something else — say what in the note"}
+            for k, v in REJECTION_REASONS.items()]
+
+
+@router.get("/admin/outbox")
+def outbox(limit: int = Query(30, ge=1, le=200),
+           _: dict = Depends(require_role("admin")),
+           conn: sqlite3.Connection = Depends(get_db)):
+    """What the product owes people, and has not sent.
+
+    `sent_at` stays null until a mail provider is attached. Showing the queue
+    is the honest version of "an email was sent": a reviewer can read the exact
+    text an applicant would receive, and nobody has to trust a claim.
+    """
+    return [{"id": e["id"], "to": e["to_email"], "subject": e["subject"], "body": e["body"],
+             "kind": e["kind"], "at": e["created_at"], "sent": e["sent_at"] is not None}
+            for e in rows(conn, "SELECT * FROM email_outbox ORDER BY id DESC LIMIT ?", (limit,))]
 
 
 def _auto_check(conn, *, url: str, name: str, fetcher=None) -> proofcheck.ProofResult:

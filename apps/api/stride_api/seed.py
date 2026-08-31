@@ -8,6 +8,8 @@ nothing downstream changes.
 
 Demo accounts (password for all: stride123)
   athlete@demo.stride  — claims the Kaia Mercer profile (3 platforms connected)
+  athlete2@demo.stride — Sofia Brandt, still in the review queue: the applicant a
+                         reviewer can decide on and actually write to
   club@demo.stride     — Meridian FC (roster + packages incl. player-direct)
   sponsor@demo.stride  — Northwind Apparel, 2 active campaigns
   fan@demo.stride      — follows a handful of athletes
@@ -230,6 +232,15 @@ def seed(conn: sqlite3.Connection) -> dict:
     # ---- demo athlete claims a seeded profile ------------------------------
     athlete_uid = _insert_user(conn, "athlete@demo.stride", "Kaia Mercer", "athlete")
     conn.execute("UPDATE athlete_profiles SET user_id = ? WHERE slug = 'kaia-mercer'", (athlete_uid,))
+    summary["users"] += 1
+    # A second claimed athlete, and deliberately one still waiting on the review
+    # queue. Both seeded applicants were unclaimed profiles, so deciding either
+    # of them wrote no email and had nobody to notify -- correct behaviour, and
+    # it made the whole review-and-tell-them path invisible in the demo. This is
+    # the applicant a reviewer can actually answer.
+    applicant_uid = _insert_user(conn, "athlete2@demo.stride", "Sofia Brandt", "athlete")
+    conn.execute("UPDATE athlete_profiles SET user_id = ? WHERE slug = 'sofia-brandt'",
+                 (applicant_uid,))
     summary["users"] += 1
 
     # ---- deals in every lifecycle state ------------------------------------

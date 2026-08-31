@@ -89,6 +89,9 @@ ROUTES: list[tuple[str, str, tuple[str, ...]]] = [
     ("GET", f"/api/sponsor/athletes/kaia-mercer/analytics", ("sponsor",)),
     ("GET", f"/api/admin/review-queue", ("admin",)),
     ("GET", f"/api/admin/events", ("admin",)),
+    # the outbox holds applicants' names, decisions and email addresses
+    ("GET", f"/api/admin/outbox", ("admin",)),
+    ("GET", f"/api/admin/rejection-reasons", ("admin",)),
     ("GET", f"/api/athlete/invitations", ("athlete",)),
     ("GET", f"/api/athlete/posts", ("athlete",)),
     # these three have to agree: a role that can read the followed-content feed

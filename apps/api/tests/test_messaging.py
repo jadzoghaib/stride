@@ -53,8 +53,8 @@ def test_an_athlete_with_no_account_cannot_be_messaged(athlete, sponsor):
     """Most directory profiles are unclaimed -- scraped or seeded, with nobody
     behind them. There is no inbox to deliver to, and the envelope knows it."""
     assert athlete.post("/api/messages", json={
-        "to_athlete": "sofia-brandt", "body": "Hello"}).status_code == 404
-    assert sponsor.get("/api/messages/can/athlete/sofia-brandt").json()["can_message"] is False
+        "to_athlete": "amara-diallo", "body": "Hello"}).status_code == 404
+    assert sponsor.get("/api/messages/can/athlete/amara-diallo").json()["can_message"] is False
     assert sponsor.get("/api/messages/can/athlete/kaia-mercer").json()["can_message"] is True
 
 

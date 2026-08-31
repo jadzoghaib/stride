@@ -280,8 +280,11 @@ CREATE TABLE IF NOT EXISTS athlete_applications (
                       CHECK (admitted_via IN ('','self','club_nomination','manual')),
     policy_version    TEXT NOT NULL DEFAULT '',
     submitted_at      TEXT NOT NULL,
-    decided_at        TEXT
-);
+    decided_at        TEXT,
+    -- what the reviewer decided and why, in their words
+    review_reason     TEXT NOT NULL DEFAULT '',
+    review_note       TEXT NOT NULL DEFAULT '',
+    reviewed_by       INTEGER);
 CREATE INDEX IF NOT EXISTS idx_applications_decision ON athlete_applications(decision);
 CREATE INDEX IF NOT EXISTS idx_applications_club ON athlete_applications(nominated_by_club);
 
@@ -425,6 +428,17 @@ CREATE TABLE IF NOT EXISTS content_items (
 CREATE INDEX IF NOT EXISTS idx_content_athlete ON content_items(athlete_id, status);
 CREATE INDEX IF NOT EXISTS idx_content_club ON content_items(club_id, status);
 CREATE INDEX IF NOT EXISTS idx_content_part_of ON content_items(part_of);
+
+CREATE TABLE IF NOT EXISTS email_outbox (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    to_email   TEXT NOT NULL,
+    to_user_id BIGINT REFERENCES users(id),
+    subject    TEXT NOT NULL,
+    body       TEXT NOT NULL,
+    kind       TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    sent_at    TEXT
+);
 
 CREATE TABLE IF NOT EXISTS poll_options (
     id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
