@@ -22,6 +22,7 @@ const BLANK = {
   kind: 'post', title: '', body: '', min_tier: '', label: '', sponsor_name: '',
   part_of: null as number | null, position: '' as string,
   starts_at: '', location: '', capacity: '' as string, external_url: '',
+  media_url: '', media_kind: '' as '' | 'image' | 'video', options: ['', ''] as string[],
 }
 
 export default function AthleteContent() {
@@ -222,6 +223,9 @@ function toForm(item: ContentItem): typeof BLANK {
     location: item.location,
     capacity: item.capacity == null ? '' : String(item.capacity),
     external_url: item.external_url ?? '',
+    media_url: item.media_url ?? '',
+    media_kind: item.media_kind ?? '',
+    options: item.poll?.options.map((o) => o.label) ?? ['', ''],
   }
 }
 
@@ -238,6 +242,7 @@ function Compose({ courses, editing, onClose, onDone }: {
     setForm((f) => ({ ...f, [k]: v }))
   const scheduled = SCHEDULED_KINDS.includes(form.kind as never)
   const isProduct = form.kind === 'product'
+  const isPoll = form.kind === 'poll'
 
   const submit = async (close: () => void) => {
     setBusy(true)
@@ -252,6 +257,9 @@ function Compose({ courses, editing, onClose, onDone }: {
         // send the shape it expects rather than let a stale field 422 them
         min_tier: form.kind === 'product' ? '' : form.min_tier,
         external_url: form.kind === 'product' ? form.external_url : '',
+        media_url: form.kind === 'product' ? '' : form.media_url,
+        media_kind: form.kind === 'product' ? '' : form.media_kind,
+        options: form.kind === 'poll' ? form.options.filter((o) => o.trim()) : [],
         // a datetime-local value is wall-clock time in this browser's zone, and
         // only this browser knows that zone -- so the instant is resolved here
         starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : '',
@@ -305,6 +313,44 @@ function Compose({ courses, editing, onClose, onDone }: {
           <label className="block"><span className="cap">Title</span>
             <input className="field mt-1" value={form.title} onChange={(e) => set('title', e.target.value)} />
           </label>
+
+          {/* Media by link rather than upload: no storage stack is invented
+              here, and a pasted URL is honest about where the file lives. */}
+          {!isProduct && (
+            <div className="grid gap-4 md:grid-cols-[1fr_10rem]">
+              <label className="block"><span className="cap">Picture or clip (optional)</span>
+                <input className="field mt-1" value={form.media_url}
+                       placeholder="https://…"
+                       onChange={(e) => set('media_url', e.target.value)} />
+              </label>
+              <label className="block"><span className="cap">Kind</span>
+                <select className="field mt-1" value={form.media_kind}
+                        onChange={(e) => set('media_kind', e.target.value)}>
+                  <option value="">None</option>
+                  <option value="image">Image</option>
+                  <option value="video">Video</option>
+                </select>
+              </label>
+            </div>
+          )}
+
+          {isPoll && (
+            <div className="space-y-2">
+              <span className="cap">Answers</span>
+              {form.options.map((o, i) => (
+                <input key={i} className="field" value={o} placeholder={`Option ${i + 1}`}
+                       onChange={(e) => setForm((f) => ({
+                         ...f, options: f.options.map((x, j) => (j === i ? e.target.value : x)) }))} />
+              ))}
+              {form.options.length < 6 && (
+                <button type="button" className="btn px-3 py-1 text-xs"
+                        onClick={() => setForm((f) => ({ ...f, options: [...f.options, ''] }))}>
+                  + Another answer
+                </button>
+              )}
+              <span className="meta block">Two at least. Results are public from the start.</span>
+            </div>
+          )}
 
           <label className="block"><span className="cap">Body</span>
             <textarea className="field mt-1 min-h-[7rem]" value={form.body}

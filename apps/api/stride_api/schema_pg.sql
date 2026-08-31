@@ -396,7 +396,7 @@ CREATE TABLE IF NOT EXISTS content_items (
     id           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     athlete_id   INTEGER REFERENCES athlete_profiles(id),
     club_id      INTEGER REFERENCES clubs(id),
-    kind         TEXT NOT NULL CHECK (kind IN ('post','course','session','event','product')),
+    kind         TEXT NOT NULL CHECK (kind IN ('post','course','session','event','product','poll')),
     title        TEXT NOT NULL,
     body         TEXT NOT NULL DEFAULT '',
     min_tier     TEXT NOT NULL DEFAULT ''
@@ -414,6 +414,8 @@ CREATE TABLE IF NOT EXISTS content_items (
     capacity     INTEGER,
     -- products: Stride does not sell them, it points at wherever they are sold
     external_url TEXT NOT NULL DEFAULT '',
+    media_url    TEXT NOT NULL DEFAULT '',
+    media_kind   TEXT NOT NULL DEFAULT '',
     status       TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published')),
     created_at   TEXT NOT NULL,
     published_at TEXT,
@@ -423,3 +425,19 @@ CREATE TABLE IF NOT EXISTS content_items (
 CREATE INDEX IF NOT EXISTS idx_content_athlete ON content_items(athlete_id, status);
 CREATE INDEX IF NOT EXISTS idx_content_club ON content_items(club_id, status);
 CREATE INDEX IF NOT EXISTS idx_content_part_of ON content_items(part_of);
+
+CREATE TABLE IF NOT EXISTS poll_options (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    content_id BIGINT NOT NULL REFERENCES content_items(id),
+    position   INTEGER NOT NULL,
+    label      TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS poll_votes (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    content_id BIGINT NOT NULL REFERENCES content_items(id),
+    option_id  BIGINT NOT NULL REFERENCES poll_options(id),
+    user_id    BIGINT NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL,
+    UNIQUE (content_id, user_id)
+);

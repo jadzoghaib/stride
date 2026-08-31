@@ -415,11 +415,12 @@ def seed(conn: sqlite3.Connection) -> dict:
         cur = conn.execute(
             f"INSERT INTO content_items ({author}, kind, title, body, min_tier, label,"
             " sponsor_name, part_of, position, starts_at, location, capacity, external_url,"
-            " status, published_at, created_at) VALUES (?, ?, ?, ?, ?, '', '', ?, ?, ?, ?, ?,"
-            " ?, 'published', ?, ?)",
+            " media_url, media_kind, status, published_at, created_at)"
+            " VALUES (?, ?, ?, ?, ?, '', '', ?, ?, ?, ?, ?, ?, ?, ?, 'published', ?, ?)",
             (owner_id, f["kind"], f["title"], f.get("body", ""), f.get("min_tier", ""),
              f.get("part_of"), f.get("position"), f.get("starts_at"), f.get("location", ""),
-             f.get("capacity"), f.get("external_url", ""), now_iso(), now_iso()))
+             f.get("capacity"), f.get("external_url", ""), f.get("media_url", ""),
+             f.get("media_kind", ""), now_iso(), now_iso()))
         return cur.lastrowid
 
     kaia = athlete_ids["kaia-mercer"]
@@ -433,6 +434,20 @@ def seed(conn: sqlite3.Connection) -> dict:
              min_tier="inner_circle", starts_at="2027-03-14T09:00:00Z",
              location="Montseny", capacity=8,
              body="A morning on the trails, eight people, breakfast after.")
+    # A picture, a poll and something held back: the three shapes a wall has to
+    # be able to show before it demonstrates anything.
+    _content("athlete_id", kaia, kind="post", title="Altitude camp, day nine",
+             media_url="/demo/altitude-camp.svg", media_kind="image",
+             body="Nine days at 2,400m. Legs finally stopped arguing on the climbs.")
+    poll = _content("athlete_id", kaia, kind="poll", title="What should the winter block be?",
+                    body="You pick, I suffer.")
+    for position, label in enumerate(("Hills", "Track", "Trails")):
+        conn.execute("INSERT INTO poll_options (content_id, position, label) VALUES (?, ?, ?)",
+                     (poll, position, label))
+    _content("athlete_id", kaia, kind="post", title="The session I do not put on Instagram",
+             min_tier="supporter",
+             media_url="/demo/session.svg", media_kind="image",
+             body="The full set, the splits, and why the third rep is the one that matters.")
     _content("athlete_id", kaia, kind="post", title="Race report: what went wrong on the descent",
              min_tier="", body="I went out too hard and paid for it in the last three kilometres."
                                " Splits and what I would do differently.")

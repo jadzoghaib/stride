@@ -48,7 +48,11 @@ def clean_slate(db):
             db.execute(f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in cols)}"
                        f" WHERE id = ?", tuple(saved_row[c] for c in cols) + (row_id,))
 
-    tables = ("club_members", "content_items", "subscriptions", "follows")
+    # children before parents: poll rows reference content_items, and a delete
+    # in the wrong order fails the whole restore, leaves the transaction open,
+    # and locks the database for whichever test runs next
+    tables = ("poll_votes", "poll_options", "content_items", "club_members",
+              "subscriptions", "follows")
     before = {t: snapshot(t) for t in tables}
     yield
     for table in tables:
@@ -504,3 +508,107 @@ def test_following_does_not_open_the_lock(athlete, fan, db):
     fan.post(f"/api/follows/{kaia['id']}")
     seen = {i["title"]: i for i in fan.get("/api/athletes/kaia-mercer/content").json()}
     assert seen["Paywalled"]["locked"] is True
+
+
+# ── media and polls ────────────────────────────────────────────
+
+def test_a_post_can_carry_a_picture(athlete, client):
+    made = athlete.post("/api/athlete/content", json={
+        "kind": "post", "title": "Race day", "body": "Cold start.",
+        "media_url": "https://picsum.photos/seed/x/800/500", "media_kind": "image"})
+    assert made.status_code == 201, made.text
+    athlete.post(f"/api/content/{made.json()['id']}/publish")
+    seen = {i["title"]: i for i in client.get("/api/athletes/kaia-mercer/content").json()}
+    assert seen["Race day"]["media_kind"] == "image"
+    assert seen["Race day"]["media_url"].startswith("https://")
+
+
+def test_media_needs_a_kind_and_a_kind_needs_media(athlete):
+    no_kind = athlete.post("/api/athlete/content", json={
+        "kind": "post", "title": "x", "media_url": "https://example.com/a.jpg"})
+    assert no_kind.status_code == 422 and no_kind.json()["detail"] == "media_needs_a_kind"
+
+    no_url = athlete.post("/api/athlete/content", json={
+        "kind": "post", "title": "x", "media_kind": "image"})
+    assert no_url.status_code == 422 and no_url.json()["detail"] == "media_kind_without_a_link"
+
+    bad = athlete.post("/api/athlete/content", json={
+        "kind": "post", "title": "x", "media_url": "not a url", "media_kind": "image"})
+    assert bad.status_code == 422 and bad.json()["detail"] == "media_link_is_not_openable"
+
+
+def test_a_poll_needs_at_least_two_distinct_options(athlete):
+    """One answer is a statement, and two identical answers is one answer."""
+    one = athlete.post("/api/athlete/content", json={
+        "kind": "poll", "title": "Next block?", "options": ["Hills"]})
+    assert one.status_code == 422 and one.json()["detail"] == "a_poll_needs_two_options"
+
+    same = athlete.post("/api/athlete/content", json={
+        "kind": "poll", "title": "Next block?", "options": ["Hills", "Hills"]})
+    assert same.status_code == 422 and same.json()["detail"] == "poll_options_must_differ"
+
+    blank = athlete.post("/api/athlete/content", json={
+        "kind": "poll", "title": "Next block?", "options": ["Hills", "   "]})
+    assert blank.status_code == 422, "a blank option is not a choice"
+
+
+def test_only_a_poll_takes_options(athlete):
+    res = athlete.post("/api/athlete/content", json={
+        "kind": "post", "title": "x", "options": ["a", "b"]})
+    assert res.status_code == 422 and res.json()["detail"] == "only_a_poll_takes_options"
+
+
+def test_voting_is_one_per_person_and_changeable(athlete, fan, db):
+    made = athlete.post("/api/athlete/content", json={
+        "kind": "poll", "title": "Next block?", "min_tier": "",
+        "options": ["Hills", "Track", "Trails"]}).json()
+    athlete.post(f"/api/content/{made['id']}/publish")
+
+    first = fan.post(f"/api/content/{made['id']}/vote/{made and 0}")
+    assert first.status_code == 404, "an option that is not on this poll is refused"
+
+    options = {o["label"]: o["id"] for o in
+               fan.get("/api/athletes/kaia-mercer/content").json()[0]["poll"]["options"]}
+    voted = fan.post(f"/api/content/{made['id']}/vote/{options['Hills']}").json()
+    assert voted["total"] == 1 and voted["voted"] == options["Hills"]
+
+    changed = fan.post(f"/api/content/{made['id']}/vote/{options['Track']}").json()
+    assert changed["total"] == 1, "changing a vote does not add one"
+    assert changed["voted"] == options["Track"]
+    assert rows(db, "SELECT id FROM poll_votes WHERE content_id = ?", (made["id"],)).__len__() == 1
+
+
+def test_a_locked_poll_cannot_be_voted_in(athlete, fan, db):
+    """The options are part of what the subscription buys, so a reader who
+    cannot see the result must not be able to shape it."""
+    made = athlete.post("/api/athlete/content", json={
+        "kind": "poll", "title": "Members poll", "min_tier": "supporter",
+        "options": ["Yes", "No"]}).json()
+    athlete.post(f"/api/content/{made['id']}/publish")
+    option = row(db, "SELECT id FROM poll_options WHERE content_id = ? ORDER BY position",
+                 (made["id"],))
+    res = fan.post(f"/api/content/{made['id']}/vote/{option['id']}")
+    assert res.status_code == 403 and res.json()["detail"] == "subscribe_to_vote"
+
+    kaia = row(db, "SELECT id FROM athlete_profiles WHERE slug = 'kaia-mercer'")
+    fan.post(f"/api/subscriptions/athlete/{kaia['id']}")
+    try:
+        assert fan.post(f"/api/content/{made['id']}/vote/{option['id']}").status_code == 200
+    finally:
+        fan.delete(f"/api/subscriptions/athlete/{kaia['id']}")
+
+
+def test_a_locked_post_does_not_leak_its_picture(athlete, client):
+    """Blurring an image in the browser is not a paywall: the file is still
+    served, and the original is one right-click away."""
+    made = athlete.post("/api/athlete/content", json={
+        "kind": "post", "title": "Behind the scenes", "body": "The full story.",
+        "min_tier": "supporter", "media_url": "https://picsum.photos/seed/y/800/500",
+        "media_kind": "image"}).json()
+    athlete.post(f"/api/content/{made['id']}/publish")
+
+    seen = {i["title"]: i for i in client.get("/api/athletes/kaia-mercer/content").json()}
+    shut = seen["Behind the scenes"]
+    assert shut["locked"] is True
+    assert shut["media_url"] == "", "the address is withheld with the body"
+    assert shut["has_media"] is True, "but the reader is told there is something there"

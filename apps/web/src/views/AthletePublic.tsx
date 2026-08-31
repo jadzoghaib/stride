@@ -19,6 +19,13 @@ export default function AthletePublicView() {
   // Follow and subscribe are two different relationships, so they are two
   // controls. Only the roles the API will accept get to see them.
   const canRelate = !!me && ['athlete', 'fan', 'sponsor'].includes(me.role)
+  const vote = async (item: ContentItem, optionId: number) => {
+    try {
+      const poll = await api.post<ContentItem['poll']>(`/api/content/${item.id}/vote/${optionId}`)
+      setContent((list) => list?.map((c) => (c.id === item.id ? { ...c, poll } : c)) ?? null)
+    } catch (e) { setError(errorText(e)) }
+  }
+
   const relate = async (kind: 'follow' | 'subscribe', on: boolean) => {
     if (!a) return
     const path = kind === 'follow' ? `/api/follows/${a.id}` : `/api/subscriptions/athlete/${a.id}`
@@ -151,7 +158,7 @@ export default function AthletePublicView() {
 
       {content && (content.length > 0 || news.length > 0) && (
         <Section title="From this athlete">
-          <ContentTabs items={content} news={news} />
+          <ContentTabs items={content} news={news} onVote={vote} />
         </Section>
       )}
 

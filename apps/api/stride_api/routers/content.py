@@ -38,7 +38,8 @@ from ..proofcheck import looks_openable
 
 router = APIRouter(prefix="/api", tags=["content"])
 
-KINDS = ("post", "course", "session", "event", "product")
+KINDS = ("post", "course", "session", "event", "product", "poll")
+MEDIA_KINDS = ("", "image", "video")
 #: Ordered weakest to strongest. A fan sees an item when their tier is at least
 #: its `min_tier`, so the comparison is an index into this tuple.
 TIERS = ("", "supporter", "insider", "inner_circle")
@@ -69,6 +70,9 @@ class ContentIn(BaseModel):
     location: str = Field(default="", max_length=160)
     capacity: int | None = Field(default=None, ge=1, le=100000)
     external_url: str = Field(default="", max_length=500)
+    media_url: str = Field(default="", max_length=500)
+    media_kind: str = Field(default="", max_length=10)
+    options: list[str] = Field(default_factory=list, max_length=6)
 
 
 def _instant(value: str) -> str:
@@ -111,6 +115,34 @@ def _validate(body: ContentIn) -> None:
         raise HTTPException(422, "scheduled_content_needs_a_date")
     if body.starts_at.strip():
         body.starts_at = _instant(body.starts_at)
+
+    if body.media_kind not in MEDIA_KINDS:
+        raise HTTPException(422, "unknown_media_kind")
+    if body.media_url.strip():
+        # Same structural check as everywhere else a link is accepted: no DNS,
+        # no fetch, nothing that turns a form field into a request from us. A
+        # leading slash is allowed as well, because media we serve ourselves is
+        # openable by definition and needs no origin to say so.
+        media = body.media_url.strip()
+        if not (media.startswith("/") or looks_openable(media)):
+            raise HTTPException(422, "media_link_is_not_openable")
+        if not body.media_kind:
+            raise HTTPException(422, "media_needs_a_kind")
+    elif body.media_kind:
+        raise HTTPException(422, "media_kind_without_a_link")
+
+    if body.kind == "poll":
+        # A poll with one answer is a statement. Two is the minimum that asks
+        # anything, and blank options are dropped before counting so a stray
+        # empty row cannot become an unvotable choice.
+        filled = [o.strip() for o in body.options if o.strip()]
+        if len(filled) < 2:
+            raise HTTPException(422, "a_poll_needs_two_options")
+        if len(filled) != len(set(filled)):
+            raise HTTPException(422, "poll_options_must_differ")
+        body.options = filled
+    elif body.options:
+        raise HTTPException(422, "only_a_poll_takes_options")
 
     if body.kind == "product":
         # A product with no link is a photograph of a t-shirt. The link is the
@@ -156,12 +188,44 @@ def _view(item: dict, *, locked: bool) -> dict:
     out = {k: item[k] for k in (
         "id", "kind", "title", "min_tier", "label", "sponsor_name",
         "part_of", "position", "starts_at", "location", "capacity",
-        "status", "published_at", "external_url",
+        "status", "published_at", "external_url", "media_url", "media_kind",
     )}
     out["tier_label"] = TIER_LABEL.get(item["min_tier"], item["min_tier"])
     out["locked"] = locked
     out["body"] = "" if locked else item["body"]
+    # The picture goes with the body. Serving the file and blurring it in the
+    # browser is not a paywall -- the original is one right-click away -- so a
+    # locked item reports that media exists without saying where it is.
+    out["has_media"] = bool(item["media_url"])
+    if locked:
+        out["media_url"] = ""
     return out
+
+
+def poll_view(conn, content_id: int, user: dict | None) -> dict | None:
+    """The options, the tally, and which one this reader picked.
+
+    Counts are public. A poll whose results are hidden until you vote is a
+    different product and a worse one -- the point of asking an audience is
+    showing them the answer.
+    """
+    options = rows(conn, "SELECT * FROM poll_options WHERE content_id = ? ORDER BY position",
+                   (content_id,))
+    if not options:
+        return None
+    tallies = {r["option_id"]: r["n"] for r in rows(
+        conn, "SELECT option_id, COUNT(*) AS n FROM poll_votes WHERE content_id = ?"
+              " GROUP BY option_id", (content_id,))}
+    mine = row(conn, "SELECT option_id FROM poll_votes WHERE content_id = ? AND user_id = ?",
+               (content_id, user["id"])) if user else None
+    total = sum(tallies.values())
+    return {
+        "total": total,
+        "voted": mine["option_id"] if mine else None,
+        "options": [{"id": o["id"], "label": o["label"], "votes": tallies.get(o["id"], 0),
+                     "share": round(tallies.get(o["id"], 0) / total * 100) if total else 0}
+                    for o in options],
+    }
 
 
 def _subscriptions(conn, user: dict | None) -> tuple[set[int], set[int]]:
@@ -197,7 +261,13 @@ def _library(conn, *, athlete_id=None, club_id=None) -> list[dict]:
     items = rows(conn, f"SELECT * FROM content_items WHERE {where}"
                        " ORDER BY COALESCE(published_at, created_at) DESC, id DESC", params)
     # The author always sees their own bodies, published or not.
-    return [_view(i, locked=False) for i in items]
+    out = []
+    for i in items:
+        entry = _view(i, locked=False)
+        if i["kind"] == "poll":
+            entry["poll"] = poll_view(conn, i["id"], None)
+        out.append(entry)
+    return out
 
 
 @router.get("/athlete/content")
@@ -249,11 +319,17 @@ def _insert(conn, body: ContentIn, *, athlete_id=None, club_id=None) -> int:
     cur = conn.execute(
         "INSERT INTO content_items (athlete_id, club_id, kind, title, body, min_tier, label,"
         " sponsor_name, part_of, position, starts_at, location, capacity, external_url,"
-        " created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        " media_url, media_kind, created_at)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (athlete_id, club_id, body.kind, body.title, body.body, body.min_tier, body.label,
          body.sponsor_name, body.part_of, body.position, body.starts_at or None,
-         body.location, body.capacity, body.external_url.strip(), now_iso()))
-    return cur.lastrowid
+         body.location, body.capacity, body.external_url.strip(),
+         body.media_url.strip(), body.media_kind, now_iso()))
+    item_id = cur.lastrowid
+    for position, label in enumerate(body.options):
+        conn.execute("INSERT INTO poll_options (content_id, position, label) VALUES (?, ?, ?)",
+                     (item_id, position, label))
+    return item_id
 
 
 def _owned(conn, item_id: int, user: dict) -> dict:
@@ -284,10 +360,10 @@ def update_content(item_id: int, body: ContentIn,
     conn.execute(
         "UPDATE content_items SET kind = ?, title = ?, body = ?, min_tier = ?, label = ?,"
         " sponsor_name = ?, position = ?, starts_at = ?, location = ?, capacity = ?,"
-        " external_url = ? WHERE id = ?",
+        " external_url = ?, media_url = ?, media_kind = ? WHERE id = ?",
         (body.kind, body.title, body.body, body.min_tier, body.label, body.sponsor_name,
          body.position, body.starts_at or None, body.location, body.capacity,
-         body.external_url.strip(), item["id"]))
+         body.external_url.strip(), body.media_url.strip(), body.media_kind, item["id"]))
     log_event(conn, "user", "content.updated", "content", item["id"],
               {"kind": body.kind, "title": body.title, "min_tier": body.min_tier})
     conn.commit()
@@ -321,6 +397,35 @@ def delete_content(item_id: int, user: dict = Depends(require_role("athlete", "c
     return {"ok": True}
 
 
+@router.post("/content/{item_id}/vote/{option_id}")
+def vote(item_id: int, option_id: int,
+         user: dict = Depends(require_role("athlete", "club", "sponsor", "fan")),
+         conn: sqlite3.Connection = Depends(get_db)):
+    """One vote per person, changeable.
+
+    A locked poll cannot be voted in: the answer options are part of what the
+    subscription buys, and letting a non-subscriber vote would let them shape a
+    result they are not allowed to read.
+    """
+    item = row(conn, "SELECT * FROM content_items WHERE id = ? AND status = 'published'",
+               (item_id,))
+    if item is None or item["kind"] != "poll":
+        raise HTTPException(404, "unknown_poll")
+    athletes, clubs = _subscriptions(conn, user)
+    if _locked(item, athletes, clubs):
+        raise HTTPException(403, "subscribe_to_vote")
+    option = row(conn, "SELECT id FROM poll_options WHERE id = ? AND content_id = ?",
+                 (option_id, item_id))
+    if option is None:
+        raise HTTPException(404, "unknown_option")
+    conn.execute("DELETE FROM poll_votes WHERE content_id = ? AND user_id = ?",
+                 (item_id, user["id"]))
+    conn.execute("INSERT INTO poll_votes (content_id, option_id, user_id, created_at)"
+                 " VALUES (?, ?, ?, ?)", (item_id, option_id, user["id"], now_iso()))
+    conn.commit()
+    return poll_view(conn, item_id, user)
+
+
 # ── what a reader sees ──────────────────────────────────────────────────────
 
 @router.get("/athletes/{slug}/content")
@@ -345,7 +450,13 @@ def _published(conn, where: str, params: tuple, user: dict | None) -> list[dict]
     athletes, clubs = _subscriptions(conn, user)
     items = rows(conn, f"SELECT * FROM content_items WHERE {where} AND status = 'published'"
                        " ORDER BY published_at DESC, id DESC", params)
-    return [_view(i, locked=_locked(i, athletes, clubs)) for i in items]
+    out = []
+    for i in items:
+        entry = _view(i, locked=_locked(i, athletes, clubs))
+        if i["kind"] == "poll":
+            entry["poll"] = poll_view(conn, i["id"], user)
+        out.append(entry)
+    return out
 
 
 @router.get("/feed/content")
@@ -375,6 +486,8 @@ def followed_content(limit: int = Query(40, ge=1, le=200),
     out = []
     for i in items:
         entry = _view(i, locked=_locked(i, athletes, clubs))
+        if i["kind"] == "poll":
+            entry["poll"] = poll_view(conn, i["id"], user)
         entry["author"] = i["author"]
         entry["author_slug"] = i["author_slug"]
         out.append(entry)

@@ -29,7 +29,7 @@ _ALL_TABLES = (
     "content_items",
     "deal_deliverables", "athlete_applications", "club_applications",
     "package_commitments", "club_packages", "club_members", "clubs",
-    "messages", "conversations", "notifications", "subscriptions", "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
+    "poll_votes", "poll_options", "messages", "conversations", "notifications", "subscriptions", "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
     "events", "score_snapshots", "sponsor_targets", "audience_demographics",
     "account_snapshots", "post_metrics", "posts", "sync_runs", "platform_accounts", "creators",
 )
@@ -171,6 +171,23 @@ CREATE TABLE IF NOT EXISTS follows (
     athlete_id INTEGER NOT NULL REFERENCES athlete_profiles(id),
     created_at TEXT NOT NULL,
     UNIQUE (user_id, athlete_id)
+);
+
+CREATE TABLE IF NOT EXISTS poll_options (
+    id         INTEGER PRIMARY KEY,
+    content_id INTEGER NOT NULL REFERENCES content_items(id),
+    position   INTEGER NOT NULL,
+    label      TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS poll_votes (
+    id         INTEGER PRIMARY KEY,
+    content_id INTEGER NOT NULL REFERENCES content_items(id),
+    option_id  INTEGER NOT NULL REFERENCES poll_options(id),
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL,
+    -- one vote per person per poll, enforced here rather than in a handler
+    UNIQUE (content_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS conversations (
@@ -347,7 +364,7 @@ CREATE TABLE IF NOT EXISTS content_items (
     id           INTEGER PRIMARY KEY,
     athlete_id   INTEGER REFERENCES athlete_profiles(id),
     club_id      INTEGER REFERENCES clubs(id),
-    kind         TEXT NOT NULL CHECK (kind IN ('post','course','session','event','product')),
+    kind         TEXT NOT NULL CHECK (kind IN ('post','course','session','event','product','poll')),
     title        TEXT NOT NULL,
     body         TEXT NOT NULL DEFAULT '',
     min_tier     TEXT NOT NULL DEFAULT ''
@@ -365,6 +382,9 @@ CREATE TABLE IF NOT EXISTS content_items (
     capacity     INTEGER,
     -- products: Stride does not sell them, it points at wherever they are sold
     external_url TEXT NOT NULL DEFAULT '',
+    -- a picture or a clip, by link: no storage stack is invented here
+    media_url    TEXT NOT NULL DEFAULT '',
+    media_kind   TEXT NOT NULL DEFAULT '',
     status       TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published')),
     created_at   TEXT NOT NULL,
     published_at TEXT,
@@ -390,6 +410,8 @@ _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     ("campaigns", "require_verified_athletes", "BOOLEAN NOT NULL DEFAULT FALSE"),
     ("club_members", "responded_at", "TEXT"),
     ("content_items", "external_url", "TEXT NOT NULL DEFAULT ''"),
+    ("content_items", "media_url", "TEXT NOT NULL DEFAULT ''"),
+    ("content_items", "media_kind", "TEXT NOT NULL DEFAULT ''"),
 )
 
 
@@ -512,12 +534,12 @@ def _refresh_kind_check(conn) -> None:
     if settings.db_backend == "postgres":
         conn.execute("ALTER TABLE content_items DROP CONSTRAINT IF EXISTS content_items_kind_check")
         conn.execute("ALTER TABLE content_items ADD CONSTRAINT content_items_kind_check"
-                     " CHECK (kind IN ('post','course','session','event','product'))")
+                     " CHECK (kind IN ('post','course','session','event','product','poll'))")
         return
 
     existing = row(conn, "SELECT sql FROM sqlite_master WHERE type = 'table'"
                          " AND name = 'content_items'")
-    if existing is None or "'product'" in existing["sql"]:
+    if existing is None or "'poll'" in existing["sql"]:
         return
     conn.execute("ALTER TABLE content_items RENAME TO content_items_stale")
     conn.executescript(STRIDE_SCHEMA)                      # recreates it with the new CHECK
