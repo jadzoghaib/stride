@@ -89,6 +89,10 @@ ROUTES: list[tuple] = [
     ("POST", f"/api/subscriptions/athlete/{GONE}", ("athlete", "fan", "sponsor")),
     ("DELETE", f"/api/subscriptions/athlete/{GONE}", ("athlete", "fan", "sponsor")),
     ("POST", f"/api/subscriptions/club/{GONE}", ("athlete", "fan", "sponsor")),
+    # the fan wall: a club is not a fan, and posting needs a follow on top of
+    # the role, so the write is state-gated as well as role-gated
+    ("POST", f"/api/athletes/kaia-mercer/wall-posts", ("athlete", "fan", "sponsor"), "state-gated"),
+    ("DELETE", f"/api/wall-posts/{GONE}", ("athlete", "fan", "sponsor")),
     ("POST", f"/api/admin/applications/{GONE}/proof", ("admin",)),
     ("POST", f"/api/admin/clubs/{GONE}/proof", ("admin",)),
     ("POST", f"/api/admin/clubs/{GONE}/revoke", ("admin",)),
