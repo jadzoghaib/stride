@@ -4,9 +4,10 @@
 marketplace is a spam surface pointed at the people with the most followers:
 
     athlete    anyone
-    sponsor    athletes  (they are here to make offers)
+    sponsor    athletes, and clubs they currently back
     fan        athletes they subscribe to
-    club       nobody, on the rules as written
+    club       athletes on their roster (invited counts), and sponsors backing
+               one of their packages
 
 Two things sit on top of that. First, **a conversation that exists can always be
 answered** -- otherwise a sponsor could open a thread an athlete cannot reply
@@ -38,21 +39,70 @@ router = APIRouter(prefix="/api", tags=["messaging"])
 
 # ── who may talk to whom ────────────────────────────────────────────────────
 
+def _backing(conn, org_id: int, club_id: int) -> bool:
+    """Whether this sponsor currently backs any of this club's packages.
+
+    Money has changed hands between these two, which is the relationship the
+    channel is for. A cancelled commitment does not count -- ending the deal
+    ends the right to start new conversations about it, though the thread they
+    already have stays answerable.
+    """
+    return row(conn, """
+        SELECT pc.id FROM package_commitments pc
+        JOIN club_packages cp ON cp.id = pc.package_id
+        WHERE pc.org_id = ? AND cp.club_id = ? AND pc.status = 'active'
+        LIMIT 1""", (org_id, club_id)) is not None
+
+
 def may_open(conn, sender: dict, recipient: dict) -> bool:
-    """Whether `sender` may *start* a conversation with `recipient`."""
+    """Whether `sender` may *start* a conversation with `recipient`.
+
+    Every branch below is a relationship that already exists somewhere else in
+    the product. Nobody gets to write to a stranger.
+    """
     if sender["id"] == recipient["id"]:
         return False
     if sender["role"] == "athlete":
         return True
+
     recipient_athlete = row(conn, "SELECT id FROM athlete_profiles WHERE user_id = ?",
                             (recipient["id"],))
-    if recipient_athlete is None:
-        return False
+    recipient_club = row(conn, "SELECT id FROM clubs WHERE user_id = ?", (recipient["id"],))
+    recipient_org = row(conn, "SELECT id FROM sponsor_orgs WHERE user_id = ?",
+                        (recipient["id"],))
+
     if sender["role"] == "sponsor":
-        return True
+        if recipient_athlete is not None:
+            return True
+        # A club they are paying. One-directional messaging inside a live
+        # commercial relationship is arbitrary -- the club can already open the
+        # thread, so refusing the sponsor only decides who types first.
+        org = row(conn, "SELECT id FROM sponsor_orgs WHERE user_id = ?", (sender["id"],))
+        if org and recipient_club is not None:
+            return _backing(conn, org["id"], recipient_club["id"])
+        return False
+
     if sender["role"] == "fan":
-        return row(conn, "SELECT id FROM subscriptions WHERE user_id = ? AND athlete_id = ?",
-                   (sender["id"], recipient_athlete["id"])) is not None
+        return recipient_athlete is not None and row(
+            conn, "SELECT id FROM subscriptions WHERE user_id = ? AND athlete_id = ?",
+            (sender["id"], recipient_athlete["id"])) is not None
+
+    if sender["role"] == "club":
+        club = row(conn, "SELECT id FROM clubs WHERE user_id = ?", (sender["id"],))
+        if club is None:
+            return False
+        if recipient_athlete is not None:
+            # Active *or* invited: a club that cannot explain the invitation it
+            # just sent is the gap this closes. `declined` and `former` are not
+            # here -- ending the relationship ends new outreach, and an athlete
+            # who said no should not keep receiving pitches about it.
+            return row(conn, "SELECT id FROM club_members WHERE club_id = ? AND athlete_id = ?"
+                             " AND status IN ('active','invited')",
+                       (club["id"], recipient_athlete["id"])) is not None
+        if recipient_org is not None:
+            return _backing(conn, recipient_org["id"], club["id"])
+        return False
+
     return False
 
 

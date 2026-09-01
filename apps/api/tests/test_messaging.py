@@ -26,7 +26,8 @@ def clean_slate(db):
         else:
             db.execute(f"DELETE FROM {table}")
 
-    tables = ("messages", "conversations", "notifications", "subscriptions", "deals")
+    tables = ("messages", "conversations", "notifications", "subscriptions", "deals",
+              "club_members", "package_commitments")
     before = {t: snapshot(t) for t in tables}
     yield
     for table in tables:          # messages before conversations: the child first
@@ -58,10 +59,14 @@ def test_an_athlete_with_no_account_cannot_be_messaged(athlete, sponsor):
     assert sponsor.get("/api/messages/can/athlete/kaia-mercer").json()["can_message"] is True
 
 
-def test_a_sponsor_may_message_an_athlete_but_not_a_club(sponsor):
-    """On the rules as written: sponsors were given athletes, not clubs."""
+def test_a_sponsor_may_message_any_athlete(sponsor):
     assert sponsor.post("/api/messages", json={
         "to_athlete": "kaia-mercer", "body": "We have a campaign"}).status_code == 201
+
+
+def test_a_sponsor_may_not_message_a_club_they_do_not_back(sponsor):
+    """Sponsors reach athletes because that is what they are here for. A club is
+    a counterparty, and the relationship has to exist first."""
     refused = sponsor.post("/api/messages", json={"to_club": "meridian-fc", "body": "Hi"})
     assert refused.status_code == 403
     assert refused.json()["detail"] == "cannot_message_this_person"
@@ -177,3 +182,80 @@ def test_notifications_are_private_to_their_owner(athlete, sponsor):
     assert res.status_code == 200, res.text
     mine = res.json()
     assert all("messaged you" not in i["title"] for i in mine["items"])
+
+
+# -- clubs, along the relationships they already have -------------------------
+
+def _member(db, slug: str, status: str) -> None:
+    club = row(db, "SELECT id FROM clubs WHERE slug = 'meridian-fc'")
+    athlete = row(db, "SELECT id FROM athlete_profiles WHERE slug = ?", (slug,))
+    db.execute("DELETE FROM club_members WHERE club_id = ? AND athlete_id = ?",
+               (club["id"], athlete["id"]))
+    db.execute("INSERT INTO club_members (club_id, athlete_id, position, status, joined_at)"
+               " VALUES (?, ?, '', ?, '2026-01-01T00:00:00Z')",
+               (club["id"], athlete["id"], status))
+    db.commit()
+
+
+def test_a_club_may_message_an_athlete_it_has_invited(db, clubu):
+    """The gap this closes: a club that cannot explain the invitation it just
+    sent. The invitation already reached them, so this is not new reach."""
+    _member(db, "kaia-mercer", "invited")
+    assert clubu.post("/api/messages", json={
+        "to_athlete": "kaia-mercer", "body": "We would love to have you"}).status_code == 201
+
+
+def test_a_club_may_message_an_athlete_on_its_roster(db, clubu):
+    _member(db, "kaia-mercer", "active")
+    assert clubu.post("/api/messages", json={
+        "to_athlete": "kaia-mercer", "body": "Training moved to Thursday"}).status_code == 201
+
+
+def test_a_club_may_not_message_an_athlete_who_declined(db, clubu):
+    """Ending the relationship ends new outreach. Somebody who said no should
+    not keep receiving pitches about it."""
+    _member(db, "kaia-mercer", "declined")
+    refused = clubu.post("/api/messages", json={"to_athlete": "kaia-mercer", "body": "Reconsider?"})
+    assert refused.status_code == 403
+
+
+def test_a_club_may_not_message_an_athlete_it_has_no_relationship_with(db, clubu):
+    club = row(db, "SELECT id FROM clubs WHERE slug = 'meridian-fc'")
+    athlete = row(db, "SELECT id FROM athlete_profiles WHERE slug = 'kaia-mercer'")
+    db.execute("DELETE FROM club_members WHERE club_id = ? AND athlete_id = ?",
+               (club["id"], athlete["id"]))
+    db.commit()
+    assert clubu.post("/api/messages", json={
+        "to_athlete": "kaia-mercer", "body": "Hello"}).status_code == 403
+
+
+def _commitment(db, status: str) -> None:
+    package = row(db, "SELECT cp.id FROM club_packages cp JOIN clubs c ON c.id = cp.club_id"
+                      " WHERE c.slug = 'meridian-fc' LIMIT 1")
+    org = row(db, "SELECT o.id FROM sponsor_orgs o JOIN users u ON u.id = o.user_id"
+                  " WHERE u.email = 'sponsor@demo.stride'")
+    db.execute("DELETE FROM package_commitments WHERE package_id = ? AND org_id = ?",
+               (package["id"], org["id"]))
+    db.execute("INSERT INTO package_commitments (package_id, org_id, amount_eur, status,"
+               " created_at) VALUES (?, ?, 1000, ?, '2026-01-01T00:00:00Z')",
+               (package["id"], org["id"], status))
+    db.commit()
+
+
+def test_a_club_and_the_sponsor_backing_it_can_reach_each_other(db, clubu, sponsor):
+    """Money has changed hands. Letting only one of them type first would be
+    arbitrary."""
+    _commitment(db, "active")
+    assert clubu.post("/api/messages", json={
+        "to_user": row(db, "SELECT id FROM users WHERE email = 'sponsor@demo.stride'")["id"],
+        "body": "Thanks for backing the shirt package"}).status_code == 201
+    assert sponsor.get("/api/messages/can/club/meridian-fc").json()["can_message"] is True
+
+
+def test_a_cancelled_commitment_closes_the_door(db, clubu, sponsor):
+    """The thread they already have stays answerable; new ones do not open."""
+    _commitment(db, "cancelled")
+    sponsor_user = row(db, "SELECT id FROM users WHERE email = 'sponsor@demo.stride'")["id"]
+    assert clubu.post("/api/messages", json={
+        "to_user": sponsor_user, "body": "Renew?"}).status_code == 403
+    assert sponsor.get("/api/messages/can/club/meridian-fc").json()["can_message"] is False
