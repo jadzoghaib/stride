@@ -104,7 +104,23 @@ export default function AthletePublicView() {
     if (filter === 'locked') return items.filter((i) => i.locked)
     return items
   }, [items, filter])
+  /** Everything a visitor can see on the Posts tab: what the athlete published
+   *  in Stride, plus what they published on their own platforms.
+   *
+   *  The strip used to count only the first and the tab counted both, so the
+   *  page showed "4 posts" directly above "POSTS 24" — two true numbers, six
+   *  inches apart, labelled the same thing. A reader cannot tell that one means
+   *  "authored here" and the other "in this feed", and does not care: they are
+   *  all posts by this athlete, and the free/locked split is the distinction
+   *  that actually matters, which the chips below already make. */
+  const feedCount = posts.length + news.length
+  //: Every content type the connectors produce is visual — video, reel, short,
+  //  image, carousel — because Instagram, TikTok and YouTube are visual
+  //  platforms. Listing 'video' and 'image' therefore silently dropped reels
+  //  and shorts. Excluding a text type instead names the case that would not
+  //  count, rather than trying to enumerate every case that would.
   const mediaCount = items.filter((i) => i.has_media || i.media_url).length
+    + news.filter((n) => n.content_type !== 'text').length
 
   if (!a) return error ? <LoadError text={error} /> : <PageLoading />
 
@@ -160,7 +176,7 @@ export default function AthletePublicView() {
 
             {/* ── the audience, in one strip ──────────────────────────── */}
             <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-              <Stat n={posts.length} label="post" />
+              <Stat n={feedCount} label="post" />
               <Stat n={mediaCount} label="media" plural="media" />
               <Stat n={a.followers ?? 0} label="follower" />
               <Stat n={a.subscribers ?? 0} label="subscriber" />
@@ -182,7 +198,7 @@ export default function AthletePublicView() {
             active={tab}
             onChange={setTab}
             tabs={[
-              { key: 'posts', label: 'Posts', count: posts.length + news.length },
+              { key: 'posts', label: 'Posts', count: feedCount },
               { key: 'shop', label: 'Shop', count: shop.length },
               { key: 'memberships', label: 'Memberships' },
               { key: 'wall', label: 'Fan wall', count: wall.length },
@@ -212,7 +228,13 @@ export default function AthletePublicView() {
               ))}
             </div>
             <div className="mt-4">
-              <Wall items={shown} news={filter === 'all' ? news : []} onVote={vote}
+              {/* Social posts are free content by definition — they are public
+                  on the platform they came from — so the Free filter shows them
+                  and the paid filters do not. This passed them only under
+                  'all', which meant clicking Free *removed* the largest block
+                  of free content on the page. */}
+              <Wall items={shown} news={filter === 'all' || filter === 'free' ? news : []}
+                    onVote={vote}
                     onUnlock={canRelate && !a.subscribed
                       ? () => void relate('subscribe', false)
                       : undefined}

@@ -171,6 +171,78 @@ def test_the_free_feed_carries_followed_athletes_content(fan, athlete):
     assert any(i["title"] == "Easy week" and i["author_slug"] == "kaia-mercer" for i in feed)
 
 
+# ── following buys the free tier ────────────────────────────────────────────
+
+
+def test_the_follower_feed_carries_platform_posts(fan, db):
+    """Following is the *free* tier, and an athlete's public platform posts are
+    the largest part of what that is.
+
+    Leaving them out meant a fan who followed four athletes saw only what those
+    four had published inside Stride — which on a young profile is nothing, so
+    the tier that exists to keep fans coming back was empty for exactly them.
+    """
+    from stride_api.db import row, rows
+    feed = fan.get("/api/feed/news").json()
+    assert feed, "the seeded fan follows athletes with synced accounts"
+
+    followed = {r["slug"] for r in rows(db, """
+        SELECT a.slug FROM athlete_profiles a
+        JOIN follows f ON f.athlete_id = a.id WHERE f.user_id = ?""",
+        (row(db, "SELECT id FROM users WHERE email = 'fan@demo.stride'")["id"],))}
+    assert {p["author_slug"] for p in feed} <= followed,         "the feed must not carry an athlete this reader does not follow"
+
+    # more than one athlete, which is the whole reason the card needs an author
+    assert len({p["author_slug"] for p in feed}) > 1
+    assert all(p["author"] for p in feed)
+
+
+def test_the_follower_feed_is_newest_first(fan):
+    feed = fan.get("/api/feed/news").json()
+    stamps = [p["published_at"] for p in feed]
+    assert stamps == sorted(stamps, reverse=True)
+
+
+def test_a_follower_gets_the_post_and_not_the_numbers_behind_it(fan):
+    """Reach and engagement are the athlete's own analytics and the sponsor's
+    evidence. A fan gets the post."""
+    for p in fan.get("/api/feed/news").json():
+        assert not ({"reach", "impressions", "likes", "engagement_rate"} & set(p))
+
+
+def test_disconnecting_a_platform_withdraws_it_from_the_follower_feed(fan, athlete, db):
+    """The consent rule, on the second surface that has to honour it. The rows
+    stay so scores remain reproducible; they stop being shown."""
+    from stride_api.db import row
+    before = [p for p in fan.get("/api/feed/news").json() if p["author_slug"] == "kaia-mercer"]
+    assert before, "kaia is followed and has synced posts"
+    platform = before[0]["platform"]
+
+    account = row(db, """
+        SELECT pa.id FROM platform_accounts pa
+        JOIN athlete_profiles a ON a.creatorlens_creator_id = pa.creator_id
+        WHERE a.slug = 'kaia-mercer' AND pa.platform = ?""", (platform,))
+    db.execute("UPDATE platform_accounts SET connection_status = 'disconnected' WHERE id = ?",
+               (account["id"],))
+    db.commit()
+    try:
+        after = fan.get("/api/feed/news").json()
+        assert not [p for p in after
+                    if p["author_slug"] == "kaia-mercer" and p["platform"] == platform]
+    finally:
+        db.execute("UPDATE platform_accounts SET connection_status = 'connected' WHERE id = ?",
+                   (account["id"],))
+        db.commit()
+
+
+def test_a_club_cannot_read_the_follower_feed(clubu, client):
+    """A club cannot follow anybody, so the permission would buy an empty list —
+    and a grant that leads nowhere gets copied to the next endpoint as if it
+    meant something."""
+    assert clubu.get("/api/feed/news").status_code == 403
+    assert client.get("/api/feed/news").status_code == 401
+
+
 # ── the roster is a request, not an assertion ───────────────────────────────
 
 def test_a_club_cannot_put_an_athlete_on_its_roster_unilaterally(clubu, db):

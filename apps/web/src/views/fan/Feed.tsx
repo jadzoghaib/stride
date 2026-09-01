@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom'
 import { ContentCard, Wall } from '../../components/content'
 import { LoadError, PageHeader, PageLoading, Avatar, CoverageChip, EmptyNote, Sparkline } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
-import type { AthletePublic, ContentItem } from '../../types'
+import type { AthletePublic, ContentItem, NewsItem } from '../../types'
 
 export default function Feed() {
   const [athletes, setAthletes] = useState<AthletePublic[] | null>(null)
   const [posts, setPosts] = useState<ContentItem[] | null>(null)
+  const [news, setNews] = useState<NewsItem[]>([])
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -16,6 +17,11 @@ export default function Feed() {
     // Its own failure: losing the posts must not cost the reader the trajectory
     // panel underneath, which is the part that is always there.
     api.get<ContentItem[]>('/api/feed/content').then(setPosts).catch(() => setPosts([]))
+    // Following buys the free tier, and an athlete's public platform posts are
+    // most of what that is. Without them a fan following four athletes saw only
+    // what those four had published *inside* Stride — on young profiles, close
+    // to nothing, so the tier meant to keep them was empty.
+    api.get<NewsItem[]>('/api/feed/news').then(setNews).catch(() => setNews([]))
   }, [])
 
   if (!athletes) return error ? <LoadError text={error} /> : <PageLoading />
@@ -51,13 +57,13 @@ export default function Feed() {
         </div>
       )}
 
-      {athletes.length > 0 && wallPosts.length > 0 && (
+      {athletes.length > 0 && (wallPosts.length > 0 || news.length > 0) && (
         <div className="mb-8">
           <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-line pb-2">
             <span className="cap">Wall</span>
             <span className="meta">newest first · locked items show what they would take</span>
           </div>
-          <Wall items={wallPosts} showAuthor empty="Nothing published yet." />
+          <Wall items={wallPosts} news={news} showAuthor empty="Nothing published yet." />
         </div>
       )}
 

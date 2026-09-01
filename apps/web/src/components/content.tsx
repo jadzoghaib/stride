@@ -53,9 +53,25 @@ function storeName(url: string): string {
 /** Something the athlete posted on their own platform. Never locked -- it is
  *  already public, and it is what keeps a wall worth opening in a week the
  *  athlete has published nothing here. */
-function NewsCard({ item }: { item: NewsItem }) {
+function NewsCard({ item, showAuthor = false }: { item: NewsItem; showAuthor?: boolean }) {
   return (
     <article className="panel p-4">
+      {/* In a follower feed these are mixed in among several athletes, so the
+          card has to say whose it is. On an athlete's own page the whole page
+          already answers that, and repeating it on every row is noise. */}
+      {showAuthor && item.author && (
+        <div className="mb-2 flex items-center gap-2.5">
+          <Avatar name={item.author} size={28} />
+          {item.author_slug ? (
+            <Link to={`/athletes/${item.author_slug}`}
+                  className="text-sm font-medium text-ink hover:text-accent">
+              {item.author}
+            </Link>
+          ) : (
+            <span className="text-sm font-medium text-ink">{item.author}</span>
+          )}
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <span className="cap text-ink-3">{item.platform}</span>
         <h3 className="min-w-0 font-medium text-ink-2">{item.title}</h3>
@@ -372,7 +388,7 @@ export function Wall({ items, news = [], showAuthor = false, empty, onVote, onUn
     ...news.map((n, idx) => ({
       key: `n${idx}-${n.permalink}`,
       at: new Date(n.published_at).getTime(),
-      node: <NewsCard item={n} />,
+      node: <NewsCard item={n} showAuthor={showAuthor} />,
     })),
   ].sort((a, b) => b.at - a.at)
 
