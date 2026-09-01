@@ -220,3 +220,37 @@ def test_a_club_cannot_revoke_another_clubs_link(db, admin, clubu, athlete2):
                (link["id"],))
     db.commit()
     assert clubu.post(f"/api/club/invite-links/{link['id']}/revoke").status_code == 404
+
+
+# ---- the directory invariant -------------------------------------------------
+
+
+def test_every_listed_club_is_a_verified_club(db):
+    """**Listed implies verified**, and the seed has to obey it too.
+
+    Meridian used to be seeded `listed` with a `pending` application, so it
+    appeared in the public directory beside a verified club while telling its
+    own owner it was not verified yet -- two different answers to the same
+    question depending on who asked. An applicant is a club that is not listed;
+    that is what `draft` is for.
+    """
+    from stride_api.db import rows
+    bad = rows(db, """
+        SELECT c.slug FROM clubs c
+        LEFT JOIN club_applications a ON a.club_id = c.id
+        WHERE c.status = 'listed'
+          AND (a.proof_status IS NULL OR a.proof_status <> 'verified')""")
+    assert bad == [], f"listed but unverified: {[r['slug'] for r in bad]}"
+
+
+def test_the_review_queue_still_has_a_club_to_decide_on(db):
+    """Verifying both demo clubs must not empty the admin queue -- the applicant
+    is a draft club, which is the state an unreviewed club is actually in."""
+    from stride_api.db import rows
+    waiting = rows(db, """
+        SELECT c.slug, c.status FROM clubs c
+        JOIN club_applications a ON a.club_id = c.id
+        WHERE a.proof_status = 'pending'""")
+    assert waiting, "no club left for the review queue"
+    assert all(r["status"] == "draft" for r in waiting), \
+        "a club awaiting review must not be listed"

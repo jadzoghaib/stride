@@ -15,10 +15,6 @@ import { useTheme } from '../lib/theme'
 import Footer from './Footer'
 import { Avatar } from './ui'
 
-interface NotificationItem {
-  id: number; kind: string; title: string; body: string; link: string; read: boolean
-}
-
 const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]> = {
   athlete: [
     { to: '/athlete', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,13 +22,12 @@ const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]>
     { to: '/athlete/content', label: 'Content', icon: BadgeCheck },
     { to: '/athlete/profile', label: 'Profile', icon: Users },
     { to: '/athletes', label: 'Directory', icon: Compass },
-    { to: '/clubs', label: 'Clubs', icon: Shield },
+    { to: '/athlete/clubs', label: 'My clubs', icon: Shield },
   ],
   sponsor: [
     { to: '/sponsor', label: 'Campaigns', icon: BarChart3 },
     { to: '/sponsor/pipeline', label: 'Pipeline', icon: Briefcase },
     { to: '/athletes', label: 'Directory', icon: Compass },
-    { to: '/clubs', label: 'Clubs', icon: Shield },
   ],
   fan: [
     // No Clubs tab: a separate directory of clubs is a second place to search
@@ -44,11 +39,9 @@ const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]>
   club: [
     { to: '/club', label: 'Club HQ', icon: LayoutDashboard },
     { to: '/athletes', label: 'Directory', icon: Compass },
-    { to: '/clubs', label: 'Clubs', icon: Shield },
   ],
   admin: [
     { to: '/athletes', label: 'Directory', icon: Compass },
-    { to: '/clubs', label: 'Clubs', icon: Shield },
     { to: '/admin/review', label: 'Review', icon: ClipboardCheck },
     { to: '/admin', label: 'Operations', icon: FileSearch },
   ],
@@ -63,13 +56,24 @@ export function Wordmark({ size = 'text-[22px]' }: { size?: string }) {
   )
 }
 
-export function ThemeToggle() {
+/** The one shape every icon in the rail is drawn in.
+ *
+ *  It used to be this box for Home and a bare 16px glyph for the other three,
+ *  in a `items-center` row -- so a 36px square sat beside three small marks
+ *  floating at its midline, and the row read as ragged rather than as a set.
+ *  A slot the same size for each is what makes four icons look like one
+ *  control strip. */
+export const RAIL_SLOT =
+  'relative flex h-9 w-9 items-center justify-center rounded border border-line' +
+  ' text-ink-3 transition-colors hover:border-ink-3 hover:text-ink'
+
+export function ThemeToggle({ boxed = false }: { boxed?: boolean } = {}) {
   const { theme, toggle } = useTheme()
   const next = theme === 'dark' ? 'light' : 'dark'
   return (
     <button
       onClick={toggle}
-      className="text-ink-3 transition-colors hover:text-ink"
+      className={boxed ? RAIL_SLOT : 'text-ink-3 transition-colors hover:text-ink'}
       title={`Switch to ${next} theme`}
       aria-label={`Switch to ${next} theme`}
     >
@@ -85,63 +89,44 @@ export function ThemeToggle() {
  *  a socket, and a timer that re-fetched every few seconds would spend the
  *  whole session making requests to discover nothing changed. The counts
  *  refresh on navigation, which is when a reader would look.
+ *
+ *  Both are links, and neither opens a panel. The bell used to drop a popover
+ *  anchored `right-0` inside a 15rem rail, so it opened off the left edge of
+ *  its own column and read as an empty white rectangle. Rather than re-anchor
+ *  it, notifications got the treatment messages already had: a page. They are
+ *  the same kind of thing -- a list that arrives over time, that you scan,
+ *  come back to, and want history on -- and a 20rem panel that closes when you
+ *  look away is a bad container for that.
  */
-function Signals() {
+function Signals({ boxed = false }: { boxed?: boolean } = {}) {
   const [unreadMail, setUnreadMail] = useState(0)
   const [unreadBells, setUnreadBells] = useState(0)
-  const [open, setOpen] = useState(false)
-  const [items, setItems] = useState<NotificationItem[]>([])
   const location = useLocation()
+  const shape = boxed ? RAIL_SLOT : 'relative text-ink-3 transition-colors hover:text-ink'
 
   useEffect(() => {
     api.get<{ id: number; unread: number }[]>('/api/inbox')
       .then((t) => setUnreadMail(t.reduce((n, x) => n + (x.unread ?? 0), 0)))
       .catch(() => setUnreadMail(0))
-    api.get<{ unread: number; items: NotificationItem[] }>('/api/notifications')
-      .then((r) => { setUnreadBells(r.unread); setItems(r.items) })
+    api.get<{ unread: number }>('/api/notifications')
+      .then((r) => setUnreadBells(r.unread))
       .catch(() => setUnreadBells(0))
   }, [location.pathname])
 
-  const readAll = async () => {
-    try {
-      await api.post('/api/notifications/read')
-      setUnreadBells(0)
-      setItems((list) => list.map((i) => ({ ...i, read: true })))
-    } catch { /* the badge is not worth an error banner */ }
-  }
-
   return (
     <>
-      <Link to="/inbox" className="relative text-ink-3 transition-colors hover:text-ink"
+      <Link to="/inbox" className={shape}
             title="Inbox" aria-label={`Inbox${unreadMail ? `, ${unreadMail} unread` : ''}`}>
         <Mail size={16} strokeWidth={1.9} />
         {unreadMail > 0 && <Dot n={unreadMail} />}
       </Link>
 
-      <div className="relative">
-        <button className="relative text-ink-3 transition-colors hover:text-ink"
-                title="Notifications"
-                aria-label={`Notifications${unreadBells ? `, ${unreadBells} unread` : ''}`}
-                onClick={() => { setOpen((v) => !v); if (!open && unreadBells) void readAll() }}>
-          <Bell size={16} strokeWidth={1.9} />
-          {unreadBells > 0 && <Dot n={unreadBells} />}
-        </button>
-        {open && (
-          <div className="panel absolute right-0 z-30 mt-2 max-h-96 w-80 overflow-y-auto p-2">
-            {items.length === 0 ? (
-              <p className="meta p-3">Nothing yet.</p>
-            ) : (
-              items.map((n) => (
-                <Link key={n.id} to={n.link || '#'} onClick={() => setOpen(false)}
-                      className="block rounded p-2.5 hover:bg-raised">
-                  <div className="text-sm font-medium text-ink">{n.title}</div>
-                  {n.body && <div className="mt-0.5 text-xs text-ink-3">{n.body}</div>}
-                </Link>
-              ))
-            )}
-          </div>
-        )}
-      </div>
+      <Link to="/notifications" className={shape}
+            title="Notifications"
+            aria-label={`Notifications${unreadBells ? `, ${unreadBells} unread` : ''}`}>
+        <Bell size={16} strokeWidth={1.9} />
+        {unreadBells > 0 && <Dot n={unreadBells} />}
+      </Link>
     </>
   )
 }
@@ -194,9 +179,9 @@ export default function Shell({ children }: { children: ReactNode }) {
 
         {/* the four things that are always one click away, as icons */}
         <div className="mb-6 flex items-center gap-2">
-          <RailIcon to={roleHome(me.role)} label="Home"><LayoutDashboard size={17} strokeWidth={1.9} /></RailIcon>
-          <Signals />
-          <ThemeToggle />
+          <RailIcon to={roleHome(me.role)} label="Home"><LayoutDashboard size={16} strokeWidth={1.9} /></RailIcon>
+          <Signals boxed />
+          <ThemeToggle boxed />
         </div>
 
         <nav className="flex flex-1 flex-col gap-0.5">
@@ -270,9 +255,7 @@ export default function Shell({ children }: { children: ReactNode }) {
 
 function RailIcon({ to, label, children }: { to: string; label: string; children: ReactNode }) {
   return (
-    <Link to={to} title={label} aria-label={label}
-          className="flex h-9 w-9 items-center justify-center rounded border border-line
-                     text-ink-3 transition-colors hover:text-ink">
+    <Link to={to} title={label} aria-label={label} className={RAIL_SLOT}>
       {children}
     </Link>
   )

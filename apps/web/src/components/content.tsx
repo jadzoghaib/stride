@@ -19,6 +19,7 @@
  *  shape. There is deliberately no checkout: no payments stack exists yet, and
  *  a button that took money nowhere would be the one dishonest control here.
  */
+import { Lock } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { ContentItem, NewsItem } from '../types'
@@ -66,10 +67,81 @@ function NewsCard({ item }: { item: NewsItem }) {
   )
 }
 
-export function ContentCard({ item, showAuthor = false, onVote }: {
+
+/** What a locked post looks like.
+ *
+ *  Modelled on the reference product, with one deliberate difference: there is
+ *  no blurred thumbnail under the lock, because the server does not send one.
+ *  A blur is a client-side filter over bytes the reader already has -- it looks
+ *  like a wall and is a curtain, removable with the element inspector. Locked
+ *  items arrive with `media_url` withheld entirely and only a `has_media` flag,
+ *  so the panel below is drawn rather than obscured.
+ *
+ *  It still has to read as *a picture you do not have yet* rather than as an
+ *  error, which is what the old 44px grey strip read as. Hence the real media
+ *  aspect, the athlete's own cover palette, and the count line underneath: the
+ *  shape of the thing is the honest part of it.
+ */
+function LockedPanel({ item, onUnlock }: {
+  item: ContentItem
+  onUnlock?: () => void
+}) {
+  const noun = item.media_kind === 'video' ? 'video'
+    : item.media_kind === 'image' ? 'image'
+    : item.kind === 'poll' ? 'poll' : 'post'
+
+  const cta = (
+    <span className="inline-flex items-center gap-2 rounded-full bg-panel/95 px-4 py-2
+                     font-display text-[13px] uppercase tracking-micro text-ink shadow-sm
+                     ring-1 ring-line transition-transform group-hover:scale-[1.03]">
+      <Lock size={13} strokeWidth={2.2} />
+      Subscribe to unlock
+    </span>
+  )
+
+  return (
+    <div className="relative mt-3 border-y border-line">
+      {/* The field. Every layer is a background paint and none of them is a
+          filter -- a radial gradient gives the corner glow that `blur-2xl` on a
+          circle would, without putting a filtered layer in the compositor for
+          every locked card on the page. */}
+      <div className="relative flex h-64 items-center justify-center overflow-hidden" style={{
+        backgroundImage: [
+          'radial-gradient(38rem 18rem at 88% 0%, rgba(255,176,32,0.22), transparent 60%)',
+          'repeating-linear-gradient(45deg, rgba(255,255,255,0.045) 0 2px, transparent 2px 22px)',
+          'linear-gradient(135deg, #1d3b2a 0%, #16281f 55%, #0f1a14 100%)',
+        ].join(', '),
+      }}>
+        <div className="relative flex flex-col items-center gap-3">
+          {/* Three routes to the same intent, and never a dead control: the
+              subscribe action where the viewer can take it, the athlete's page
+              where the lock is met in a feed, and the sign-in page otherwise.
+              A signed-out reader used to get a chip that read "Subscribe to
+              unlock" and did nothing at all when clicked. */}
+          {onUnlock ? (
+            <button onClick={onUnlock} className="group" aria-label="Subscribe to unlock this post">
+              {cta}
+            </button>
+          ) : (
+            <Link className="group"
+                  to={item.author_slug ? `/athletes/${item.author_slug}` : '/auth'}>
+              {cta}
+            </Link>
+          )}
+          <span className="font-mono text-[12px] text-white/70">
+            1 {noun} · subscribers only
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function ContentCard({ item, showAuthor = false, onVote, onUnlock }: {
   item: ContentItem
   showAuthor?: boolean
   onVote?: (item: ContentItem, optionId: number) => void
+  onUnlock?: () => void
 }) {
   const paid = item.locked
 
@@ -107,11 +179,7 @@ export function ContentCard({ item, showAuthor = false, onVote }: {
         <video src={item.media_url} controls preload="metadata"
                className="mt-3 max-h-[26rem] w-full bg-ground object-cover" />
       )}
-      {paid && item.has_media && (
-        <div className="mt-3 flex h-44 items-center justify-center border-y border-line bg-raised">
-          <span className="cap text-ink-3">{item.media_kind || 'media'} for subscribers</span>
-        </div>
-      )}
+      {paid && <LockedPanel item={item} onUnlock={onUnlock} />}
 
       <div className="p-4">
         <h3 className="font-medium text-ink">{item.title}</h3>
@@ -128,10 +196,7 @@ export function ContentCard({ item, showAuthor = false, onVote }: {
         )}
 
         {paid ? (
-          <p className="mt-3 rounded border border-line bg-raised px-3 py-2 text-sm text-ink-3">
-            Subscribers only. Subscribe to open it.{' '}
-            <span className="meta">Subscriptions are free while this is a demo.</span>
-          </p>
+          <p className="meta mt-2">Subscriptions are free while this is a demo.</p>
         ) : (
           <>
             {item.body && (
@@ -288,12 +353,13 @@ export function Shop({ items, empty }: { items: ContentItem[]; empty: string }) 
  *  Nothing bookable appears; that has a tab of its own, where a price and a
  *  date are the point rather than an interruption.
  */
-export function Wall({ items, news = [], showAuthor = false, empty, onVote }: {
+export function Wall({ items, news = [], showAuthor = false, empty, onVote, onUnlock }: {
   items: ContentItem[]
   news?: NewsItem[]
   showAuthor?: boolean
   empty: string
   onVote?: (item: ContentItem, optionId: number) => void
+  onUnlock?: () => void
 }) {
   const posts = items.filter((i) => (i.kind === 'post' || i.kind === 'poll') && i.part_of == null)
 
@@ -301,7 +367,7 @@ export function Wall({ items, news = [], showAuthor = false, empty, onVote }: {
     ...posts.map((i) => ({
       key: `c${i.id}`,
       at: new Date(i.published_at ?? 0).getTime(),
-      node: <ContentCard item={i} showAuthor={showAuthor} onVote={onVote} />,
+      node: <ContentCard item={i} showAuthor={showAuthor} onVote={onVote} onUnlock={onUnlock} />,
     })),
     ...news.map((n, idx) => ({
       key: `n${idx}-${n.permalink}`,

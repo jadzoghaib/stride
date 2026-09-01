@@ -12,7 +12,7 @@
  */
 
 import { useRef, useState, type ReactNode } from 'react'
-import { LAND_PATH } from './land'
+import { COUNTRY_NAMES, COUNTRY_PATHS } from './countries'
 
 const AGE_ORDER = ['13-17', '18-24', '25-34', '35-44', '45-54', '55+']
 
@@ -231,110 +231,102 @@ const CENTROIDS: Record<string, { lat: number; lon: number; name: string }> = {
   AU: { lat: -25.3, lon: 133.8, name: 'Australia' },
 }
 
+/** Five steps, palest to deepest.
+ *
+ *  Opacities of the accent rather than five fixed hex values, because the map
+ *  sits on `bg-ground-deep` and that ground is a different colour in each
+ *  theme. A pale amber that reads correctly on the dark ground is very nearly
+ *  invisible on the light one; the same amber at 18% composites against
+ *  whichever ground is actually behind it and stays a fifth of the way up the
+ *  ramp in both. */
+const RAMP = [0.16, 0.34, 0.52, 0.72, 0.94]
+
+/** Which step a share falls in — equal-width bins from zero to the largest
+ *  share present, so the ramp spends its whole range on the data that is
+ *  actually there rather than on the 0-100% a share could theoretically be. */
+function step(share: number, max: number): number {
+  if (max <= 0) return 0
+  const i = Math.ceil((share / max) * RAMP.length) - 1
+  return Math.min(RAMP.length - 1, Math.max(0, i))
+}
+
 export function CountryMap({ data }: { data: Record<string, number> }) {
   const W = 560
   const H = 270
-  const px = (lon: number) => ((lon + 180) / 360) * W
   const py = (lat: number) => ((78 - lat) / 150) * H // crop polar dead space
   const ranked = Object.entries(data).sort((a, b) => b[1] - a[1])
-  const maxShare = Math.max(
-    ...Object.entries(data).filter(([c]) => c in CENTROIDS).map(([, s]) => s),
-    0.01,
-  )
-
-  /* Bubbles are placed on true centroids, and European centroids are ~15px
-     apart at this projection width. The radius is capped at 16 (it was 29, and
-     the largest bubble swallowed its neighbours' labels whole), then each label
-     is placed only where it can actually be read: inside when the bubble is
-     large enough and its centre is not covered by a bigger one, otherwise
-     outside, pushed along the vector away from the cluster. Draw order is
-     largest-first so small bubbles stay on top. */
-  const mapped = Object.entries(data)
-    .filter(([code]) => code in CENTROIDS)
-    .sort((a, b) => b[1] - a[1])
-    .map(([code, share]) => ({
-      code,
-      share,
-      x: px(CENTROIDS[code].lon),
-      y: py(CENTROIDS[code].lat),
-      r: 5 + Math.sqrt(share / maxShare) * 11,
-    }))
-
-  /** Where a label can actually be read. Inside the bubble when it is big
-   *  enough and nothing larger covers its centre; otherwise the first of
-   *  below / above / right / left that does not land inside another bubble.
-   *  A fixed candidate order keeps placement stable between renders — a
-   *  direction derived from the cluster's centre of mass just aims the label at
-   *  whichever neighbour happens to be nearest. */
   const h = useHover()
-  const bubbles = mapped.map((b, i) => {
-    const covered = mapped.some((o, j) => j < i && Math.hypot(o.x - b.x, o.y - b.y) < o.r)
-    if (b.r >= 11 && !covered) return { ...b, inside: true, lx: b.x, ly: b.y + 3.5 }
 
-    const gap = b.r + 10
-    const candidates = [
-      [0, gap],
-      [0, -gap],
-      [gap + 4, 0],
-      [-gap - 4, 0],
-    ]
-    const free = candidates.find(([dx, dy]) =>
-      mapped.every((o) => o === b || Math.hypot(b.x + dx - o.x, b.y + dy - o.y) > o.r + 4),
-    ) ?? candidates[0]
-    return { ...b, inside: false, lx: b.x + free[0], ly: b.y + free[1] + 3.5 }
-  })
+  /* A choropleth, not bubbles.
+   *
+   * The bubbles encoded share as circle *area*, which people compare badly, and
+   * placed it at a country's centroid — so the mark sat on the country instead
+   * of being it, and the European centroids are close enough at this width that
+   * Germany, France and Great Britain overlapped into a single blob with the
+   * labels fighting for the gaps. Filling the country says the same thing with
+   * no placement problem and no label-avoidance code at all: the shape is the
+   * label. */
+  const shares = Object.entries(data).filter(([code]) => code in COUNTRY_PATHS)
+  const maxShare = Math.max(...shares.map(([, v]) => v), 0.0001)
+  const name = (code: string) => COUNTRY_NAMES[code] ?? CENTROIDS[code]?.name ?? code
 
   return (
     <ChartCard title="Countries">
       <div ref={h.box} className="relative" onMouseMove={h.move} onMouseLeave={h.leave}>
       <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded bg-ground-deep" role="img" aria-label="Audience by country">
-          {/* The land itself, not a grid. A bubble at 46.6N 2.2E means nothing
-              without a France under it — the grid was a coordinate system
-              standing in for a map, and a reader had to already know where the
-              countries were to read it. Drawn in the same projection the
-              bubbles are placed with, so they land where they belong. */}
-          <path d={LAND_PATH} className="fill-raised stroke-line" strokeWidth={0.5} />
-
-          {/* equator, as the one line worth keeping from the graticule */}
-          <line x1={8} y1={py(0)} x2={W - 8} y2={py(0)} className="stroke-line-strong"
-                strokeWidth={1} strokeDasharray="3 5" />
-          {bubbles.map((b) => (
-            <g
-              key={b.code}
-              className={`cursor-default transition-opacity ${focus(h.key, b.code)}`}
-              {...h.on(b.code, `${CENTROIDS[b.code].name} · ${pct(b.share)} of audience`)}
-            >
-              <circle
-                cx={b.x}
-                cy={b.y}
-                r={b.r}
-                className="fill-accent stroke-ground-deep"
-                fillOpacity={0.85}
-                strokeWidth={1.5}
-              />
-              <text
-                x={b.lx}
-                y={b.ly}
-                textAnchor="middle"
-                fontSize={b.inside ? 10 : 9.5}
-                fontWeight={700}
-                /* inside: dark on amber (--c-accent-on). outside: ink with a
-                   ground-coloured halo, so it stays legible over the graticule
-                   or over another bubble. */
-                className={b.inside ? 'fill-accent-on' : 'fill-ink-2 stroke-ground-deep'}
-                strokeWidth={b.inside ? 0 : 3}
-                paintOrder="stroke"
-              >
-                {b.code}
-              </text>
+        <div>
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded bg-ground-deep"
+               role="img" aria-label="Audience by country">
+            {/* Every country, in the neutral land fill. This is the base map and
+                also the "no data" state: a country nobody in this audience lives
+                in is drawn, and drawn plainly, which is a different statement
+                from not drawing it. */}
+            <g className="fill-raised stroke-line" strokeWidth={0.35}>
+              {Object.entries(COUNTRY_PATHS).map(([code, d]) => (
+                <path key={code} d={d} />
+              ))}
             </g>
-          ))}
-        </svg>
+
+            {/* equator, as the one line worth keeping from the graticule */}
+            <line x1={8} y1={py(0)} x2={W - 8} y2={py(0)} className="stroke-line-strong"
+                  strokeWidth={0.8} strokeDasharray="3 5" />
+
+            {/* the data on top, so a filled country keeps its own outline */}
+            {shares.map(([code, share]) => (
+              <path
+                key={code}
+                d={COUNTRY_PATHS[code]}
+                className={`cursor-default fill-accent transition-opacity ${focus(h.key, code)}`}
+                fillOpacity={RAMP[step(share, maxShare)]}
+                stroke={h.key === code ? 'currentColor' : 'none'}
+                strokeWidth={h.key === code ? 1.2 : 0}
+                {...h.on(code, `${name(code)} · ${pct(share)} of audience`)}
+              />
+            ))}
+          </svg>
+
+          {/* The legend. Without it the ramp is decoration — a reader can see
+              that one country is darker than another and cannot say by how
+              much. The end labels are the real bin edges, so the scale is
+              readable rather than merely present. */}
+          <div className="mt-2 flex items-center gap-2">
+            <span className="meta">less</span>
+            <div className="flex flex-1 gap-0.5">
+              {RAMP.map((o, i) => (
+                <div key={o} className="h-2 flex-1 rounded-[1px] bg-accent"
+                     style={{ opacity: o }}
+                     title={`${pct((i / RAMP.length) * maxShare)} – ${pct(((i + 1) / RAMP.length) * maxShare)}`} />
+              ))}
+            </div>
+            <span className="meta">more</span>
+            <span className="meta tnum ml-1">up to {pct(maxShare)}</span>
+          </div>
+        </div>
+
         <div className="space-y-1.5 self-center text-xs">
           {/* Cross-highlighted with the map: hovering either lights the other,
               which is the point of showing a chart and a table of the same
-              numbers side by side. `OTHER` has no bubble, so it dims nothing. */}
+              numbers side by side. `OTHER` has no shape, so it dims nothing. */}
           {ranked.slice(0, 6).map(([code, share]) => (
             <div
               key={code}
@@ -342,8 +334,8 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
                 h.key === code ? 'bg-raised' : ''
               }`}
               {...h.on(
-                CENTROIDS[code] ? code : '',
-                `${CENTROIDS[code]?.name ?? code} · ${pct(share)} of audience`,
+                code in COUNTRY_PATHS ? code : '',
+                `${name(code)} · ${pct(share)} of audience`,
               )}
             >
               <span className="w-8 font-display font-semibold uppercase tracking-board text-ink-2">{code}</span>

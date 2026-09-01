@@ -103,6 +103,12 @@ ROUTES: list[tuple] = [
     ("GET", f"/api/club/workspace", ("club",)),
     ("GET", f"/api/sponsor/workspace", ("sponsor",)),
     ("GET", f"/api/sponsor/athletes/kaia-mercer/analytics", ("sponsor",)),
+    # a campaign's delivered performance, including every athlete's fee on it
+    ("GET", f"/api/campaigns/1/analytics", ("sponsor",)),
+    # notifications and DMs belong to whoever they were raised for
+    ("GET", f"/api/notifications", ("athlete", "club", "sponsor", "fan", "admin")),
+    ("GET", f"/api/inbox", ("athlete", "club", "sponsor", "fan", "admin")),
+    ("GET", f"/api/athlete/invitations", ("athlete",)),
     ("GET", f"/api/admin/review-queue", ("admin",)),
     ("GET", f"/api/admin/events", ("admin",)),
     # the outbox holds applicants' names, decisions and email addresses

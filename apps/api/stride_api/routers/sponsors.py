@@ -371,7 +371,13 @@ def deal_performance(deal_id: int, user: dict = Depends(require_role("sponsor"))
         # "delivered a hundred per cent below plan", which is a worse lie than
         # the zero it sat beside — it is an accusation about an athlete who has
         # simply not posted yet.
-        "variance_pct": round(100 * (reach - projected) / projected, 1)
+        #
+        # Per post on both sides. `projected_reach` is explicitly "expected reach
+        # of ONE post" (see `_projected_reach`), and this compared it against the
+        # *sum* across every attached post — so an athlete who delivered two
+        # ordinary posts scored as a triumph and one who delivered a single
+        # strong post scored as a failure, purely on how many they attached.
+        "variance_pct": round(100 * (reach / measured - projected) / projected, 1)
                         if projected and measured else None,
         "cost_per_1k_reach": round(amount / (reach / 1000), 2) if reach else None,
         "cost_per_engagement": round(amount / engagements, 2) if engagements >= 1 else None,
@@ -412,3 +418,159 @@ def athlete_analytics(slug: str, campaign_id: int | None = None,
         posts.sort(key=lambda p: p["published_at"], reverse=True)
         result["posts"] = posts[:15]
     return result
+
+
+# ---- campaign analytics ------------------------------------------------------
+
+
+@router.get("/campaigns/{campaign_id}/analytics")
+def campaign_analytics(campaign_id: int, user: dict = Depends(require_role("sponsor")),
+                       conn: sqlite3.Connection = Depends(get_db)):
+    """The campaign, measured — the per-deal view summed across every athlete on it.
+
+    Nothing new is measured here. `GET /deals/{id}/performance` already reports
+    what one athlete delivered, scoped to the posts they attached; this walks a
+    campaign's deals, runs the same arithmetic, and adds the three things that
+    only exist once there is more than one athlete: a ranked table, blended cost
+    efficiency, and an audience estimate.
+
+    Two properties are worth stating because they are what make the numbers
+    defensible rather than merely present.
+
+    **The scope is the attached post, not the athlete.** A sponsor sees the
+    metrics of posts an athlete deliberately attached to this deal, and nothing
+    else on that account — not their other posts, not their follower graph, not
+    their other sponsors' work. The join through `deal_deliverables` *is* the
+    permission boundary, and it is the same one the single-deal endpoint uses.
+
+    **The country split is an estimate, and is labelled as one.** No platform
+    exposes per-impression geography at post level, so this weights each
+    athlete's own audience-country mix by the reach they actually delivered.
+    That is a real, checkable derivation -- it is not a measurement, and calling
+    it one would be the easiest lie in the product to tell.
+    """
+    org = _own_org(conn, user)
+    campaign = row(conn, "SELECT * FROM campaigns WHERE id = ? AND org_id = ?",
+                   (campaign_id, org["id"]))
+    if campaign is None:
+        raise HTTPException(404, "unknown_campaign")
+
+    targets = json.loads(campaign["target_countries"] or "[]")
+
+    deals = rows(conn, """
+        SELECT d.*, a.display_name AS athlete_name, a.slug AS athlete_slug,
+               a.sport, a.creatorlens_creator_id
+        FROM deals d JOIN athlete_profiles a ON a.id = d.athlete_id
+        WHERE d.campaign_id = ? ORDER BY d.id""", (campaign_id,))
+
+    athletes: list[dict] = []
+    country_reach: dict[str, float] = {}
+    total_reach = total_engagements = 0.0
+    committed = measured_reach_spend = 0
+    posts_attached = deals_measured = 0
+
+    for deal in deals:
+        # Spend is what was committed, which is every deal the athlete said yes
+        # to. A declined or withdrawn offer costs nothing and must not dilute
+        # the cost-efficiency figures below.
+        live = deal["status"] in ("accepted", "completed")
+        if live:
+            committed += deal["amount_eur"]
+
+        reach = 0
+        engagements = 0.0
+        measured = 0
+        for link in rows(conn, "SELECT post_id FROM deal_deliverables WHERE deal_id = ?",
+                         (deal["id"],)):
+            post = row(conn, """
+                SELECT p.id, pa.platform FROM posts p
+                JOIN platform_accounts pa ON pa.id = p.account_id
+                WHERE p.id = ?""", (link["post_id"],))
+            if post is None:
+                continue
+            posts_attached += 1
+            metric = row(conn, "SELECT * FROM post_metrics WHERE post_id = ?"
+                         " ORDER BY captured_at DESC, id DESC LIMIT 1", (post["id"],))
+            if metric is None or metric["reach"] is None:
+                continue
+            er = engagement_rate(post["platform"], metric)
+            measured += 1
+            reach += metric["reach"]
+            engagements += metric["reach"] * (er or 0)
+
+        if measured:
+            deals_measured += 1
+            total_reach += reach
+            total_engagements += engagements
+            if live:
+                # The denominator for blended cost has to be the spend that
+                # actually bought the measured reach. Dividing total spend by
+                # measured reach charges the athletes who have posted for the
+                # ones who have not, and the campaign looks more expensive than
+                # it is every time somebody is slow to deliver.
+                measured_reach_spend += deal["amount_eur"]
+
+            # The audience estimate: this athlete's country mix, weighted by
+            # what they actually delivered.
+            creator_id = deal["creatorlens_creator_id"]
+            if creator_id:
+                mix = _combined_demographics(
+                    conn, creator_kpis(conn, creator_id))["dimensions"].get("country", {})
+                for code, share in mix.items():
+                    country_reach[code] = country_reach.get(code, 0.0) + reach * share
+
+        athletes.append({
+            "deal_id": deal["id"],
+            "athlete_name": deal["athlete_name"],
+            "athlete_slug": deal["athlete_slug"],
+            "sport": deal["sport"],
+            "status": deal["status"],
+            "deal_type": deal["deal_type"],
+            "amount_eur": deal["amount_eur"],
+            "posts": measured,
+            # null, not zero, everywhere a measurement is missing -- the product
+            # rule the single-deal endpoint states at length
+            "reach": reach if measured else None,
+            "engagements": round(engagements) if measured else None,
+            "projected_reach": deal["projected_reach"],
+            # per post on both sides, as in `deal_performance` above
+            "variance_pct": round(100 * (reach / measured - deal["projected_reach"])
+                                  / deal["projected_reach"], 1)
+                            if deal["projected_reach"] and measured else None,
+            "cost_per_1k_reach": round(deal["amount_eur"] / (reach / 1000), 2)
+                                 if reach and live else None,
+        })
+
+    on_target = sum(v for c, v in country_reach.items() if c in targets)
+    estimated = sum(country_reach.values())
+
+    return {
+        "campaign": {
+            "id": campaign["id"], "name": campaign["name"], "status": campaign["status"],
+            "objective": campaign["objective"], "category": campaign["category"],
+            "target_countries": targets,
+        },
+        "totals": {
+            "athletes": len(deals),
+            "athletes_live": sum(1 for d in deals if d["status"] in ("accepted", "completed")),
+            "committed_eur": committed,
+            "posts_attached": posts_attached,
+            "deals_measured": deals_measured,
+            "reach": round(total_reach) if deals_measured else None,
+            "engagements": round(total_engagements) if deals_measured else None,
+            "cost_per_1k_reach": round(measured_reach_spend / (total_reach / 1000), 2)
+                                 if total_reach and measured_reach_spend else None,
+            "cost_per_engagement": round(measured_reach_spend / total_engagements, 2)
+                                   if total_engagements >= 1 and measured_reach_spend else None,
+        },
+        "athletes": athletes,
+        # Shares rather than raw counts: the absolute numbers here would look
+        # like measured per-country reach, which is exactly what they are not.
+        "audience_estimate": {
+            "by_country": {c: round(v / estimated, 4)
+                           for c, v in sorted(country_reach.items(), key=lambda x: -x[1])}
+                          if estimated else {},
+            "on_target_share": round(on_target / estimated, 4) if estimated else None,
+            "basis": "delivered reach weighted by each athlete's audience mix",
+        },
+    }

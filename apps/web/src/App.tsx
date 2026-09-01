@@ -9,11 +9,12 @@ import ReviewQueue from './views/admin/ReviewQueue'
 import Legal from './views/legal/Legal'
 import YourData from './views/legal/YourData'
 import AthletePublicView from './views/AthletePublic'
-import AthletesDirectory from './views/AthletesDirectory'
 import Auth from './views/Auth'
+import Directory from './views/Directory'
+import MyClubs from './views/athlete/MyClubs'
 import Inbox from './views/Inbox'
+import Notifications from './views/Notifications'
 import ClubPublic from './views/ClubPublic'
-import ClubsDirectory from './views/ClubsDirectory'
 import Landing from './views/Landing'
 import NotFound from './views/NotFound'
 import ClubDashboard from './views/club/Dashboard'
@@ -26,6 +27,7 @@ import AthleteProfile from './views/athlete/Profile'
 import Discover from './views/fan/Discover'
 import Feed from './views/fan/Feed'
 import AthleteEvidence from './views/sponsor/AthleteEvidence'
+import CampaignAnalytics from './views/sponsor/CampaignAnalytics'
 import CampaignMatches from './views/sponsor/CampaignMatches'
 import SponsorCampaigns from './views/sponsor/Campaigns'
 import SponsorPipeline from './views/sponsor/Pipeline'
@@ -78,9 +80,9 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
 
-          <Route path="/athletes" element={<Public><AthletesDirectory /></Public>} />
+          <Route path="/athletes" element={<Public><Directory /></Public>} />
           <Route path="/athletes/:slug" element={<Public><AthletePublicView /></Public>} />
-          <Route path="/clubs" element={<Public><ClubsDirectory /></Public>} />
+          <Route path="/clubs" element={<Public><Directory /></Public>} />
           <Route path="/clubs/:slug" element={<Public><ClubPublic /></Public>} />
           <Route path="/club" element={<Guard roles={['club']}><ClubDashboard /></Guard>} />
           <Route path="/club/eligibility" element={<Guard roles={['club']}><ClubEligibility /></Guard>} />
@@ -89,10 +91,12 @@ export default function App() {
           <Route path="/athlete/deals" element={<Guard roles={['athlete']}><AthleteDeals /></Guard>} />
           <Route path="/athlete/profile" element={<Guard roles={['athlete']}><AthleteProfile /></Guard>} />
           <Route path="/athlete/content" element={<Guard roles={['athlete']}><AthleteContent /></Guard>} />
+          <Route path="/athlete/clubs" element={<Guard roles={['athlete']}><MyClubs /></Guard>} />
           <Route path="/athlete/application" element={<Guard roles={['athlete']}><AthleteApplication /></Guard>} />
 
           <Route path="/sponsor" element={<Guard roles={['sponsor']}><SponsorCampaigns /></Guard>} />
           <Route path="/sponsor/campaigns/:id" element={<Guard roles={['sponsor']}><CampaignMatches /></Guard>} />
+          <Route path="/sponsor/campaigns/:id/analytics" element={<Guard roles={['sponsor']}><CampaignAnalytics /></Guard>} />
           <Route path="/sponsor/athletes/:slug" element={<Guard roles={['sponsor']}><AthleteEvidence /></Guard>} />
           <Route path="/sponsor/pipeline" element={<Guard roles={['sponsor']}><SponsorPipeline /></Guard>} />
 
@@ -101,6 +105,7 @@ export default function App() {
               account has none of). A client guard that is more permissive than
               require_role just routes people to a 403. */}
           <Route path="/inbox" element={<Guard roles={['athlete', 'club', 'sponsor', 'fan', 'admin']}><Inbox /></Guard>} />
+          <Route path="/notifications" element={<Guard roles={['athlete', 'club', 'sponsor', 'fan', 'admin']}><Notifications /></Guard>} />
           <Route path="/discover" element={<Guard roles={['fan', 'athlete', 'sponsor', 'admin']}><Discover /></Guard>} />
           <Route path="/feed" element={<Guard roles={['fan', 'athlete', 'sponsor']}><Feed /></Guard>} />
 

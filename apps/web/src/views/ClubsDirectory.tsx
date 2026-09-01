@@ -4,7 +4,7 @@ import { LoadError, PageHeader, PageLoading, Avatar, EmptyNote } from '../compon
 import { api, errorText } from '../lib/api'
 import type { Club } from '../types'
 
-export default function ClubsDirectory() {
+export default function ClubsDirectory({ embedded = false }: { embedded?: boolean } = {}) {
   const [clubs, setClubs] = useState<Club[] | null>(null)
   const [q, setQ] = useState('')
   const [sport, setSport] = useState('')
@@ -32,16 +32,19 @@ export default function ClubsDirectory() {
 
   return (
     <div>
+      {!embedded && (
       <PageHeader
-        eyebrow="Directory"
-        title="Clubs"
-        lede="Clubs manage rosters of Stride athletes and publish sponsorship packages — including player-direct packages that back an individual athlete through the club."
-        aside={<span className="meta">
-          {shown.length === clubs.length
-            ? `${clubs.length} club${clubs.length === 1 ? '' : 's'}`
-            : `${shown.length} of ${clubs.length}`}
-        </span>}
-      />
+          eyebrow="Directory"
+          title="Clubs"
+          lede="Clubs manage rosters of Stride athletes and publish sponsorship packages — including player-direct packages that back an individual athlete through the club."
+          aside={<span className="meta">
+            {shown.length === clubs.length
+              ? `${clubs.length} club${clubs.length === 1 ? '' : 's'}`
+              : `${shown.length} of ${clubs.length}`}
+          </span>}
+        />
+      )}
+
 
       {/* The same three questions the athlete directory and Discover ask.
           This list had none of them: it was the one directory you could only
