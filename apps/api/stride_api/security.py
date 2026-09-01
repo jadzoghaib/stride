@@ -61,7 +61,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 class BodySizeLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         content_length = request.headers.get("content-length")
-        if content_length and content_length.isdigit() and int(content_length) > settings.max_body_bytes:
+        # Uploads are the one route that is meant to be large, and they carry
+        # their own ceiling. Everything else keeps the tight one.
+        limit = settings.max_upload_bytes             if request.url.path.startswith("/api/media") else settings.max_body_bytes
+        if content_length and content_length.isdigit() and int(content_length) > limit:
             return JSONResponse({"detail": "payload_too_large"}, status_code=413)
         return await call_next(request)
 

@@ -8,6 +8,7 @@ dependencies = [
     "uvicorn>=0.30",
     "pyjwt>=2.9",
     "psycopg[binary]>=3.2",
+    "python-multipart>=0.0.9",   # multipart/form-data, for media upload
     "creatorlens",
 ]
 

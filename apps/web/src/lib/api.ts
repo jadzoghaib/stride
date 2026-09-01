@@ -39,9 +39,31 @@ export const api = {
   post: <T>(path: string, body?: unknown) => request<T>('POST', path, body ?? {}),
   put: <T>(path: string, body: unknown) => request<T>('PUT', path, body),
   del: <T>(path: string) => request<T>('DELETE', path),
+
+  /** Multipart, so it cannot go through `request`: setting Content-Type by
+   *  hand on a FormData body drops the boundary the browser generates, and the
+   *  server then sees one unparseable blob. Letting fetch set the header is the
+   *  whole trick. */
+  async upload<T>(path: string, file: File): Promise<T> {
+    const form = new FormData()
+    form.append('file', file)
+    const res = await fetch(path, { method: 'POST', credentials: 'same-origin', body: form })
+    if (!res.ok) {
+      let detail = res.statusText
+      try {
+        const data = await res.json()
+        detail = typeof data.detail === 'string' ? data.detail : detail
+      } catch { /* keep statusText */ }
+      throw new ApiError(res.status, detail)
+    }
+    return res.json() as Promise<T>
+  },
 }
 
 export const ERROR_TEXT: Record<string, string> = {
+  unsupported_media_type: 'That file type is not supported — JPEG, PNG, WebP, GIF, MP4 or WebM.',
+  content_does_not_match_its_type: 'That file is not the kind of image or video it claims to be.',
+  empty_file: 'That file is empty.',
   invalid_credentials: 'Email or password is incorrect.',
   email_exists: 'An account with this email already exists.',
   offer_already_open: 'There is already an open offer to this athlete for this campaign.',
@@ -69,7 +91,7 @@ export const ERROR_TEXT: Record<string, string> = {
   email_not_confirmed: 'Please confirm your email first — check your inbox for the confirmation link.',
   identity_provider_unreachable: 'The sign-in service is unreachable right now. Try again in a moment.',
   rate_limited: 'Too many attempts — wait a moment and try again.',
-  payload_too_large: 'That request is too large.',
+  payload_too_large: 'That is too large — uploads are capped at 8 MB.',
   session_revoked: 'Your session was signed out. Please sign in again.',
   already_backing_package: 'Your organization already backs this package.',
   already_on_roster: 'This athlete is already on your roster.',

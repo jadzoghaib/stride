@@ -516,6 +516,18 @@ REJECTION_REASONS = {
 }
 
 
+#: Why a club's roster page was refused. Separate from the athlete list because
+#: they fail differently: an athlete is missing from a page, a club is missing
+#: from a register.
+CLUB_REJECTION_REASONS = {
+    "club_not_on_page": "The page you linked does not appear to be this club's roster.",
+    "link_did_not_open": "The link did not open for us.",
+    "not_a_registered_club": "We could not match the registration or federation details.",
+    "roster_too_small": "The roster does not show the number of athletes declared.",
+    "other": "",
+}
+
+
 class ProofIn(BaseModel):
     proof_status: str
     #: required when rejecting, ignored otherwise
@@ -813,6 +825,15 @@ def redeem_invite_link(token: str, body: RedeemIn,
     return verdict
 
 
+@router.get("/admin/club-rejection-reasons")
+def club_rejection_reasons(_: dict = Depends(require_role("admin"))):
+    """The club reviewer's dropdown, served for the same reason as the athlete
+    one: a second copy in the client drifts, and the copy that drifts is the
+    one somebody is reading."""
+    return [{"value": k, "label": v or "Something else — say what in the note"}
+            for k, v in CLUB_REJECTION_REASONS.items()]
+
+
 @router.get("/admin/rejection-reasons")
 def rejection_reasons(_: dict = Depends(require_role("admin"))):
     """The reviewer's dropdown, served rather than duplicated in the client.
@@ -937,6 +958,13 @@ def set_club_proof(club_id: int, body: ProofIn,
         raise HTTPException(404, "unknown_club_application")
     if body.proof_status == "verified" and not proofcheck.looks_openable(application["roster_url"]):
         raise HTTPException(409, "no_proof_to_check")
+    # Same rule as the athlete side, and for the same reason: "rejected" with no
+    # reason is a dead end for the club and for the next reviewer to open it.
+    if body.proof_status == "rejected":
+        if body.reason not in CLUB_REJECTION_REASONS:
+            raise HTTPException(422, "unknown_rejection_reason")
+        if body.reason == "other" and not body.note.strip():
+            raise HTTPException(422, "other_needs_a_note")
     application = {**application, "proof_status": body.proof_status}
     scored = club_legitimacy(application)
     conn.execute("UPDATE club_applications SET proof_status = ?, legitimacy = ?,"
@@ -945,9 +973,59 @@ def set_club_proof(club_id: int, body: ProofIn,
                   POLICY_VERSION, now_iso(), club_id))
     log_event(conn, "user", "club.proof_checked", "club", club_id,
               {"proof_status": body.proof_status, "legitimacy": scored["legitimacy"],
-               "decision": scored["decision"], "reviewer": user["id"]})
+               "decision": scored["decision"], "reviewer": user["id"],
+               "reason": body.reason})
+    if body.proof_status in ("verified", "rejected"):
+        queue_club_email(conn, club_id, decision=scored["decision"],
+                         proof_status=body.proof_status, reason=body.reason,
+                         note=body.note.strip())
     conn.commit()
     return scored
+
+
+def queue_club_email(conn, club_id: int, *, decision: str, proof_status: str,
+                     reason: str, note: str) -> None:
+    """The club's half of "tell them what was decided and why".
+
+    Queued, not sent, for the same reason as the athlete one: there is no mail
+    provider, and a call that claimed to deliver would be the only unverifiable
+    step in a trail built to be verifiable.
+    """
+    club = row(conn, "SELECT id, name, user_id FROM clubs WHERE id = ?", (club_id,))
+    if club is None or not club["user_id"]:
+        return
+    account = row(conn, "SELECT id, email, display_name FROM users WHERE id = ?",
+                  (club["user_id"],))
+    if account is None:
+        return
+
+    if proof_status == "verified":
+        subject = f"{club['name']} is verified on Stride"
+        lines = [
+            f"Hi {account['display_name']},",
+            "We checked your roster page and verified the club.",
+            "You can now invite athletes with a link that skips the proof queue, and nominate"
+            " athletes who apply on their own. Both are bounded by the roster size you"
+            " declared.",
+        ]
+    else:
+        subject = f"About {club['name']}'s verification"
+        lines = [
+            f"Hi {account['display_name']},",
+            "We looked at the roster page on your application and could not verify the club."
+            + (" " + CLUB_REJECTION_REASONS[reason] if CLUB_REJECTION_REASONS.get(reason) else ""),
+            "You can update the application and submit a different page at any time.",
+        ]
+    if note:
+        lines.append("From the reviewer:" + chr(10) + note)
+    lines.append("-- Stride")
+
+    conn.execute("INSERT INTO email_outbox (to_email, to_user_id, subject, body, kind,"
+                 " created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                 (account["email"], account["id"], subject,
+                  (chr(10) * 2).join(lines), f"club.{proof_status}", now_iso()))
+    notify(conn, account["id"], f"club.{proof_status}", subject, lines[1][:140],
+           "/club/eligibility")
 
 
 @router.post("/admin/clubs/{club_id}/revoke")

@@ -104,6 +104,9 @@ ROUTES: list[tuple] = [
     # the outbox holds applicants' names, decisions and email addresses
     ("GET", f"/api/admin/outbox", ("admin",)),
     ("GET", f"/api/admin/rejection-reasons", ("admin",)),
+    ("GET", f"/api/admin/club-rejection-reasons", ("admin",)),
+    # only the people who publish can write files to our disk
+    ("POST", f"/api/media", ("athlete", "club"), "state-gated"),
     ("GET", f"/api/athlete/invitations", ("athlete",)),
     ("GET", f"/api/athlete/posts", ("athlete",)),
     # these three have to agree: a role that can read the followed-content feed
