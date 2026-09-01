@@ -6,7 +6,7 @@ import { LoadError, Modal, PageLoading, Avatar, EmptyNote, Section, StatusChip }
 import { api, errorText } from '../../lib/api'
 import { CONTENT_KINDS, CONTENT_TIERS } from '../../types'
 import { useToast } from '../../lib/toast'
-import { COUNTRIES, SPORTS, withCurrent } from '../../lib/reference'
+import { COUNTRIES, REGIONS, SPORTS, withCurrent } from '../../lib/reference'
 import { openable } from '../../lib/url'
 import { fmtDate, fmtMoney } from '../../lib/format'
 import type { ClubWorkspace, ContentItem, RosterMember } from '../../types'
@@ -375,7 +375,9 @@ function ProfileForm({ editable, onSaved }: { editable: ClubWorkspace['editable'
             {withCurrent(COUNTRIES, form.country).map((o) => <option key={o} value={o}>{o}</option>)}
           </select></label>
         <label className="block"><span className="cap">Region</span>
-          <input className="field mt-1" value={form.region} onChange={(e) => set('region', e.target.value)} /></label>
+          <select className="field mt-1" value={form.region} onChange={(e) => set('region', e.target.value)}>
+            {withCurrent(REGIONS, form.region).map((o) => <option key={o} value={o}>{o}</option>)}
+          </select></label>
       </div>
       <label className="mt-4 block"><span className="cap">About the club</span>
         <textarea className="field mt-1 min-h-20" value={form.bio} onChange={(e) => set('bio', e.target.value)} /></label>

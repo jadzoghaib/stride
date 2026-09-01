@@ -10,7 +10,10 @@ Demo accounts (password for all: stride123)
   athlete@demo.stride  — claims the Kaia Mercer profile (3 platforms connected)
   athlete2@demo.stride — Sofia Brandt, still in the review queue: the applicant a
                          reviewer can decide on and actually write to
-  club@demo.stride     — Meridian FC (roster + packages incl. player-direct)
+  club@demo.stride     — Meridian FC (roster + packages incl. player-direct),
+                         still in the review queue so verification can be shown
+  club2@demo.stride    — Ironline Combat Club, already verified: invite links and
+                         nominations work without playing an admin first
   sponsor@demo.stride  — Northwind Apparel, 2 active campaigns
   fan@demo.stride      — follows a handful of athletes
   admin@demo.stride    — chaos controls + audit access
@@ -405,6 +408,36 @@ def seed(conn: sqlite3.Connection) -> dict:
          club_fields["roster_url"], club_fields["proof_kind"], club_fields["proof_status"],
          club_scored["legitimacy"], club_scored["decision"], POLICY_VERSION,
          now_iso(), now_iso()))
+
+    # Ironline is seeded already verified, and Meridian deliberately is not.
+    # One of each is the point: Meridian sits in the review queue so the
+    # verification step can be demonstrated, and Ironline is past it so the
+    # things verification unlocks -- nominations, invite links -- are reachable
+    # without first playing an admin. Without a verified club, "New link" only
+    # ever answered "your club has to be verified", and the feature was
+    # invisible in the demo it was built for.
+    ironline_fields = dict(
+        legal_name="Ironline Combat Club SA de CV", registration_id="IRN-771204",
+        federation_name="Federación Mexicana de Boxeo", federation_id="FMB-3320",
+        founded_year=2009, competition_level="national", teams_count=3,
+        registered_athletes=18, roster_url="https://ironline.example/roster",
+        proof_kind="roster", proof_status="verified")
+    ironline_scored = club_legitimacy(ironline_fields)
+    ironline = row(conn, "SELECT id FROM clubs WHERE slug = 'ironline-combat'")
+    conn.execute(
+        "INSERT INTO club_applications (club_id, legal_name, registration_id, federation_name,"
+        " federation_id, founded_year, competition_level, teams_count, registered_athletes,"
+        " roster_url, proof_kind, proof_status, legitimacy, decision, policy_version,"
+        " submitted_at, decided_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'verified',"
+        " ?, ?, ?)",
+        (ironline["id"], ironline_fields["legal_name"], ironline_fields["registration_id"],
+         ironline_fields["federation_name"], ironline_fields["federation_id"],
+         ironline_fields["founded_year"], ironline_fields["competition_level"],
+         ironline_fields["teams_count"], ironline_fields["registered_athletes"],
+         ironline_fields["roster_url"], ironline_fields["proof_kind"],
+         ironline_fields["proof_status"], ironline_scored["legitimacy"], POLICY_VERSION,
+         now_iso(), now_iso()))
+    summary["applications"] = summary.get("applications", 0) + 1
 
     # ---- fans ----------------------------------------------------------------
     fan_id = _insert_user(conn, "fan@demo.stride", "Jordan Ellis", "fan")

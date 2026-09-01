@@ -48,6 +48,13 @@ export const COUNTRIES = [
   'Zimbabwe',
 ] as const
 
+/** The regions the directory and campaign targeting group by. Typed free, this
+ *  produced "EU", "Europe" and "europe" as three different regions and split
+ *  every filter three ways. */
+export const REGIONS = [
+  'Africa', 'Asia-Pacific', 'Europe', 'Middle East', 'North America', 'South America',
+] as const
+
 export const GENDERS = ['Female', 'Male', 'Other', 'Prefer not to say'] as const
 
 /** Options for a `<select>`, with `current` kept even when it is not on the

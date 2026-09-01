@@ -63,6 +63,8 @@ export default function ReviewQueue() {
   const [verifiedClubs, setVerifiedClubs] = useState<ClubApplication[]>([])
   const [loaded, setLoaded] = useState(false)
   const [rejecting, setRejecting] = useState<AthleteApplication | null>(null)
+  const [rejectingClub, setRejectingClub] = useState<ClubApplication | null>(null)
+  const [clubReasons, setClubReasons] = useState<{ value: string; label: string }[]>([])
   const [reasons, setReasons] = useState<{ value: string; label: string }[]>([])
   const [outbox, setOutbox] = useState<OutboxEntry[]>([])
   const [failed, setFailed] = useState<Partial<Record<QueueName, string>>>({})
@@ -124,6 +126,8 @@ export default function ReviewQueue() {
     // and the one that drifts is always the one the reviewer sees
     api.get<{ value: string; label: string }[]>('/api/admin/rejection-reasons')
       .then(setReasons).catch(() => setReasons([]))
+    api.get<{ value: string; label: string }[]>('/api/admin/club-rejection-reasons')
+      .then(setClubReasons).catch(() => setClubReasons([]))
     void loadOutbox()
   }, [])
 
@@ -147,12 +151,13 @@ export default function ReviewQueue() {
     }
   }
 
-  const decideClub = async (application: ClubApplication, proof_status: string) => {
+  const decideClub = async (application: ClubApplication, proof_status: string,
+                            reason = '', note = '') => {
     setError('')
     setBusy(application.id)
     try {
       const scored = await api.post<ClubLegitimacy>(
-        `/api/admin/clubs/${application.club_id}/proof`, { proof_status })
+        `/api/admin/clubs/${application.club_id}/proof`, { proof_status, reason, note })
       toast(`${application.name}: ${scored.decision}`)
       await load()
     } catch (e) {
@@ -186,7 +191,7 @@ export default function ReviewQueue() {
 
   const rejectionForm = rejecting && (
     <RejectionForm
-      application={rejecting}
+      subject={rejecting.display_name ?? 'this applicant'}
       reasons={reasons}
       busy={busy === rejecting.id}
       onClose={() => setRejecting(null)}
@@ -197,9 +202,23 @@ export default function ReviewQueue() {
     />
   )
 
+  const clubRejectionForm = rejectingClub && (
+    <RejectionForm
+      subject={rejectingClub.name ?? rejectingClub.legal_name}
+      reasons={clubReasons}
+      busy={busy === rejectingClub.id}
+      onClose={() => setRejectingClub(null)}
+      onSubmit={async (reason, note) => {
+        await decideClub(rejectingClub, 'rejected', reason, note)
+        setRejectingClub(null)
+      }}
+    />
+  )
+
   return (
     <div>
       {rejectionForm}
+      {clubRejectionForm}
       <PageHeader
         eyebrow="Operations"
         title="Review queue"
@@ -350,7 +369,7 @@ export default function ReviewQueue() {
                     <Check size={14} /> Roster checks out
                   </button>
                   <button className="btn" disabled={busy === c.id}
-                          onClick={() => decideClub(c, 'rejected')}>
+                          onClick={() => setRejectingClub(c)}>
                     <X size={14} /> It does not
                   </button>
                 </div>
@@ -477,8 +496,8 @@ export default function ReviewQueue() {
  *  a fixed list so the outcomes can be counted; the note is free text because
  *  the interesting cases never fit a list.
  */
-function RejectionForm({ application, reasons, busy, onClose, onSubmit }: {
-  application: AthleteApplication
+function RejectionForm({ subject, reasons, busy, onClose, onSubmit }: {
+  subject: string
   reasons: { value: string; label: string }[]
   busy: boolean
   onClose: () => void
@@ -490,7 +509,7 @@ function RejectionForm({ application, reasons, busy, onClose, onSubmit }: {
   const needsNote = reason === 'other' && !note.trim()
 
   return (
-    <Modal title={`Reject ${application.display_name}?`} onClose={onClose}>
+    <Modal title={`Reject ${subject}?`} onClose={onClose}>
       {(close) => (
         <div className="space-y-4">
           <p className="text-sm text-ink-2">

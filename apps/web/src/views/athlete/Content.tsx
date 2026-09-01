@@ -238,6 +238,7 @@ function Compose({ courses, editing, onClose, onDone }: {
   const [form, setForm] = useState(() => (editing ? toForm(editing) : BLANK))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const set = (k: keyof typeof BLANK, v: string | number | null) =>
     setForm((f) => ({ ...f, [k]: v }))
   const scheduled = SCHEDULED_KINDS.includes(form.kind as never)
@@ -319,17 +320,39 @@ function Compose({ courses, editing, onClose, onDone }: {
           {!isProduct && (
             <div className="grid gap-4 md:grid-cols-[1fr_10rem]">
               <label className="block"><span className="cap">Picture or clip (optional)</span>
-                <input className="field mt-1" value={form.media_url}
-                       placeholder="https://…"
-                       onChange={(e) => set('media_url', e.target.value)} />
+                <input className="field mt-1" type="file" accept="image/*,video/*"
+                       onChange={async (e) => {
+                         const chosen = e.target.files?.[0]
+                         if (!chosen) return
+                         setUploading(true)
+                         setError('')
+                         try {
+                           const done = await api.upload<{ media_url: string; media_kind: string }>(
+                             '/api/media', chosen)
+                           set('media_url', done.media_url)
+                           set('media_kind', done.media_kind)
+                         } catch (err) {
+                           setError(errorText(err))
+                         } finally {
+                           setUploading(false)
+                         }
+                       }} />
+                <span className="meta mt-1 block">
+                  {uploading ? 'Uploading…'
+                    : form.media_url ? 'Attached.'
+                    : 'JPEG, PNG, WebP, GIF, MP4 or WebM, up to 8 MB.'}
+                </span>
               </label>
-              <label className="block"><span className="cap">Kind</span>
-                <select className="field mt-1" value={form.media_kind}
-                        onChange={(e) => set('media_kind', e.target.value)}>
-                  <option value="">None</option>
-                  <option value="image">Image</option>
-                  <option value="video">Video</option>
-                </select>
+              <label className="block"><span className="cap">Attached</span>
+                <div className="field mt-1 truncate text-ink-3">
+                  {form.media_url ? `${form.media_kind} · ${form.media_url.split('/').pop()}` : 'nothing yet'}
+                </div>
+                {form.media_url && (
+                  <button type="button" className="btn mt-2 px-3 py-1 text-xs"
+                          onClick={() => { set('media_url', ''); set('media_kind', '') }}>
+                    Remove
+                  </button>
+                )}
               </label>
             </div>
           )}
@@ -416,7 +439,7 @@ function Compose({ courses, editing, onClose, onDone }: {
 
           <div className="flex items-center gap-3">
             <button className="btn-go"
-                    disabled={busy || !form.title.trim()
+                    disabled={busy || uploading || !form.title.trim()
                               || (isProduct && !openable(form.external_url.trim()))}
                     onClick={() => submit(close)}>
               {busy ? 'Saving…' : editing ? 'Save changes' : 'Save as draft'}

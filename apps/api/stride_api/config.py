@@ -58,6 +58,12 @@ class Settings:
                 " (e.g. `openssl rand -hex 32`); refusing to start.")
         self.token_ttl_hours = int(os.environ.get("STRIDE_TOKEN_TTL_HOURS", "12"))
         self.max_body_bytes = int(os.environ.get("STRIDE_MAX_BODY_BYTES", "262144"))  # 256 KiB
+        # Uploads need their own ceiling: 256 KiB is a generous JSON body and a
+        # small photograph. The general limit stays where it is, because raising
+        # it for everything would widen every other endpoint too.
+        self.max_upload_bytes = int(os.environ.get("STRIDE_MAX_UPLOAD_BYTES", str(8 * 1024 * 1024)))
+        media = os.environ.get("STRIDE_MEDIA_DIR")
+        self.media_dir = Path(media) if media else self.db_path.parent / "media"
         self.cookie_name = "stride_session"
         self.cookie_secure = self.env not in ("dev", "test")
         self.cors_origins = [

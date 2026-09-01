@@ -789,3 +789,41 @@ def test_the_outbox_is_admin_only(athlete, client, sponsor):
     for who in (athlete, sponsor):
         assert who.get("/api/admin/outbox").status_code == 403
     assert client.get("/api/admin/outbox").status_code == 401
+
+
+def test_a_club_rejection_also_has_to_say_why(admin, clubu, db):
+    """The athlete side got this and the club side did not, which meant a club
+    could be refused with no explanation and no message -- the exact dead end
+    the reasons were added to close."""
+    clubu.post("/api/club/application", json=STRONG_CLUB)
+    club = row(db, "SELECT id FROM clubs WHERE slug = 'meridian-fc'")
+
+    bare = admin.post(f"/api/admin/clubs/{club['id']}/proof", json={"proof_status": "rejected"})
+    assert bare.status_code == 422
+    assert bare.json()["detail"] == "unknown_rejection_reason"
+
+    ok = admin.post(f"/api/admin/clubs/{club['id']}/proof", json={
+        "proof_status": "rejected", "reason": "not_a_registered_club",
+        "note": "No match at Companies House for that number."})
+    assert ok.status_code == 200
+
+    queued = admin.get("/api/admin/outbox").json()
+    assert queued[0]["to"] == "club@demo.stride"
+    assert "could not match the registration" in queued[0]["body"].lower()
+    assert "Companies House" in queued[0]["body"], "the reviewer's note goes too"
+    assert queued[0]["sent"] is False
+
+
+def test_verifying_a_club_tells_it_what_that_unlocked(admin, clubu, db):
+    clubu.post("/api/club/application", json=STRONG_CLUB)
+    club = row(db, "SELECT id FROM clubs WHERE slug = 'meridian-fc'")
+    assert admin.post(f"/api/admin/clubs/{club['id']}/proof",
+                      json={"proof_status": "verified"}).status_code == 200
+    queued = admin.get("/api/admin/outbox").json()
+    assert "is verified on Stride" in queued[0]["subject"]
+    assert "invite athletes with a link" in queued[0]["body"]
+
+
+def test_the_club_dropdown_is_served_too(admin):
+    reasons = {r["value"] for r in admin.get("/api/admin/club-rejection-reasons").json()}
+    assert "not_a_registered_club" in reasons and "other" in reasons
