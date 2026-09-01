@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import sqlite3
 import sys
+import time
 
 import httpx
 
@@ -40,8 +41,27 @@ def check(author: str, reader: str, claim: str, ok: bool, detail: str = "") -> N
     print(f"{mark}  {author:>7} -> {reader:<7} {claim}{tail}")
 
 
+class Patient(httpx.Client):
+    """A client that waits for the rate limiter instead of losing to it.
+
+    This script signs in six times and then makes a few hundred requests, which
+    is exactly what the limiter is built to slow down. A 429 is not an answer to
+    any question asked here, so it waits for the refill and asks again -- and if
+    it is still throttled after six tries, the 429 is returned and shows up as a
+    failure rather than being quietly read as data.
+    """
+
+    def request(self, *args, **kwargs):          # type: ignore[override]
+        for attempt in range(6):
+            res = super().request(*args, **kwargs)
+            if res.status_code != 429:
+                return res
+            time.sleep(1.5 * (attempt + 1))
+        return res
+
+
 def session(email: str | None = None) -> httpx.Client:
-    c = httpx.Client(base_url=BASE, timeout=30.0, follow_redirects=True)
+    c = Patient(base_url=BASE, timeout=30.0, follow_redirects=True)
     if email:
         r = c.post("/api/auth/login", json={"email": email, "password": PASSWORD})
         assert r.status_code == 200, f"login {email}: {r.status_code} {r.text[:120]}"

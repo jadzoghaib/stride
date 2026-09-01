@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LoadError, PageHeader, PageLoading, Section } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
+import { COUNTRIES, SPORTS, withCurrent } from '../../lib/reference'
 import { useToast } from '../../lib/toast'
 import type { AthleteWorkspace } from '../../types'
 import { DEAL_TYPES } from '../../types'
@@ -53,9 +54,13 @@ export default function AthleteProfile() {
           <label className="block"><span className="cap">Display name</span>
             <input className="field mt-1" value={form.display_name} onChange={(e) => set('display_name', e.target.value)} /></label>
           <label className="block"><span className="cap">Sport</span>
-            <input className="field mt-1" value={form.sport} onChange={(e) => set('sport', e.target.value)} /></label>
+            <select className="field mt-1" value={form.sport} onChange={(e) => set('sport', e.target.value)}>
+              {withCurrent(SPORTS, form.sport).map((o) => <option key={o} value={o}>{o}</option>)}
+            </select></label>
           <label className="block"><span className="cap">Country</span>
-            <input className="field mt-1" value={form.country} onChange={(e) => set('country', e.target.value)} /></label>
+            <select className="field mt-1" value={form.country} onChange={(e) => set('country', e.target.value)}>
+              {withCurrent(COUNTRIES, form.country).map((o) => <option key={o} value={o}>{o}</option>)}
+            </select></label>
           <label className="block"><span className="cap">Region</span>
             <input className="field mt-1" value={form.region} onChange={(e) => set('region', e.target.value)} /></label>
         </div>

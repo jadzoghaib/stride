@@ -29,7 +29,7 @@ _ALL_TABLES = (
     "content_items",
     "deal_deliverables", "athlete_applications", "club_applications",
     "package_commitments", "club_packages", "club_members", "clubs",
-    "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
+    "club_invite_links", "email_outbox", "poll_votes", "poll_options", "messages", "conversations", "notifications", "subscriptions", "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
     "events", "score_snapshots", "sponsor_targets", "audience_demographics",
     "account_snapshots", "post_metrics", "posts", "sync_runs", "platform_accounts", "creators",
 )
@@ -91,6 +91,9 @@ CREATE TABLE IF NOT EXISTS athlete_profiles (
     deal_types              TEXT NOT NULL DEFAULT '[]',            -- json list of DEAL_TYPES
     base_rate_eur           INTEGER NOT NULL DEFAULT 1000,         -- per engagement, rate card anchor
     status                  TEXT NOT NULL DEFAULT 'listed' CHECK (status IN ('draft','listed','hidden')),
+    -- set when the club that vouched for them withdrew it
+    frozen_at               TEXT,
+    frozen_by_club          INTEGER,
     creatorlens_creator_id  INTEGER,                               -- analytics identity (creators.id)
     created_at              TEXT NOT NULL
 );
@@ -173,6 +176,97 @@ CREATE TABLE IF NOT EXISTS follows (
     UNIQUE (user_id, athlete_id)
 );
 
+CREATE TABLE IF NOT EXISTS club_invite_links (
+    id           INTEGER PRIMARY KEY,
+    club_id      INTEGER NOT NULL REFERENCES clubs(id),
+    token        TEXT NOT NULL UNIQUE,
+    created_at   TEXT NOT NULL,
+    expires_at   TEXT NOT NULL,
+    -- single use: a link is issued to one athlete, so a leaked one onboards one
+    -- person rather than becoming an open door to the club's credibility
+    redeemed_by  INTEGER REFERENCES athlete_profiles(id),
+    redeemed_at  TEXT,
+    revoked_at   TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_invite_links_club ON club_invite_links(club_id);
+
+CREATE TABLE IF NOT EXISTS email_outbox (
+    id         INTEGER PRIMARY KEY,
+    to_email   TEXT NOT NULL,
+    to_user_id INTEGER REFERENCES users(id),
+    subject    TEXT NOT NULL,
+    body       TEXT NOT NULL,
+    kind       TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    -- NULL forever until a provider is attached. Nothing here sends: the row is
+    -- the record that a message was owed, and a reviewer can read exactly what
+    -- the applicant would have received.
+    sent_at    TEXT
+);
+
+CREATE TABLE IF NOT EXISTS poll_options (
+    id         INTEGER PRIMARY KEY,
+    content_id INTEGER NOT NULL REFERENCES content_items(id),
+    position   INTEGER NOT NULL,
+    label      TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS poll_votes (
+    id         INTEGER PRIMARY KEY,
+    content_id INTEGER NOT NULL REFERENCES content_items(id),
+    option_id  INTEGER NOT NULL REFERENCES poll_options(id),
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL,
+    -- one vote per person per poll, enforced here rather than in a handler
+    UNIQUE (content_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS conversations (
+    id              INTEGER PRIMARY KEY,
+    -- normalised so user_a < user_b: a pair has exactly one thread, whichever
+    -- of them opened it, and "did we already talk" is a primary-key lookup
+    user_a          INTEGER NOT NULL REFERENCES users(id),
+    user_b          INTEGER NOT NULL REFERENCES users(id),
+    created_at      TEXT NOT NULL,
+    last_message_at TEXT NOT NULL,
+    CHECK (user_a < user_b),
+    UNIQUE (user_a, user_b)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id              INTEGER PRIMARY KEY,
+    conversation_id INTEGER NOT NULL REFERENCES conversations(id),
+    sender_id       INTEGER NOT NULL REFERENCES users(id),
+    body            TEXT NOT NULL,
+    created_at      TEXT NOT NULL,
+    read_at         TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id, id);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id           INTEGER PRIMARY KEY,
+    user_id      INTEGER NOT NULL REFERENCES users(id),
+    kind         TEXT NOT NULL,
+    title        TEXT NOT NULL,
+    body         TEXT NOT NULL DEFAULT '',
+    link         TEXT NOT NULL DEFAULT '',
+    created_at   TEXT NOT NULL,
+    read_at      TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, id);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id         INTEGER PRIMARY KEY,
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    athlete_id INTEGER REFERENCES athlete_profiles(id),
+    club_id    INTEGER REFERENCES clubs(id),
+    created_at TEXT NOT NULL,
+    -- exactly one subject, the same shape content_items uses
+    CHECK ((athlete_id IS NULL) <> (club_id IS NULL)),
+    UNIQUE (user_id, athlete_id),
+    UNIQUE (user_id, club_id)
+);
+
 CREATE TABLE IF NOT EXISTS clubs (
     id         INTEGER PRIMARY KEY,
     user_id    INTEGER UNIQUE REFERENCES users(id),
@@ -228,8 +322,11 @@ CREATE TABLE IF NOT EXISTS athlete_applications (
                       CHECK (admitted_via IN ('','self','club_nomination','manual')),
     policy_version    TEXT NOT NULL DEFAULT '',
     submitted_at      TEXT NOT NULL,
-    decided_at        TEXT
-);
+    decided_at        TEXT,
+    -- what the reviewer decided and why, in their words
+    review_reason     TEXT NOT NULL DEFAULT '',
+    review_note       TEXT NOT NULL DEFAULT '',
+    reviewed_by       INTEGER);
 CREATE INDEX IF NOT EXISTS idx_applications_decision ON athlete_applications(decision);
 CREATE INDEX IF NOT EXISTS idx_applications_club ON athlete_applications(nominated_by_club);
 
@@ -301,7 +398,7 @@ CREATE TABLE IF NOT EXISTS content_items (
     id           INTEGER PRIMARY KEY,
     athlete_id   INTEGER REFERENCES athlete_profiles(id),
     club_id      INTEGER REFERENCES clubs(id),
-    kind         TEXT NOT NULL CHECK (kind IN ('post','course','session','event','product')),
+    kind         TEXT NOT NULL CHECK (kind IN ('post','course','session','event','product','poll')),
     title        TEXT NOT NULL,
     body         TEXT NOT NULL DEFAULT '',
     min_tier     TEXT NOT NULL DEFAULT ''
@@ -319,6 +416,9 @@ CREATE TABLE IF NOT EXISTS content_items (
     capacity     INTEGER,
     -- products: Stride does not sell them, it points at wherever they are sold
     external_url TEXT NOT NULL DEFAULT '',
+    -- a picture or a clip, by link: no storage stack is invented here
+    media_url    TEXT NOT NULL DEFAULT '',
+    media_kind   TEXT NOT NULL DEFAULT '',
     status       TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published')),
     created_at   TEXT NOT NULL,
     published_at TEXT,
@@ -344,6 +444,18 @@ _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     ("campaigns", "require_verified_athletes", "BOOLEAN NOT NULL DEFAULT FALSE"),
     ("club_members", "responded_at", "TEXT"),
     ("content_items", "external_url", "TEXT NOT NULL DEFAULT ''"),
+    ("content_items", "media_url", "TEXT NOT NULL DEFAULT ''"),
+    ("content_items", "media_kind", "TEXT NOT NULL DEFAULT ''"),
+    ("athlete_applications", "review_reason", "TEXT NOT NULL DEFAULT ''"),
+    ("athlete_applications", "review_note", "TEXT NOT NULL DEFAULT ''"),
+    ("athlete_applications", "reviewed_by", "INTEGER"),
+    # Freezing is an event with an actor, not a fourth status. Modelling it
+    # as a column pair records *who* froze them and when -- which the product
+    # needs anyway, since the way out is "get a new link from that club" --
+    # and avoids widening an enumerated CHECK on a table half the schema
+    # has foreign keys into.
+    ("athlete_profiles", "frozen_at", "TEXT"),
+    ("athlete_profiles", "frozen_by_club", "INTEGER"),
 )
 
 
@@ -466,12 +578,12 @@ def _refresh_kind_check(conn) -> None:
     if settings.db_backend == "postgres":
         conn.execute("ALTER TABLE content_items DROP CONSTRAINT IF EXISTS content_items_kind_check")
         conn.execute("ALTER TABLE content_items ADD CONSTRAINT content_items_kind_check"
-                     " CHECK (kind IN ('post','course','session','event','product'))")
+                     " CHECK (kind IN ('post','course','session','event','product','poll'))")
         return
 
     existing = row(conn, "SELECT sql FROM sqlite_master WHERE type = 'table'"
                          " AND name = 'content_items'")
-    if existing is None or "'product'" in existing["sql"]:
+    if existing is None or "'poll'" in existing["sql"]:
         return
     conn.execute("ALTER TABLE content_items RENAME TO content_items_stale")
     conn.executescript(STRIDE_SCHEMA)                      # recreates it with the new CHECK

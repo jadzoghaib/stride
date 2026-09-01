@@ -19,7 +19,7 @@ from creatorlens.ingestion import sync_account
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from ..auth import get_db, require_role
+from ..auth import get_db, optional_user, require_role
 from ..db import lock_for_update, now_iso, row, rows
 
 router = APIRouter(prefix="/api", tags=["athletes"])
@@ -39,16 +39,64 @@ def _score_summary(conn, creator_id: int | None) -> dict | None:
     }
 
 
-def athlete_public(conn, a: dict) -> dict:
-    return {
+#: Roles that are here to buy an athlete's audience rather than to enjoy it.
+COMMERCIAL_ROLES = ("sponsor", "club", "admin")
+
+
+def sees_commercials(user: dict | None, athlete: dict | None = None) -> bool:
+    """Whether this viewer gets the rate card and the marketability score.
+
+    A rate card is a sponsorship asking price and a marketability score is the
+    evidence behind it -- both are sales material aimed at a buyer. A fan is not
+    a buyer of the athlete; they are buying a post or a session, and showing
+    them "8,500" prices the person instead of the thing on offer. So sponsors,
+    clubs and admins see it, and the athlete sees their own.
+    """
+    if user is None:
+        return False
+    if user["role"] in COMMERCIAL_ROLES:
+        return True
+    return athlete is not None and athlete["user_id"] == user["id"]
+
+
+def social_links(conn, creator_id: int | None) -> list[dict]:
+    """Where to find this athlete off Stride.
+
+    What replaced "2 of 3 platforms" on the fan-facing surfaces: coverage is a
+    statement about how complete our analytics are, which matters to a sponsor
+    and means nothing to a fan. A fan wants the handle.
+    """
+    if not creator_id:
+        return []
+    return [{"platform": r["platform"], "handle": r["handle"],
+             "url": f"https://{r['platform']}.com/{(r['handle'] or '').lstrip('@')}"}
+            for r in rows(conn, "SELECT platform, handle FROM platform_accounts"
+                                " WHERE creator_id = ? AND connection_status != 'disconnected'"
+                                " ORDER BY platform", (creator_id,))]
+
+
+def athlete_public(conn, a: dict, *, viewer: dict | None = None,
+                   commercial: bool | None = None) -> dict:
+    """One athlete, told to whoever is asking.
+
+    `commercial` defaults to what `viewer` earns; pass it explicitly only where
+    the caller already knows (the sponsor evidence page, an athlete's own
+    workspace).
+    """
+    if commercial is None:
+        commercial = sees_commercials(viewer, a)
+    out = {
         "id": a["id"], "slug": a["slug"], "display_name": a["display_name"],
         "sport": a["sport"], "country": a["country"], "region": a["region"],
         "bio": a["bio"], "career_highlights": json.loads(a["career_highlights"]),
         "topics": json.loads(a["topics"]), "deal_types": json.loads(a["deal_types"]),
-        "base_rate_eur": a["base_rate_eur"], "status": a["status"],
-        "claimed": a["user_id"] is not None,
-        "score": _score_summary(conn, a["creatorlens_creator_id"]),
+        "status": a["status"], "claimed": a["user_id"] is not None,
+        "socials": social_links(conn, a["creatorlens_creator_id"]),
     }
+    if commercial:
+        out["base_rate_eur"] = a["base_rate_eur"]
+        out["score"] = _score_summary(conn, a["creatorlens_creator_id"])
+    return out
 
 
 # ---- public directory --------------------------------------------------------
@@ -60,6 +108,7 @@ DIRECTORY_PAGE = 24
 def list_athletes(sport: str | None = None, country: str | None = None,
                   q: str | None = None, cursor: str | None = None,
                   limit: int = Query(DIRECTORY_PAGE, ge=1, le=100),
+                  user: dict | None = Depends(optional_user),
                   conn: sqlite3.Connection = Depends(get_db)):
     """The public directory, a page at a time.
 
@@ -94,7 +143,7 @@ def list_athletes(sport: str | None = None, country: str | None = None,
     found = rows(conn, sql + " ORDER BY display_name, id LIMIT ?", (*params, limit + 1))
     page, more = found[:limit], len(found) > limit
     return {
-        "athletes": [athlete_public(conn, a) for a in page],
+        "athletes": [athlete_public(conn, a, viewer=user) for a in page],
         "next_cursor": (f"{page[-1]['display_name']}{page[-1]['id']}"
                         if page and more else None),
         "limit": limit,
@@ -169,14 +218,37 @@ def athlete_facets(conn: sqlite3.Connection = Depends(get_db)):
 
 
 @router.get("/athletes/{slug}")
-def athlete_detail(slug: str, conn: sqlite3.Connection = Depends(get_db)):
+def athlete_detail(slug: str, user: dict | None = Depends(optional_user),
+                   conn: sqlite3.Connection = Depends(get_db)):
     a = row(conn, "SELECT * FROM athlete_profiles WHERE slug = ?", (slug,))
     if a is None:
         raise HTTPException(404, "unknown_athlete")
-    out = athlete_public(conn, a)
-    if a["creatorlens_creator_id"]:
+    out = athlete_public(conn, a, viewer=user)
+    # Audience demographics are the same sales material as the score: a
+    # breakdown of who this athlete reaches is what a sponsor is buying, and a
+    # fan has no use for their own age bracket as a percentage.
+    if a["creatorlens_creator_id"] and sees_commercials(user, a):
         out["audience"] = _combined_demographics(
             conn, creator_kpis(conn, a["creatorlens_creator_id"]))["dimensions"]
+    # An audience size is the one number a fan-facing profile should carry: it
+    # is social proof rather than sales material, and it is what every creator
+    # page in the category shows.
+    out["followers"] = row(conn, "SELECT COUNT(*) AS n FROM follows WHERE athlete_id = ?",
+                           (a["id"],))["n"]
+    out["subscribers"] = row(conn, "SELECT COUNT(*) AS n FROM subscriptions"
+                                   " WHERE athlete_id = ?", (a["id"],))["n"]
+    # Whether this reader already follows or subscribes, so the profile can show
+    # the state rather than a guess that flickers after the first click.
+    if user:
+        out["following"] = row(conn, "SELECT id FROM follows WHERE user_id = ? AND athlete_id = ?",
+                               (user["id"], a["id"])) is not None
+        out["subscribed"] = row(conn, "SELECT id FROM subscriptions"
+                                      " WHERE user_id = ? AND athlete_id = ?",
+                                (user["id"], a["id"])) is not None
+        from .messaging import may_message
+        owner = row(conn, "SELECT id, display_name, role FROM users WHERE id = ?",
+                    (a["user_id"],)) if a["user_id"] else None
+        out["can_message"] = owner is not None and may_message(conn, user, owner)
     # club affiliation is part of the public identity — an empty list means
     # independent, so the UI can say so instead of leaving the question open
     out["clubs"] = rows(conn, """
@@ -265,7 +337,7 @@ def workspace(user: dict = Depends(require_role("athlete")),
     score = latest_score(conn, creator_id) if creator_id else None
     deals = _deals_for_athlete(conn, profile["id"])
     return {
-        "profile": athlete_public(conn, profile),
+        "profile": athlete_public(conn, profile, commercial=True),
         "editable": {k: profile[k] for k in ("display_name", "sport", "country", "region",
                                              "bio", "base_rate_eur", "status")}
                     | {"career_highlights": json.loads(profile["career_highlights"]),

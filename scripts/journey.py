@@ -117,8 +117,10 @@ check("profile countries and audience codes are kept apart",
       f"{facets['countries'][:2]} vs {facets['audience_countries'][:3]}")
 
 detail = pub.get("/api/athletes/kaia-mercer").json()
-check("an athlete profile decomposes into dimensions",
-      bool(detail.get("score", {}).get("dimensions")))
+check("a public profile carries the handles, not the sales material",
+      bool(detail.get("socials"))
+      and "score" not in detail and "base_rate_eur" not in detail and "audience" not in detail,
+      str([k for k in ("score", "base_rate_eur", "audience") if k in detail]))
 
 
 # ── athlete ─────────────────────────────────────────────────────────────────
@@ -207,6 +209,11 @@ check("RULE 7 · a locked item withholds the body and nothing else",
 # ── sponsor ─────────────────────────────────────────────────────────────────
 section("Sponsor")
 spo = session("sponsor@demo.stride")
+
+commercial = spo.get("/api/athletes/kaia-mercer").json()
+check("RULE 8 · and a sponsor still gets the decomposed score",
+      bool(commercial.get("score", {}).get("dimensions")) and commercial.get("base_rate_eur"),
+      str(sorted(commercial)[:6]))
 
 board = spo.get("/api/sponsor/workspace").json()
 check("the sponsor board loads", "campaigns" in board)
@@ -297,7 +304,15 @@ fan = session("fan@demo.stride")
 
 disc = fan.get("/api/discover", params={"interests": "Athletics"}).json()
 check("discovery ranks and explains",
-      len(disc) > 0 and disc[0].get("affinity") is not None and bool(disc[0].get("reasons")))
+      len(disc["athletes"]) > 0 and disc["athletes"][0].get("affinity") is not None
+      and bool(disc["athletes"][0].get("reasons")))
+check("RULE 12 · discovery searches athletes and clubs in one place",
+      bool(disc["clubs"])
+      and fan.get("/api/discover", params={"kind": "athlete"}).json()["clubs"] == [],
+      f"{len(disc['clubs'])} clubs")
+check("a fan is not shown the sponsorship rate card or the score",
+      all("base_rate_eur" not in a and "score" not in a for a in disc["athletes"]),
+      str([k for k in disc["athletes"][0] if k in ("base_rate_eur", "score")]))
 
 feed_content = fan.get("/api/feed/content").json()
 mine = [i for i in feed_content if i["title"].startswith("Journey ·")]

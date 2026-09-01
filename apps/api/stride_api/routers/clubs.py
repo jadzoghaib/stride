@@ -21,6 +21,7 @@ from pydantic import BaseModel, Field
 
 from ..auth import get_db, require_role
 from ..db import now_iso, row, rows
+from .messaging import notify
 
 router = APIRouter(prefix="/api", tags=["clubs"])
 
@@ -187,6 +188,12 @@ def invite_member(body: MemberIn, user: dict = Depends(require_role("club")),
         conn.execute("INSERT INTO club_members (club_id, athlete_id, position, status, joined_at)"
                      " VALUES (?, ?, ?, 'invited', ?)",
                      (c["id"], athlete["id"], body.position, now_iso()))
+    invited_user = row(conn, "SELECT user_id FROM athlete_profiles WHERE id = ?",
+                       (athlete["id"],))
+    if invited_user and invited_user["user_id"]:
+        notify(conn, invited_user["user_id"], "invitation",
+               f"{c['name']} invited you to their roster",
+               "Joining lets them build sponsorship packages around you.", "/athlete")
     log_event(conn, "user", "club.member_invited", "club", c["id"],
               {"athlete_id": athlete["id"], "slug": athlete["slug"]})
     conn.commit()

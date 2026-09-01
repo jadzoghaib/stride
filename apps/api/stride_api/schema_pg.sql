@@ -155,6 +155,8 @@ CREATE TABLE IF NOT EXISTS athlete_profiles (
     deal_types              TEXT NOT NULL DEFAULT '[]',
     base_rate_eur           INTEGER NOT NULL DEFAULT 1000,
     status                  TEXT NOT NULL DEFAULT 'listed' CHECK (status IN ('draft','listed','hidden')),
+    frozen_at               TEXT,
+    frozen_by_club          BIGINT,
     creatorlens_creator_id  BIGINT,
     created_at              TEXT NOT NULL
 );
@@ -280,8 +282,11 @@ CREATE TABLE IF NOT EXISTS athlete_applications (
                       CHECK (admitted_via IN ('','self','club_nomination','manual')),
     policy_version    TEXT NOT NULL DEFAULT '',
     submitted_at      TEXT NOT NULL,
-    decided_at        TEXT
-);
+    decided_at        TEXT,
+    -- what the reviewer decided and why, in their words
+    review_reason     TEXT NOT NULL DEFAULT '',
+    review_note       TEXT NOT NULL DEFAULT '',
+    reviewed_by       INTEGER);
 CREATE INDEX IF NOT EXISTS idx_applications_decision ON athlete_applications(decision);
 CREATE INDEX IF NOT EXISTS idx_applications_club ON athlete_applications(nominated_by_club);
 
@@ -349,11 +354,54 @@ CREATE INDEX IF NOT EXISTS idx_commitments_org ON package_commitments(org_id, st
 -- `min_tier` is the tier a fan needs, '' meaning free. Nothing charges money
 -- yet, so everything above free reads as locked for everybody; that is honest
 -- rather than a stub, and the lock is what the product is for.
+CREATE TABLE IF NOT EXISTS conversations (
+    id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_a          BIGINT NOT NULL REFERENCES users(id),
+    user_b          BIGINT NOT NULL REFERENCES users(id),
+    created_at      TEXT NOT NULL,
+    last_message_at TEXT NOT NULL,
+    CHECK (user_a < user_b),
+    UNIQUE (user_a, user_b)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    conversation_id BIGINT NOT NULL REFERENCES conversations(id),
+    sender_id       BIGINT NOT NULL REFERENCES users(id),
+    body            TEXT NOT NULL,
+    created_at      TEXT NOT NULL,
+    read_at         TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id, id);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id      BIGINT NOT NULL REFERENCES users(id),
+    kind         TEXT NOT NULL,
+    title        TEXT NOT NULL,
+    body         TEXT NOT NULL DEFAULT '',
+    link         TEXT NOT NULL DEFAULT '',
+    created_at   TEXT NOT NULL,
+    read_at       TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, id);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id    BIGINT NOT NULL REFERENCES users(id),
+    athlete_id BIGINT REFERENCES athlete_profiles(id),
+    club_id    BIGINT REFERENCES clubs(id),
+    created_at TEXT NOT NULL,
+    CHECK ((athlete_id IS NULL) <> (club_id IS NULL)),
+    UNIQUE (user_id, athlete_id),
+    UNIQUE (user_id, club_id)
+);
+
 CREATE TABLE IF NOT EXISTS content_items (
     id           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     athlete_id   INTEGER REFERENCES athlete_profiles(id),
     club_id      INTEGER REFERENCES clubs(id),
-    kind         TEXT NOT NULL CHECK (kind IN ('post','course','session','event','product')),
+    kind         TEXT NOT NULL CHECK (kind IN ('post','course','session','event','product','poll')),
     title        TEXT NOT NULL,
     body         TEXT NOT NULL DEFAULT '',
     min_tier     TEXT NOT NULL DEFAULT ''
@@ -371,6 +419,8 @@ CREATE TABLE IF NOT EXISTS content_items (
     capacity     INTEGER,
     -- products: Stride does not sell them, it points at wherever they are sold
     external_url TEXT NOT NULL DEFAULT '',
+    media_url    TEXT NOT NULL DEFAULT '',
+    media_kind   TEXT NOT NULL DEFAULT '',
     status       TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published')),
     created_at   TEXT NOT NULL,
     published_at TEXT,
@@ -380,3 +430,42 @@ CREATE TABLE IF NOT EXISTS content_items (
 CREATE INDEX IF NOT EXISTS idx_content_athlete ON content_items(athlete_id, status);
 CREATE INDEX IF NOT EXISTS idx_content_club ON content_items(club_id, status);
 CREATE INDEX IF NOT EXISTS idx_content_part_of ON content_items(part_of);
+
+CREATE TABLE IF NOT EXISTS club_invite_links (
+    id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    club_id      BIGINT NOT NULL REFERENCES clubs(id),
+    token        TEXT NOT NULL UNIQUE,
+    created_at   TEXT NOT NULL,
+    expires_at   TEXT NOT NULL,
+    redeemed_by  BIGINT REFERENCES athlete_profiles(id),
+    redeemed_at  TEXT,
+    revoked_at   TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_invite_links_club ON club_invite_links(club_id);
+
+CREATE TABLE IF NOT EXISTS email_outbox (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    to_email   TEXT NOT NULL,
+    to_user_id BIGINT REFERENCES users(id),
+    subject    TEXT NOT NULL,
+    body       TEXT NOT NULL,
+    kind       TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    sent_at    TEXT
+);
+
+CREATE TABLE IF NOT EXISTS poll_options (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    content_id BIGINT NOT NULL REFERENCES content_items(id),
+    position   INTEGER NOT NULL,
+    label      TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS poll_votes (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    content_id BIGINT NOT NULL REFERENCES content_items(id),
+    option_id  BIGINT NOT NULL REFERENCES poll_options(id),
+    user_id    BIGINT NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL,
+    UNIQUE (content_id, user_id)
+);

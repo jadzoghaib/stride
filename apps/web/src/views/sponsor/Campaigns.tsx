@@ -91,7 +91,10 @@ export default function SponsorCampaigns() {
           </button>
         }
       >
-        {creating && <CampaignForm onDone={() => { setCreating(false); void load() }} />}
+        {creating && (
+          <CampaignForm onDone={() => { setCreating(false); void load() }}
+                        onCancel={() => setCreating(false)} />
+        )}
         {ws.campaigns.length === 0 && !creating && (
           <EmptyNote text="No campaigns yet. A campaign brief defines the audience you want — matching scores every listed athlete against it." />
         )}
@@ -121,7 +124,7 @@ export default function SponsorCampaigns() {
   )
 }
 
-function CampaignForm({ onDone }: { onDone: () => void }) {
+function CampaignForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
   // Countries and themes come from what the directory actually contains, so a
   // sponsor can target the first athlete from a new country the day they list,
   // rather than when somebody remembers to add the code to an array here.
@@ -207,8 +210,11 @@ function CampaignForm({ onDone }: { onDone: () => void }) {
           removing the guard entirely made the button clickable while it still
           read "Loading targeting…", which quietly created the untargeted
           campaign this whole change exists to prevent. */}
-      <button className="btn-go" disabled={!facets && !facetsFailed}>
-        {facets || facetsFailed ? 'Create campaign' : 'Loading targeting…'}</button>
+      <div className="flex items-center gap-3">
+        <button className="btn-go" disabled={!facets && !facetsFailed}>
+          {facets || facetsFailed ? 'Create campaign' : 'Loading targeting…'}</button>
+        <button type="button" className="btn" onClick={onCancel}>Cancel</button>
+      </div>
     </form>
   )
 }

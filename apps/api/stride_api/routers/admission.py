@@ -25,8 +25,9 @@ claim rather than free headroom.
 
 from __future__ import annotations
 
+import secrets
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from statistics import median
 
 from creatorlens.analytics.scoring import latest_score
@@ -41,6 +42,7 @@ from ..admission import (ADMIT_AT, COMPETITION_LEVELS, DISQUALIFYING_RULES,
 from ..auth import get_db, require_role
 from .. import proofcheck
 from ..db import lock_for_update, now_iso, row, rows
+from .messaging import notify
 
 router = APIRouter(prefix="/api", tags=["admission"])
 
@@ -173,6 +175,12 @@ def _evaluate(conn, application: dict, profile: dict, *, via: str,
     listing = "listed" if granted else "draft"
     if listing == "draft" and not may_delist:
         listing = profile["status"]
+    # A freeze outranks everything above it. The club that vouched for this
+    # athlete withdrew it, and re-running the scorer must not quietly put them
+    # back -- the way out is a new link or a reviewer, both of which clear the
+    # flag before this line is reached again.
+    if profile["frozen_at"]:
+        listing = "draft"
 
     # `admitted_via` records how the gate put someone in the directory, and is
     # what later tells us their listing was earned here rather than inherited.
@@ -275,7 +283,12 @@ def my_application(user: dict = Depends(require_role("athlete")),
     # ADMIT_AT and the applicant would be shown one bar while being judged
     # against another, which is precisely what a page that exists to explain a
     # decision must not do.
+    frozen = row(conn, "SELECT p.frozen_at, c.name AS club FROM athlete_profiles p"
+                       " LEFT JOIN clubs c ON c.id = p.frozen_by_club WHERE p.id = ?",
+                 (profile["id"],))
     return {"application": application, "scored": scored,
+            "frozen": {"at": frozen["frozen_at"], "club": frozen["club"]}
+                      if frozen and frozen["frozen_at"] else None,
             "thresholds": {"admit": ADMIT_AT},
             "club_floor": _club_floor(conn, application["nominated_by_club"])}
 
@@ -491,8 +504,24 @@ def club_queue(decision: str = Query("review"), limit: int = Query(100, le=500),
     return queued
 
 
+#: Why a proof was refused. A fixed list because "rejected" on its own tells
+#: the applicant nothing and tells the next reviewer less -- and because these
+#: are the five things that actually go wrong, so they can be counted.
+REJECTION_REASONS = {
+    "name_not_on_page": "We could not find your name on the page you linked.",
+    "link_did_not_open": "The link did not open for us.",
+    "wrong_person": "The page shows a different person with a similar name.",
+    "not_competitive": "The page does not show competition at the level claimed.",
+    "other": "",
+}
+
+
 class ProofIn(BaseModel):
     proof_status: str
+    #: required when rejecting, ignored otherwise
+    reason: str = Field(default="", max_length=40)
+    #: the reviewer's own words, sent to the applicant as written
+    note: str = Field(default="", max_length=2000)
 
 
 @router.post("/admin/applications/{application_id}/proof")
@@ -517,8 +546,22 @@ def set_proof(application_id: int, body: ProofIn,
     # with no page behind it, and it used to pass straight through to `verified`.
     if body.proof_status == "verified" and not proofcheck.looks_openable(application["proof_url"]):
         raise HTTPException(409, "no_proof_to_check")
-    conn.execute("UPDATE athlete_applications SET proof_status = ? WHERE id = ?",
-                 (body.proof_status, application_id))
+    # A rejection that does not say why is a dead end for the applicant and for
+    # whoever picks the case up next, so the reason is required rather than
+    # optional. "other" is the escape hatch, and it demands the note instead.
+    if body.proof_status == "rejected":
+        if body.reason not in REJECTION_REASONS:
+            raise HTTPException(422, "unknown_rejection_reason")
+        if body.reason == "other" and not body.note.strip():
+            raise HTTPException(422, "other_needs_a_note")
+    conn.execute("UPDATE athlete_applications SET proof_status = ?, review_reason = ?,"
+                 " review_note = ?, reviewed_by = ? WHERE id = ?",
+                 (body.proof_status, body.reason, body.note.strip(), user["id"], application_id))
+    # The second way out of a freeze: a reviewer opened their proof and it held.
+    # The first is redeeming a fresh club link. Nothing else clears it.
+    if body.proof_status == "verified":
+        conn.execute("UPDATE athlete_profiles SET frozen_at = NULL, frozen_by_club = NULL"
+                     " WHERE id = ?", (application["athlete_id"],))
     application = row(conn, "SELECT * FROM athlete_applications WHERE id = ?", (application_id,))
     profile = row(conn, "SELECT * FROM athlete_profiles WHERE id = ?",
                   (application["athlete_id"],))
@@ -526,7 +569,274 @@ def set_proof(application_id: int, body: ProofIn,
               {"application_id": application_id, "proof_status": body.proof_status,
                "source": "admin", "reviewer": user["id"]})
     via = "club_nomination" if application["nominated_by_club"] else "self"
-    return _evaluate(conn, application, profile, via=via)
+    verdict = _evaluate(conn, application, profile, via=via)
+
+    # Tell the applicant. Composed here, where the decision and its reason are
+    # both in hand, and queued rather than sent -- see `queue_email`.
+    if body.proof_status in ("verified", "rejected"):
+        queue_email(conn, profile, decision=verdict, proof_status=body.proof_status,
+                    reason=body.reason, note=body.note.strip())
+    conn.commit()
+    return verdict
+
+
+def queue_email(conn, profile: dict, *, decision: dict, proof_status: str,
+                reason: str, note: str) -> None:
+    """Write the message the applicant is owed into the outbox.
+
+    Nothing is sent. There is no mail provider wired up, and a function that
+    claimed to send while doing nothing would be the one lie in an admission
+    trail whose whole point is that every step is auditable. The row records
+    exactly what would go out, a reviewer can read it back, and attaching a
+    provider later means draining this table rather than rewriting this call.
+    """
+    account = row(conn, "SELECT id, email, display_name FROM users WHERE id = ?",
+                  (profile["user_id"],)) if profile["user_id"] else None
+    if account is None:
+        return          # an unclaimed profile has nobody to write to
+
+    name = account["display_name"]
+    listed = decision.get("listing") == "listed"
+    if proof_status == "verified" and listed:
+        subject = "Your Stride profile is live"
+        lines = [
+            f"Hi {name},",
+            "We checked the page you linked, found your name on it, and your profile is now"
+            " listed in the athlete directory.",
+            "Sponsors can see your marketability score and make you offers, and you can post"
+            " to your wall whenever you like.",
+        ]
+    elif proof_status == "verified":
+        subject = "Your proof checked out"
+        lines = [
+            f"Hi {name},",
+            "We found your name on the page you linked.",
+            "Your profile is not listed yet because there is no analytics behind it. Connect"
+            " a platform and it goes live on the next sync.",
+        ]
+    else:
+        subject = "About your Stride application"
+        lines = [
+            f"Hi {name},",
+            "We looked at the proof link on your application and could not accept it."
+            + (" " + REJECTION_REASONS[reason] if REJECTION_REASONS.get(reason) else ""),
+            "You can submit a different link at any time. A page a stranger can open, with"
+            " your name on it, is all we need.",
+        ]
+    if note:
+        lines.append("From the reviewer:\n" + note)
+    lines.append("-- Stride")
+    body = "\n\n".join(lines)
+
+    conn.execute("INSERT INTO email_outbox (to_email, to_user_id, subject, body, kind,"
+                 " created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                 (account["email"], account["id"], subject, body,
+                  f"admission.{proof_status}", now_iso()))
+    notify(conn, account["id"], f"admission.{proof_status}", subject, lines[1][:140],
+           "/athlete/application")
+
+
+# -- club invite links -------------------------------------------------------
+#
+# A verified club can onboard its own athletes without each of them waiting in
+# the proof queue. The link is the club saying "this person is ours", which is
+# the same thing a reviewer would have been checking on a roster page, so it
+# replaces **the proof check** -- and only that.
+#
+# It is not a bypass of admission. The athlete still states their own
+# competition level and date of birth, because a club cannot supply either, and
+# the 16+ gate is not something a third party gets to clear on somebody else's
+# behalf. Links are single-use and bounded by the roster the club declared, so a
+# leaked link onboards one person, and minting a thousand athletes still costs a
+# thousand declared roster places.
+
+INVITE_TTL_DAYS = 14
+
+
+def _club_is_verified(conn, club_id: int) -> bool:
+    app = row(conn, "SELECT decision FROM club_applications WHERE club_id = ?", (club_id,))
+    return app is not None and app["decision"] == "verified"
+
+
+def _link_state(link: dict) -> str:
+    if link["revoked_at"]:
+        return "revoked"
+    if link["redeemed_at"]:
+        return "redeemed"
+    if link["expires_at"] < now_iso():
+        return "expired"
+    return "open"
+
+
+@router.post("/club/invite-links", status_code=201)
+def create_invite_link(user: dict = Depends(require_role("club")),
+                       conn: sqlite3.Connection = Depends(get_db)):
+    club = _own_club(conn, user)
+    # Same lock-before-read as nominations, and for the same reason: two
+    # requests that each read the old count both find room in the budget.
+    lock_for_update(conn, "club_applications", "club_id", club["id"])
+    if not _club_is_verified(conn, club["id"]):
+        raise HTTPException(403, "club_not_verified")
+
+    declared = row(conn, "SELECT registered_athletes FROM club_applications WHERE club_id = ?",
+                   (club["id"],))["registered_athletes"] or 0
+    spent = row(conn, "SELECT COUNT(*) AS n FROM club_invite_links WHERE club_id = ?"
+                      " AND revoked_at IS NULL", (club["id"],))["n"]
+    if spent >= declared:
+        raise HTTPException(409, "roster_budget_exhausted")
+
+    token = secrets.token_urlsafe(24)
+    expires = (datetime.now(timezone.utc) + timedelta(days=INVITE_TTL_DAYS)).strftime(
+        "%Y-%m-%dT%H:%M:%SZ")
+    conn.execute("INSERT INTO club_invite_links (club_id, token, created_at, expires_at)"
+                 " VALUES (?, ?, ?, ?)", (club["id"], token, now_iso(), expires))
+    log_event(conn, "user", "club.invite_link_created", "club", club["id"],
+              {"expires_at": expires})
+    conn.commit()
+    return {"token": token, "expires_at": expires, "remaining": declared - spent - 1}
+
+
+@router.get("/club/invite-links")
+def list_invite_links(user: dict = Depends(require_role("club")),
+                      conn: sqlite3.Connection = Depends(get_db)):
+    club = _own_club(conn, user)
+    out = []
+    for link in rows(conn, "SELECT * FROM club_invite_links WHERE club_id = ?"
+                           " ORDER BY id DESC", (club["id"],)):
+        athlete = row(conn, "SELECT slug, display_name, frozen_at FROM athlete_profiles"
+                            " WHERE id = ?", (link["redeemed_by"],)) if link["redeemed_by"] else None
+        out.append({"id": link["id"], "token": link["token"], "state": _link_state(link),
+                    "created_at": link["created_at"], "expires_at": link["expires_at"],
+                    "athlete": dict(athlete) if athlete else None})
+    return out
+
+
+@router.post("/club/invite-links/{link_id}/revoke")
+def revoke_invite_link(link_id: int, user: dict = Depends(require_role("club")),
+                       conn: sqlite3.Connection = Depends(get_db)):
+    """Withdraw the vouching, and freeze whoever it admitted.
+
+    The club is the only evidence behind a link-admitted athlete, so withdrawing
+    it has to take the listing with it -- otherwise a club could onboard anybody,
+    walk away, and leave a profile standing on nothing. Frozen rather than
+    deleted: the athlete keeps their account and everything they published, and
+    has two ways back.
+    """
+    club = _own_club(conn, user)
+    link = row(conn, "SELECT * FROM club_invite_links WHERE id = ? AND club_id = ?",
+               (link_id, club["id"]))
+    if link is None:
+        raise HTTPException(404, "unknown_invite_link")
+    if link["revoked_at"]:
+        raise HTTPException(409, "already_revoked")
+
+    conn.execute("UPDATE club_invite_links SET revoked_at = ? WHERE id = ?", (now_iso(), link_id))
+    froze = None
+    if link["redeemed_by"]:
+        athlete = row(conn, "SELECT * FROM athlete_profiles WHERE id = ?", (link["redeemed_by"],))
+        conn.execute("UPDATE athlete_profiles SET status = 'draft', frozen_at = ?,"
+                     " frozen_by_club = ? WHERE id = ?", (now_iso(), club["id"], athlete["id"]))
+        log_event(conn, "user", "athlete.frozen", "athlete", athlete["id"],
+                  {"club_id": club["id"], "link_id": link_id})
+        if athlete["user_id"]:
+            notify(conn, athlete["user_id"], "frozen",
+                   f"{club['name']} withdrew their invitation",
+                   "Your profile is out of the directory. A new link from a club puts it"
+                   " back, or you can submit a proof link of your own.",
+                   "/athlete/application")
+        froze = athlete["slug"]
+    log_event(conn, "user", "club.invite_link_revoked", "club", club["id"],
+              {"link_id": link_id, "froze": froze})
+    conn.commit()
+    return {"ok": True, "froze": froze}
+
+
+class RedeemIn(ApplicationIn):
+    """The application form minus the proof -- the club supplies that half."""
+
+
+@router.post("/athlete/invite-links/{token}/redeem")
+def redeem_invite_link(token: str, body: RedeemIn,
+                       user: dict = Depends(require_role("athlete")),
+                       conn: sqlite3.Connection = Depends(get_db)):
+    profile = _own_athlete(conn, user)
+    link = row(conn, "SELECT * FROM club_invite_links WHERE token = ?", (token,))
+    if link is None:
+        raise HTTPException(404, "unknown_invite_link")
+    state = _link_state(link)
+    if state != "open":
+        raise HTTPException(409, "link_" + state)
+    club = row(conn, "SELECT * FROM clubs WHERE id = ?", (link["club_id"],))
+    if not _club_is_verified(conn, club["id"]):
+        # verification can be withdrawn between issuing a link and redeeming it
+        raise HTTPException(403, "club_not_verified")
+
+    club_app = row(conn, "SELECT roster_url FROM club_applications WHERE club_id = ?",
+                   (club["id"],))
+    fields = body.model_dump()
+    fields["proof_kind"] = "roster"
+    fields["proof_url"] = club_app["roster_url"] if club_app else ""
+
+    columns = ("discipline", "club_name", "league_name", "competition_level",
+               "years_competing", "birth_year", "proof_url", "proof_kind")
+    values = tuple(fields[c] for c in columns)
+    existing = row(conn, "SELECT * FROM athlete_applications WHERE athlete_id = ?",
+                   (profile["id"],))
+    if existing:
+        conn.execute("UPDATE athlete_applications SET "
+                     + ", ".join(c + " = ?" for c in columns)
+                     + ", proof_status = 'verified', nominated_by_club = ?, submitted_at = ?"
+                       " WHERE id = ?", values + (club["id"], now_iso(), existing["id"]))
+    else:
+        conn.execute("INSERT INTO athlete_applications (athlete_id, "
+                     + ", ".join(columns)
+                     + ", proof_status, nominated_by_club, submitted_at) VALUES (?, "
+                     + ", ".join("?" for _ in columns) + ", 'verified', ?, ?)",
+                     (profile["id"],) + values + (club["id"], now_iso()))
+
+    # The link is spent whether or not the athlete clears the gate: a roster
+    # place is consumed by the attempt, which is what makes the budget mean
+    # anything at all.
+    conn.execute("UPDATE club_invite_links SET redeemed_by = ?, redeemed_at = ? WHERE id = ?",
+                 (profile["id"], now_iso(), link["id"]))
+    # a fresh vouching clears an old freeze -- one of the two ways back in
+    conn.execute("UPDATE athlete_profiles SET frozen_at = NULL, frozen_by_club = NULL"
+                 " WHERE id = ?", (profile["id"],))
+    log_event(conn, "user", "club.invite_link_redeemed", "athlete", profile["id"],
+              {"club_id": club["id"], "link_id": link["id"]})
+
+    application = row(conn, "SELECT * FROM athlete_applications WHERE athlete_id = ?",
+                      (profile["id"],))
+    profile = row(conn, "SELECT * FROM athlete_profiles WHERE id = ?", (profile["id"],))
+    verdict = _evaluate(conn, application, profile, via="club_nomination")
+    conn.commit()
+    return verdict
+
+
+@router.get("/admin/rejection-reasons")
+def rejection_reasons(_: dict = Depends(require_role("admin"))):
+    """The reviewer's dropdown, served rather than duplicated in the client.
+
+    Two copies of this list drift, and the copy that drifts is always the one
+    the reviewer sees, so a reason the server refuses is offered in the UI.
+    """
+    return [{"value": k, "label": v or "Something else — say what in the note"}
+            for k, v in REJECTION_REASONS.items()]
+
+
+@router.get("/admin/outbox")
+def outbox(limit: int = Query(30, ge=1, le=200),
+           _: dict = Depends(require_role("admin")),
+           conn: sqlite3.Connection = Depends(get_db)):
+    """What the product owes people, and has not sent.
+
+    `sent_at` stays null until a mail provider is attached. Showing the queue
+    is the honest version of "an email was sent": a reviewer can read the exact
+    text an applicant would receive, and nobody has to trust a claim.
+    """
+    return [{"id": e["id"], "to": e["to_email"], "subject": e["subject"], "body": e["body"],
+             "kind": e["kind"], "at": e["created_at"], "sent": e["sent_at"] is not None}
+            for e in rows(conn, "SELECT * FROM email_outbox ORDER BY id DESC LIMIT ?", (limit,))]
 
 
 def _auto_check(conn, *, url: str, name: str, fetcher=None) -> proofcheck.ProofResult:

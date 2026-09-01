@@ -88,6 +88,16 @@ def athlete(client):
 
 
 @pytest.fixture(scope="session")
+def athlete2(client):
+    """Sofia Brandt: claimed, and still waiting on the review queue.
+
+    The other athlete account. `athlete` is Kaia Mercer, who is already listed,
+    so anything about getting *into* the directory needs somebody who is not.
+    """
+    return make_session("athlete2@demo.stride")
+
+
+@pytest.fixture(scope="session")
 def sponsor(client):
     return make_session("sponsor@demo.stride")
 
@@ -105,3 +115,26 @@ def clubu(client):
 @pytest.fixture(scope="session")
 def admin(client):
     return make_session("admin@demo.stride")
+
+
+@pytest.fixture(autouse=True)
+def _fresh_api_rate_limit():
+    """Give each test its own general-API budget.
+
+    Every request in the suite comes from one client host, so they all share a
+    single 300-token bucket. The suite passed until it grew past 300 requests,
+    at which point whichever tests ran last began failing with `rate_limited` --
+    a failure with no relationship to the code under test, appearing in a file
+    that had not changed.
+
+    Both buckets, including `auth:`. Leaving that one alone was the smaller
+    change and the wrong one: `test_login_brute_force_rate_limited` drains it on
+    purpose, so every session fixture that first logs in *after* that test --
+    which is every one added later, in a file that sorts after `test_api` --
+    fails on a 429 that has nothing to do with what it is testing. The
+    brute-force test still passes: it makes thirty attempts against a bucket of
+    twenty inside its own test, so it exhausts it either way.
+    """
+    from stride_api.security import buckets
+    buckets._state.clear()
+    yield

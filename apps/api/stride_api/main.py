@@ -13,7 +13,7 @@ from .chaos import ChaosMiddleware, chaos
 from .config import settings
 from .db import connect, init_db
 from .observability import RequestContextMiddleware, configure_logging, metrics
-from .routers import admin, admission, athletes, auth, clubs, content, discover, sponsors
+from .routers import admin, admission, athletes, auth, clubs, content, discover, messaging, sponsors
 from .security import BodySizeLimitMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
 from .seed import is_seeded, seed
 
@@ -54,6 +54,7 @@ app.include_router(discover.router)
 app.include_router(admin.router)
 app.include_router(admission.router)
 app.include_router(content.router)
+app.include_router(messaging.router)
 
 
 @app.exception_handler(Exception)

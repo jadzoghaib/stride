@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620" role="img" aria-label="THE SESSION">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#241a2b"/>
+      <stop offset="100%" stop-color="#3a2540"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="620" fill="url(#g)"/>
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.10" stroke-width="2">
+    <path d="M0 470 C 180 380, 320 500, 500 410 S 830 300, 1000 360"/>
+    <path d="M0 530 C 200 450, 340 560, 520 480 S 840 380, 1000 430"/>
+  </g>
+  <circle cx="820" cy="150" r="70" fill="#FFB020" fill-opacity="0.85"/>
+  <text x="70" y="330" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="76"
+        font-weight="700" fill="#ffffff" letter-spacing="1">THE SESSION</text>
+  <text x="72" y="382" font-family="ui-monospace, Consolas, monospace" font-size="24"
+        fill="#ffffff" fill-opacity="0.7">subscribers only</text>
+</svg>

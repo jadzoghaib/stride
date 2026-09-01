@@ -24,6 +24,11 @@ import { DECISION_COPY, proofStatusLabel } from '../../types'
 
 type QueueName = 'athletes' | 'clubs' | 'verified'
 
+interface OutboxEntry {
+  id: number; to: string; subject: string; body: string
+  kind: string; at: string; sent: boolean
+}
+
 /** Both endpoints cap at 500. Ask for the maximum and say so when the list comes
  *  back full: the default of 100 silently hid the revoke control for every club
  *  past the hundredth, and a truncated queue looks exactly like a finished one. */
@@ -57,6 +62,9 @@ export default function ReviewQueue() {
   const [clubs, setClubs] = useState<ClubApplication[]>([])
   const [verifiedClubs, setVerifiedClubs] = useState<ClubApplication[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [rejecting, setRejecting] = useState<AthleteApplication | null>(null)
+  const [reasons, setReasons] = useState<{ value: string; label: string }[]>([])
+  const [outbox, setOutbox] = useState<OutboxEntry[]>([])
   const [failed, setFailed] = useState<Partial<Record<QueueName, string>>>({})
   // Two different failures, deliberately not one state. `error` is a banner
   // over a page that still works — a decision that did not post. `loadError` is
@@ -112,16 +120,26 @@ export default function ReviewQueue() {
       setLoadError(errorText(e))
       setLoaded(true)
     })
+    // served rather than hard-coded here: two copies of this list drift,
+    // and the one that drifts is always the one the reviewer sees
+    api.get<{ value: string; label: string }[]>('/api/admin/rejection-reasons')
+      .then(setReasons).catch(() => setReasons([]))
+    void loadOutbox()
   }, [])
 
-  const decideAthlete = async (application: AthleteApplication, proof_status: string) => {
+  const loadOutbox = () =>
+    api.get<OutboxEntry[]>('/api/admin/outbox').then(setOutbox).catch(() => setOutbox([]))
+
+  const decideAthlete = async (application: AthleteApplication, proof_status: string,
+                               reason = '', note = '') => {
     setError('')
     setBusy(application.id)
     try {
       const verdict = await api.post<AdmissionVerdict>(
-        `/api/admin/applications/${application.id}/proof`, { proof_status })
+        `/api/admin/applications/${application.id}/proof`, { proof_status, reason, note })
       toast(`${application.display_name}: ${DECISION_COPY[verdict.rule] ?? verdict.decision}`)
       await load()
+      await loadOutbox()
     } catch (e) {
       setError(errorText(e))
     } finally {
@@ -166,8 +184,22 @@ export default function ReviewQueue() {
   // `openable` is imported rather than defined here: it has to stay the same
   // rule as the server's, and a copy is how two rules become one bug.
 
+  const rejectionForm = rejecting && (
+    <RejectionForm
+      application={rejecting}
+      reasons={reasons}
+      busy={busy === rejecting.id}
+      onClose={() => setRejecting(null)}
+      onSubmit={async (reason, note) => {
+        await decideAthlete(rejecting, 'rejected', reason, note)
+        setRejecting(null)
+      }}
+    />
+  )
+
   return (
     <div>
+      {rejectionForm}
       <PageHeader
         eyebrow="Operations"
         title="Review queue"
@@ -249,7 +281,7 @@ export default function ReviewQueue() {
                     <Check size={14} /> Name is on the page
                   </button>
                   <button className="btn" disabled={busy === a.id}
-                          onClick={() => decideAthlete(a, 'rejected')}>
+                          onClick={() => setRejecting(a)}>
                     <X size={14} /> It is not
                   </button>
                   <span className="meta ml-auto self-center">
@@ -406,6 +438,90 @@ export default function ReviewQueue() {
           )}
         </Modal>
       )}
+
+      {/* What the product owes people. Nothing is sent — there is no mail
+          provider — so showing the queue is the honest version of "an email
+          was sent": the reviewer reads the exact text the applicant gets. */}
+      <Section title="Outbox"
+               aside={<span className="meta">{outbox.length} queued · nothing is delivered in the demo</span>}>
+        {outbox.length === 0 ? (
+          <EmptyNote text="No messages owed. Deciding an application writes one here." />
+        ) : (
+          <div className="space-y-2">
+            {outbox.map((e) => (
+              <details key={e.id} className="panel p-4">
+                <summary className="cursor-pointer list-none">
+                  <span className="font-medium text-ink">{e.subject}</span>
+                  <span className="meta ml-2">to {e.to}</span>
+                  <span className={`tag ml-2 ${e.sent ? 'text-ok' : ''}`}>
+                    {e.sent ? 'sent' : 'queued'}
+                  </span>
+                </summary>
+                <pre className="mt-3 whitespace-pre-wrap font-sans text-sm text-ink-2">{e.body}</pre>
+              </details>
+            ))}
+          </div>
+        )}
+      </Section>
+
     </div>
+  )
+}
+
+
+/** Refusing needs a reason, and the applicant is told what it was.
+ *
+ *  A one-click reject was faster for the reviewer and useless to everyone
+ *  after: the athlete learns only that they failed, and the next reviewer to
+ *  see the case inherits no record of what was already checked. The reason is
+ *  a fixed list so the outcomes can be counted; the note is free text because
+ *  the interesting cases never fit a list.
+ */
+function RejectionForm({ application, reasons, busy, onClose, onSubmit }: {
+  application: AthleteApplication
+  reasons: { value: string; label: string }[]
+  busy: boolean
+  onClose: () => void
+  onSubmit: (reason: string, note: string) => void
+}) {
+  const [reason, setReason] = useState(reasons[0]?.value ?? 'name_not_on_page')
+  const [note, setNote] = useState('')
+  // "other" is the escape hatch, so it cannot also be a way to say nothing
+  const needsNote = reason === 'other' && !note.trim()
+
+  return (
+    <Modal title={`Reject ${application.display_name}?`} onClose={onClose}>
+      {(close) => (
+        <div className="space-y-4">
+          <p className="text-sm text-ink-2">
+            They are told the reason, in these words, and can submit a different link.
+          </p>
+
+          <label className="block"><span className="cap">Reason *</span>
+            <select className="field mt-1" value={reason} onChange={(e) => setReason(e.target.value)}>
+              {reasons.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+            </select>
+          </label>
+
+          <label className="block"><span className="cap">Note to the applicant</span>
+            <textarea className="field mt-1 min-h-[6rem]" value={note}
+                      placeholder="Anything they should know. Sent as written."
+                      onChange={(e) => setNote(e.target.value)} />
+            {reason === 'other' && (
+              <span className="meta mt-1 block">Required when the reason is “something else”.</span>
+            )}
+          </label>
+
+          <div className="flex items-center gap-3">
+            <button className="btn-go" disabled={busy || needsNote}
+                    onClick={() => { onSubmit(reason, note.trim()); close() }}>
+              {busy ? 'Recording…' : 'Reject and tell them'}
+            </button>
+            <button className="btn" onClick={close}>Cancel</button>
+            <span className="meta">Rejecting sticks — only a reviewer can clear it.</span>
+          </div>
+        </div>
+      )}
+    </Modal>
   )
 }

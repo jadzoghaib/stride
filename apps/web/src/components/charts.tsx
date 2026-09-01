@@ -12,6 +12,7 @@
  */
 
 import { useRef, useState, type ReactNode } from 'react'
+import { LAND_PATH } from './land'
 
 const AGE_ORDER = ['13-17', '18-24', '25-34', '35-44', '45-54', '55+']
 
@@ -288,31 +289,16 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
       <div ref={h.box} className="relative" onMouseMove={h.move} onMouseLeave={h.leave}>
       <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded bg-ground-deep" role="img" aria-label="Audience by country">
-          {/* graticule */}
-          {Array.from({ length: 11 }).map((_, i) => (
-            <line
-              key={`v${i}`}
-              x1={(i + 1) * (W / 12)}
-              y1={8}
-              x2={(i + 1) * (W / 12)}
-              y2={H - 8}
-              className="stroke-line"
-              strokeWidth={1}
-            />
-          ))}
-          {Array.from({ length: 5 }).map((_, i) => (
-            <line
-              key={`h${i}`}
-              x1={8}
-              y1={(i + 1) * (H / 6)}
-              x2={W - 8}
-              y2={(i + 1) * (H / 6)}
-              className="stroke-line"
-              strokeWidth={1}
-            />
-          ))}
-          {/* equator hint */}
-          <line x1={8} y1={py(0)} x2={W - 8} y2={py(0)} className="stroke-line-strong" strokeWidth={1} strokeDasharray="3 5" />
+          {/* The land itself, not a grid. A bubble at 46.6N 2.2E means nothing
+              without a France under it — the grid was a coordinate system
+              standing in for a map, and a reader had to already know where the
+              countries were to read it. Drawn in the same projection the
+              bubbles are placed with, so they land where they belong. */}
+          <path d={LAND_PATH} className="fill-raised stroke-line" strokeWidth={0.5} />
+
+          {/* equator, as the one line worth keeping from the graticule */}
+          <line x1={8} y1={py(0)} x2={W - 8} y2={py(0)} className="stroke-line-strong"
+                strokeWidth={1} strokeDasharray="3 5" />
           {bubbles.map((b) => (
             <g
               key={b.code}

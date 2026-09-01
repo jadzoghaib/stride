@@ -298,7 +298,7 @@ def test_a_rejected_proof_cannot_be_laundered_by_resubmitting(athlete, admin, db
         "proof_url": "https://forged.example/roster", "proof_kind": "roster"})
     application = _application(db)
     admin.post(f"/api/admin/applications/{application['id']}/proof",
-               json={"proof_status": "rejected"})
+               json={"proof_status": "rejected", "reason": "name_not_on_page"})
     assert _application(db)["decision"] == "rejected"
 
     resubmitted = athlete.post("/api/athlete/application", json={
@@ -452,7 +452,7 @@ def test_a_crawler_cannot_clear_a_rejected_proof(athlete, admin, db, monkeypatch
         "proof_url": "https://forged.example/roster", "proof_kind": "roster"})
     application = _application(db)
     admin.post(f"/api/admin/applications/{application['id']}/proof",
-               json={"proof_status": "rejected"})
+               json={"proof_status": "rejected", "reason": "name_not_on_page"})
 
     monkeypatch.setattr(proofcheck, "fetch",
                         lambda url: ("<li>Kaia Mercer</li>", "ok"))
@@ -580,7 +580,7 @@ def test_but_a_rejected_proof_delists_even_a_pre_gate_listing(athlete, admin, db
         "proof_url": "https://usatf.example/r", "proof_kind": "results"})
     application = _application(db)
     rejected = admin.post(f"/api/admin/applications/{application['id']}/proof",
-                          json={"proof_status": "rejected"})
+                          json={"proof_status": "rejected", "reason": "name_not_on_page"})
     assert rejected.json()["decision"] == "rejected"
     assert rejected.json()["listing"] == "draft"
     assert row(db, "SELECT status FROM athlete_profiles WHERE slug = 'kaia-mercer'"
@@ -693,9 +693,99 @@ def test_an_admitted_athlete_with_no_analytics_is_not_listed(client, admin, db):
         found = client.get("/api/athletes", params={"q": "No Analytics"}).json()["athletes"]
         assert found == [], "and they are not in the directory"
     finally:
-        # session-scoped database: take the whole account back out
+        # session-scoped database: take the whole account back out. The decision
+        # now leaves a queued email and a notification pointing at this user, and
+        # both have to go before the user can.
+        user_id = row(db, "SELECT id FROM users WHERE email = 'noanalytics@test.local'")
+        if user_id:
+            db.execute("DELETE FROM email_outbox WHERE to_user_id = ?", (user_id["id"],))
+            db.execute("DELETE FROM notifications WHERE user_id = ?", (user_id["id"],))
         db.execute("DELETE FROM athlete_applications WHERE athlete_id = ?", (profile["id"],))
         db.execute("DELETE FROM athlete_profiles WHERE id = ?", (profile["id"],))
         db.execute("DELETE FROM users WHERE email = 'noanalytics@test.local'")
         db.commit()
         fresh_client.close()
+
+
+# -- the reviewer's decision, and what the applicant is told ------------------
+
+def _pending(athlete, db):
+    """An application waiting on a reviewer, made by the test that needs it.
+
+    `restore_directory` empties `athlete_applications` after every test in this
+    file, so nothing seeded survives to be reviewed. Each test files its own
+    rather than depending on what an earlier one left behind.
+    """
+    filed = athlete.post("/api/athlete/application", json={
+        "competition_level": "national", "years_competing": 7, "birth_year": 1999,
+        "proof_kind": "results", "proof_url": "https://athletics.example/results"})
+    assert filed.status_code == 201, filed.text
+    return row(db, "SELECT ap.*, a.display_name FROM athlete_applications ap"
+                   " JOIN athlete_profiles a ON a.id = ap.athlete_id ORDER BY ap.id DESC LIMIT 1")
+
+
+def test_a_rejection_has_to_say_why(athlete, admin, db):
+    """"Rejected" on its own is a dead end for the applicant and for whoever
+    picks the case up next."""
+    application = _pending(athlete, db)
+    bare = admin.post(f"/api/admin/applications/{application['id']}/proof",
+                      json={"proof_status": "rejected"})
+    assert bare.status_code == 422
+    assert bare.json()["detail"] == "unknown_rejection_reason"
+
+    made_up = admin.post(f"/api/admin/applications/{application['id']}/proof",
+                         json={"proof_status": "rejected", "reason": "i_didnt_like_them"})
+    assert made_up.status_code == 422
+
+
+def test_other_demands_the_note(athlete, admin, db):
+    """The escape hatch cannot be a way to say nothing."""
+    application = _pending(athlete, db)
+    empty = admin.post(f"/api/admin/applications/{application['id']}/proof",
+                       json={"proof_status": "rejected", "reason": "other"})
+    assert empty.status_code == 422
+    assert empty.json()["detail"] == "other_needs_a_note"
+
+    ok = admin.post(f"/api/admin/applications/{application['id']}/proof",
+                    json={"proof_status": "rejected", "reason": "other",
+                          "note": "The federation page lists a different club."})
+    assert ok.status_code == 200
+
+
+def test_the_reason_and_the_note_are_kept_with_the_application(athlete, admin, db):
+    application = _pending(athlete, db)
+    admin.post(f"/api/admin/applications/{application['id']}/proof",
+               json={"proof_status": "rejected", "reason": "wrong_person",
+                     "note": "Same name, different athlete."})
+    after = row(db, "SELECT * FROM athlete_applications WHERE id = ?", (application["id"],))
+    assert after["review_reason"] == "wrong_person"
+    assert after["review_note"] == "Same name, different athlete."
+    assert after["reviewed_by"] is not None, "who decided is part of the trail"
+
+
+def test_a_decision_queues_the_email_it_owes_but_does_not_claim_to_send_it(athlete, admin, db):
+    """There is no mail provider. The row is the record that a message is owed,
+    and a reviewer can read exactly what the applicant would receive."""
+    application = _pending(athlete, db)
+    admin.post(f"/api/admin/applications/{application['id']}/proof",
+               json={"proof_status": "rejected", "reason": "name_not_on_page",
+                     "note": "Checked twice."})
+
+    queued = admin.get("/api/admin/outbox").json()
+    assert queued, "the decision owed somebody an email"
+    latest = queued[0]
+    assert latest["sent"] is False, "nothing here claims to have been delivered"
+    assert "could not accept it" in latest["body"]
+    assert "could not find your name" in latest["body"], "the reason is in the words"
+    assert "Checked twice." in latest["body"], "and so is the reviewer's note"
+
+
+def test_the_dropdown_is_served_rather_than_duplicated(admin):
+    reasons = {r["value"] for r in admin.get("/api/admin/rejection-reasons").json()}
+    assert "name_not_on_page" in reasons and "other" in reasons
+
+
+def test_the_outbox_is_admin_only(athlete, client, sponsor):
+    for who in (athlete, sponsor):
+        assert who.get("/api/admin/outbox").status_code == 403
+    assert client.get("/api/admin/outbox").status_code == 401

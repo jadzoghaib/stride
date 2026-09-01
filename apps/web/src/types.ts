@@ -92,13 +92,31 @@ export interface AthletePublic {
   career_highlights: string[]
   topics: string[]
   deal_types: string[]
-  base_rate_eur: number
   status: string
   claimed: boolean
-  score: ScoreSummary | null
+  /** Where to find them off Stride. Everyone gets these. */
+  socials: { platform: string; handle: string; url: string }[]
+  /** Sales material: the asking price and the evidence behind it. Present only
+   *  for a sponsor, a club, an admin, or the athlete reading their own profile
+   *  — which is why both are optional rather than nullable. A fan is buying a
+   *  post, not the athlete's audience. */
+  base_rate_eur?: number
+  score?: ScoreSummary | null
   affinity?: number
   reasons?: string[]
+  /** follow = their free posts and their platform news.
+   *  subscribe = the posts they marked subscribers-only. */
+  /** Audience size. Social proof, not sales material — every creator page
+   *  in the category shows it, and a fan reads it as "is this worth my
+   *  time" rather than "what does this person cost". */
+  followers?: number
+  subscribers?: number
   following?: boolean
+  subscribed?: boolean
+  /** The server decides, so the envelope cannot appear where the send
+   *  would be refused — and it is false for an unclaimed profile, which
+   *  has no inbox to deliver to. */
+  can_message?: boolean
   audience?: Record<string, Record<string, number>>
   score_history?: { computed_at: string; audience_scale: number | null }[]
   clubs?: { name: string; slug: string; position: string }[]
@@ -270,7 +288,11 @@ export const DEAL_TYPES = [
   { key: 'product_collab', label: 'Product Collaboration' },
 ] as const
 
-export const CATEGORIES = ['Sportswear', 'Nutrition', 'Technology', 'Automotive', 'Beverages', 'Finance', 'Travel', 'Wellness']
+// 'Other' last, and deliberately: a fixed list with no escape hatch makes a
+// sponsor pick the nearest wrong answer, which then poisons category-based
+// matching for every athlete it touches.
+export const CATEGORIES = ['Sportswear', 'Nutrition', 'Technology', 'Automotive',
+  'Beverages', 'Finance', 'Travel', 'Wellness', 'Other']
 
 export const dealTypeLabel = (key: string) =>
   DEAL_TYPES.find((d) => d.key === key)?.label ?? key.replace(/_/g, ' ')
@@ -366,6 +388,9 @@ export interface AdmissionVerdict extends Credibility {
 }
 
 export interface AthleteApplicationView {
+  /** Set when the club that vouched for this athlete withdrew it. There are
+   *  exactly two ways out and the page has to name both. */
+  frozen?: { at: string; club: string | null } | null
   application: AthleteApplication | null
   scored?: Credibility
   club_floor?: number
@@ -501,7 +526,7 @@ export interface NewsItem {
 
 export interface ContentItem {
   id: number
-  kind: 'post' | 'course' | 'session' | 'event' | 'product'
+  kind: 'post' | 'course' | 'session' | 'event' | 'product' | 'poll'
   title: string
   body: string
   min_tier: string
@@ -513,6 +538,16 @@ export interface ContentItem {
   starts_at: string | null
   location: string
   capacity: number | null
+  /** A picture or a clip, by link. Withheld with the body when locked, so
+   *  `has_media` is how a locked card knows to show a lock panel at all. */
+  media_url: string
+  media_kind: '' | 'image' | 'video'
+  has_media?: boolean
+  poll?: {
+    total: number
+    voted: number | null
+    options: { id: number; label: string; votes: number; share: number }[]
+  } | null
   /** Products only: where the thing is actually sold. Stride never takes the
    *  money, so this is the whole point of the row. */
   external_url: string
@@ -536,15 +571,13 @@ export interface ClubInvitation {
   country: string
 }
 
-export const CONTENT_KINDS = ['post', 'course', 'session', 'event', 'product'] as const
+export const CONTENT_KINDS = ['post', 'course', 'session', 'event', 'product', 'poll'] as const
 /** The scarce kinds: they cost the author a day, so they carry a date, a place
  *  and a capacity — and they are the argument for the top tier. */
 export const SCHEDULED_KINDS = ['session', 'event'] as const
 export const CONTENT_TIERS = [
-  { value: '', label: 'Free — anyone following' },
-  { value: 'supporter', label: 'Supporter · €4.99' },
-  { value: 'insider', label: 'Insider · €9.99' },
-  { value: 'inner_circle', label: 'Inner circle · €24.99' },
+  { value: '', label: 'Everyone' },
+  { value: 'supporter', label: 'Subscribers only' },
 ] as const
 export const CONTENT_LABELS = [
   { value: '', label: 'None' },

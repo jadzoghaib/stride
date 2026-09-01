@@ -3,9 +3,10 @@
  *  amber accent. Motion is a single settling sequence on mount; everything here
  *  checks prefers-reduced-motion before animating. */
 
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, Mail } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { api, errorText } from '../lib/api'
 import { avatarHue, fmtNum, initials } from '../lib/format'
 import { DIMENSIONS, type ScoreSummary } from '../types'
 
@@ -214,6 +215,69 @@ export function Section({ title, aside, id, children }: { title: string; aside?:
       </div>
       {children}
     </section>
+  )
+}
+
+/** The envelope. Rendered only where the server said a message would be
+ *  accepted, so it is never a button whose only outcome is a refusal. */
+export function MessageButton({ to, name, onSent }: {
+  to: { athlete?: string; club?: string; user?: number }
+  name: string
+  onSent?: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [body, setBody] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  const send = async (close: () => void) => {
+    setBusy(true)
+    setError('')
+    try {
+      await api.post('/api/messages', {
+        body: body.trim(),
+        ...(to.athlete ? { to_athlete: to.athlete } : {}),
+        ...(to.club ? { to_club: to.club } : {}),
+        ...(to.user ? { to_user: to.user } : {}),
+      })
+      setBody('')
+      close()
+      setOpen(false)
+      onSent?.()
+    } catch (e) {
+      setError(errorText(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <>
+      <button className="btn px-2 py-1" title={`Message ${name}`} aria-label={`Message ${name}`}
+              onClick={() => setOpen(true)}>
+        <Mail size={13} strokeWidth={1.9} />
+      </button>
+      {open && (
+        <Modal title={`Message ${name}`} onClose={() => setOpen(false)}>
+          {(close) => (
+            <div className="space-y-3">
+              <textarea className="field min-h-[7rem]" value={body} autoFocus
+                        placeholder={`Write to ${name}`}
+                        onChange={(e) => setBody(e.target.value)} />
+              {error && <p className="text-sm text-critical">{error}</p>}
+              <div className="flex items-center gap-3">
+                <button className="btn-go" disabled={busy || !body.trim()}
+                        onClick={() => void send(close)}>
+                  {busy ? 'Sending…' : 'Send'}
+                </button>
+                <button className="btn" onClick={close}>Cancel</button>
+                <span className="meta">It lands in their inbox, and in yours.</span>
+              </div>
+            </div>
+          )}
+        </Modal>
+      )}
+    </>
   )
 }
 
