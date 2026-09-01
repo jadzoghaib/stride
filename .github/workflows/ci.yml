@@ -85,6 +85,13 @@ jobs:
       - run: uv run python scripts/journey.py http://localhost:8490
       - run: uv run python scripts/permissions.py http://localhost:8490
       - run: uv run python scripts/propagation.py http://localhost:8490
+      # The server is started with `&` and outlives the steps that use it. The
+      # post-job cache prune then blocks on files that process still holds open,
+      # waits five minutes and fails — so a job whose every check passed was
+      # reported red, twice, for cleanup it had leaked itself.
+      - name: Stop the API
+        if: always()
+        run: pkill -f "uvicorn stride_api" || true
 
   web:
     name: Web — typecheck + production build
