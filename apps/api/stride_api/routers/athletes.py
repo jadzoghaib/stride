@@ -470,11 +470,31 @@ def disconnect(account_id: int, user: dict = Depends(require_role("athlete")),
 # ---- deals (athlete side) ----------------------------------------------------
 
 def _deals_for_athlete(conn, athlete_id: int) -> list[dict]:
+    # The campaign's own terms travel with the offer. An athlete deciding on a
+    # deal was being shown a number, a format and one line of message, and asked
+    # to answer yes or no -- everything that would inform the answer (what the
+    # campaign is for, who it is aimed at, what reach was projected when the
+    # offer was priced) sat one table away and was never sent.
+    #
+    # `org_user_id` is here so the athlete can reply to a person instead. It is
+    # the sponsor's user, which is what `POST /api/messages` addresses.
     deals = rows(conn, """
-        SELECT d.*, c.name AS campaign_name, c.category, o.name AS org_name
+        SELECT d.*, c.name AS campaign_name, c.category, c.objective,
+               c.target_countries, c.target_age_buckets, c.target_genders,
+               c.target_topics, c.budget_eur_min, c.budget_eur_max,
+               o.name AS org_name, o.industry AS org_industry,
+               o.website AS org_website, o.user_id AS org_user_id
         FROM deals d JOIN campaigns c ON c.id = d.campaign_id
                      JOIN sponsor_orgs o ON o.id = d.org_id
         WHERE d.athlete_id = ? ORDER BY d.created_at DESC, d.id DESC""", (athlete_id,))
+    for d in deals:
+        # stored as JSON text; the client should not be parsing our storage format
+        for field in ("target_countries", "target_age_buckets",
+                      "target_genders", "target_topics"):
+            try:
+                d[field] = json.loads(d[field]) if d[field] else []
+            except (TypeError, ValueError):
+                d[field] = []
     # What is already attached, so the athlete is never offered a post they have
     # submitted before. One grouped query rather than one per deal.
     attached: dict[int, list[int]] = {}

@@ -256,14 +256,31 @@ check("RULE 1 · an unmeasured campaign reads as unmeasured, not free",
 section("Club")
 clb = session("club@demo.stride")
 
-club_app = clb.get("/api/club/application").json()
-scored = club_app.get("scored", {})
+# The applicant, not the demo club. Meridian used to be seeded `listed` *and*
+# `pending`, which is the state this rule was read off -- and which broke the
+# invariant below: it sat in the public directory while telling its own owner it
+# was unverified. The applicant is now a club that is not listed yet, which is
+# what an unreviewed club actually is, and it is the one these two checks belong
+# to.
+pending_clb = session("club3@demo.stride")
+pending_app = pending_clb.get("/api/club/application").json()
+pending_scored = pending_app.get("scored", {})
 check("RULE 2 · a club above the bar still waits for a human",
-      scored.get("legitimacy", 0) >= 65 and club_app["application"]["decision"] == "review",
-      f"legitimacy={scored.get('legitimacy')} decision={club_app['application']['decision']}")
+      pending_scored.get("legitimacy", 0) >= 65
+      and pending_app["application"]["decision"] == "review",
+      f"legitimacy={pending_scored.get('legitimacy')} decision={pending_app['application']['decision']}")
 
 check("an unverified club cannot nominate",
-      clb.post("/api/club/nominations", json={"athlete_slug": "sofia-brandt"}).status_code == 403)
+      pending_clb.post("/api/club/nominations",
+                       json={"athlete_slug": "sofia-brandt"}).status_code == 403)
+
+listed = {c["slug"] for c in clb.get("/api/clubs").json()}
+check("a club awaiting review is not in the public directory",
+      "northgate-athletic" not in listed, f"listed={sorted(listed)}")
+
+check("RULE 2b · the club that IS in the directory is a verified one",
+      clb.get("/api/club/application").json()["application"]["proof_status"] == "verified",
+      clb.get("/api/club/application").json()["application"]["proof_status"])
 
 invite = clb.post("/api/club/members", json={"athlete_slug": "sofia-brandt", "position": "Runner"})
 check("inviting an athlete is accepted", invite.status_code == 201, invite.text[:100])

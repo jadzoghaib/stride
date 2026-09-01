@@ -100,9 +100,15 @@ export default function SponsorCampaigns() {
         )}
         <div className="space-y-3">
           {ws.campaigns.map((c) => (
-            <Link key={c.id} to={`/sponsor/campaigns/${c.id}`} className="panel panel-hover block p-5">
+            /* Two destinations, because a campaign has two questions: who should
+               be on it (matches) and how it is doing (analytics). The card was
+               one link to the first, and the second had nowhere to be reached
+               from. */
+            <div key={c.id} className="panel p-5">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="font-medium text-ink">{c.name}</span>
+                <Link to={`/sponsor/campaigns/${c.id}`} className="font-medium text-ink hover:text-accent">
+                  {c.name}
+                </Link>
                 <span className="tag">{c.category}</span>
                 <StatusChip status={c.status} />
                 <span className="ml-auto tnum text-sm text-ink-2">
@@ -115,7 +121,15 @@ export default function SponsorCampaigns() {
                 {c.target_countries.length > 0 && <span className="tag">{c.target_countries.join(' · ')}</span>}
                 {c.target_age_buckets.length > 0 && <span className="tag">ages {c.target_age_buckets.join(', ')}</span>}
               </div>
-            </Link>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link to={`/sponsor/campaigns/${c.id}`} className="btn px-3 py-1.5 text-xs">
+                  Find athletes
+                </Link>
+                <Link to={`/sponsor/campaigns/${c.id}/analytics`} className="btn px-3 py-1.5 text-xs">
+                  Performance
+                </Link>
+              </div>
+            </div>
           ))}
         </div>
       </Section>

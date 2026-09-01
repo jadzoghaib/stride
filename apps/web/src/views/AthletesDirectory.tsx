@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar, CoverageChip, EmptyNote, LoadError, Meter, PageHeader, PageLoading } from '../components/ui'
 import { api, errorText } from '../lib/api'
+import { useAuth } from '../lib/auth'
 import { fmtMoney } from '../lib/format'
 import type { AthletePage, AthletePublic } from '../types'
 import { meanScore } from '../types'
@@ -18,12 +19,22 @@ const COLUMNS: { key: SortKey; label: string; align?: string }[] = [
 /** Marketability, the rate card and analytics coverage are sales material, and
  *  the API omits all three for a reader who is not buying. Rather than render
  *  empty cells, the table drops the columns — so the same page is a pricing
- *  sheet to a sponsor and a plain index to everyone else. */
-function commercialColumns(athletes: AthletePublic[]): boolean {
-  return athletes.some((a) => a.base_rate_eur !== undefined || a.score !== undefined)
+ *  sheet to a sponsor and a plain index to everyone else.
+ *
+ *  This asks the viewer's role rather than the rows. Asking the rows — "does
+ *  *any* athlete here have a rate card?" — is true for a signed-in athlete,
+ *  because their own row carries their own numbers: the columns appeared, one
+ *  row filled in, and the other twenty-three rendered `€0` and "not scored".
+ *  Both of those are assertions. The athletes were scored; the reader was
+ *  simply not allowed to see it, and an absence of permission must not print
+ *  itself as an absence of data.
+ */
+function commercialColumns(role: string | undefined): boolean {
+  return role === 'sponsor' || role === 'club' || role === 'admin'
 }
 
-export default function AthletesDirectory() {
+export default function AthletesDirectory({ embedded = false }: { embedded?: boolean } = {}) {
+  const { me } = useAuth()
   const [athletes, setAthletes] = useState<AthletePublic[] | null>(null)
   const [facets, setFacets] = useState<{ sports: string[]; countries: string[] }>({ sports: [], countries: [] })
   const [sport, setSport] = useState('')
@@ -117,20 +128,29 @@ export default function AthletesDirectory() {
    *  marketability, so it shows the measurement. The API already returns the
    *  full dimension set here; the composite is the same client-side mean the
    *  dashboards use, and is labelled as derived in the column note. */
+  const commercial = commercialColumns(me?.role)
+
+  //: The sort the table actually runs. `sort` holds what the reader last asked
+  //  for, which starts at the score — but a reader without the commercial
+  //  columns has no score on screen, and a table ordered by an invisible
+  //  quantity reads as a table in no order at all. Derived rather than seeded
+  //  into `useState`, because `me` is still null on the first render: a default
+  //  computed there would bake in the signed-out answer and never revisit it.
+  const sortKey: SortKey = commercial ? sort : 'display_name'
+  const sortDesc = commercial ? desc : sort === 'display_name' && desc
+
   const rows = useMemo(() => {
     const scored = (athletes ?? []).map((a) => ({ ...a, mean: meanScore(a.score?.dimensions).value }))
-    const dir = desc ? -1 : 1
+    const dir = sortDesc ? -1 : 1
     return scored.sort((a, b) => {
-      if (sort === 'display_name') return dir * a.display_name.localeCompare(b.display_name)
-      if (sort === 'base_rate_eur') return dir * ((a.base_rate_eur ?? 0) - (b.base_rate_eur ?? 0))
+      if (sortKey === 'display_name') return dir * a.display_name.localeCompare(b.display_name)
+      if (sortKey === 'base_rate_eur') return dir * ((a.base_rate_eur ?? 0) - (b.base_rate_eur ?? 0))
       // unscored athletes sort last in both directions — an absent score is not
       // a low score, so it never displaces a measured one at the top
       if (a.mean === null || b.mean === null) return a.mean === b.mean ? 0 : a.mean === null ? 1 : -1
       return dir * (a.mean - b.mean)
     })
-  }, [athletes, sort, desc])
-
-  const commercial = commercialColumns(athletes ?? [])
+  }, [athletes, sortKey, sortDesc])
 
   if (!athletes) return error ? <LoadError text={error} /> : <PageLoading />
 
@@ -144,16 +164,21 @@ export default function AthletesDirectory() {
 
   return (
     <div>
+      {!embedded && (
       <PageHeader
-        eyebrow="Directory"
-        title="Athlete directory"
-        lede="Every listed athlete, with the marketability mean behind their profile. Coverage says how many platforms that mean is computed from."
-        aside={
-          <span className="meta">
-            {rows.length} athlete{rows.length === 1 ? '' : 's'}
-          </span>
-        }
-      />
+          eyebrow="Directory"
+          title="Athlete directory"
+          lede={commercial
+            ? 'Every listed athlete, with the marketability mean behind their profile. Coverage says how many platforms that mean is computed from.'
+            : 'Every listed athlete on Stride. Marketability and rate cards are sales material, so they are shown to sponsors and clubs — your own are on your dashboard.'}
+          aside={
+            <span className="meta">
+              {rows.length} athlete{rows.length === 1 ? '' : 's'}
+            </span>
+          }
+        />
+      )}
+
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
@@ -197,14 +222,14 @@ export default function AthletesDirectory() {
           <thead>
             <tr>
               {COLUMNS.filter((c) => c.key === 'display_name' || commercial).map((col) => (
-                <th key={col.key} className={`table-head ${col.align ?? ''}`} aria-sort={sort === col.key ? (desc ? 'descending' : 'ascending') : 'none'}>
+                <th key={col.key} className={`table-head ${col.align ?? ''}`} aria-sort={sortKey === col.key ? (sortDesc ? 'descending' : 'ascending') : 'none'}>
                   <button
                     className="inline-flex items-center gap-1 uppercase tracking-micro transition-colors hover:text-ink"
                     onClick={() => toggle(col.key)}
                   >
                     {col.label}
-                    {sort === col.key &&
-                      (desc ? <ArrowDown size={11} className="text-accent" /> : <ArrowUp size={11} className="text-accent" />)}
+                    {sortKey === col.key &&
+                      (sortDesc ? <ArrowDown size={11} className="text-accent" /> : <ArrowUp size={11} className="text-accent" />)}
                   </button>
                 </th>
               ))}

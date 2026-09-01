@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { LoadError, Modal, PageHeader, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtDate, fmtMoney, fmtNum } from '../../lib/format'
@@ -7,9 +8,12 @@ import type { AthletePost, AthleteWorkspace, Deal } from '../../types'
 import { dealTypeLabel, platformLabel } from '../../types'
 
 export default function AthleteDeals() {
+  const navigate = useNavigate()
   const [ws, setWs] = useState<AthleteWorkspace | null>(null)
   const [error, setError] = useState('')
   const [delivering, setDelivering] = useState<Deal | null>(null)
+  const [detail, setDetail] = useState<Deal | null>(null)
+  const [asking, setAsking] = useState<Deal | null>(null)
 
   const load = () =>
     api.get<AthleteWorkspace>('/api/athlete/workspace').then(setWs).catch((e) => setError(errorText(e)))
@@ -29,6 +33,22 @@ export default function AthleteDeals() {
     try {
       await api.post(`/api/athlete/deals/${id}/respond`, { action })
       await load()
+    } catch (e) {
+      setError(errorText(e))
+    }
+  }
+
+  /** Open a thread with the sponsor and drop the athlete into it.
+   *
+   *  The offer is quoted into the first message on purpose: a sponsor running
+   *  several campaigns should not have to guess which one "quick question" is
+   *  about, and the athlete should not have to retype it. */
+  const ask = async (d: Deal, body: string) => {
+    setError('')
+    try {
+      await api.post('/api/messages', { to_user: d.org_user_id, body })
+      setAsking(null)
+      navigate('/inbox')
     } catch (e) {
       setError(errorText(e))
     }
@@ -64,9 +84,18 @@ export default function AthleteDeals() {
                 <span className="ml-auto text-xs text-ink-3">{fmtDate(d.created_at)}</span>
               </div>
               {d.message && <p className="mt-2 text-sm text-ink-2">{d.message}</p>}
-              <div className="mt-4 flex gap-2">
+
+              {/* Accept and Decline were the only two things an athlete could do
+                  with an offer, which made a commercial negotiation a yes/no
+                  prompt. Details is what informs the answer; Ask a question is
+                  the third answer people actually give. */}
+              <div className="mt-4 flex flex-wrap gap-2">
                 <button className="btn-go" onClick={() => respond(d.id, 'accept')}>Accept</button>
                 <button className="btn" onClick={() => respond(d.id, 'decline')}>Decline</button>
+                <button className="btn" onClick={() => setDetail(d)}>See details</button>
+                {d.org_user_id != null && (
+                  <button className="btn" onClick={() => setAsking(d)}>Ask a question</button>
+                )}
               </div>
             </div>
           ))}
@@ -156,7 +185,148 @@ export default function AthleteDeals() {
           }}
         />
       )}
+
+      {detail && <OfferDetail deal={detail} onClose={() => setDetail(null)} />}
+      {asking && (
+        <AskDialog deal={asking} onClose={() => setAsking(null)}
+                   onSend={(body) => void ask(asking, body)} />
+      )}
     </div>
+  )
+}
+
+/** Everything the offer is, on one screen.
+ *
+ *  An offer is a commercial proposal, and the card in the list is its headline.
+ *  This is the rest: who is asking, what the campaign is trying to do, who they
+ *  are trying to reach, and what reach was projected when the price was set.
+ *  None of it is new data -- it was all sitting in `campaigns` and never sent.
+ */
+function OfferDetail({ deal, onClose }: { deal: Deal; onClose: () => void }) {
+  const targets: [string, string[]][] = [
+    ['Countries', deal.target_countries ?? []],
+    ['Age', deal.target_age_buckets ?? []],
+    ['Gender', deal.target_genders ?? []],
+    ['Topics', deal.target_topics ?? []],
+  ]
+  const anyTarget = targets.some(([, v]) => v.length > 0)
+
+  return (
+    <Modal title={`${deal.org_name ?? 'Offer'} — ${deal.campaign_name ?? ''}`} onClose={onClose} wide>
+      {() => (
+        <div className="space-y-5">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Fact label="Fee" value={fmtMoney(deal.amount_eur)} strong />
+            <Fact label="Format" value={dealTypeLabel(deal.deal_type)} />
+            <Fact label="Offered" value={fmtDate(deal.created_at)} />
+            {/* fmtNum renders an absent projection as a dash. It is captured at
+                offer time, so an older offer legitimately has none -- and a 0
+                here would read as "they expect this to reach nobody". */}
+            <Fact label="Projected reach at offer" value={fmtNum(deal.projected_reach ?? null)} />
+            <Fact label="Campaign budget"
+                  value={deal.budget_eur_min != null && deal.budget_eur_max != null
+                    ? `${fmtMoney(deal.budget_eur_min)} – ${fmtMoney(deal.budget_eur_max)}`
+                    : '—'} />
+            <Fact label="Category" value={deal.category || '—'} />
+          </div>
+
+          {deal.objective && (
+            <div>
+              <h4 className="cap mb-1.5 text-ink-3">What the campaign is for</h4>
+              <p className="text-sm text-ink-2">{deal.objective}</p>
+            </div>
+          )}
+
+          {deal.message && (
+            <div>
+              <h4 className="cap mb-1.5 text-ink-3">Their note to you</h4>
+              <p className="whitespace-pre-line rounded border border-line bg-raised px-3 py-2.5 text-sm text-ink-2">
+                {deal.message}
+              </p>
+            </div>
+          )}
+
+          {anyTarget && (
+            <div>
+              <h4 className="cap mb-1.5 text-ink-3">Who they are trying to reach</h4>
+              <div className="space-y-2">
+                {targets.filter(([, v]) => v.length > 0).map(([label, values]) => (
+                  <div key={label} className="flex flex-wrap items-baseline gap-2">
+                    <span className="meta w-20 shrink-0">{label}</span>
+                    {values.map((v) => <span key={v} className="tag">{v}</span>)}
+                  </div>
+                ))}
+              </div>
+              <p className="meta mt-2">
+                Your audience is measured against this — it is what the match score was built from.
+              </p>
+            </div>
+          )}
+
+          <div>
+            <h4 className="cap mb-1.5 text-ink-3">Sponsor</h4>
+            <p className="text-sm text-ink-2">
+              {deal.org_name}{deal.org_industry ? ` · ${deal.org_industry}` : ''}
+              {deal.org_website && (
+                <>
+                  {' · '}
+                  <a href={deal.org_website} target="_blank" rel="noreferrer noopener"
+                     className="text-accent hover:underline">{deal.org_website}</a>
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+      )}
+    </Modal>
+  )
+}
+
+function Fact({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className="rounded border border-line bg-raised px-3 py-2.5">
+      <div className="cap text-ink-3">{label}</div>
+      <div className={`tnum mt-0.5 ${strong ? 'font-display text-[19px] font-bold text-ink' : 'text-sm text-ink-2'}`}>
+        {value}
+      </div>
+    </div>
+  )
+}
+
+/** Reply with a sentence instead of a verdict.
+ *
+ *  The offer is quoted into the draft rather than merely referenced, because a
+ *  sponsor running four campaigns reading "quick question about the rate" has
+ *  no idea which one it is about. */
+function AskDialog({ deal, onClose, onSend }: {
+  deal: Deal
+  onClose: () => void
+  onSend: (body: string) => void
+}) {
+  const quote = `Re: ${deal.campaign_name} — ${fmtMoney(deal.amount_eur)}, ${dealTypeLabel(deal.deal_type)}
+
+`
+  const [body, setBody] = useState(quote)
+
+  return (
+    <Modal title={`Ask ${deal.org_name ?? 'the sponsor'} a question`} onClose={onClose}>
+      {(close) => (
+        <div className="space-y-3">
+          <p className="meta">
+            This opens a thread in your inbox. The offer stays open — asking is not answering.
+          </p>
+          <textarea className="field min-h-[9rem] w-full" value={body} autoFocus
+                    onChange={(e) => setBody(e.target.value)} />
+          <div className="flex justify-end gap-2">
+            <button className="btn" onClick={close}>Cancel</button>
+            <button className="btn-go" disabled={body.trim().length <= quote.trim().length}
+                    onClick={() => onSend(body.trim())}>
+              Send
+            </button>
+          </div>
+        </div>
+      )}
+    </Modal>
   )
 }
 

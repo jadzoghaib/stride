@@ -11,9 +11,11 @@ Demo accounts (password for all: stride123)
   athlete2@demo.stride — Sofia Brandt, still in the review queue: the applicant a
                          reviewer can decide on and actually write to
   club@demo.stride     — Meridian FC (roster + packages incl. player-direct),
-                         still in the review queue so verification can be shown
-  club2@demo.stride    — Ironline Combat Club, already verified: invite links and
-                         nominations work without playing an admin first
+                         verified, like every club in the directory
+  club2@demo.stride    — Ironline Combat Club, also verified
+  club3@demo.stride    — Northgate Athletic, the applicant: still a draft, so it
+                         is not in the directory and is what the admin queue has
+                         to decide on
   sponsor@demo.stride  — Northwind Apparel, 2 active campaigns
   fan@demo.stride      — follows a handful of athletes
   admin@demo.stride    — chaos controls + audit access
@@ -25,6 +27,7 @@ import json
 import sqlite3
 
 from creatorlens.actions import connect_platform, create_creator, create_target
+from creatorlens.analytics.kpis import creator_kpis
 from creatorlens.analytics.scoring import InsufficientData, store_scores
 from creatorlens.events import log_event
 from creatorlens.ingestion import sync_account
@@ -34,7 +37,10 @@ from creatorlens.ingestion import sync_account
 from .admission import (POLICY_VERSION, admission_decision, age_from,
                         athlete_credibility, club_legitimacy)
 from .auth import hash_password
-from .db import now_iso, row
+# The offer endpoint's own projection, so a seeded deal is priced against the
+# same number a real one would be.
+from .routers.sponsors import _projected_reach
+from .db import now_iso, row, rows
 
 DEMO_PASSWORD = "stride123"
 
@@ -261,15 +267,83 @@ def seed(conn: sqlite3.Connection) -> dict:
          "Ambassador slot, tennis crossover.", "declined", now_iso()),
         (campaign_ids[2], org_ids[2], athlete_ids["luca-ferreira"], "event_appearance", 6000,
          "Rio launch event appearance.", "completed", now_iso()),
+        # Two more on the demo sponsor's own campaign, so the campaign analytics
+        # it opens on has something measured in it. Campaign 1 now carries one
+        # deal in each state -- offered, accepted-and-waiting, accepted-and-
+        # delivered, completed -- which is what the table is for.
+        (campaign_ids[0], org_ids[0], athlete_ids["marcus-oyelaran"], "social_post", 3200,
+         "Two-post spring line feature, training-diary framing.", "accepted", now_iso()),
+        (campaign_ids[0], org_ids[0], athlete_ids["priya-raman"], "content_creation", 4500,
+         "Studio session film for the spring line.", "completed", now_iso()),
     ]
+    # Deliverables to attach once the deals exist, keyed by athlete slug: how
+    # many of that athlete's real synced posts to hand to the sponsor as proof of
+    # delivery. Sofia is deliberately absent -- an accepted deal with nothing
+    # attached yet is a state the pipeline has to show, and seeding every deal
+    # complete would hide it.
+    delivered = {"luca-ferreira": 2, "noa-lindqvist": 1,
+                 "marcus-oyelaran": 2, "priya-raman": 1}
+
+    deal_ids: dict[int, str] = {}
     for cid, oid, aid, dt, amount, msg, status, responded in deals:
+        # Captured at offer time, by the same function the offer endpoint uses.
+        # Writing a plausible number here instead would make every variance in
+        # the demo a fiction about a projection nothing ever made.
+        creator = row(conn, "SELECT creatorlens_creator_id FROM athlete_profiles WHERE id = ?",
+                      (aid,))
+        projected = _projected_reach(conn, creator["creatorlens_creator_id"] if creator else None)
+        completed = now_iso() if status == "completed" else None
         cur = conn.execute(
             "INSERT INTO deals (campaign_id, org_id, athlete_id, deal_type, amount_eur, message,"
-            " status, created_at, responded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (cid, oid, aid, dt, amount, msg, status, now_iso(), responded))
+            " status, created_at, responded_at, completed_at, projected_reach)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (cid, oid, aid, dt, amount, msg, status, now_iso(), responded, completed, projected))
+        deal_ids[cur.lastrowid] = next(
+            (slug for slug, pid in athlete_ids.items() if pid == aid), "")
         log_event(conn, "system", "deal.created", "deal", cur.lastrowid,
                   {"athlete_id": aid, "campaign_id": cid, "status": status, "amount_eur": amount})
         summary["deals"] += 1
+
+    # ---- what was actually delivered ----------------------------------------
+    #
+    # The measurement chain, end to end: the athlete attaches posts they really
+    # published, and the sponsor reads *those posts'* metrics and nothing else on
+    # the account. Without this the whole analytics surface renders as dashes,
+    # which is honest about an empty database and useless as a demonstration of
+    # the thing being demonstrated.
+    #
+    # Posts are chosen by recency from the athlete's own synced accounts, and
+    # only ones that actually carry a captured metric row -- attaching a post
+    # with no metrics is a real state, but it is not the one being seeded here.
+    for deal_id, slug in deal_ids.items():
+        want = delivered.get(slug, 0)
+        if not want:
+            continue
+        creator = row(conn, "SELECT creatorlens_creator_id FROM athlete_profiles WHERE slug = ?",
+                      (slug,))
+        if not creator or not creator["creatorlens_creator_id"]:
+            continue
+        # From the channel the offer was priced against, not simply the most
+        # recent posts. `_projected_reach` quotes the athlete's *best* channel by
+        # median reach, so attaching whatever they posted last compares a TikTok
+        # clip to a YouTube projection -- every athlete in the demo then read as
+        # ~88% under plan, which is an artefact of the seed rather than anything
+        # about their delivery. A sponsor who buys a post on one platform is
+        # delivered a post on that platform.
+        kpis = creator_kpis(conn, creator["creatorlens_creator_id"])
+        best = max(kpis.values(), key=lambda k: k["median_reach"] or 0, default=None)
+        if not best:
+            continue
+        for post in rows(conn, """
+                SELECT p.id FROM posts p
+                WHERE p.account_id = ?
+                  AND EXISTS (SELECT 1 FROM post_metrics m
+                              WHERE m.post_id = p.id AND m.reach IS NOT NULL)
+                ORDER BY p.published_at DESC LIMIT ?""",
+                (best["account_id"], want)):
+            conn.execute("INSERT INTO deal_deliverables (deal_id, post_id, added_at)"
+                         " VALUES (?, ?, ?)", (deal_id, post["id"], now_iso()))
+            summary["deliverables"] = summary.get("deliverables", 0) + 1
 
     # ---- clubs: rosters + sponsorship packages (incl. player-direct) --------
     clubs_spec = [
@@ -384,16 +458,26 @@ def seed(conn: sqlite3.Connection) -> dict:
              now_iso(), now_iso()))
         summary["applications"] = summary.get("applications", 0) + 1
 
-    # The club's own application, left at whatever the policy makes of it. It is
-    # not pre-verified on purpose: a club cannot nominate until a human has
-    # checked its roster page, and watching that unlock is the point of the
-    # club onboarding demo. Seeding it verified would skip the argument.
+    # Verified, like every club that appears in the directory.
+    #
+    # This used to be seeded `pending` so the verification step had something to
+    # act on, while the club itself was `listed` -- which broke the rule the rest
+    # of the product is built on: **a listed club is a verified club.** Meridian
+    # showed up in the public directory beside Ironline and then told its own
+    # owner it was not verified yet, which is two different answers to the same
+    # question depending on who was asking.
+    #
+    # The review demo does not need a contradiction to exist. It needs an
+    # applicant, and an applicant is precisely a club that is *not* listed yet --
+    # see `pending_club_spec` below, which is seeded `draft` and becomes listed
+    # when a reviewer verifies it. That is the real state machine, so it is the
+    # one the demo shows.
     club_fields = dict(
         legal_name="Meridian Football Club Ltd", registration_id="09823117",
         federation_name="London FA", federation_id="LFA-4471", founded_year=1968,
         competition_level="regional", teams_count=7, registered_athletes=24,
         roster_url="https://meridianfc.example/first-team", proof_kind="roster",
-        proof_status="pending")
+        proof_status="verified")
     club_scored = club_legitimacy(club_fields)
     meridian = row(conn, "SELECT id FROM clubs WHERE slug = 'meridian-fc'")
     conn.execute(
@@ -409,13 +493,10 @@ def seed(conn: sqlite3.Connection) -> dict:
          club_scored["legitimacy"], club_scored["decision"], POLICY_VERSION,
          now_iso(), now_iso()))
 
-    # Ironline is seeded already verified, and Meridian deliberately is not.
-    # One of each is the point: Meridian sits in the review queue so the
-    # verification step can be demonstrated, and Ironline is past it so the
-    # things verification unlocks -- nominations, invite links -- are reachable
-    # without first playing an admin. Without a verified club, "New link" only
-    # ever answered "your club has to be verified", and the feature was
-    # invisible in the demo it was built for.
+    # Ironline, verified the same way. Both signed-in club accounts can therefore
+    # nominate athletes and mint invite links without first playing an admin --
+    # the features exist to be looked at, and a demo that hides half of them
+    # behind a role switch is demonstrating the wall rather than the product.
     ironline_fields = dict(
         legal_name="Ironline Combat Club SA de CV", registration_id="IRN-771204",
         federation_name="Federación Mexicana de Boxeo", federation_id="FMB-3320",
@@ -437,6 +518,64 @@ def seed(conn: sqlite3.Connection) -> dict:
          ironline_fields["roster_url"], ironline_fields["proof_kind"],
          ironline_fields["proof_status"], ironline_scored["legitimacy"], POLICY_VERSION,
          now_iso(), now_iso()))
+    summary["applications"] = summary.get("applications", 0) + 1
+
+    # ---- a club still waiting on a reviewer ----------------------------------
+    #
+    # The applicant, and the reason the two clubs above can both be verified.
+    # Northgate is seeded `draft`: it does not appear in the public directory,
+    # cannot nominate, and holds a `pending` application for the admin queue to
+    # decide on. Verifying it is what makes it listed.
+    #
+    # That ordering is the whole invariant -- **listed implies verified** -- and
+    # seeding an applicant this way states it rather than contradicting it. Sign
+    # in as admin to find it in the review queue; sign in as either club account
+    # to find everything already unlocked.
+    pending_club_spec = dict(
+        email="club3@demo.stride", contact="Tomas Vidal", name="Northgate Athletic",
+        slug="northgate-athletic", sport="Football", country="Spain", region="Catalonia",
+        bio="Girona club with a first team and youth academy; applying to Stride, roster page pending review.")
+    pending_uid = _insert_user(conn, pending_club_spec["email"], pending_club_spec["contact"], "club")
+    cur = conn.execute(
+        "INSERT INTO clubs (user_id, slug, name, sport, country, region, bio, status, created_at)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?)",
+        (pending_uid, pending_club_spec["slug"], pending_club_spec["name"],
+         pending_club_spec["sport"], pending_club_spec["country"], pending_club_spec["region"],
+         pending_club_spec["bio"], now_iso()))
+    pending_club_id = cur.lastrowid
+    log_event(conn, "system", "club.created", "club", pending_club_id,
+              {"name": pending_club_spec["name"]})
+    summary["users"] += 1
+    summary["clubs"] = summary.get("clubs", 0) + 1
+
+    # Deliberately a *strong* application: full registration, named federation,
+    # long history, a roster page a reviewer can open. It scores 70 -- above the
+    # 65 verify threshold -- and is still `review`, because the roster page has
+    # not been read by a human yet. That is the rule the admission policy exists
+    # to state: clearing the bar earns you a reviewer, not a verdict.
+    #
+    # A weak applicant would demo nothing. Anyone can accept that a club with no
+    # registration number waits; the interesting claim is that a good one does.
+    northgate_fields = dict(
+        legal_name="Club Atlètic Northgate", registration_id="B-6641902",
+        federation_name="Federació Catalana de Futbol", federation_id="FCF-8812",
+        founded_year=1998, competition_level="regional", teams_count=6,
+        registered_athletes=94, roster_url="https://northgate.example/plantilla",
+        proof_kind="roster", proof_status="pending")
+    northgate_scored = club_legitimacy(northgate_fields)
+    northgate_verdict = northgate_scored["decision"]
+    conn.execute(
+        "INSERT INTO club_applications (club_id, legal_name, registration_id, federation_name,"
+        " federation_id, founded_year, competition_level, teams_count, registered_athletes,"
+        " roster_url, proof_kind, proof_status, legitimacy, decision, policy_version,"
+        " submitted_at, decided_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (pending_club_id, northgate_fields["legal_name"], northgate_fields["registration_id"],
+         northgate_fields["federation_name"], northgate_fields["federation_id"],
+         northgate_fields["founded_year"], northgate_fields["competition_level"],
+         northgate_fields["teams_count"], northgate_fields["registered_athletes"],
+         northgate_fields["roster_url"], northgate_fields["proof_kind"],
+         northgate_fields["proof_status"], northgate_scored["legitimacy"],
+         northgate_verdict, POLICY_VERSION, now_iso(), now_iso()))
     summary["applications"] = summary.get("applications", 0) + 1
 
     # ---- fans ----------------------------------------------------------------

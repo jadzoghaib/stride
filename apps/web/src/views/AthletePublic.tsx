@@ -213,6 +213,9 @@ export default function AthletePublicView() {
             </div>
             <div className="mt-4">
               <Wall items={shown} news={filter === 'all' ? news : []} onVote={vote}
+                    onUnlock={canRelate && !a.subscribed
+                      ? () => void relate('subscribe', false)
+                      : undefined}
                     empty={filter === 'locked'
                       ? 'Nothing behind the paywall yet.'
                       : 'Nothing on the wall yet.'} />

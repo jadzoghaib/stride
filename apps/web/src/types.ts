@@ -142,6 +142,19 @@ export interface Deal {
   campaign_name?: string
   category?: string
   org_name?: string
+  /** The campaign's own terms, sent with the offer so the athlete can read what
+   *  they are being asked to join before answering it. */
+  objective?: string | null
+  org_industry?: string | null
+  org_website?: string | null
+  /** The sponsor's user, which is what `POST /api/messages` addresses. */
+  org_user_id?: number | null
+  target_countries?: string[]
+  target_age_buckets?: string[]
+  target_genders?: string[]
+  target_topics?: string[]
+  budget_eur_min?: number | null
+  budget_eur_max?: number | null
   athlete_name?: string
   athlete_slug?: string
   sport?: string
