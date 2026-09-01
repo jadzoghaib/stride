@@ -29,7 +29,7 @@ _ALL_TABLES = (
     "content_items",
     "deal_deliverables", "athlete_applications", "club_applications",
     "package_commitments", "club_packages", "club_members", "clubs",
-    "club_invite_links", "email_outbox", "poll_votes", "poll_options", "messages", "conversations", "notifications", "subscriptions", "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
+    "fan_posts", "club_invite_links", "email_outbox", "poll_votes", "poll_options", "messages", "conversations", "notifications", "subscriptions", "follows", "deals", "campaigns", "sponsor_orgs", "athlete_profiles", "users",
     "events", "score_snapshots", "sponsor_targets", "audience_demographics",
     "account_snapshots", "post_metrics", "posts", "sync_runs", "platform_accounts", "creators",
 )
@@ -175,6 +175,15 @@ CREATE TABLE IF NOT EXISTS follows (
     created_at TEXT NOT NULL,
     UNIQUE (user_id, athlete_id)
 );
+
+CREATE TABLE IF NOT EXISTS fan_posts (
+    id         INTEGER PRIMARY KEY,
+    athlete_id INTEGER NOT NULL REFERENCES athlete_profiles(id),
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    body       TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_fan_posts_athlete ON fan_posts(athlete_id, id);
 
 CREATE TABLE IF NOT EXISTS club_invite_links (
     id           INTEGER PRIMARY KEY,

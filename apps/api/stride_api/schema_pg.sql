@@ -431,6 +431,15 @@ CREATE INDEX IF NOT EXISTS idx_content_athlete ON content_items(athlete_id, stat
 CREATE INDEX IF NOT EXISTS idx_content_club ON content_items(club_id, status);
 CREATE INDEX IF NOT EXISTS idx_content_part_of ON content_items(part_of);
 
+CREATE TABLE IF NOT EXISTS fan_posts (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    athlete_id BIGINT NOT NULL REFERENCES athlete_profiles(id),
+    user_id    BIGINT NOT NULL REFERENCES users(id),
+    body       TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_fan_posts_athlete ON fan_posts(athlete_id, id);
+
 CREATE TABLE IF NOT EXISTS club_invite_links (
     id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     club_id      BIGINT NOT NULL REFERENCES clubs(id),

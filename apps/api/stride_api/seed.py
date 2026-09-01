@@ -503,6 +503,16 @@ def seed(conn: sqlite3.Connection) -> dict:
              location="Meridian Ground", capacity=40,
              body="Watch a full session from the touchline, then meet the squad.")
 
+    # A fan wall with something on it. An empty one demonstrates the tab and
+    # not the reason for it: the argument is that a profile with only broadcast
+    # on it is a brochure, which you cannot see on a page where nobody has
+    # spoken.
+    kaia_profile = athlete_ids["kaia-mercer"]
+    for author, note in ((fan_id, "Watched the Montseny descent three times. Ruthless."),
+                         (athlete_uid, "Ha — three times more than I want to. Report is up.")):
+        conn.execute("INSERT INTO fan_posts (athlete_id, user_id, body, created_at)"
+                     " VALUES (?, ?, ?, ?)", (kaia_profile, author, note, now_iso()))
+
     conn.commit()
     return summary
 

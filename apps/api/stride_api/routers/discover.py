@@ -1,4 +1,4 @@
-"""User (fan) surface: discovery, follows, and a following feed."""
+"""User (fan) surface: discovery, follows, subscriptions, and the fan wall."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import sqlite3
 
 from creatorlens.events import log_event
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from ..auth import get_db, optional_user, require_role
 from ..db import now_iso, row, rows
@@ -175,5 +176,101 @@ def unsubscribe(kind: str, subject_id: int,
     conn.execute(f"DELETE FROM subscriptions WHERE user_id = ? AND {column} = ?",
                  (user["id"], subject_id))
     log_event(conn, "user", "subscription.ended", kind, subject_id, {"user_id": user["id"]})
+    conn.commit()
+    return {"ok": True}
+
+
+# -- the fan wall ------------------------------------------------------------
+#
+# The one surface on an athlete's page that the athlete does not write. It is
+# the reference product's fourth tab, and the argument for it is that a profile
+# with only broadcast on it is a brochure -- people come back for the part where
+# other people are.
+#
+# **You have to follow them to post.** Same reasoning as the direct-message
+# rule: an open write surface on the page of somebody with an audience is a
+# spam target, and following is a deliberate act that can be taken back. It is
+# a much lower bar than subscribing on purpose -- charging for the right to say
+# "good race" would be a strange product -- but it is not nothing.
+#
+# The athlete can remove anything on their own wall. Their name is on the page.
+
+
+class FanPostIn(BaseModel):
+    body: str = Field(min_length=1, max_length=500)
+
+
+@router.get("/athletes/{slug}/wall-posts")
+def fan_wall(slug: str, limit: int = Query(50, ge=1, le=200),
+             user: dict | None = Depends(optional_user),
+             conn: sqlite3.Connection = Depends(get_db)):
+    """Public: the wall is the point, so a visitor sees it before signing in."""
+    athlete = row(conn, "SELECT id, user_id FROM athlete_profiles WHERE slug = ?", (slug,))
+    if athlete is None:
+        raise HTTPException(404, "unknown_athlete")
+    posts = rows(conn, """
+        SELECT f.*, u.display_name, u.role FROM fan_posts f
+        JOIN users u ON u.id = f.user_id
+        WHERE f.athlete_id = ? ORDER BY f.id DESC LIMIT ?""", (athlete["id"], limit))
+    viewer = user["id"] if user else None
+    owns_wall = viewer is not None and viewer == athlete["user_id"]
+    return [{"id": p["id"], "body": p["body"], "at": p["created_at"],
+             "author": p["display_name"], "role": p["role"],
+             # the server decides who may remove a row, so the control cannot
+             # appear where the delete would be refused
+             "can_remove": owns_wall or p["user_id"] == viewer}
+            for p in posts]
+
+
+@router.post("/athletes/{slug}/wall-posts", status_code=201)
+def post_to_wall(slug: str, body: FanPostIn,
+                 user: dict = Depends(require_role("fan", "sponsor", "athlete")),
+                 conn: sqlite3.Connection = Depends(get_db)):
+    athlete = row(conn, "SELECT id, user_id FROM athlete_profiles WHERE slug = ?"
+                        " AND status = 'listed'", (slug,))
+    if athlete is None:
+        raise HTTPException(404, "unknown_athlete")
+    # `min_length` counts spaces, so "   " passed validation and was stored as
+    # an empty row -- a blank card on somebody's public page.
+    if not body.body.strip():
+        raise HTTPException(422, "empty_post")
+    # An athlete always has the run of their own wall; everybody else follows
+    # first. Requiring a subscription instead would make saying "good race" a
+    # paid feature, which is the wrong thing to charge for.
+    if athlete["user_id"] != user["id"]:
+        follows = row(conn, "SELECT id FROM follows WHERE user_id = ? AND athlete_id = ?",
+                      (user["id"], athlete["id"]))
+        if follows is None:
+            raise HTTPException(403, "follow_first")
+
+    conn.execute("INSERT INTO fan_posts (athlete_id, user_id, body, created_at)"
+                 " VALUES (?, ?, ?, ?)", (athlete["id"], user["id"], body.body.strip(), now_iso()))
+    if athlete["user_id"] and athlete["user_id"] != user["id"]:
+        notify(conn, athlete["user_id"], "fan_post",
+               f"{user['display_name']} posted on your wall", body.body.strip()[:140],
+               f"/athletes/{slug}")
+    log_event(conn, "user", "fan_wall.posted", "athlete", athlete["id"], {"user_id": user["id"]})
+    conn.commit()
+    return {"ok": True}
+
+
+@router.delete("/wall-posts/{post_id}")
+def remove_fan_post(post_id: int,
+                    user: dict = Depends(require_role("fan", "sponsor", "athlete")),
+                    conn: sqlite3.Connection = Depends(get_db)):
+    """Removable by whoever wrote it, and by the athlete whose page it is on.
+
+    404 rather than 403 for anybody else: a post you may not touch should not
+    be confirmed to exist by the shape of the refusal.
+    """
+    post = row(conn, "SELECT * FROM fan_posts WHERE id = ?", (post_id,))
+    if post is None:
+        raise HTTPException(404, "unknown_post")
+    athlete = row(conn, "SELECT user_id FROM athlete_profiles WHERE id = ?", (post["athlete_id"],))
+    if post["user_id"] != user["id"] and (athlete or {}).get("user_id") != user["id"]:
+        raise HTTPException(404, "unknown_post")
+    conn.execute("DELETE FROM fan_posts WHERE id = ?", (post_id,))
+    log_event(conn, "user", "fan_wall.removed", "athlete", post["athlete_id"],
+              {"post_id": post_id, "by": user["id"]})
     conn.commit()
     return {"ok": True}

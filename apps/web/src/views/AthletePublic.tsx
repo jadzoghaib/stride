@@ -25,8 +25,14 @@ import { fmtMoney, fmtNum } from '../lib/format'
 import type { AthletePublic as Athlete, ContentItem, NewsItem } from '../types'
 import { dealTypeLabel } from '../types'
 
-type Tab = 'posts' | 'shop' | 'memberships'
-type Filter = 'all' | 'free' | 'locked'
+type Tab = 'posts' | 'shop' | 'memberships' | 'wall'
+
+/** The reference product offers All / Locked / Purchased / unlocked / Free.
+ *  Four of those five are states we actually have; "Purchased" is not, because
+ *  it means a single item bought on its own and there is no per-item purchase
+ *  here — only a subscription. Offering it would be a filter that could never
+ *  match anything. */
+type Filter = 'all' | 'free' | 'unlocked' | 'locked'
 
 /** What a membership is meant to cost. The plan prices three tiers; the demo
  *  charges nothing, and saying so on the card is better than a price that does
@@ -48,6 +54,8 @@ export default function AthletePublicView() {
   const [content, setContent] = useState<ContentItem[] | null>(null)
   const [news, setNews] = useState<NewsItem[]>([])
   const [tab, setTab] = useState<Tab>('posts')
+  const [wall, setWall] = useState<FanPost[]>([])
+  const [draft, setDraft] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
   const [error, setError] = useState('')
 
@@ -55,6 +63,7 @@ export default function AthletePublicView() {
     api.get<Athlete>(`/api/athletes/${slug}`).then(setA).catch((e) => setError(errorText(e)))
     api.get<ContentItem[]>(`/api/athletes/${slug}/content`).then(setContent).catch(() => setContent([]))
     api.get<NewsItem[]>(`/api/athletes/${slug}/news`).then(setNews).catch(() => setNews([]))
+    api.get<FanPost[]>(`/api/athletes/${slug}/wall-posts`).then(setWall).catch(() => setWall([]))
   }, [slug])
 
   const canRelate = !!me && ['athlete', 'fan', 'sponsor'].includes(me.role)
@@ -88,7 +97,10 @@ export default function AthletePublicView() {
   const posts = items.filter((i) => (i.kind === 'post' || i.kind === 'poll') && !i.part_of)
   const shop = items.filter((i) => i.kind === 'course' || i.kind === 'product' || i.starts_at)
   const shown = useMemo(() => {
-    if (filter === 'free') return items.filter((i) => !i.locked)
+    // "Free" and "unlocked" are both readable, and telling them apart is the
+    // point: one is open to everybody, the other is open because you pay.
+    if (filter === 'free') return items.filter((i) => !i.min_tier)
+    if (filter === 'unlocked') return items.filter((i) => i.min_tier && !i.locked)
     if (filter === 'locked') return items.filter((i) => i.locked)
     return items
   }, [items, filter])
@@ -173,6 +185,7 @@ export default function AthletePublicView() {
               { key: 'posts', label: 'Posts', count: posts.length + news.length },
               { key: 'shop', label: 'Shop', count: shop.length },
               { key: 'memberships', label: 'Memberships' },
+              { key: 'wall', label: 'Fan wall', count: wall.length },
             ]}
           />
         </div>
@@ -186,14 +199,15 @@ export default function AthletePublicView() {
         {tab === 'posts' && (
           <>
             <div className="mt-4 flex flex-wrap gap-2">
-              {(['all', 'free', 'locked'] as const).map((f) => (
+              {(['all', 'free', 'unlocked', 'locked'] as const).map((f) => (
                 <button key={f} onClick={() => setFilter(f)}
                         className={`rounded-full border px-4 py-1.5 font-display text-[12px]
                                     uppercase tracking-micro transition-colors ${
                           filter === f
                             ? 'border-accent bg-accent text-accent-on'
                             : 'border-line text-ink-3 hover:text-ink-2'}`}>
-                  {f === 'all' ? 'All' : f === 'free' ? 'Free' : 'Subscribers'}
+                  {f === 'all' ? 'All' : f === 'free' ? 'Free'
+                    : f === 'unlocked' ? 'Unlocked' : 'Locked'}
                 </button>
               ))}
             </div>
@@ -209,6 +223,31 @@ export default function AthletePublicView() {
         {tab === 'shop' && (
           <div className="mt-4">
             <Shop items={items} empty="Nothing to book yet." />
+          </div>
+        )}
+
+        {tab === 'wall' && (
+          <div className="mt-4">
+            <FanWall
+              posts={wall}
+              canPost={canRelate && (!!a.following || !!a.subscribed)}
+              following={!!a.following}
+              draft={draft}
+              onDraft={setDraft}
+              onPost={async () => {
+                try {
+                  await api.post(`/api/athletes/${slug}/wall-posts`, { body: draft.trim() })
+                  setDraft('')
+                  setWall(await api.get<FanPost[]>(`/api/athletes/${slug}/wall-posts`))
+                } catch (e) { setError(errorText(e)) }
+              }}
+              onRemove={async (id) => {
+                try {
+                  await api.del(`/api/wall-posts/${id}`)
+                  setWall((list) => list.filter((p) => p.id !== id))
+                } catch (e) { setError(errorText(e)) }
+              }}
+            />
           </div>
         )}
 
@@ -314,6 +353,83 @@ function MembershipCard({ athlete, canRelate, onJoin }: {
           ))}
         </ul>
       </div>
+    </div>
+  )
+}
+
+
+interface FanPost {
+  id: number
+  body: string
+  at: string
+  author: string
+  role: string
+  can_remove: boolean
+}
+
+/** What other people say, on somebody else's page.
+ *
+ *  Posting needs a follow. That is a low bar on purpose — charging for the
+ *  right to say "good race" would be a strange thing to sell — but it is a
+ *  deliberate act, and an open write surface on the page of somebody with an
+ *  audience is a spam target.
+ *
+ *  `can_remove` comes from the server, so the control never appears where the
+ *  delete would be refused.
+ */
+function FanWall({ posts, canPost, following, draft, onDraft, onPost, onRemove }: {
+  posts: FanPost[]
+  canPost: boolean
+  following: boolean
+  draft: string
+  onDraft: (v: string) => void
+  onPost: () => void
+  onRemove: (id: number) => void
+}) {
+  return (
+    <div className="space-y-4">
+      {canPost ? (
+        <div className="panel p-4">
+          <textarea className="field min-h-[4.5rem]" value={draft} maxLength={500}
+                    placeholder="Say something" onChange={(e) => onDraft(e.target.value)} />
+          <div className="mt-2 flex items-center gap-3">
+            <button className="btn-go" disabled={!draft.trim()} onClick={onPost}>Post</button>
+            <span className="meta">Everyone can read this. They can remove it.</span>
+          </div>
+        </div>
+      ) : (
+        <EmptyNote text={following
+          ? 'Sign in to post here.'
+          : 'Follow them to post on their wall.'} />
+      )}
+
+      {posts.length === 0 ? (
+        <EmptyNote text="Nothing on the fan wall yet." />
+      ) : (
+        <div className="space-y-2">
+          {posts.map((p) => (
+            <div key={p.id} className="panel flex items-start gap-3 p-4">
+              <Avatar name={p.author} size={32} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-medium text-ink">{p.author}</span>
+                  <span className="cap text-ink-3">{p.role}</span>
+                  <span className="meta ml-auto">
+                    {new Date(p.at).toLocaleDateString(undefined,
+                      { day: 'numeric', month: 'short' })}
+                  </span>
+                </div>
+                <p className="mt-1 whitespace-pre-line text-sm text-ink-2">{p.body}</p>
+              </div>
+              {p.can_remove && (
+                <button className="btn px-2 py-1 text-xs" onClick={() => onRemove(p.id)}>
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
