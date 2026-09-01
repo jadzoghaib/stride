@@ -535,6 +535,11 @@ export interface NewsItem {
   published_at: string
   permalink: string
   content_type: string
+  /** Present on the follower feed, where posts from several athletes are mixed
+   *  together. Absent on an athlete's own page, where the whole page says who
+   *  wrote them. */
+  author?: string
+  author_slug?: string
 }
 
 export interface ContentItem {

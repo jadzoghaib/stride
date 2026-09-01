@@ -109,6 +109,8 @@ ROUTES: list[tuple] = [
     ("GET", f"/api/notifications", ("athlete", "club", "sponsor", "fan", "admin")),
     ("GET", f"/api/inbox", ("athlete", "club", "sponsor", "fan", "admin")),
     ("GET", f"/api/athlete/invitations", ("athlete",)),
+    # the free tier: a club cannot follow anybody, so it is not listed here
+    ("GET", f"/api/feed/news", ("fan", "sponsor", "athlete")),
     ("GET", f"/api/admin/review-queue", ("admin",)),
     ("GET", f"/api/admin/events", ("admin",)),
     # the outbox holds applicants' names, decisions and email addresses
@@ -118,6 +120,8 @@ ROUTES: list[tuple] = [
     # only the people who publish can write files to our disk
     ("POST", f"/api/media", ("athlete", "club"), "state-gated"),
     ("GET", f"/api/athlete/invitations", ("athlete",)),
+    # the free tier: a club cannot follow anybody, so it is not listed here
+    ("GET", f"/api/feed/news", ("fan", "sponsor", "athlete")),
     ("GET", f"/api/athlete/posts", ("athlete",)),
     # these three have to agree: a role that can read the followed-content feed
     # must be a role that can follow, or the grant buys it an empty list

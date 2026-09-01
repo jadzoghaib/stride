@@ -282,21 +282,62 @@ def public_news(slug: str, limit: int = Query(20, ge=1, le=60),
     athlete = row(conn, "SELECT * FROM athlete_profiles WHERE slug = ?", (slug,))
     if athlete is None:
         raise HTTPException(404, "unknown_athlete")
-    creator_id = athlete["creatorlens_creator_id"]
-    if not creator_id:
-        return []
+    return _platform_posts(conn, [athlete], limit)
+
+
+def _platform_posts(conn, athletes: list[dict], limit: int) -> list[dict]:
+    """Public posts from connected platforms, newest first, across any number of
+    athletes.
+
+    Shared by an athlete's own wall and by the follower feed so the consent rule
+    lives in exactly one place: `!= 'disconnected'`. Disconnecting a platform
+    withdraws the consent its data was collected under, and both surfaces have
+    to honour that -- the rows stay so scores stay reproducible, and they stop
+    being shown.
+
+    No metrics, on either surface. Reach and engagement are the athlete's own
+    analytics and the sponsor's evidence; a follower gets the post.
+    """
     out = []
-    for account in rows(conn, "SELECT * FROM platform_accounts"
-                        " WHERE creator_id = ? AND connection_status != 'disconnected'",
-                        (creator_id,)):
-        for post in rows(conn, "SELECT title, published_at, permalink, content_type"
-                               " FROM posts WHERE account_id = ?"
-                               " ORDER BY published_at DESC LIMIT ?", (account["id"], limit)):
-            out.append({"platform": account["platform"], "title": post["title"],
-                        "published_at": post["published_at"], "permalink": post["permalink"],
-                        "content_type": post["content_type"]})
+    for athlete in athletes:
+        creator_id = athlete["creatorlens_creator_id"]
+        if not creator_id:
+            continue
+        for account in rows(conn, "SELECT * FROM platform_accounts"
+                            " WHERE creator_id = ? AND connection_status != 'disconnected'",
+                            (creator_id,)):
+            for post in rows(conn, "SELECT title, published_at, permalink, content_type"
+                                   " FROM posts WHERE account_id = ?"
+                                   " ORDER BY published_at DESC LIMIT ?", (account["id"], limit)):
+                out.append({"platform": account["platform"], "title": post["title"],
+                            "published_at": post["published_at"], "permalink": post["permalink"],
+                            "content_type": post["content_type"],
+                            "author": athlete["display_name"], "author_slug": athlete["slug"]})
     out.sort(key=lambda p: p["published_at"], reverse=True)
     return out[:limit]
+
+
+@router.get("/feed/news")
+def followed_news(limit: int = Query(40, ge=1, le=120),
+                  user: dict = Depends(require_role("fan", "sponsor", "athlete")),
+                  conn: sqlite3.Connection = Depends(get_db)):
+    """What the athletes you follow have been posting on their own platforms.
+
+    The follower feed is the *free* tier -- following buys you everything that
+    is not behind the paywall -- and an athlete's public platform posts are the
+    largest part of what that is. Leaving them out meant a fan who followed four
+    athletes saw only whatever those four had published inside Stride, which on
+    a young profile is nothing at all: the free tier was empty for exactly the
+    people it exists to keep.
+
+    Roles match `POST /api/follows`. A club cannot follow anybody, so listing it
+    here would buy a guaranteed empty list.
+    """
+    followed = rows(conn, """
+        SELECT a.* FROM athlete_profiles a
+        JOIN follows f ON f.athlete_id = a.id
+        WHERE f.user_id = ? AND a.status = 'listed'""", (user["id"],))
+    return _platform_posts(conn, followed, limit)
 
 
 # ---- athlete workspace (role: athlete) ---------------------------------------
