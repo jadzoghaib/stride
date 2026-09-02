@@ -377,6 +377,8 @@ CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id
 CREATE TABLE IF NOT EXISTS notifications (
     id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id      BIGINT NOT NULL REFERENCES users(id),
+    -- who raised it, when a person did; null for anything the system raised
+    actor_user_id BIGINT REFERENCES users(id),
     kind         TEXT NOT NULL,
     title        TEXT NOT NULL,
     body         TEXT NOT NULL DEFAULT '',

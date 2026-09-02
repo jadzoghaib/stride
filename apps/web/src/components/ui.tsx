@@ -3,7 +3,7 @@
  *  amber accent. Motion is a single settling sequence on mount; everything here
  *  checks prefers-reduced-motion before animating. */
 
-import { ArrowUpRight, Mail } from 'lucide-react'
+import { ArrowUpRight, Mail, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { api, errorText } from '../lib/api'
@@ -195,12 +195,29 @@ export function Modal({
         e.preventDefault() // take the same explicit path as every other close
         requestClose()
       }}
+      /* Clicking the scrim closes. A backdrop click is dispatched to the dialog
+         element itself, so the identity check is what separates it from a click
+         on the content inside — without it, every click in the dialog would
+         close the dialog. Escape alone was the only way out, which is a
+         keyboard answer to a question people ask with a mouse. */
+      onClick={(e) => {
+        if (e.target === ref.current) requestClose()
+      }}
     >
-      <div className="panel p-6">
-        <h2 id={titleId} className="mb-4 text-[21px] leading-tight tracking-board">
-          {title}
-        </h2>
-        {children(requestClose)}
+      <div className="panel flex min-h-0 flex-col">
+        <div className="flex items-start gap-4 border-b border-line px-6 py-4">
+          <h2 id={titleId} className="min-w-0 flex-1 text-[21px] leading-tight tracking-board">
+            {title}
+          </h2>
+          <button type="button" onClick={requestClose} aria-label="Close"
+                  className="-mr-1.5 -mt-0.5 shrink-0 rounded p-1.5 text-ink-3
+                             transition-colors hover:bg-raised hover:text-ink">
+            <X size={17} strokeWidth={2} />
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+          {children(requestClose)}
+        </div>
       </div>
     </dialog>
   )
@@ -220,10 +237,13 @@ export function Section({ title, aside, id, children }: { title: string; aside?:
 
 /** The envelope. Rendered only where the server said a message would be
  *  accepted, so it is never a button whose only outcome is a refusal. */
-export function MessageButton({ to, name, onSent }: {
+export function MessageButton({ to, name, onSent, label }: {
   to: { athlete?: string; club?: string; user?: number }
   name: string
   onSent?: () => void
+  /** Give it words where it stands on its own — in a list of notifications the
+   *  envelope has no neighbouring context to borrow meaning from. */
+  label?: string
 }) {
   const [open, setOpen] = useState(false)
   const [body, setBody] = useState('')
@@ -253,9 +273,11 @@ export function MessageButton({ to, name, onSent }: {
 
   return (
     <>
-      <button className="btn px-2 py-1" title={`Message ${name}`} aria-label={`Message ${name}`}
-              onClick={() => setOpen(true)}>
+      <button className={label ? 'btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs' : 'btn px-2 py-1'}
+              title={`Message ${name}`} aria-label={`Message ${name}`}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(true) }}>
         <Mail size={13} strokeWidth={1.9} />
+        {label}
       </button>
       {open && (
         <Modal title={`Message ${name}`} onClose={() => setOpen(false)}>

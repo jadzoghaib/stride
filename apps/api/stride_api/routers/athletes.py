@@ -698,12 +698,31 @@ def my_invitations(user: dict = Depends(require_role("athlete")),
     the asking arrives.
     """
     profile = _own_profile(conn, user)
-    return rows(conn, """
+    # Enough about the club to answer without leaving the page, and its user, so
+    # the athlete can ask a question instead of only saying yes or no. An
+    # invitation is a request, and every request in this product owes the person
+    # receiving it both the detail and a way to reply.
+    invitations = rows(conn, """
         SELECT cm.id AS invitation_id, cm.position, cm.joined_at AS invited_at,
-               c.id AS club_id, c.slug, c.name, c.sport, c.country
+               c.id AS club_id, c.slug, c.name, c.sport, c.country, c.region, c.bio,
+               c.user_id AS club_user_id
         FROM club_members cm JOIN clubs c ON c.id = cm.club_id
         WHERE cm.athlete_id = ? AND cm.status = 'invited'
         ORDER BY cm.joined_at DESC""", (profile["id"],))
+    for inv in invitations:
+        inv["roster_count"] = row(conn, "SELECT COUNT(*) AS n FROM club_members"
+                                        " WHERE club_id = ? AND status = 'active'",
+                                  (inv["club_id"],))["n"]
+        inv["package_count"] = row(conn, "SELECT COUNT(*) AS n FROM club_packages"
+                                         " WHERE club_id = ? AND status = 'active'",
+                                   (inv["club_id"],))["n"]
+        # The thing an athlete most needs to know before joining: whether this
+        # club would be selling sponsorship packages built around *them*.
+        inv["player_direct_for_me"] = row(conn, """
+            SELECT COUNT(*) AS n FROM club_packages
+            WHERE club_id = ? AND athlete_id = ? AND status = 'active'""",
+            (inv["club_id"], profile["id"]))["n"]
+    return invitations
 
 
 class InvitationResponse(BaseModel):

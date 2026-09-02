@@ -279,7 +279,8 @@ def send_offer(campaign_id: int, body: OfferIn, user: dict = Depends(require_rol
     if recipient and recipient["user_id"]:
         notify(conn, recipient["user_id"], "offer",
                f"{org['name']} sent you an offer",
-               f"{body.deal_type.replace('_', ' ')} · EUR {body.amount_eur:,}", "/athlete/deals")
+               f"{body.deal_type.replace('_', ' ')} · EUR {body.amount_eur:,}",
+               "/athlete/deals", actor=org["user_id"])
     conn.commit()
     return row(conn, "SELECT * FROM deals WHERE id = ?", (cur.lastrowid,))
 

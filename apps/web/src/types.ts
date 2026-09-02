@@ -587,6 +587,16 @@ export interface ClubInvitation {
   name: string
   sport: string
   country: string
+  /** Enough to answer the invitation without leaving the page, and the club's
+   *  user so it can be answered with a sentence rather than only a verdict. */
+  region: string
+  bio: string
+  club_user_id: number | null
+  roster_count: number
+  package_count: number
+  /** Packages this club already sells built around *this* athlete. The single
+   *  most relevant fact when deciding whether to join one. */
+  player_direct_for_me: number
 }
 
 export const CONTENT_KINDS = ['post', 'course', 'session', 'event', 'product', 'poll'] as const
