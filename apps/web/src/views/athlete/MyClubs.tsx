@@ -14,7 +14,7 @@
 import { Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Avatar, EmptyNote, LoadError, PageHeader, PageLoading, Section } from '../../components/ui'
+import { Avatar, EmptyNote, LoadError, MessageButton, Modal, PageHeader, PageLoading, Section } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { useToast } from '../../lib/toast'
 import type { AthleteWorkspace, ClubInvitation } from '../../types'
@@ -24,6 +24,7 @@ export default function MyClubs() {
   const [invites, setInvites] = useState<ClubInvitation[]>([])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState<number | null>(null)
+  const [detail, setDetail] = useState<ClubInvitation | null>(null)
   const toast = useToast()
 
   const load = async () => {
@@ -90,15 +91,33 @@ export default function MyClubs() {
                     {i.sport} · {i.country}{i.position ? ` · as ${i.position}` : ''}
                   </div>
                 </div>
-                <p className="meta max-w-md">
-                  Joining lets them build sponsorship packages around you, and vouch for you in
-                  admission. You can leave later.
-                </p>
-                <div className="ml-auto flex gap-2">
+                {i.player_direct_for_me > 0 ? (
+                  // Said first, because it is the fact that changes the answer:
+                  // this club is already selling sponsorship built around you.
+                  <p className="meta max-w-md text-warn">
+                    They already list {i.player_direct_for_me} package
+                    {i.player_direct_for_me === 1 ? '' : 's'} built around you — those only become
+                    sellable if you accept.
+                  </p>
+                ) : (
+                  <p className="meta max-w-md">
+                    Joining lets them build sponsorship packages around you, and vouch for you in
+                    admission. You can leave later.
+                  </p>
+                )}
+                {/* Accept, decline, read the detail, or ask them something —
+                    an invitation is a request, and a request you can only
+                    answer yes or no to is an ultimatum. */}
+                <div className="ml-auto flex flex-wrap gap-2">
                   <button className="btn-go px-3 py-1.5 text-xs" disabled={busy === i.invitation_id}
                           onClick={() => void respond(i, 'accept')}>Accept</button>
                   <button className="btn px-3 py-1.5 text-xs" disabled={busy === i.invitation_id}
                           onClick={() => void respond(i, 'decline')}>Decline</button>
+                  <button className="btn px-3 py-1.5 text-xs"
+                          onClick={() => setDetail(i)}>See details</button>
+                  {i.club_user_id != null && (
+                    <MessageButton to={{ user: i.club_user_id }} name={i.name} label="Ask" />
+                  )}
                 </div>
               </div>
             ))}
@@ -125,6 +144,60 @@ export default function MyClubs() {
         )}
       </Section>
 
+      {detail && (
+        <Modal title={detail.name} onClose={() => setDetail(null)}>
+          {() => (
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Fact label="Sport" value={detail.sport} />
+                <Fact label="Based" value={[detail.region, detail.country].filter(Boolean).join(', ') || '—'} />
+                <Fact label="Athletes on the roster" value={String(detail.roster_count)} />
+                <Fact label="Sponsorship packages" value={String(detail.package_count)} />
+              </div>
+
+              {detail.position && (
+                <p className="text-sm text-ink-2">
+                  They are inviting you as <strong className="text-ink">{detail.position}</strong>.
+                </p>
+              )}
+
+              {detail.bio && (
+                <div>
+                  <h4 className="cap mb-1.5 text-ink-3">About the club</h4>
+                  <p className="text-sm text-ink-2">{detail.bio}</p>
+                </div>
+              )}
+
+              <div>
+                <h4 className="cap mb-1.5 text-ink-3">What accepting changes</h4>
+                <ul className="space-y-1.5 text-sm text-ink-2">
+                  <li>— They can publish sponsorship packages built around you, and sell them.</li>
+                  <li>— They can vouch for you in admission, which skips the proof queue.</li>
+                  <li>— You appear on their public roster. You can leave later.</li>
+                </ul>
+                {detail.player_direct_for_me > 0 && (
+                  <p className="meta mt-2 text-warn">
+                    {detail.player_direct_for_me} package{detail.player_direct_for_me === 1 ? '' : 's'} built
+                    around you {detail.player_direct_for_me === 1 ? 'is' : 'are'} already listed and cannot
+                    be sold unless you accept.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
+                <Link to={`/clubs/${detail.slug}`} className="btn px-3 py-1.5 text-xs">
+                  Open their page
+                </Link>
+                {detail.club_user_id != null && (
+                  <MessageButton to={{ user: detail.club_user_id }} name={detail.name}
+                                 label={`Ask ${detail.name} a question`} />
+                )}
+              </div>
+            </div>
+          )}
+        </Modal>
+      )}
+
       <Section title="Join a club"
                aside={<span className="meta">two ways in</span>}>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -146,6 +219,16 @@ export default function MyClubs() {
           </div>
         </div>
       </Section>
+    </div>
+  )
+}
+
+
+function Fact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded border border-line bg-raised px-3 py-2.5">
+      <div className="cap text-ink-3">{label}</div>
+      <div className="tnum mt-0.5 text-sm text-ink-2">{value}</div>
     </div>
   )
 }

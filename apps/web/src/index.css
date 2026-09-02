@@ -265,8 +265,13 @@
      it and focus restoration on close are the platform's job rather than ours.
      Only the chrome is styled here. */
   .modal {
-    @apply m-auto max-h-[85vh] w-[min(30rem,calc(100vw-2rem))] overflow-y-auto
-           border-0 bg-transparent p-0 text-ink-2;
+    /* A column that clips, rather than a box that scrolls: the header holds
+       still and only the body moves. Scrolling the whole dialog took the title
+       and the close button off the top of a long offer, so a reader deep in the
+       detail had nothing on screen saying what they were reading or how to get
+       out of it. */
+    @apply m-auto flex max-h-[85vh] w-[min(30rem,calc(100vw-2rem))] flex-col
+           overflow-hidden border-0 bg-transparent p-0 text-ink-2;
   }
   /* Defined after `.modal` deliberately: both are single-class selectors, so
      source order is what lets the modifier win. A picker table needs more

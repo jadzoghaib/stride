@@ -124,15 +124,24 @@ def may_message(conn, sender: dict, recipient: dict) -> bool:
 
 # ── notifications, written by whoever caused them ───────────────────────────
 
-def notify(conn, user_id: int, kind: str, title: str, body: str = "", link: str = "") -> None:
+def notify(conn, user_id: int, kind: str, title: str, body: str = "", link: str = "",
+           actor: int | None = None) -> None:
     """Record something that arrived in this person's world uninvited.
 
     Callers are already inside a transaction they will commit; this does not
     commit on its own, so a notification cannot survive the action that caused
     it being rolled back.
+
+    `actor` is the user who caused it, where a user did. It is what lets the
+    reader answer: a notification that somebody has asked you for something and
+    offers no route back to them is a dead end, and every request in this
+    product -- a club invitation, a sponsor's offer, a fan's wall post -- is
+    somebody asking. Left null for anything the system raised on its own, such
+    as an admission decision, where there is nobody to reply to.
     """
-    conn.execute("INSERT INTO notifications (user_id, kind, title, body, link, created_at)"
-                 " VALUES (?, ?, ?, ?, ?, ?)", (user_id, kind, title, body, link, now_iso()))
+    conn.execute("INSERT INTO notifications (user_id, actor_user_id, kind, title, body,"
+                 " link, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                 (user_id, actor, kind, title, body, link, now_iso()))
 
 
 # ── the inbox ───────────────────────────────────────────────────────────────
@@ -231,7 +240,7 @@ def send(body: MessageIn, user: dict = Depends(require_role(*MESSAGING_ROLES)),
     conn.execute("INSERT INTO messages (conversation_id, sender_id, body, created_at)"
                  " VALUES (?, ?, ?, ?)", (conversation_id, user["id"], body.body, now_iso()))
     notify(conn, recipient["id"], "message", f"{user['display_name']} messaged you",
-           body.body[:140], "/inbox")
+           body.body[:140], "/inbox", actor=user["id"])
     log_event(conn, "user", "message.sent", "conversation", conversation_id,
               {"to": recipient["id"]})
     conn.commit()
@@ -266,10 +275,46 @@ def list_notifications(limit: int = Query(30, ge=1, le=100),
                        " ORDER BY id DESC LIMIT ?", (user["id"], limit))
     unread = row(conn, "SELECT COUNT(*) AS n FROM notifications WHERE user_id = ?"
                        " AND read_at IS NULL", (user["id"],))
+
+    #: The person behind each notification, and whether this reader is allowed
+    #: to write back to them. `may_open` is asked here rather than assumed,
+    #: for the same reason the envelope is only drawn where it is: a reply
+    #: control whose only outcome is a refusal is worse than no control.
+    #: Cached per actor because a page of notifications is usually a handful of
+    #: people, and `may_open` is several queries deep.
+    seen: dict[int, dict | None] = {}
+
+    def actor_of(n) -> dict | None:
+        actor_id = n["actor_user_id"]
+        if not actor_id or actor_id == user["id"]:
+            return None
+        if actor_id not in seen:
+            who = row(conn, "SELECT id, display_name, role FROM users WHERE id = ?", (actor_id,))
+            seen[actor_id] = None if who is None else {
+                "id": who["id"], "display_name": who["display_name"], "role": who["role"],
+                "can_message": _may_write(conn, user, who),
+            }
+        return seen[actor_id]
+
     return {"unread": unread["n"] if unread else 0,
             "items": [{"id": n["id"], "kind": n["kind"], "title": n["title"],
                        "body": n["body"], "link": n["link"], "at": n["created_at"],
-                       "read": n["read_at"] is not None} for n in items]}
+                       "read": n["read_at"] is not None,
+                       "actor": actor_of(n)} for n in items]}
+
+
+def _may_write(conn, sender: dict, recipient: dict) -> bool:
+    """Whether `sender` may write to `recipient` *now* — through an existing
+    thread if there is one, or by opening a new one if the matrix allows it.
+
+    An existing conversation is checked first because reply rights come from the
+    thread rather than from the role: a fan who has since unsubscribed keeps the
+    thread they already have.
+    """
+    a, b = sorted((sender["id"], recipient["id"]))
+    if row(conn, "SELECT id FROM conversations WHERE user_a = ? AND user_b = ?", (a, b)):
+        return True
+    return may_open(conn, sender, recipient)
 
 
 @router.post("/notifications/read")

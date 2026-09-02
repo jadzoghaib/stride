@@ -160,7 +160,11 @@ def subscribe(kind: str, subject_id: int,
     if owner and owner["user_id"]:
         notify(conn, owner["user_id"], "subscriber",
                f"{user['display_name']} subscribed to you",
-               "They can now open everything you mark subscribers-only.", "")
+               "They can now open everything you mark subscribers-only.",
+               # This had no link at all, so the one notification about a person
+               # paying you was the one you could not act on. An athlete may
+               # always write to anyone, so the actor is what matters here.
+               "/notifications", actor=user["id"])
     log_event(conn, "user", "subscription.started", kind, subject_id, {"user_id": user["id"]})
     conn.commit()
     return {"ok": True}
@@ -248,7 +252,7 @@ def post_to_wall(slug: str, body: FanPostIn,
     if athlete["user_id"] and athlete["user_id"] != user["id"]:
         notify(conn, athlete["user_id"], "fan_post",
                f"{user['display_name']} posted on your wall", body.body.strip()[:140],
-               f"/athletes/{slug}")
+               f"/athletes/{slug}", actor=user["id"])
     log_event(conn, "user", "fan_wall.posted", "athlete", athlete["id"], {"user_id": user["id"]})
     conn.commit()
     return {"ok": True}

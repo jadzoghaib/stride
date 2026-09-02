@@ -9,8 +9,12 @@ with 401 or 403, and never get far enough to see 404 or 409 -- because "not
 found" from an endpoint you may not call still tells you the endpoint exists
 and, worse, means the guard did not run.
 
-Path ids are deliberately absent ones, so a permitted role gets a harmless 404
-and nothing in the demo is touched.
+Path ids are deliberately absent ones, so a permitted role gets a harmless 404.
+The routes that take no id are not covered by that -- `POST /api/club/application`
+succeeds, and overwrote the seeded club's application with the empty body this
+script sends, leaving a verified club in the demo reading "your club has to be
+verified" afterwards. So the database is snapshotted before the run and put back
+after it, and *then* the claim above is true.
 
 Each run signs in as six accounts. The auth rate limiter allows ~6 credential
 attempts a minute per IP, so running this back to back with the other scripts
@@ -20,8 +24,11 @@ failure here. Leave a minute between runs.
 
 from __future__ import annotations
 
+import atexit
+import shutil
 import sys
 import time
+from pathlib import Path
 
 import httpx
 
@@ -153,6 +160,42 @@ class Patient(httpx.Client):
                 return res
             time.sleep(1.5 * (attempt + 1))
         return res
+
+
+def demo_db() -> Path | None:
+    """The database this server is reading, if it is a local SQLite file.
+
+    Returns None against Postgres or a remote server -- there is nothing to copy
+    and nothing this script could safely restore, so it simply does not offer to.
+    """
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "apps/api"))
+        from stride_api.config import Settings
+    except Exception:
+        return None
+    path = Path(Settings().db_path)
+    return path if path.is_file() else None
+
+
+DB = demo_db()
+BACKUP = DB.with_suffix(DB.suffix + ".permissions-backup") if DB else None
+if DB and BACKUP:
+    # journal_mode is `delete` rather than WAL, so the file is the whole
+    # database and a plain copy is a whole snapshot.
+    shutil.copy2(DB, BACKUP)
+
+
+def restore() -> None:
+    if DB and BACKUP and BACKUP.is_file():
+        shutil.copy2(BACKUP, DB)
+        BACKUP.unlink()
+        print("demo database restored")
+
+
+# Registered rather than called at the end: the sign-in loop below asserts, and
+# a run that dies there is exactly the run that must not leave the demo holding
+# this script's writes.
+atexit.register(restore)
 
 
 sessions: dict[str, httpx.Client] = {}

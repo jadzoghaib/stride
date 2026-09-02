@@ -93,6 +93,36 @@ def _ring_area(points: list[tuple[float, float]]) -> float:
     return abs(a) / 2
 
 
+def unwrap(ring: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    """Make a ring's longitudes continuous across the antimeridian.
+
+    Source coordinates live in [-180, 180], so a country straddling 180 degrees
+    has consecutive points that jump from +179 to -179. Projected naively that
+    is a horizontal line all the way back across the map: Russia drew a band
+    over the whole top of the frame, Fiji a hairline through the middle, and
+    both looked like rendering corruption rather than geography.
+
+    Adding a running multiple of 360 to each point removes the jump. The ring
+    then extends past the edge of the frame instead, which `to_path` resolves by
+    also drawing it shifted a whole frame width -- so the far side reappears
+    where it belongs, and the SVG viewport clips the rest.
+    """
+    out = [ring[0]]
+    offset = 0.0
+    prev = ring[0][0]                       # the *unwrapped* previous longitude
+    for lon, lat in ring[1:]:
+        # Comparing against the original previous longitude rather than the
+        # unwrapped one leaves the offset unable to settle once it is non-zero,
+        # and the ring stays as wide as it started.
+        if lon + offset - prev > 180:
+            offset -= 360
+        elif lon + offset - prev < -180:
+            offset += 360
+        prev = lon + offset
+        out.append((prev, lat))
+    return out
+
+
 def to_path(rings: list[list[tuple[float, float]]]) -> str:
     """Projected, decimated and rounded to one decimal.
 
@@ -106,7 +136,17 @@ def to_path(rings: list[list[tuple[float, float]]]) -> str:
     Singapore *entirely* -- and a country with no shape cannot be shaded, so it
     would silently vanish from the map rather than merely lose an island.
     """
-    projected = [[project(lon, lat) for lon, lat in ring] for ring in rings]
+    projected = []
+    for ring in rings:
+        points = [project(lon, lat) for lon, lat in unwrap(ring)]
+        projected.append(points)
+        # A ring left hanging off one edge by the unwrap belongs on the other
+        # too -- Chukotka is Russian whichever side of the frame it lands on.
+        xs = [x for x, _ in points]
+        if max(xs) > W:
+            projected.append([(x - W, y) for x, y in points])
+        if min(xs) < 0:
+            projected.append([(x + W, y) for x, y in points])
     biggest = max(range(len(projected)), key=lambda i: _ring_area(projected[i]))         if projected else -1
 
     parts = []
@@ -139,6 +179,13 @@ def main() -> None:
     for geom in topology["objects"]["countries"]["geometries"]:
         alpha2 = numeric_to_alpha2.get(str(geom.get("id", "")).zfill(3))
         name = (geom.get("properties") or {}).get("name", "")
+        # The projection crops to 78N/-72S because nobody's audience lives in the
+        # polar dead space. Antarctica is the remainder of that argument: it
+        # spans every longitude, so it renders as a grey band across the foot of
+        # the frame, and no demographics bucket can ever key to it.
+        if alpha2 == "AQ":
+            skipped.append("Antarctica (outside the projection's useful range)")
+            continue
         if not alpha2:
             # Natural Earth carries a few entities with no ISO numeric of their
             # own (Kosovo, N. Cyprus, Somaliland). Dropping them is honest: the

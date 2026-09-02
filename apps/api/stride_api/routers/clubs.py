@@ -193,7 +193,11 @@ def invite_member(body: MemberIn, user: dict = Depends(require_role("club")),
     if invited_user and invited_user["user_id"]:
         notify(conn, invited_user["user_id"], "invitation",
                f"{c['name']} invited you to their roster",
-               "Joining lets them build sponsorship packages around you.", "/athlete")
+               "Joining lets them build sponsorship packages around you.",
+               # Where the invitation actually is, not the dashboard it used to
+               # point at. The club's own user is the actor, so the athlete can
+               # answer the invitation with a sentence instead of only a verdict.
+               "/athlete/clubs", actor=c["user_id"])
     log_event(conn, "user", "club.member_invited", "club", c["id"],
               {"athlete_id": athlete["id"], "slug": athlete["slug"]})
     conn.commit()

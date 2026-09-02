@@ -255,6 +255,8 @@ CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id
 CREATE TABLE IF NOT EXISTS notifications (
     id           INTEGER PRIMARY KEY,
     user_id      INTEGER NOT NULL REFERENCES users(id),
+    -- who raised it, when a person did; null for anything the system raised
+    actor_user_id INTEGER REFERENCES users(id),
     kind         TEXT NOT NULL,
     title        TEXT NOT NULL,
     body         TEXT NOT NULL DEFAULT '',
@@ -465,6 +467,12 @@ _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     # has foreign keys into.
     ("athlete_profiles", "frozen_at", "TEXT"),
     ("athlete_profiles", "frozen_by_club", "INTEGER"),
+    # Who raised it, when a person did. A notification saying "Meridian FC
+    # invited you" had no way back to Meridian FC: the reader could see that
+    # somebody had asked them for something and had no route to the details or
+    # to a reply. Nullable because plenty of notifications have no actor -- an
+    # admission decision is raised by the policy, not by a person.
+    ("notifications", "actor_user_id", "INTEGER"),
 )
 
 

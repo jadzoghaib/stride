@@ -13,7 +13,7 @@
 import { BadgeCheck, Bell, Briefcase, Mail, MessageSquare, Radio, ShieldCheck, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { EmptyNote, LoadError, PageHeader, PageLoading } from '../components/ui'
+import { EmptyNote, LoadError, MessageButton, PageHeader, PageLoading } from '../components/ui'
 import { api, errorText } from '../lib/api'
 
 interface Note {
@@ -24,6 +24,9 @@ interface Note {
   link: string
   at: string
   read: boolean
+  /** Who caused it, when a person did — absent for anything the system raised
+   *  on its own, like an admission decision, where there is nobody to answer. */
+  actor: { id: number; display_name: string; role: string; can_message: boolean } | null
 }
 
 /** A notification's kind, drawn. Defaulting everything to a bell would make the
@@ -39,6 +42,16 @@ const ICON: Record<string, typeof Bell> = {
   admission: ShieldCheck,
   club_invite: BadgeCheck,
   club: BadgeCheck,
+}
+
+/** What the detail link is called, per kind. "See details" is right for most of
+ *  them and wrong for the ones where the destination is an action you are being
+ *  asked to take. */
+const DETAIL_LABEL: Record<string, string> = {
+  invitation: 'View invitation',
+  offer: 'View offer',
+  message: 'Open the thread',
+  fan_post: 'View your wall',
 }
 
 function when(iso: string): string {
@@ -103,7 +116,7 @@ export default function Notifications() {
           {items.map((n) => {
             const Icon = ICON[n.kind] ?? Bell
             const row = (
-              <div className={`panel flex items-start gap-3 p-3.5 ${n.link ? 'panel-hover' : ''}`}>
+              <div className="panel flex items-start gap-3 p-3.5">
                 <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full
                                   ${n.read ? 'bg-raised text-ink-3' : 'bg-accent/15 text-accent'}`}>
                   <Icon size={15} strokeWidth={1.9} />
@@ -116,13 +129,29 @@ export default function Notifications() {
                     <span className="meta ml-auto shrink-0">{when(n.at)}</span>
                   </div>
                   {n.body && <p className="mt-0.5 text-sm text-ink-3">{n.body}</p>}
+
+                  {/* Somebody asked you for something; these are the two things
+                      you can do about it. The card used to be one big link with
+                      no reply on it, so an invitation from a club was a
+                      statement you could read and not answer. */}
+                  {(n.link || n.actor?.can_message) && (
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                      {n.link && (
+                        <Link to={n.link} className="btn px-3 py-1.5 text-xs">
+                          {DETAIL_LABEL[n.kind] ?? 'See details'}
+                        </Link>
+                      )}
+                      {n.actor?.can_message && (
+                        <MessageButton to={{ user: n.actor.id }} name={n.actor.display_name}
+                                       label={`Reply to ${n.actor.display_name}`} />
+                      )}
+                    </div>
+                  )}
                 </div>
                 {!n.read && <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />}
               </div>
             )
-            return n.link
-              ? <Link key={n.id} to={n.link} className="block">{row}</Link>
-              : <div key={n.id}>{row}</div>
+            return <div key={n.id}>{row}</div>
           })}
         </div>
       )}

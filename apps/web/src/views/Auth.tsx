@@ -14,15 +14,13 @@ const ROLES = [
   { key: 'fan', title: 'Supporter', body: 'Follow athletes, track their trajectory, and discover new names by interest.' },
 ]
 
-//: One account per role, plus the two that are only interesting because of the
-//  *state* they are in: an athlete and a club sitting in the review queue. Both
-//  exist in the seed and neither was reachable from here, so the review flow
-//  could only be demonstrated by somebody who already knew the addresses.
+//: One account per role. The seed also carries an athlete and a club sitting in
+//  the review queue — `athlete2@` and `club3@` — which the admin queue shows and
+//  the journey audit asserts against; they are not listed here because a person
+//  signing in wants a role, not a state.
 const DEMO = [
   { label: 'Athlete', email: 'athlete@demo.stride' },
-  { label: 'Athlete — in review', email: 'athlete2@demo.stride' },
   { label: 'Club', email: 'club@demo.stride' },
-  { label: 'Club — in review', email: 'club3@demo.stride' },
   { label: 'Sponsor', email: 'sponsor@demo.stride' },
   { label: 'Supporter', email: 'fan@demo.stride' },
   { label: 'Admin', email: 'admin@demo.stride' },
