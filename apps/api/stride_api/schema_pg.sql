@@ -446,6 +446,8 @@ CREATE TABLE IF NOT EXISTS club_invite_links (
     id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     club_id      BIGINT NOT NULL REFERENCES clubs(id),
     token        TEXT NOT NULL UNIQUE,
+    -- free text: the name or email the link was sent to
+    label        TEXT NOT NULL DEFAULT '',
     created_at   TEXT NOT NULL,
     expires_at   TEXT NOT NULL,
     redeemed_by  BIGINT REFERENCES athlete_profiles(id),

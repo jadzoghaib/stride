@@ -12,7 +12,8 @@
  *  URL.
  */
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Eye } from 'lucide-react'
 import { AudiencePanel } from '../components/charts'
 import { Shop, Wall } from '../components/content'
 import { Cover } from '../components/Cover'
@@ -50,6 +51,16 @@ const MEMBERSHIP = {
 export default function AthletePublicView() {
   const { slug } = useParams()
   const { me } = useAuth()
+  /** Previewing your own page.
+   *
+   *  Reached from the Content editor's Edit / Public view switch. It is the
+   *  real public page rather than a mock of it — the only difference is that
+   *  the panels the API sends you *because it is yours* are suppressed, so what
+   *  is on screen is what a visitor gets. Anything else would be a preview that
+   *  lies in the reassuring direction. */
+  const [params] = useSearchParams()
+  const previewing = params.get('preview') === '1'
+    && me?.athlete_profile?.slug === slug
   const [a, setA] = useState<Athlete | null>(null)
   const [content, setContent] = useState<ContentItem[] | null>(null)
   const [news, setNews] = useState<NewsItem[]>([])
@@ -125,6 +136,21 @@ export default function AthletePublicView() {
   if (!a) return error ? <LoadError text={error} /> : <PageLoading />
 
   return (
+    <>
+    {previewing && (
+      // Says which of the two it is, and gets you back. A preview you cannot
+      // tell you are in is just a confusing version of the page.
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-card border border-accent/45
+                      bg-accent/10 px-4 py-3">
+        <Eye size={15} strokeWidth={1.9} className="text-accent-ink" />
+        <p className="text-sm text-ink-2">
+          <strong className="text-ink">Public view.</strong> This is your page as a visitor sees
+          it — your analytics and rate card are hidden, and your subscribers-only posts are locked,
+          because you do not subscribe to yourself.
+        </p>
+        <Link to="/athlete/content" className="btn ml-auto px-3 py-1.5 text-xs">Back to editing</Link>
+      </div>
+    )}
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <div className="min-w-0">
         {/* ── who this is ───────────────────────────────────────────────── */}
@@ -285,12 +311,12 @@ export default function AthletePublicView() {
 
         {/* Sponsor-facing evidence. Absent from a fan's payload entirely, so
             these do not render rather than rendering empty. */}
-        {a.score !== undefined && (
+        {!previewing && a.score !== undefined && (
           <Section title="Marketability">
             <DimensionGrid score={a.score} />
           </Section>
         )}
-        {a.audience && Object.keys(a.audience).length > 0 && (
+        {!previewing && a.audience && Object.keys(a.audience).length > 0 && (
           <Section title="Audience">
             <AudiencePanel audience={a.audience} />
           </Section>
@@ -334,6 +360,7 @@ export default function AthletePublicView() {
         )}
       </aside>
     </div>
+    </>
   )
 }
 

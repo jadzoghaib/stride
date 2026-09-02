@@ -680,8 +680,21 @@ def _link_state(link: dict) -> str:
     return "open"
 
 
+class InviteLinkIn(BaseModel):
+    """Who the link is for, in the club's own words.
+
+    A token is deliberately unreadable, so a club holding four open links had no
+    way to tell which one it had emailed to whom — and so no way to revoke the
+    right one. Free text rather than a validated email because a club may key it
+    by shirt number, agent, or trial date; it is a note to itself, and the
+    product should not have an opinion about the format of somebody's own notes.
+    """
+    label: str = Field("", max_length=120)
+
+
 @router.post("/club/invite-links", status_code=201)
-def create_invite_link(user: dict = Depends(require_role("club")),
+def create_invite_link(body: InviteLinkIn | None = None,
+                       user: dict = Depends(require_role("club")),
                        conn: sqlite3.Connection = Depends(get_db)):
     club = _own_club(conn, user)
     # Same lock-before-read as nominations, and for the same reason: two
@@ -700,12 +713,14 @@ def create_invite_link(user: dict = Depends(require_role("club")),
     token = secrets.token_urlsafe(24)
     expires = (datetime.now(timezone.utc) + timedelta(days=INVITE_TTL_DAYS)).strftime(
         "%Y-%m-%dT%H:%M:%SZ")
-    conn.execute("INSERT INTO club_invite_links (club_id, token, created_at, expires_at)"
-                 " VALUES (?, ?, ?, ?)", (club["id"], token, now_iso(), expires))
+    label = (body.label if body else "").strip()
+    conn.execute("INSERT INTO club_invite_links (club_id, token, label, created_at, expires_at)"
+                 " VALUES (?, ?, ?, ?, ?)", (club["id"], token, label, now_iso(), expires))
     log_event(conn, "user", "club.invite_link_created", "club", club["id"],
-              {"expires_at": expires})
+              {"expires_at": expires, "labelled": bool(label)})
     conn.commit()
-    return {"token": token, "expires_at": expires, "remaining": declared - spent - 1}
+    return {"token": token, "label": label, "expires_at": expires,
+            "remaining": declared - spent - 1}
 
 
 @router.get("/club/invite-links")
@@ -718,7 +733,8 @@ def list_invite_links(user: dict = Depends(require_role("club")),
         athlete = row(conn, "SELECT slug, display_name, frozen_at FROM athlete_profiles"
                             " WHERE id = ?", (link["redeemed_by"],)) if link["redeemed_by"] else None
         out.append({"id": link["id"], "token": link["token"], "state": _link_state(link),
-                    "created_at": link["created_at"], "expires_at": link["expires_at"],
+                    "label": link["label"], "created_at": link["created_at"],
+                    "expires_at": link["expires_at"], "redeemed_at": link["redeemed_at"],
                     "athlete": dict(athlete) if athlete else None})
     return out
 

@@ -417,7 +417,10 @@ function ProfileForm({ editable, onSaved }: { editable: ClubWorkspace['editable'
  *  the `toISOString()` on the way out, so the value round-trips unchanged. */
 interface InviteLink {
   id: number; token: string; state: 'open' | 'redeemed' | 'revoked' | 'expired'
-  created_at: string; expires_at: string
+  /** The club's own note about who it went to — a token is unreadable, so this
+   *  is the only thing that makes one open link distinguishable from another. */
+  label: string
+  created_at: string; expires_at: string; redeemed_at: string | null
   athlete: { slug: string; display_name: string; frozen_at: string | null } | null
 }
 
@@ -450,12 +453,15 @@ function InviteLinks() {
     api.get<InviteLink[]>('/api/club/invite-links').then(setLinks).catch(() => setLinks([]))
   useEffect(() => { void load() }, [])
 
+  const [label, setLabel] = useState('')
+
   const issue = async () => {
     setBusy(true)
     setError('')
     try {
-      await api.post('/api/club/invite-links')
-      toast('Link created — send it to the athlete')
+      await api.post('/api/club/invite-links', { label: label.trim() })
+      toast(label.trim() ? `Link created for ${label.trim()}` : 'Link created')
+      setLabel('')
       await load()
     } catch (e) { setError(errorText(e)) } finally { setBusy(false) }
   }
@@ -481,8 +487,10 @@ function InviteLinks() {
 
   return (
     <Section title="Invite links" id="invites"
-             aside={<button className="btn px-3 py-1 text-xs" disabled={busy} onClick={issue}>
-               <Plus size={13} /> New link</button>}>
+             aside={<span className="meta">
+               {(links ?? []).filter((l) => l.state === 'open').length} open ·
+               {' '}{(links ?? []).filter((l) => l.athlete).length} redeemed
+             </span>}>
       {error && <p className="mb-3 text-sm text-critical">{error}</p>}
 
       <p className="meta mb-3">
@@ -492,6 +500,21 @@ function InviteLinks() {
         pass verification on their own.
       </p>
 
+      {/* A token is unreadable on purpose, so four open links were four
+          identical rows. Naming the recipient is what makes the list a record
+          of who you invited rather than a pile of secrets. */}
+      <div className="mb-4 flex flex-wrap items-end gap-2">
+        <label className="min-w-[16rem] flex-1">
+          <span className="cap mb-1 block text-ink-3">Who is this link for</span>
+          <input className="field w-full" value={label} maxLength={120}
+                 placeholder="Name, email, or however you track them"
+                 onChange={(e) => setLabel(e.target.value)} />
+        </label>
+        <button className="btn-go px-4 py-2" disabled={busy} onClick={issue}>
+          <Plus size={13} /> Create link
+        </button>
+      </div>
+
       {!links || links.length === 0 ? (
         <EmptyNote text="No links yet. Each one admits one athlete, and counts against the roster size you declared." />
       ) : (
@@ -499,14 +522,25 @@ function InviteLinks() {
           {links.map((l) => (
             <div key={l.id} className="panel flex flex-wrap items-center gap-3 p-3">
               <span className={`tag ${l.state === 'open' ? 'text-ok' : ''}`}>{l.state}</span>
-              {l.athlete ? (
-                <span className="text-sm text-ink">
-                  {l.athlete.display_name}
-                  {l.athlete.frozen_at && <span className="tag ml-2 text-critical">frozen</span>}
-                </span>
-              ) : (
-                <code className="truncate text-xs text-ink-3">{l.token.slice(0, 18)}…</code>
-              )}
+              <div className="min-w-0">
+                {l.athlete ? (
+                  <div className="text-sm text-ink">
+                    {l.athlete.display_name}
+                    {l.athlete.frozen_at && <span className="tag ml-2 text-critical">frozen</span>}
+                    <span className="meta ml-2">redeemed{l.redeemed_at ? ` ${l.redeemed_at.slice(0, 10)}` : ''}</span>
+                  </div>
+                ) : (
+                  <div className="text-sm text-ink">
+                    {l.label || <span className="text-ink-3">Unassigned link</span>}
+                  </div>
+                )}
+                <code className="block truncate text-[11px] text-ink-3">{l.token.slice(0, 18)}…</code>
+                {l.athlete && l.label && (
+                  // Both, when they differ: you invited one person and somebody
+                  // else redeemed it, and that is worth being able to see.
+                  <span className="meta">sent to {l.label}</span>
+                )}
+              </div>
               <div className="ml-auto flex items-center gap-2">
                 {l.state === 'open' && (
                   <button className="btn px-3 py-1 text-xs" onClick={() => copy(l)}>

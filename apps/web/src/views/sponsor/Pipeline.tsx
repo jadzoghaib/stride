@@ -8,7 +8,15 @@ import { dealTypeLabel, platformLabel } from '../../types'
 
 const STAGES: Deal['status'][] = ['offered', 'accepted', 'completed', 'declined', 'withdrawn']
 
-export default function SponsorPipeline() {
+export default function SponsorPipeline({ campaignId, embedded = false }: {
+  /** Scope every stage to one campaign. A pipeline is a per-campaign question
+   *  far more often than a company-wide one — "how is the spring line going"
+   *  rather than "show me every offer this org has ever sent". */
+  campaignId?: number
+  /** Suppress the page header when this is a tab inside a campaign, which
+   *  already says which campaign you are looking at. */
+  embedded?: boolean
+} = {}) {
   const [deals, setDeals] = useState<Deal[] | null>(null)
   const [commitments, setCommitments] = useState<Commitment[]>([])
   const [error, setError] = useState('')
@@ -16,11 +24,17 @@ export default function SponsorPipeline() {
 
   const load = () =>
     api.get<{ deals: Deal[]; club_commitments: Commitment[] }>('/api/sponsor/workspace')
-      .then((ws) => { setDeals(ws.deals); setCommitments(ws.club_commitments ?? []) })
+      .then((ws) => {
+        setDeals(campaignId ? ws.deals.filter((d) => d.campaign_id === campaignId) : ws.deals)
+        // Club packages are bought by the org, not by a campaign, so a campaign
+        // view has none to show rather than showing all of them under the
+        // wrong heading.
+        setCommitments(campaignId ? [] : (ws.club_commitments ?? []))
+      })
       .catch((e) => setError(errorText(e)))
   useEffect(() => {
     void load()
-  }, [])
+  }, [campaignId])
 
   const cancelCommitment = async (id: number) => {
     try {
@@ -44,12 +58,14 @@ export default function SponsorPipeline() {
 
   return (
     <div>
-      <PageHeader
-        eyebrow="Sponsor"
-        title="Deal pipeline"
-        lede="Every offer this organization has sent, by stage, plus the club packages it backs."
-        aside={<span className="meta">{deals.length} deal{deals.length === 1 ? '' : 's'}</span>}
-      />
+      {!embedded && (
+        <PageHeader
+          eyebrow="Sponsor"
+          title="Deal pipeline"
+          lede="Every offer this organization has sent, by stage, plus the club packages it backs."
+          aside={<span className="meta">{deals.length} deal{deals.length === 1 ? '' : 's'}</span>}
+        />
+      )}
       {error && (
         <div className="mb-4 rounded border border-critical/45 bg-critical/10 px-3.5 py-2.5 text-sm text-critical">
           {error}

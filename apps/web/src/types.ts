@@ -612,3 +612,16 @@ export const CONTENT_LABELS = [
   { value: 'sponsored', label: 'Sponsored — a brand paid for this' },
   { value: 'highlighted', label: 'Highlighted — feature it' },
 ] as const
+
+
+/** The sponsor's own workspace payload. Declared once here because three views
+ *  now read it — the campaigns list, the campaign detail header, and the
+ *  cross-campaign analytics — and each had been describing it inline. */
+export interface SponsorWorkspace {
+  org: { id: number; name: string; industry: string; regions: string[] }
+  campaigns: Campaign[]
+  deals: Deal[]
+  club_commitments?: { id: number }[]
+  spend_committed: number
+  speed?: { median_hours: number | null; campaigns_measured: number; campaigns_without_offer: number }
+}

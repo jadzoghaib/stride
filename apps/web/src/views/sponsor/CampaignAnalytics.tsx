@@ -60,7 +60,7 @@ interface Analytics {
   }
 }
 
-export default function CampaignAnalytics() {
+export default function CampaignAnalytics({ embedded = false }: { embedded?: boolean } = {}) {
   const { id } = useParams()
   const [data, setData] = useState<Analytics | null>(null)
   const [error, setError] = useState('')
@@ -76,18 +76,23 @@ export default function CampaignAnalytics() {
 
   return (
     <div>
-      <Link to="/sponsor" className="meta mb-3 inline-flex items-center gap-1.5 hover:text-accent">
-        <ArrowLeft size={13} /> Campaigns
-      </Link>
+      {!embedded && (
+        <Link to="/sponsor" className="meta mb-3 inline-flex items-center gap-1.5 hover:text-accent">
+          <ArrowLeft size={13} /> Campaigns
+        </Link>
+      )}
 
+      {!embedded && (
       <PageHeader
-        eyebrow="Campaign"
-        title={campaign.name}
-        lede={campaign.objective || 'Delivered performance across every athlete on this campaign.'}
-        aside={<span className="meta">
-          {totals.athletes_live} of {totals.athletes} live · {fmtMoney(totals.committed_eur)} committed
-        </span>}
-      />
+          eyebrow="Campaign"
+          title={campaign.name}
+          lede={campaign.objective || 'Delivered performance across every athlete on this campaign.'}
+          aside={<span className="meta">
+            {totals.athletes_live} of {totals.athletes} live · {fmtMoney(totals.committed_eur)} committed
+          </span>}
+        />
+      )}
+
 
       {/* ── the headline ───────────────────────────────────────────────── */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

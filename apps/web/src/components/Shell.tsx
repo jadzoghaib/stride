@@ -26,7 +26,9 @@ const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]>
   ],
   sponsor: [
     { to: '/sponsor', label: 'Campaigns', icon: BarChart3 },
-    { to: '/sponsor/pipeline', label: 'Pipeline', icon: Briefcase },
+    // The org-wide pipeline moved inside Analytics; a campaign's own pipeline
+    // is a tab on the campaign, which is the unit a sponsor thinks in.
+    { to: '/sponsor/analytics', label: 'Analytics', icon: Briefcase },
     { to: '/athletes', label: 'Directory', icon: Compass },
   ],
   fan: [
