@@ -121,12 +121,17 @@ export default function SponsorCampaigns() {
                 {c.target_countries.length > 0 && <span className="tag">{c.target_countries.join(' · ')}</span>}
                 {c.target_age_buckets.length > 0 && <span className="tag">ages {c.target_age_buckets.join(', ')}</span>}
               </div>
+              {/* One destination, three tabs. Two buttons to two pages made the
+                  card decide for you which question you had come with. */}
               <div className="mt-3 flex flex-wrap gap-2">
                 <Link to={`/sponsor/campaigns/${c.id}`} className="btn px-3 py-1.5 text-xs">
-                  Find athletes
+                  Athletes
                 </Link>
-                <Link to={`/sponsor/campaigns/${c.id}/analytics`} className="btn px-3 py-1.5 text-xs">
-                  Performance
+                <Link to={`/sponsor/campaigns/${c.id}?tab=pipeline`} className="btn px-3 py-1.5 text-xs">
+                  Pipeline
+                </Link>
+                <Link to={`/sponsor/campaigns/${c.id}?tab=analytics`} className="btn px-3 py-1.5 text-xs">
+                  Analytics
                 </Link>
               </div>
             </div>

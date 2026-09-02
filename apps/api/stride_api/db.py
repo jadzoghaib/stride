@@ -189,6 +189,8 @@ CREATE TABLE IF NOT EXISTS club_invite_links (
     id           INTEGER PRIMARY KEY,
     club_id      INTEGER NOT NULL REFERENCES clubs(id),
     token        TEXT NOT NULL UNIQUE,
+    -- free text: the name or email the link was sent to
+    label        TEXT NOT NULL DEFAULT '',
     created_at   TEXT NOT NULL,
     expires_at   TEXT NOT NULL,
     -- single use: a link is issued to one athlete, so a leaked one onboards one
@@ -473,6 +475,10 @@ _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     # to a reply. Nullable because plenty of notifications have no actor -- an
     # admission decision is raised by the policy, not by a person.
     ("notifications", "actor_user_id", "INTEGER"),
+    # Who the club minted this link for. A token is unreadable by design, so a
+    # club with four outstanding links had no way to tell which one it had
+    # emailed to whom -- and therefore no way to revoke the right one.
+    ("club_invite_links", "label", "TEXT NOT NULL DEFAULT ''"),
 )
 
 

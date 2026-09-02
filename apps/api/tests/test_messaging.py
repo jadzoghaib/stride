@@ -64,12 +64,12 @@ def test_a_sponsor_may_message_any_athlete(sponsor):
         "to_athlete": "kaia-mercer", "body": "We have a campaign"}).status_code == 201
 
 
-def test_a_sponsor_may_not_message_a_club_they_do_not_back(sponsor):
-    """Sponsors reach athletes because that is what they are here for. A club is
-    a counterparty, and the relationship has to exist first."""
-    refused = sponsor.post("/api/messages", json={"to_club": "meridian-fc", "body": "Hi"})
-    assert refused.status_code == 403
-    assert refused.json()["detail"] == "cannot_message_this_person"
+def test_a_sponsor_may_open_with_a_club_it_does_not_yet_back(sponsor):
+    """The relationship used to have to exist before the conversation could —
+    which is backwards, because the conversation is how the relationship starts.
+    A sponsor cannot back a club it was never able to approach."""
+    assert sponsor.post("/api/messages", json={
+        "to_club": "meridian-fc", "body": "Interested in your player packages."}).status_code == 201
 
 
 def test_a_fan_may_message_only_the_athletes_they_subscribe_to(fan, db):
@@ -110,10 +110,14 @@ def test_nobody_may_message_themselves(athlete):
 
 def test_the_envelope_is_only_offered_where_the_send_would_work(fan, sponsor, db):
     """The button asks the server, so it cannot appear where sending is refused."""
+    db.execute("DELETE FROM subscriptions WHERE user_id ="
+               " (SELECT id FROM users WHERE email = 'fan@demo.stride')")
+    db.commit()
     assert fan.get("/api/messages/can/athlete/kaia-mercer").json()["can_message"] is False
     fan.post(f"/api/subscriptions/athlete/{_athlete_id(db)}")
     assert fan.get("/api/messages/can/athlete/kaia-mercer").json()["can_message"] is True
-    assert sponsor.get("/api/messages/can/club/meridian-fc").json()["can_message"] is False
+    # and the working roles reach each other without a prior relationship
+    assert sponsor.get("/api/messages/can/club/meridian-fc").json()["can_message"] is True
 
 
 # ── the thread ──────────────────────────────────────────────────────────────
@@ -211,22 +215,27 @@ def test_a_club_may_message_an_athlete_on_its_roster(db, clubu):
         "to_athlete": "kaia-mercer", "body": "Training moved to Thursday"}).status_code == 201
 
 
-def test_a_club_may_not_message_an_athlete_who_declined(db, clubu):
-    """Ending the relationship ends new outreach. Somebody who said no should
-    not keep receiving pitches about it."""
+def test_a_club_may_approach_an_athlete_who_has_not_answered_it(db, clubu):
+    """A club and an athlete are both here to find each other, and a declined
+    invitation is not a block — an athlete who says no to a roster place may
+    still want the conversation. Blocking a *person* is a feature this product
+    does not have yet; when it does, it belongs here rather than being implied
+    by a membership row."""
     _member(db, "kaia-mercer", "declined")
-    refused = clubu.post("/api/messages", json={"to_athlete": "kaia-mercer", "body": "Reconsider?"})
-    assert refused.status_code == 403
+    assert clubu.post("/api/messages", json={
+        "to_athlete": "kaia-mercer", "body": "Reconsider?"}).status_code == 201
 
 
-def test_a_club_may_not_message_an_athlete_it_has_no_relationship_with(db, clubu):
+def test_a_club_may_approach_an_athlete_it_has_never_met(db, clubu):
+    """Recruiting is the point. The old rule required the club to invite an
+    athlete before it could explain why it was inviting them."""
     club = row(db, "SELECT id FROM clubs WHERE slug = 'meridian-fc'")
     athlete = row(db, "SELECT id FROM athlete_profiles WHERE slug = 'kaia-mercer'")
     db.execute("DELETE FROM club_members WHERE club_id = ? AND athlete_id = ?",
                (club["id"], athlete["id"]))
     db.commit()
     assert clubu.post("/api/messages", json={
-        "to_athlete": "kaia-mercer", "body": "Hello"}).status_code == 403
+        "to_athlete": "kaia-mercer", "body": "We would like you on the roster."}).status_code == 201
 
 
 def _commitment(db, status: str) -> None:
@@ -252,10 +261,52 @@ def test_a_club_and_the_sponsor_backing_it_can_reach_each_other(db, clubu, spons
     assert sponsor.get("/api/messages/can/club/meridian-fc").json()["can_message"] is True
 
 
-def test_a_cancelled_commitment_closes_the_door(db, clubu, sponsor):
-    """The thread they already have stays answerable; new ones do not open."""
+def test_a_cancelled_commitment_does_not_close_the_channel(db, clubu, sponsor):
+    """Money stopping is a reason to talk, not a reason to be silenced. The
+    channel between two working parties does not depend on a live commitment."""
     _commitment(db, "cancelled")
     sponsor_user = row(db, "SELECT id FROM users WHERE email = 'sponsor@demo.stride'")["id"]
     assert clubu.post("/api/messages", json={
-        "to_user": sponsor_user, "body": "Renew?"}).status_code == 403
-    assert sponsor.get("/api/messages/can/club/meridian-fc").json()["can_message"] is False
+        "to_user": sponsor_user, "body": "Renew?"}).status_code == 201
+    assert sponsor.get("/api/messages/can/club/meridian-fc").json()["can_message"] is True
+
+
+# ── the open network, and its one closed edge ───────────────────────────────
+
+
+def test_the_three_working_roles_reach_each_other_in_every_direction(
+        athlete, clubu, sponsor, db):
+    """Athlete, club and sponsor form an open network. Forming the relationship
+    is what the message is for, so requiring the relationship first made the
+    first move impossible for whichever side had not been found yet."""
+    who = {r: row(db, "SELECT id FROM users WHERE email = ?", (e,))["id"]
+           for r, e in (("athlete", "athlete@demo.stride"),
+                        ("club", "club@demo.stride"),
+                        ("sponsor", "sponsor@demo.stride"))}
+    sessions = {"athlete": athlete, "club": clubu, "sponsor": sponsor}
+
+    for sender, session in sessions.items():
+        for recipient, user_id in who.items():
+            if sender == recipient:
+                continue
+            sent = session.post("/api/messages",
+                                json={"to_user": user_id, "body": f"{sender} to {recipient}"})
+            assert sent.status_code == 201, \
+                f"{sender} -> {recipient}: {sent.status_code} {sent.text}"
+
+
+def test_nobody_cold_opens_a_thread_with_a_fan(clubu, sponsor, db):
+    """The asymmetry is the whole spam surface of a creator product: the working
+    side is small and accountable, an audience is large and has not asked to be
+    contacted. An athlete may still answer their own subscribers."""
+    fan_user = row(db, "SELECT id FROM users WHERE email = 'fan2@demo.stride'")["id"]
+    for who in (clubu, sponsor):
+        refused = who.post("/api/messages", json={"to_user": fan_user, "body": "Hello"})
+        assert refused.status_code == 403, \
+            f"a fan was cold-opened: {refused.status_code}"
+
+
+def test_an_athlete_may_still_write_to_their_own_audience(athlete, db):
+    fan_user = row(db, "SELECT id FROM users WHERE email = 'fan@demo.stride'")["id"]
+    assert athlete.post("/api/messages", json={
+        "to_user": fan_user, "body": "Thanks for subscribing."}).status_code == 201

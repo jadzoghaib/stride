@@ -27,7 +27,9 @@ import AthleteProfile from './views/athlete/Profile'
 import Discover from './views/fan/Discover'
 import Feed from './views/fan/Feed'
 import AthleteEvidence from './views/sponsor/AthleteEvidence'
+import SponsorAnalytics from './views/sponsor/Analytics'
 import CampaignAnalytics from './views/sponsor/CampaignAnalytics'
+import CampaignDetail from './views/sponsor/CampaignDetail'
 import CampaignMatches from './views/sponsor/CampaignMatches'
 import SponsorCampaigns from './views/sponsor/Campaigns'
 import SponsorPipeline from './views/sponsor/Pipeline'
@@ -95,8 +97,11 @@ export default function App() {
           <Route path="/athlete/application" element={<Guard roles={['athlete']}><AthleteApplication /></Guard>} />
 
           <Route path="/sponsor" element={<Guard roles={['sponsor']}><SponsorCampaigns /></Guard>} />
-          <Route path="/sponsor/campaigns/:id" element={<Guard roles={['sponsor']}><CampaignMatches /></Guard>} />
+          <Route path="/sponsor/campaigns/:id" element={<Guard roles={['sponsor']}><CampaignDetail /></Guard>} />
+          {/* kept: the Performance button on older cards and any bookmark still
+              points here, and it lands on the same tab of the same campaign */}
           <Route path="/sponsor/campaigns/:id/analytics" element={<Guard roles={['sponsor']}><CampaignAnalytics /></Guard>} />
+          <Route path="/sponsor/analytics" element={<Guard roles={['sponsor']}><SponsorAnalytics /></Guard>} />
           <Route path="/sponsor/athletes/:slug" element={<Guard roles={['sponsor']}><AthleteEvidence /></Guard>} />
           <Route path="/sponsor/pipeline" element={<Guard roles={['sponsor']}><SponsorPipeline /></Guard>} />
 

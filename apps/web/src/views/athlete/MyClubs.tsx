@@ -198,24 +198,25 @@ export default function MyClubs() {
         </Modal>
       )}
 
-      <Section title="Join a club"
-               aside={<span className="meta">two ways in</span>}>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="panel p-4">
-            <h4 className="font-medium text-ink">You were sent a link</h4>
-            <p className="meta mt-1">
-              A verified club can invite you directly. Redeeming their link vouches for you, so
-              you skip the proof queue — the age and competition questions still apply.
-            </p>
-            <Link to="/athlete/application" className="btn mt-3 inline-block">Redeem an invite link</Link>
-          </div>
-          <div className="panel p-4">
-            <h4 className="font-medium text-ink">You are looking for one</h4>
-            <p className="meta mt-1">
-              Browse clubs by sport and country, then message one from its page. A club has to
-              invite you, and you have to accept — neither side can do it alone.
-            </p>
-            <Link to="/clubs" className="btn mt-3 inline-block">Browse clubs</Link>
+      {/* One path, not two. These were presented as alternatives — "you were
+          sent a link" beside "you are looking for one" — but they are the same
+          route at different points along it: you find a club, you talk to them,
+          and if it goes well they send you a link. Messaging a club needs no
+          prior relationship, so the conversation is the way in and redeeming is
+          what happens at the end of it. */}
+      <Section title="Join a club">
+        <div className="panel p-4">
+          <p className="text-sm text-ink-2">
+            Find a club in the directory and message them — you do not need an introduction, and
+            they can write back. If it goes somewhere they will send you an invite link, which
+            vouches for you and skips the proof queue. A club has to invite you and you have to
+            accept; neither side can do it alone.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link to="/clubs" className="btn-go px-3 py-1.5 text-xs">Browse clubs</Link>
+            <Link to="/athlete/application" className="btn px-3 py-1.5 text-xs">
+              I already have a link
+            </Link>
           </div>
         </div>
       </Section>

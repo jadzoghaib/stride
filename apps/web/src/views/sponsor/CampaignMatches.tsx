@@ -40,7 +40,7 @@ function decompose(m: Match) {
   return { rows, top }
 }
 
-export default function CampaignMatches() {
+export default function CampaignMatches({ embedded = false }: { embedded?: boolean } = {}) {
   const { id } = useParams()
   const [data, setData] = useState<MatchesResponse | null>(null)
   const [error, setError] = useState('')
@@ -69,31 +69,34 @@ export default function CampaignMatches() {
 
   return (
     <>
+      {!embedded && (
       <Board
-        eyebrow={
-          <Link to="/sponsor" className="hover:text-ink-2">
-            Campaigns
-          </Link>
-        }
-        title={c.name}
-        tags={
-          <>
-            <span className="tag">{c.category}</span>
-            <StatusChip status={c.status} />
-            <SimulatedChip what="analytics" />
-          </>
-        }
-        score={best ? best.score : null}
-        scoreLabel="Best match"
-        deltaNote={best ? best.display_name : 'no listed athletes match yet'}
-        trendEmpty="Every score below decomposes into the components that produced it."
-        figures={[
-          { label: 'Ranked', value: data.matches.length },
-          { label: 'Budget', value: `${fmtMoney(c.budget_eur_min)} – ${fmtMoney(c.budget_eur_max)}` },
-          { label: 'Full analytics', value: `${fullCoverage} of ${data.matches.length}` },
-        ]}
-        footNote="audience fit computed against this campaign's own target"
-      />
+          eyebrow={
+            <Link to="/sponsor" className="hover:text-ink-2">
+              Campaigns
+            </Link>
+          }
+          title={c.name}
+          tags={
+            <>
+              <span className="tag">{c.category}</span>
+              <StatusChip status={c.status} />
+              <SimulatedChip what="analytics" />
+            </>
+          }
+          score={best ? best.score : null}
+          scoreLabel="Best match"
+          deltaNote={best ? best.display_name : 'no listed athletes match yet'}
+          trendEmpty="Every score below decomposes into the components that produced it."
+          figures={[
+            { label: 'Ranked', value: data.matches.length },
+            { label: 'Budget', value: `${fmtMoney(c.budget_eur_min)} – ${fmtMoney(c.budget_eur_max)}` },
+            { label: 'Full analytics', value: `${fullCoverage} of ${data.matches.length}` },
+          ]}
+          footNote="audience fit computed against this campaign's own target"
+        />
+      )}
+
 
       <div>
         <Section title="Ranked matches" aside={<span className="meta">select a row for its score composition</span>}>

@@ -12,7 +12,9 @@
  */
 import { useEffect, useState } from 'react'
 import { EmptyNote, LoadError, Modal, PageHeader, PageLoading, Section, Tabs } from '../../components/ui'
+import { useNavigate } from 'react-router-dom'
 import { api, errorText } from '../../lib/api'
+import { useAuth } from '../../lib/auth'
 import { openable } from '../../lib/url'
 import { useToast } from '../../lib/toast'
 import type { ContentItem } from '../../types'
@@ -26,6 +28,8 @@ const BLANK = {
 }
 
 export default function AthleteContent() {
+  const { me } = useAuth()
+  const navigate = useNavigate()
   const [items, setItems] = useState<ContentItem[] | null>(null)
   const [error, setError] = useState('')
   const [composing, setComposing] = useState(false)
@@ -76,6 +80,22 @@ export default function AthleteContent() {
       {error && (
         <div className="mb-4 rounded border border-critical/45 bg-critical/10 px-3.5 py-2.5 text-sm text-critical">
           {error}
+        </div>
+      )}
+
+      {/* Edit, or see it the way a visitor does. Two modes of the same page:
+          everything below is the management view, and the switch hands you the
+          real public profile with the panels you only get because it is yours
+          taken out of it. */}
+      {me?.athlete_profile?.slug && (
+        <div className="mb-5 max-w-xs">
+          <Tabs
+            active="edit"
+            tabs={[{ key: 'edit', label: 'Edit' }, { key: 'public', label: 'Public view' }]}
+            onChange={(k) => {
+              if (k === 'public') navigate(`/athletes/${me.athlete_profile!.slug}?preview=1`)
+            }}
+          />
         </div>
       )}
 

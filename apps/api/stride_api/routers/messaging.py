@@ -39,69 +39,48 @@ router = APIRouter(prefix="/api", tags=["messaging"])
 
 # ── who may talk to whom ────────────────────────────────────────────────────
 
-def _backing(conn, org_id: int, club_id: int) -> bool:
-    """Whether this sponsor currently backs any of this club's packages.
-
-    Money has changed hands between these two, which is the relationship the
-    channel is for. A cancelled commitment does not count -- ending the deal
-    ends the right to start new conversations about it, though the thread they
-    already have stays answerable.
-    """
-    return row(conn, """
-        SELECT pc.id FROM package_commitments pc
-        JOIN club_packages cp ON cp.id = pc.package_id
-        WHERE pc.org_id = ? AND cp.club_id = ? AND pc.status = 'active'
-        LIMIT 1""", (org_id, club_id)) is not None
-
-
 def may_open(conn, sender: dict, recipient: dict) -> bool:
     """Whether `sender` may *start* a conversation with `recipient`.
 
-    Every branch below is a relationship that already exists somewhere else in
-    the product. Nobody gets to write to a stranger.
+    **The three working roles are an open network.** An athlete, a club and a
+    sponsor can each write to any of the others without a prior relationship,
+    because forming the relationship is what the message is *for*: an athlete
+    looking for a club had to wait to be found, and a club that wanted a player
+    had to invite them before it could explain why. The rule had the causality
+    backwards — it required the outcome of the conversation to exist before the
+    conversation could start.
+
+    **A fan is not part of that network.** They reach an athlete they subscribe
+    to, and nobody else; and nobody cold-opens a thread with a fan. The
+    asymmetry is deliberate and is the whole spam surface of a creator product:
+    the professional side is small, accountable and has a reason to talk, while
+    an audience is large, anonymous and has not asked to be contacted.
+
+    Reply rights are a separate question and live in `may_reply` — an existing
+    thread keeps working even when the relationship behind it ends.
     """
     if sender["id"] == recipient["id"]:
         return False
-    if sender["role"] == "athlete":
+
+    #: The roles that transact with each other. Membership is by role alone, so
+    #: this does not need a lookup per pair.
+    WORKING = ("athlete", "club", "sponsor")
+
+    if sender["role"] in WORKING and recipient["role"] in WORKING:
         return True
 
     recipient_athlete = row(conn, "SELECT id FROM athlete_profiles WHERE user_id = ?",
                             (recipient["id"],))
-    recipient_club = row(conn, "SELECT id FROM clubs WHERE user_id = ?", (recipient["id"],))
-    recipient_org = row(conn, "SELECT id FROM sponsor_orgs WHERE user_id = ?",
-                        (recipient["id"],))
 
-    if sender["role"] == "sponsor":
-        if recipient_athlete is not None:
-            return True
-        # A club they are paying. One-directional messaging inside a live
-        # commercial relationship is arbitrary -- the club can already open the
-        # thread, so refusing the sponsor only decides who types first.
-        org = row(conn, "SELECT id FROM sponsor_orgs WHERE user_id = ?", (sender["id"],))
-        if org and recipient_club is not None:
-            return _backing(conn, org["id"], recipient_club["id"])
-        return False
+    # An athlete may still answer their own audience; a club or a sponsor has no
+    # business opening a thread with somebody else's.
+    if sender["role"] == "athlete":
+        return True
 
     if sender["role"] == "fan":
         return recipient_athlete is not None and row(
             conn, "SELECT id FROM subscriptions WHERE user_id = ? AND athlete_id = ?",
             (sender["id"], recipient_athlete["id"])) is not None
-
-    if sender["role"] == "club":
-        club = row(conn, "SELECT id FROM clubs WHERE user_id = ?", (sender["id"],))
-        if club is None:
-            return False
-        if recipient_athlete is not None:
-            # Active *or* invited: a club that cannot explain the invitation it
-            # just sent is the gap this closes. `declined` and `former` are not
-            # here -- ending the relationship ends new outreach, and an athlete
-            # who said no should not keep receiving pitches about it.
-            return row(conn, "SELECT id FROM club_members WHERE club_id = ? AND athlete_id = ?"
-                             " AND status IN ('active','invited')",
-                       (club["id"], recipient_athlete["id"])) is not None
-        if recipient_org is not None:
-            return _backing(conn, recipient_org["id"], club["id"])
-        return False
 
     return False
 
