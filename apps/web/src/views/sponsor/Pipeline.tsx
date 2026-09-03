@@ -80,7 +80,7 @@ export default function SponsorPipeline({ campaignId, embedded = false }: {
               <thead>
                 <tr>
                   <th className="table-head">Athlete</th>
-                  <th className="table-head">Campaign</th>
+                  {!campaignId && <th className="table-head">Campaign</th>}
                   <th className="table-head">Format</th>
                   <th className="table-head text-right">Amount</th>
                   <th className="table-head">Created</th>
@@ -97,7 +97,7 @@ export default function SponsorPipeline({ campaignId, embedded = false }: {
                         </Link>
                         <span className="ml-2 text-xs text-ink-3">{d.sport}</span>
                       </td>
-                      <td className="table-cell">{d.campaign_name}</td>
+                      {!campaignId && <td className="table-cell">{d.campaign_name}</td>}
                       <td className="table-cell">{dealTypeLabel(d.deal_type)}</td>
                       <td className="table-cell tnum text-right">{fmtMoney(d.amount_eur)}</td>
                       <td className="table-cell text-xs text-ink-3">{fmtDate(d.created_at)}</td>

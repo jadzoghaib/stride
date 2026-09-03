@@ -31,18 +31,24 @@ interface Note {
 
 /** A notification's kind, drawn. Defaulting everything to a bell would make the
  *  column decoration; these say what *sort* of thing arrived before the title is
- *  read, which is the only reason to spend the space. */
+ *  read, which is the only reason to spend the space.
+ *
+ *  Keys are the strings `notify()` is actually called with — an earlier version
+ *  guessed at names nothing wrote (`subscription`, `club_invite`) and half the
+ *  page fell through to the generic bell. `admission.*` and `club.*` carry the
+ *  decision in the kind, so they are matched by prefix. */
 const ICON: Record<string, typeof Bell> = {
   offer: Briefcase,
-  deal: Briefcase,
   message: MessageSquare,
   fan_post: Users,
-  subscription: Radio,
-  follow: Radio,
-  admission: ShieldCheck,
-  club_invite: BadgeCheck,
-  club: BadgeCheck,
+  subscriber: Radio,
+  invitation: BadgeCheck,
+  frozen: ShieldCheck,
 }
+
+const iconFor = (kind: string) =>
+  ICON[kind]
+  ?? (kind.startsWith('admission.') || kind.startsWith('club.') ? ShieldCheck : Bell)
 
 /** What the detail link is called, per kind. "See details" is right for most of
  *  them and wrong for the ones where the destination is an action you are being
@@ -114,7 +120,7 @@ export default function Notifications() {
       ) : (
         <div className="space-y-2">
           {items.map((n) => {
-            const Icon = ICON[n.kind] ?? Bell
+            const Icon = iconFor(n.kind)
             const row = (
               <div className="panel flex items-start gap-3 p-3.5">
                 <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full

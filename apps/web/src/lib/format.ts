@@ -14,7 +14,13 @@ export const fmtNum = (n: number | null | undefined): string => {
  *  convention and keeps it. Revisit when the product is localised, which is a
  *  wider job than a separator. */
 export const fmtMoney = (n: number | null | undefined): string =>
-  n === null || n === undefined ? '—' : '€' + n.toLocaleString('en-US')
+  n === null || n === undefined ? '—'
+    // Whole amounts stay whole (€7,500, not €7,500.00) but anything with a
+    // fractional part gets both places: a cost-per-engagement of 1.7 rendered
+    // as "€1.7" beside "€61.37" in the same row of figures, which reads as a
+    // typo rather than as money.
+    : '€' + n.toLocaleString('en-US', Number.isInteger(n)
+        ? {} : { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export const fmtPct = (x: number | null | undefined, dp = 1): string =>
   x === null || x === undefined ? '—' : (100 * x).toFixed(dp) + '%'

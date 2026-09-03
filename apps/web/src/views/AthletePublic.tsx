@@ -77,7 +77,12 @@ export default function AthletePublicView() {
     api.get<FanPost[]>(`/api/athletes/${slug}/wall-posts`).then(setWall).catch(() => setWall([]))
   }, [slug])
 
-  const canRelate = !!me && ['athlete', 'fan', 'sponsor'].includes(me.role)
+  //: Your own page is the one profile you cannot subscribe to. The server
+  //  refuses it, so offering the button anyway would be a control whose only
+  //  outcome is an error — and until the server refused it, an athlete could
+  //  quietly add themselves to their own public follower count.
+  const isSelf = !!me?.athlete_profile && me.athlete_profile.slug === slug
+  const canRelate = !!me && ['athlete', 'fan', 'sponsor'].includes(me.role) && !isSelf
 
   const relate = async (kind: 'follow' | 'subscribe', on: boolean) => {
     if (!a) return
@@ -180,7 +185,17 @@ export default function AthletePublicView() {
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              {canRelate ? (
+              {isSelf ? (
+                /* Shown and inert. A visitor sees these, so a preview of the
+                   visitor's page has to show them — but you are not a visitor,
+                   and a live button here would only ever produce an error. */
+                <>
+                  <button className="btn-go opacity-50" disabled
+                          title="This is what a visitor sees on your page">Subscribe</button>
+                  <button className="btn opacity-50" disabled
+                          title="This is what a visitor sees on your page">Follow</button>
+                </>
+              ) : canRelate ? (
                 <>
                   <button className={a.subscribed ? 'btn border-accent text-ink' : 'btn-go'}
                           onClick={() => relate('subscribe', !!a.subscribed)}>
@@ -304,7 +319,7 @@ export default function AthletePublicView() {
 
         {tab === 'memberships' && (
           <div className="mt-4">
-            <MembershipCard athlete={a} canRelate={canRelate}
+            <MembershipCard athlete={a} canRelate={canRelate} isSelf={isSelf}
                             onJoin={() => relate('subscribe', !!a.subscribed)} />
           </div>
         )}
@@ -333,7 +348,7 @@ export default function AthletePublicView() {
 
       {/* ── the offer, kept in view ─────────────────────────────────────── */}
       <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-        <MembershipCard athlete={a} canRelate={canRelate}
+        <MembershipCard athlete={a} canRelate={canRelate} isSelf={isSelf}
                         onJoin={() => relate('subscribe', !!a.subscribed)} />
 
         {(a.clubs ?? []).length > 0 && (
@@ -373,9 +388,10 @@ function Stat({ n, label, plural }: { n: number; label: string; plural?: string 
   )
 }
 
-function MembershipCard({ athlete, canRelate, onJoin }: {
+function MembershipCard({ athlete, canRelate, isSelf = false, onJoin }: {
   athlete: Athlete
   canRelate: boolean
+  isSelf?: boolean
   onJoin: () => void
 }) {
   const joined = !!athlete.subscribed
@@ -389,7 +405,10 @@ function MembershipCard({ athlete, canRelate, onJoin }: {
           <span className="font-display text-[26px] font-bold text-ink">{MEMBERSHIP.price}</span>
           <span className="meta">/month</span>
         </p>
-        {canRelate ? (
+        {isSelf ? (
+          <button className="btn-go mt-3 w-full opacity-50" disabled
+                  title="This is what a visitor sees on your page">Join</button>
+        ) : canRelate ? (
           <button className={joined ? 'btn mt-3 w-full' : 'btn-go mt-3 w-full'} onClick={onJoin}>
             {joined ? 'Leave membership' : 'Join'}
           </button>

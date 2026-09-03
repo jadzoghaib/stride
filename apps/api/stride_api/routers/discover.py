@@ -81,10 +81,12 @@ def discover(interests: str = Query("", description="comma-separated sports/topi
 @router.post("/follows/{athlete_id}", status_code=201)
 def follow(athlete_id: int, user: dict = Depends(require_role("fan", "sponsor", "athlete")),
            conn: sqlite3.Connection = Depends(get_db)):
-    athlete = row(conn, "SELECT id FROM athlete_profiles WHERE id = ? AND status = 'listed'",
+    athlete = row(conn, "SELECT id, user_id FROM athlete_profiles WHERE id = ? AND status = 'listed'",
                   (athlete_id,))
     if athlete is None:
         raise HTTPException(404, "unknown_athlete")
+    if athlete["user_id"] == user["id"]:
+        raise HTTPException(409, "cannot_relate_to_yourself")
     conn.execute("INSERT OR IGNORE INTO follows (user_id, athlete_id, created_at) VALUES (?, ?, ?)",
                  (user["id"], athlete_id, now_iso()))
     log_event(conn, "user", "athlete.followed", "athlete_profile", athlete_id,
@@ -139,7 +141,8 @@ def feed(user: dict = Depends(require_role("fan", "sponsor", "athlete")),
 
 def _subject(conn, kind: str, subject_id: int) -> dict:
     table, label = ("athlete_profiles", "unknown_athlete") if kind == "athlete"         else ("clubs", "unknown_club")
-    found = row(conn, f"SELECT id FROM {table} WHERE id = ? AND status = 'listed'", (subject_id,))
+    found = row(conn, f"SELECT id, user_id FROM {table} WHERE id = ? AND status = 'listed'",
+                (subject_id,))
     if found is None:
         raise HTTPException(404, label)
     return found
@@ -151,7 +154,12 @@ def subscribe(kind: str, subject_id: int,
               conn: sqlite3.Connection = Depends(get_db)):
     if kind not in ("athlete", "club"):
         raise HTTPException(404, "unknown_subject")
-    _subject(conn, kind, subject_id)
+    subject = _subject(conn, kind, subject_id)
+    # Follower and subscriber counts are public numbers on a public page, so
+    # anybody able to point one at themselves can inflate their own by one.
+    # Cheap to do, invisible once done, and it turns "0 subscribers" into 1.
+    if subject["user_id"] == user["id"]:
+        raise HTTPException(409, "cannot_relate_to_yourself")
     column = "athlete_id" if kind == "athlete" else "club_id"
     conn.execute(f"INSERT OR IGNORE INTO subscriptions (user_id, {column}, created_at)"
                  " VALUES (?, ?, ?)", (user["id"], subject_id, now_iso()))

@@ -140,3 +140,22 @@ def test_an_invitation_carries_enough_to_answer_it(clubu, athlete, db):
         assert field in inv, f"missing {field}"
     assert inv["club_user_id"], "the club's user, so the athlete can ask rather than only answer"
     assert inv["roster_count"] >= 0
+
+
+def test_nobody_can_follow_or_subscribe_to_themselves(athlete, db):
+    """Followers and subscribers are public numbers on a public page. Anybody
+    able to point one at themselves can inflate their own by one — cheap to do,
+    invisible once done, and it turns "0 subscribers" into 1."""
+    from stride_api.db import row
+    me = row(db, "SELECT id FROM athlete_profiles WHERE slug = 'kaia-mercer'")["id"]
+    db.execute("DELETE FROM follows WHERE athlete_id = ? AND user_id ="
+               " (SELECT user_id FROM athlete_profiles WHERE id = ?)", (me, me))
+    db.execute("DELETE FROM subscriptions WHERE athlete_id = ? AND user_id ="
+               " (SELECT user_id FROM athlete_profiles WHERE id = ?)", (me, me))
+    db.commit()
+
+    assert athlete.post(f"/api/follows/{me}").status_code == 409
+    assert athlete.post(f"/api/subscriptions/athlete/{me}").status_code == 409
+
+    seen = athlete.get("/api/athletes/kaia-mercer").json()
+    assert seen["following"] is False and seen["subscribed"] is False
