@@ -85,7 +85,11 @@ export default function Operations() {
         eyebrow="Admin"
         title="Operations"
         lede="Every account action lands in the audit log. The chaos controls drive the same failure injection scripts/failure_drill.py uses."
-        aside={<StatusChip status={active ? 'error' : 'connected'} />}
+        // "error" was wrong: the faults on this page are injected by whoever is
+        // reading it, and labelling a drill as an error means a glance at this
+        // header cannot tell a rehearsal from a real outage — which is the one
+        // job a status chip has.
+        aside={<StatusChip status={active ? 'drill running' : 'connected'} />}
       />
 
       {error && (

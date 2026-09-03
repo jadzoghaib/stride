@@ -391,7 +391,11 @@ export default function ReviewQueue() {
         ) : verifiedClubs.length === 0 ? (
           <EmptyNote text="No verified clubs yet. A club appears here once its roster page has been checked." />
         ) : (
-          <table className="w-full text-sm">
+          // Wrapped like the one in Operations: five columns of federation names
+          // have no natural floor to compress to, and a table that runs out of
+          // room should scroll inside itself rather than push the page sideways.
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[34rem] text-sm">
             <thead>
               <tr>
                 <th className="table-head">Club</th>
@@ -424,6 +428,7 @@ export default function ReviewQueue() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </Section>
 
