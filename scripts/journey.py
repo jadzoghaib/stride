@@ -32,8 +32,11 @@ the first one's leftovers and read like three product regressions.
 
 from __future__ import annotations
 
+import atexit
+import shutil
 import sqlite3
 import sys
+from pathlib import Path
 
 import httpx
 
@@ -64,6 +67,40 @@ def session(email: str | None = None) -> httpx.Client:
     return c
 
 
+#: The demo database, snapshotted before this run and put back after it.
+#:
+#: The script signs applications, sends messages and follows people as it walks
+#: the product, and all of that was landing permanently in whatever database the
+#: server is pointed at. Two already-listed athletes appeared in the admin review
+#: queue, holding applications they never made, because this file had asked the
+#: server to make them — which looks exactly like a product bug and is not one.
+#:
+#: `permissions.py` snapshots too, but it runs *after* this one and so was
+#: faithfully preserving this script's leftovers.
+_BACKUP: Path | None = None
+
+
+def _snapshot() -> None:
+    global _BACKUP
+    try:
+        from stride_api.config import Settings
+    except ModuleNotFoundError:
+        return
+    path = Path(Settings().db_path)
+    if not path.is_file():
+        return                       # Postgres, or a server that is not local
+    _BACKUP = path.with_suffix(path.suffix + ".journey-backup")
+    shutil.copy2(path, _BACKUP)
+
+
+def _restore() -> None:
+    if _BACKUP and _BACKUP.is_file():
+        from stride_api.config import Settings
+        shutil.copy2(_BACKUP, Path(Settings().db_path))
+        _BACKUP.unlink()
+        print("demo database restored")
+
+
 def local_db() -> sqlite3.Connection | None:
     """The demo database, when this run is pointed at a local server.
 
@@ -86,6 +123,12 @@ def local_db() -> sqlite3.Connection | None:
     con = sqlite3.connect(path)
     con.row_factory = sqlite3.Row
     return con
+
+
+_snapshot()
+# Registered rather than called at the end: a run that dies on a failed check is
+# exactly the run whose leftovers must not stay in the demo.
+atexit.register(_restore)
 
 
 def section(title: str) -> None:

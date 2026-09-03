@@ -463,6 +463,8 @@ const STATUS_STYLE: Record<string, string> = {
   connected: 'border-ok/45 bg-ok/10 text-ok',
   disconnected: '',
   error: 'border-critical/45 bg-critical/10 text-critical',
+  // Amber, not red: a drill you switched on yourself is a state, not a fault.
+  'drill running': 'border-warn/45 bg-warn/10 text-warn',
   listed: 'border-ok/45 bg-ok/10 text-ok',
   draft: 'border-warn/45 bg-warn/10 text-warn',
   active: 'border-ok/45 bg-ok/10 text-ok',
