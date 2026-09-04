@@ -68,20 +68,34 @@ export function Rise({ delay = 0, className = '', children }: { delay?: number; 
 
 // ── identity ─────────────────────────────────────────────────────────────────
 
-export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
+export function Avatar({ name, size = 40, src }: {
+  name: string
+  size?: number
+  /** An uploaded picture. Absent or empty falls back to the drawn initials, so
+   *  a profile without a photograph is still a designed mark rather than a gap
+   *  — and a broken link falls back to the same thing rather than to the
+   *  browser's broken-image icon. */
+  src?: string | null
+}) {
   const [a, b] = avatarHue(name)
+  const [broken, setBroken] = useState(false)
+  const drawn = !src || broken
+
   return (
     <div
-      className="flex shrink-0 items-center justify-center rounded-full font-display font-bold tracking-board text-[#F2F4F7]"
+      className="flex shrink-0 items-center justify-center overflow-hidden rounded-full font-display font-bold tracking-board text-[#F2F4F7]"
       style={{
         width: size,
         height: size,
         fontSize: size * 0.38,
-        backgroundImage: `linear-gradient(140deg, ${a}, ${b})`,
+        backgroundImage: drawn ? `linear-gradient(140deg, ${a}, ${b})` : undefined,
       }}
       aria-hidden
     >
-      {initials(name)}
+      {drawn
+        ? initials(name)
+        : <img src={src} alt="" loading="lazy" onError={() => setBroken(true)}
+               className="h-full w-full object-cover" />}
     </div>
   )
 }

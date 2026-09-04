@@ -9,10 +9,32 @@
  *
  *  Deterministic on the name: reloading does not reshuffle anybody.
  */
+import { useState } from 'react'
 import { avatarHue } from '../lib/format'
 
-export function Cover({ name, height = 'h-44 md:h-56' }: { name: string; height?: string }) {
+export function Cover({ name, height = 'h-44 md:h-56', src }: {
+  name: string
+  height?: string
+  /** An uploaded banner. Empty keeps the drawn one — the whole point of the
+   *  generated art is that nobody has to supply a photograph to have a page
+   *  worth looking at. A broken link falls back to it too. */
+  src?: string | null
+}) {
   const [near, far] = avatarHue(name)
+  const [broken, setBroken] = useState(false)
+
+  if (src && !broken) {
+    return (
+      <div className={`relative w-full overflow-hidden ${height}`}>
+        <img src={src} alt="" onError={() => setBroken(true)}
+             className="h-full w-full object-cover" />
+        {/* the amber rule stays: it is the seam the avatar sits on, and the
+            header reads as two stacked blocks without it */}
+        <div className="absolute inset-x-0 bottom-0 h-1 bg-accent" />
+      </div>
+    )
+  }
+
   // A second stable number off the same name, so the contours differ per person
   let seed = 0
   for (const c of name) seed = (seed * 17 + c.charCodeAt(0)) % 1000
