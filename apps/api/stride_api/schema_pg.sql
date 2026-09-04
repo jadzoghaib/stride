@@ -150,6 +150,10 @@ CREATE TABLE IF NOT EXISTS athlete_profiles (
     country                 TEXT NOT NULL,
     region                  TEXT NOT NULL,
     bio                     TEXT NOT NULL DEFAULT '',
+    -- uploaded photographs; empty means the generated art is used, so a
+    -- profile is never a blank rectangle and nobody has to supply a picture
+    avatar_url              TEXT NOT NULL DEFAULT '',
+    cover_url               TEXT NOT NULL DEFAULT '',
     career_highlights       TEXT NOT NULL DEFAULT '[]',
     topics                  TEXT NOT NULL DEFAULT '[]',
     deal_types              TEXT NOT NULL DEFAULT '[]',

@@ -160,7 +160,7 @@ export default function AthletePublicView() {
       <div className="min-w-0">
         {/* ── who this is ───────────────────────────────────────────────── */}
         <div className="overflow-hidden rounded-card border border-line bg-panel">
-          <Cover name={a.display_name} />
+          <Cover name={a.display_name} src={a.cover_url} />
 
           <div className="px-5 pb-5">
             {/* the avatar rides the cover's edge, which is what makes the
@@ -169,7 +169,7 @@ export default function AthletePublicView() {
                 cover, but without a stacking context the cover paints over it
                 and the face is half a circle. */}
             <div className="relative z-10 -mt-12 mb-3 w-fit rounded-full ring-4 ring-panel">
-              <Avatar name={a.display_name} size={92} />
+              <Avatar name={a.display_name} size={92} src={a.avatar_url} />
             </div>
 
             <div className="flex flex-wrap items-start gap-3">
@@ -397,7 +397,7 @@ function MembershipCard({ athlete, canRelate, isSelf = false, onJoin }: {
   const joined = !!athlete.subscribed
   return (
     <div className="panel overflow-hidden">
-      <Cover name={athlete.display_name} height="h-20" />
+      <Cover name={athlete.display_name} height="h-20" src={athlete.cover_url} />
       <div className="p-4">
         <p className="cap text-ink-3">Membership</p>
         <p className="mt-1 font-medium text-ink">{MEMBERSHIP.name}</p>

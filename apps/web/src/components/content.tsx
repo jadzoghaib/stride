@@ -53,9 +53,37 @@ function storeName(url: string): string {
 /** Something the athlete posted on their own platform. Never locked -- it is
  *  already public, and it is what keeps a wall worth opening in a week the
  *  athlete has published nothing here. */
+/** A wash per platform, so a synced post is distinguishable from one written
+ *  here at a glance.
+ *
+ *  Kept to about 6% because the point is to separate two *kinds* of card, not
+ *  to decorate: at full strength three brand colours would fight the amber the
+ *  rest of the product is built on and turn a feed into a paint chart. The
+ *  alpha also means one definition works on both themes — the tint composites
+ *  over whatever panel colour is behind it rather than replacing it.
+ *
+ *  Colour is never the only signal. Every card already names its platform in
+ *  the label and in "Open on ...", which is what keeps this readable for anyone
+ *  who cannot separate the three hues.
+ */
+const PLATFORM_TINT: Record<string, { wash: string; edge: string; ink: string }> = {
+  instagram: { wash: 'rgba(193, 53, 132, 0.06)', edge: 'rgba(193, 53, 132, 0.30)', ink: '#C13584' },
+  tiktok:    { wash: 'rgba(0, 194, 203, 0.07)',  edge: 'rgba(0, 194, 203, 0.34)',  ink: '#0E9AA2' },
+  youtube:   { wash: 'rgba(255, 0, 51, 0.05)',   edge: 'rgba(255, 0, 51, 0.26)',   ink: '#D62B3E' },
+}
+
 function NewsCard({ item, showAuthor = false }: { item: NewsItem; showAuthor?: boolean }) {
+  const tint = PLATFORM_TINT[item.platform.toLowerCase()]
   return (
-    <article className="panel p-4">
+    <article className="panel p-4" style={tint ? {
+      backgroundColor: tint.wash,
+      borderColor: tint.edge,
+      // A slightly stronger edge on one side: the wash alone is deliberately
+      // faint, and this makes the two kinds of card separable while scrolling
+      // without making the tint heavier.
+      borderLeftWidth: 3,
+      borderLeftColor: tint.ink,
+    } : undefined}>
       {/* In a follower feed these are mixed in among several athletes, so the
           card has to say whose it is. On an athlete's own page the whole page
           already answers that, and repeating it on every row is noise. */}
@@ -73,7 +101,7 @@ function NewsCard({ item, showAuthor = false }: { item: NewsItem; showAuthor?: b
         </div>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="cap text-ink-3">{item.platform}</span>
+        <span className="cap" style={tint ? { color: tint.ink } : undefined}>{item.platform}</span>
         <h3 className="min-w-0 font-medium text-ink-2">{item.title}</h3>
         <a href={item.permalink} target="_blank" rel="noreferrer noopener"
            className="ml-auto meta hover:text-accent">Open on {item.platform} &rarr;</a>

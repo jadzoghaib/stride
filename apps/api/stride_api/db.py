@@ -86,6 +86,10 @@ CREATE TABLE IF NOT EXISTS athlete_profiles (
     country                 TEXT NOT NULL,
     region                  TEXT NOT NULL,
     bio                     TEXT NOT NULL DEFAULT '',
+    -- uploaded photographs; empty means the generated art is used, so a
+    -- profile is never a blank rectangle and nobody has to supply a picture
+    avatar_url              TEXT NOT NULL DEFAULT '',
+    cover_url               TEXT NOT NULL DEFAULT '',
     career_highlights       TEXT NOT NULL DEFAULT '[]',            -- json list of strings
     topics                  TEXT NOT NULL DEFAULT '[]',            -- json list: audience themes
     deal_types              TEXT NOT NULL DEFAULT '[]',            -- json list of DEAL_TYPES
@@ -479,6 +483,12 @@ _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     # club with four outstanding links had no way to tell which one it had
     # emailed to whom -- and therefore no way to revoke the right one.
     ("club_invite_links", "label", "TEXT NOT NULL DEFAULT ''"),
+    # An athlete's own photographs, when they have uploaded any. Empty means
+    # "draw one" rather than "missing": `Cover` and `Avatar` generate art from
+    # the name, so a profile is never a blank rectangle and nobody has to supply
+    # a picture before they can be seen.
+    ("athlete_profiles", "avatar_url", "TEXT NOT NULL DEFAULT ''"),
+    ("athlete_profiles", "cover_url", "TEXT NOT NULL DEFAULT ''"),
 )
 
 

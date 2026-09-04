@@ -8,6 +8,7 @@ and sees the same marketability dimensions sponsors see.
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 
 from creatorlens.actions import ActionRejected, connect_platform, disconnect_platform
@@ -92,6 +93,10 @@ def athlete_public(conn, a: dict, *, viewer: dict | None = None,
         "topics": json.loads(a["topics"]), "deal_types": json.loads(a["deal_types"]),
         "status": a["status"], "claimed": a["user_id"] is not None,
         "socials": social_links(conn, a["creatorlens_creator_id"]),
+        # Empty means "draw one". The client generates a cover and an avatar from
+        # the name when these are blank, so a profile without photographs is a
+        # designed page rather than a gap.
+        "avatar_url": a["avatar_url"], "cover_url": a["cover_url"],
     }
     if commercial:
         out["base_rate_eur"] = a["base_rate_eur"]
@@ -353,6 +358,26 @@ class ProfileIn(BaseModel):
     deal_types: list[str] | None = Field(default=None, max_length=5)
     base_rate_eur: int | None = Field(default=None, ge=0, le=1_000_000)
     status: str | None = None  # draft -> listed
+    #: Paths returned by `POST /api/media`, or "" to go back to the drawn art.
+    #: Validated as *our own* media paths rather than accepted as free text: a
+    #: profile picture is rendered on a public page, and letting somebody set it
+    #: to an arbitrary URL turns every profile view into a request to a server
+    #: of their choosing, carrying the reader's IP and referrer.
+    avatar_url: str | None = Field(default=None, max_length=200)
+    cover_url: str | None = Field(default=None, max_length=200)
+
+
+#: A path this server issued, and nothing else.
+#:
+#: `POST /api/media` returns `/api/media/<token>.<ext>` and the serving route
+#: matches the same shape, so accepting exactly that keeps a profile picture
+#: pointing at our own disk. Anything else -- an absolute URL, a protocol-
+#: relative one, a path with `..` in it -- is refused rather than sanitised.
+_MEDIA_PATH = re.compile(r"^/api/media/[A-Za-z0-9_-]{16,64}\.(jpg|png|webp|gif|mp4|webm)$")
+
+
+def _is_own_media(value: str) -> bool:
+    return bool(_MEDIA_PATH.match(value))
 
 
 def _own_profile(conn, user) -> dict:
@@ -380,7 +405,8 @@ def workspace(user: dict = Depends(require_role("athlete")),
     return {
         "profile": athlete_public(conn, profile, commercial=True),
         "editable": {k: profile[k] for k in ("display_name", "sport", "country", "region",
-                                             "bio", "base_rate_eur", "status")}
+                                             "bio", "base_rate_eur", "status",
+                                             "avatar_url", "cover_url")}
                     | {"career_highlights": json.loads(profile["career_highlights"]),
                        "topics": json.loads(profile["topics"]),
                        "deal_types": json.loads(profile["deal_types"])},
@@ -416,11 +442,14 @@ def update_profile(body: ProfileIn, user: dict = Depends(require_role("athlete")
                    conn: sqlite3.Connection = Depends(get_db)):
     profile = _own_profile(conn, user)
     updates, params = [], []
-    for field in ("display_name", "sport", "country", "region", "bio", "base_rate_eur", "status"):
+    for field in ("display_name", "sport", "country", "region", "bio", "base_rate_eur", "status",
+                  "avatar_url", "cover_url"):
         value = getattr(body, field)
         if value is not None:
             if field == "status" and value not in ("draft", "listed", "hidden"):
                 raise HTTPException(422, "invalid_status")
+            if field in ("avatar_url", "cover_url") and value and not _is_own_media(value):
+                raise HTTPException(422, "not_a_media_path")
             updates.append(f"{field} = ?")
             params.append(value)
     for field in ("career_highlights", "topics", "deal_types"):

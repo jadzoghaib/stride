@@ -1,6 +1,8 @@
+import { ImagePlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LoadError, PageHeader, PageLoading, Section } from '../../components/ui'
+import { Avatar, LoadError, PageHeader, PageLoading, Section } from '../../components/ui'
+import { Cover } from '../../components/Cover'
 import { api, errorText } from '../../lib/api'
 import { COUNTRIES, REGIONS, SPORTS, withCurrent } from '../../lib/reference'
 import { useToast } from '../../lib/toast'
@@ -14,6 +16,7 @@ export default function AthleteProfile() {
   const [form, setForm] = useState<AthleteWorkspace['editable'] | null>(null)
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState<string | null>(null)
   const toast = useToast()
 
   useEffect(() => {
@@ -23,6 +26,37 @@ export default function AthleteProfile() {
   if (!form) return error ? <LoadError text={error} /> : <PageLoading />
 
   const set = (k: string, v: unknown) => setForm((f) => ({ ...f!, [k]: v }))
+
+  /** Upload, then save the returned path straight away.
+   *
+   *  Not deferred to the Save button: a picture is the one field where the
+   *  result is the feedback, and leaving it staged means a reader who uploads a
+   *  photo, sees it appear, and navigates away has silently discarded it. The
+   *  server hands back a path under our own media route, which is the only
+   *  shape `PUT /api/athlete/profile` will accept for these two fields. */
+  const putPhoto = async (field: 'avatar_url' | 'cover_url', file: File) => {
+    setError('')
+    setBusy(field)
+    try {
+      const { media_url } = await api.upload<{ media_url: string }>('/api/media', file)
+      await api.put('/api/athlete/profile', { [field]: media_url })
+      set(field, media_url)
+      toast(field === 'avatar_url' ? 'Profile picture updated' : 'Cover updated')
+    } catch (e) {
+      setError(errorText(e))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const clearPhoto = async (field: 'avatar_url' | 'cover_url') => {
+    setError('')
+    try {
+      await api.put('/api/athlete/profile', { [field]: '' })
+      set(field, '')
+      toast('Back to the drawn one')
+    } catch (e) { setError(errorText(e)) }
+  }
   const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v])
 
   const save = async () => {
@@ -48,6 +82,45 @@ export default function AthleteProfile() {
           </>
         }
       />
+
+      {/* Photographs first: it is the part of the page a reader looks at, and
+          the only part that is optional in the real sense — the drawn cover and
+          avatar are a designed fallback, not a placeholder, so "no picture" is
+          a finished state rather than an unfinished one. */}
+      <Section title="Photographs"
+               aside={<span className="meta">jpg, png, webp or gif · up to 8 MB</span>}>
+        <div className="panel overflow-hidden">
+          <div className="relative">
+            <Cover name={form.display_name} src={form.cover_url} height="h-36" />
+            <div className="absolute -bottom-8 left-5">
+              <div className="rounded-full border-4 border-panel">
+                <Avatar name={form.display_name} size={72} src={form.avatar_url} />
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 px-5 pb-5 pt-11">
+            <PhotoButton label={form.avatar_url ? 'Replace picture' : 'Upload picture'}
+                         busy={busy === 'avatar_url'}
+                         onPick={(f) => void putPhoto('avatar_url', f)} />
+            {form.avatar_url && (
+              <button className="btn px-3 py-1.5 text-xs"
+                      onClick={() => void clearPhoto('avatar_url')}>Remove picture</button>
+            )}
+            <span className="mx-1 h-4 w-px bg-line" />
+            <PhotoButton label={form.cover_url ? 'Replace cover' : 'Upload cover'}
+                         busy={busy === 'cover_url'}
+                         onPick={(f) => void putPhoto('cover_url', f)} />
+            {form.cover_url && (
+              <button className="btn px-3 py-1.5 text-xs"
+                      onClick={() => void clearPhoto('cover_url')}>Remove cover</button>
+            )}
+          </div>
+        </div>
+        <p className="meta mt-2">
+          This is exactly how the top of your public page looks. Removing a photograph goes back to
+          the drawn one rather than leaving a blank.
+        </p>
+      </Section>
 
       <Section title="Identity">
         <div className="grid gap-4 md:grid-cols-2">
@@ -129,5 +202,33 @@ export default function AthleteProfile() {
         {error && <span className="text-sm text-critical">{error}</span>}
       </div>
     </div>
+  )
+}
+
+
+/** A file picker that looks like the rest of the buttons.
+ *
+ *  A bare `<input type="file">` is unstyleable across browsers, so the input is
+ *  hidden inside the label and the label carries the button's own classes —
+ *  which keeps it keyboard-reachable and screen-reader-labelled, unlike the
+ *  common trick of a button that clicks a hidden input through a ref. */
+function PhotoButton({ label, busy, onPick }: {
+  label: string
+  busy: boolean
+  onPick: (file: File) => void
+}) {
+  return (
+    <label className={`btn cursor-pointer px-3 py-1.5 text-xs ${busy ? 'opacity-60' : ''}`}>
+      <ImagePlus size={13} strokeWidth={1.9} />
+      {busy ? 'Uploading…' : label}
+      <input type="file" className="sr-only" accept="image/jpeg,image/png,image/webp,image/gif"
+             disabled={busy}
+             onChange={(e) => {
+               const file = e.target.files?.[0]
+               // Cleared so choosing the same file twice still fires a change.
+               e.target.value = ''
+               if (file) onPick(file)
+             }} />
+    </label>
   )
 }

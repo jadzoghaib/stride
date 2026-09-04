@@ -82,6 +82,9 @@ export interface ScoreSummary {
 }
 
 export interface AthletePublic {
+  /** Uploaded photographs. Empty means the drawn cover and avatar are used. */
+  avatar_url?: string
+  cover_url?: string
   id: number
   slug: string
   display_name: string
@@ -266,6 +269,8 @@ export interface AthleteWorkspace {
     bio: string
     base_rate_eur: number
     status: string
+    avatar_url: string
+    cover_url: string
     career_highlights: string[]
     topics: string[]
     deal_types: string[]
