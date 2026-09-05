@@ -101,6 +101,14 @@ POPULATION_M: dict[str, float] = {
     "Australia": 27.2, "India": 1_450.0,
 }
 
+#: Checked 2026-09-05. Two entries return **410 Gone** -- the publishers removed
+#: them -- and are kept rather than deleted so the provenance of the original
+#: research is not silently rewritten. Both were corroborating: the fee
+#: comparison rests on "Passes economics" and the PRNewswire rebrand release,
+#: the commission range on "Agency commissions". No figure in the model has a
+#: dead link as its only source.
+DEAD_SINCE = {"Platform comparison": "2026-09-05", "Agent commissions": "2026-09-05"}
+
 SOURCE_URLS = {
     "OnlyFans FY2024": "https://variety.com/2025/digital/news/onlyfans-fiscal-2024-revenue-earnings-1236495750/",
     "Patreon creators": "https://backlinko.com/patreon-users",

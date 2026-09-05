@@ -163,9 +163,14 @@ at Series A, when the network — not the price — is the reason to stay.
 
 *Sources: [Passes fee structure (Sacra)](https://sacra.com/c/passes/) ·
 [Passes 10% confirmed at 2026 rebrand](https://www.prnewswire.com/news-releases/passes-rebrands-as-the-creator-accelerator-platform-302749690.html) ·
-[Platform comparison](https://www.mexc.com/news/1014749) ·
+[Platform comparison](https://www.mexc.com/news/1014749) *(dead — 410 Gone as of 2026-09-05)* ·
 [OnlyFans agency commissions 20–50%](https://arunatalent.com/blog/onlyfans-agency-commission-rates/) ·
-[Sports agent endorsement commissions](https://www.oreateai.com/blog/understanding-sports-agents-commission-what-percentage-do-they-take/95c2df506ae450b9b71340b89cfcfece)*
+[Sports agent endorsement commissions](https://www.oreateai.com/blog/understanding-sports-agents-commission-what-percentage-do-they-take/95c2df506ae450b9b71340b89cfcfece) *(dead — 410 Gone as of 2026-09-05)*
+
+The two dead links corroborated rather than carried: the platform fee comparison
+rests on Sacra and the PRNewswire rebrand release, and the commission range on
+the OnlyFans agency figure, all three of which still resolve. No number above
+depends on a source that has gone.*
 
 ---
 
