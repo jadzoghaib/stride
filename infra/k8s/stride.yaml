@@ -11,6 +11,10 @@ data:
   STRIDE_ENV: "production"
   STRIDE_CHAOS: "0"
   STRIDE_CORS_ORIGINS: "https://stride.example.com"
+  # The API is a ClusterIP service reached only through the nginx Ingress, so
+  # every peer is the ingress and its X-Forwarded-For is the client. Without
+  # this the rate limiter keys every request on the ingress address.
+  STRIDE_FORWARDED_ALLOW_IPS: "*"
 ---
 apiVersion: v1
 kind: Secret

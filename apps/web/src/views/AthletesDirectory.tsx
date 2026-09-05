@@ -185,6 +185,7 @@ export default function AthletesDirectory({ embedded = false }: { embedded?: boo
           <input
             className="field w-56 py-1.5 pr-[5.5rem] text-sm"
             placeholder="Search name or sport"
+            aria-label="Search athletes by name or sport"
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
             aria-busy={searching}
@@ -197,13 +198,13 @@ export default function AthletesDirectory({ embedded = false }: { embedded?: boo
             </span>
           )}
         </div>
-        <select className="field w-44 py-1.5 text-sm" value={sport} onChange={(e) => setSport(e.target.value)}>
+        <select aria-label="Filter by sport" className="field w-44 py-1.5 text-sm" value={sport} onChange={(e) => setSport(e.target.value)}>
           <option value="">All sports</option>
           {facets.sports.map((s) => (
             <option key={s}>{s}</option>
           ))}
         </select>
-        <select className="field w-44 py-1.5 text-sm" value={country} onChange={(e) => setCountry(e.target.value)}>
+        <select aria-label="Filter by country" className="field w-44 py-1.5 text-sm" value={country} onChange={(e) => setCountry(e.target.value)}>
           <option value="">All countries</option>
           {facets.countries.map((c) => (
             <option key={c}>{c}</option>

@@ -12,16 +12,23 @@ $ grep -ric "stripe|payout|subscription|tier|invoice|wallet" apps/api packages/
 stripe: 0   payout: 0   subscription: 0   tier: 0   invoice: 0   wallet: 0
 ```
 
-A fan's complete set of available actions today:
+A fan's set of available actions today:
 
 | Endpoint | What it does |
 |---|---|
 | `GET /api/discover` | Ranked athlete discovery |
-| `POST /api/follows/{id}` | Follow |
-| `DELETE /api/follows/{id}` | Unfollow |
-| `GET /api/feed` | Following feed |
+| `POST` / `DELETE /api/follows/{id}` | Follow / unfollow — the free relationship |
+| `POST` / `DELETE /api/subscriptions/{kind}/{id}` | Subscribe / unsubscribe — the paid relationship, **free in this build** |
+| `GET /api/feed`, `/feed/content`, `/feed/news` | Following feed: posts, products, polls, platform news |
+| `GET /api/athletes/{slug}/content` | An athlete's wall; locked items return a title and no body |
+| `POST /api/content/{id}/vote/{option}` | Vote in a poll |
+| `POST /api/athletes/{slug}/wall-posts` | Write on a fan wall |
+| `POST /api/messages` | Message an athlete you subscribe to |
 
-**There is no way for anyone to pay anything.** The entire fan-monetisation
+So the *relationship* and *content* halves of the creator platform exist —
+posts, image upload, locked items, polls, products, follow versus subscribe,
+a fan feed, fan DMs — and are demonstrable end to end. What does not exist is
+the part that makes it a business: **there is no way for anyone to pay anything.** The entire fan-monetisation
 model — 60% of Y7 revenue — has no product surface at all. Deals and packages
 record an `amount` and a status, but no money moves; they are contracts of
 record, not transactions.
@@ -41,8 +48,8 @@ Ordered by what blocks revenue soonest.
 |---|---|---|---|---|
 | 1 | **Payments + payouts** | All 8 streams | L | Stripe Connect (Express), KYC onboarding, webhooks, reconciliation |
 | ~~2~~ | ~~**Currency: EUR**~~ | ~~Everything~~ | — | **Shipped** — columns are `amount_eur`, `base_rate_eur`, `price_eur`, `budget_eur_*`, the interface renders €, and existing databases are renamed in place on start-up |
-| 3 | **Subscriptions + tiers** | Streams 1–3 | L | Tier entity, recurring billing, entitlement checks, grace/dunning |
-| 4 | **Content + media** | Streams 1–2 | XL | Posts, upload, transcode, storage, CDN, paywalled delivery |
+| 3 | **Subscriptions + tiers** | Streams 1–3 | M | The subscribe relationship and the `min_tier` lock exist and gate content today. Missing: a tier entity with prices, recurring billing, entitlement expiry, grace/dunning |
+| 4 | **Content + media** | Streams 1–2 | L | Posts, image upload (magic-byte checked, server-named), locked delivery, polls and products are shipped. Missing: video transcode, object storage, CDN |
 | 5 | **Age assurance** | Legal launch | M | Partly delivered: admission collects a date of birth and refuses under-16s outright, and cannot auto-admit without one. Nothing *verifies* the date, and the 16/18 tiering below is designed but unbuilt |
 | 6 | **Moderation** | Legal launch | L | Automated classification + human review queue + appeals |
 | 7 | **Sponsor billing** | Stream 6 | M | Plan entity, entitlements, seat management |

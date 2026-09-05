@@ -56,8 +56,8 @@ export function Cover({ name, height = 'h-44 md:h-56', src }: {
           <path d={`M0 ${250 + lift} C 240 ${170 + lift}, 400 ${290 + lift}, 620 ${210 + lift}
                     S 1000 ${110 + lift}, 1200 ${170 + lift}`} />
         </g>
-        <circle cx={980 + (seed % 90)} cy={90} r={54} fill="#FFB020" fillOpacity="0.9" />
-        <rect x="0" y="316" width="1200" height="4" fill="#FFB020" />
+        <circle cx={980 + (seed % 90)} cy={90} r={54} fill="rgb(var(--c-accent))" fillOpacity="0.9" />
+        <rect x="0" y="316" width="1200" height="4" fill="rgb(var(--c-accent))" />
       </svg>
     </div>
   )

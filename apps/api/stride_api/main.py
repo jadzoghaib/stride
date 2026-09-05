@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from . import __version__
 from .chaos import ChaosMiddleware, chaos
@@ -33,7 +34,7 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(title="Stride API", version=__version__, lifespan=lifespan)
 
 # Middleware stack, innermost first (Starlette wraps in reverse order):
-# routes <- request log/metrics <- chaos <- body limit <- rate limit <- headers <- CORS
+# routes <- request log/metrics <- chaos <- body limit <- rate limit <- headers <- CORS <- proxy headers
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(ChaosMiddleware)
 app.add_middleware(BodySizeLimitMiddleware)
@@ -46,6 +47,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# Outermost, so the rate limiter and the request log see the real client
+# address rather than the ingress. Trusts nothing unless configured -- see
+# `forwarded_allow_ips` in config.py for why that default matters.
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=settings.forwarded_allow_ips)
 
 app.include_router(auth.router)
 app.include_router(athletes.router)

@@ -72,7 +72,24 @@ class Settings:
                 "http://localhost:5173,http://127.0.0.1:5173",
             ).split(",") if o.strip()
         ]
-        self.chaos_enabled = os.environ.get("STRIDE_CHAOS", "1") == "1"  # off in prod
+        # On by default only where the failure drill runs. The old default was
+        # "1" everywhere with a comment saying "off in prod" -- true only if the
+        # deployment remembered to set STRIDE_CHAOS=0. A default that injects
+        # 503s into any environment that forgets a flag is the wrong default.
+        self.chaos_enabled = os.environ.get(
+            "STRIDE_CHAOS", "1" if self.env in ("dev", "test") else "0") == "1"
+
+        # Proxies whose X-Forwarded-For / X-Forwarded-Proto this app believes.
+        # Empty (the default) trusts nobody, so the socket peer is the client.
+        # Behind an ingress that is wrong in a specific way: every request
+        # arrives from the ingress's address, the rate limiter keys on it, and
+        # twenty bad logins anywhere on the site lock *everyone* out of login.
+        # "*" trusts any peer -- correct only when the pod is unreachable except
+        # through the proxy (a ClusterIP service behind an Ingress is).
+        self.forwarded_allow_ips = [
+            h.strip() for h in os.environ.get("STRIDE_FORWARDED_ALLOW_IPS", "").split(",")
+            if h.strip()
+        ]
 
         # Supabase Auth (identity provider). When both are set, registration and
         # login verify credentials against Supabase; local PBKDF2 remains the

@@ -13,6 +13,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { COUNTRY_NAMES } from './countries'
+import { SimulatedChip } from './ui'
 
 /** The 173 country outlines, fetched on demand.
  *
@@ -30,11 +31,14 @@ const loadCountryPaths = () =>
 
 const AGE_ORDER = ['13-17', '18-24', '25-34', '35-44', '45-54', '55+']
 
-// validated categorical slots (dataviz reference palette): blue / aqua / yellow
+// Categorical slots from the token layer, so they re-weight with the theme and
+// never borrow the accent. The old third slot was #f0a00c — byte-identical to
+// the light-mode accent, so "other" read as emphasis, and it measured 2.16:1
+// on white.
 const GENDER_SLOTS: [string, string][] = [
-  ['female', '#3b86e0'],
-  ['male', '#1fbd85'],
-  ['other', '#f0a00c'],
+  ['female', 'rgb(var(--c-cat-1))'],
+  ['male', 'rgb(var(--c-cat-2))'],
+  ['other', 'rgb(var(--c-cat-3))'],
 ]
 
 const pct = (x: number) => `${(100 * x).toFixed(1)}%`
@@ -421,6 +425,11 @@ export function AudiencePanel({ audience }: { audience: Record<string, Record<st
   if (!audience || !Object.keys(audience).length) return null
   return (
     <div className="space-y-3">
+      {/* Said once for the whole panel, here, so every surface that shows an
+          audience carries the same disclosure. Two sponsor views had the chip
+          and nine other analytics surfaces did not — the honesty was there but
+          it depended on which page you happened to open. */}
+      <div className="flex justify-end"><SimulatedChip what="audience" /></div>
       {audience.country && <CountryMap data={audience.country} />}
       <div className="grid gap-3 md:grid-cols-2">
         {audience.age && <AgeBars data={audience.age} />}

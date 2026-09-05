@@ -76,6 +76,19 @@
   --c-warn: 255 138 61;
   --c-critical: 242 85 90;
 
+  /* Categorical slots for charts that split one whole into parts (the gender
+     donut). Distinct from the accent on purpose: a chart segment is a fact, not
+     an emphasis. Each clears 4.5:1 on `panel` in this theme — measured. */
+  --c-cat-1: 59 134 224;
+  --c-cat-2: 31 189 133;
+  --c-cat-3: 168 132 232;
+  /* Platform brand inks for the post tints. Brand hue, but re-weighted per
+     theme so the label text clears 4.5:1 on `panel`; the raw brand values
+     (#833AB4, #D62B3E) sat at 2.7 and 3.6 on the dark ground. */
+  --c-plat-instagram: 196 140 236;
+  --c-plat-tiktok: 46 208 216;
+  --c-plat-youtube: 255 110 118;
+
   --line: rgba(255, 255, 255, 0.085);
   --line-strong: rgba(255, 255, 255, 0.19);
   --scan: rgba(255, 255, 255, 0.022);
@@ -111,6 +124,13 @@
   --c-ok: 11 99 68;
   --c-warn: 150 58 6;
   --c-critical: 170 32 38;
+
+  --c-cat-1: 29 94 180;
+  --c-cat-2: 11 122 84;
+  --c-cat-3: 108 70 190;
+  --c-plat-instagram: 120 52 168;
+  --c-plat-tiktok: 10 118 124;
+  --c-plat-youtube: 190 32 44;
 
   --line: rgba(16, 18, 22, 0.1);
   --line-strong: rgba(16, 18, 22, 0.22);
@@ -241,7 +261,7 @@
 
   /* ── controls ────────────────────────────────────────────────────────── */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-card border border-line-strong
+    @apply inline-flex min-h-9 items-center justify-center gap-2 rounded-card border border-line-strong
            bg-transparent px-3.5 py-1.5 font-display text-xs font-semibold uppercase tracking-micro
            text-ink-2 transition-colors duration-150
            hover:border-ink-3 hover:bg-raised hover:text-ink

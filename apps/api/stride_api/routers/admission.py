@@ -44,6 +44,9 @@ from .. import proofcheck
 from ..db import lock_for_update, now_iso, row, rows
 from .messaging import notify
 
+# A year of birth in the future is a typo, not a minor; refuse it at the edge.
+_THIS_YEAR = datetime.now(timezone.utc).year
+
 router = APIRouter(prefix="/api", tags=["admission"])
 
 SCORE_KEYS = ("audience_scale", "engagement_quality", "audience_fit", "growth", "consistency")
@@ -218,7 +221,7 @@ class ApplicationIn(BaseModel):
     club_name: str = Field(default="", max_length=120)
     league_name: str = Field(default="", max_length=120)
     years_competing: int | None = Field(default=None, ge=0, le=60)
-    birth_year: int | None = Field(default=None, ge=1930, le=2030)
+    birth_year: int | None = Field(default=None, ge=1930, le=_THIS_YEAR)
     proof_url: str = Field(default="", max_length=500)
     proof_kind: str = Field(default="none", max_length=20)
 

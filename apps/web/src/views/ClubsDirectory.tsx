@@ -50,14 +50,14 @@ export default function ClubsDirectory({ embedded = false }: { embedded?: boolea
           This list had none of them: it was the one directory you could only
           scroll. */}
       <div className="mb-5 flex flex-wrap items-center gap-2">
-        <input className="field w-64 py-1.5 text-sm" placeholder="Search clubs"
+        <input aria-label="Search clubs" className="field w-64 py-1.5 text-sm" placeholder="Search clubs"
                value={q} onChange={(e) => setQ(e.target.value)} />
-        <select className="field w-40 py-1.5 text-xs" value={sport}
+        <select aria-label="Filter by sport" className="field w-40 py-1.5 text-xs" value={sport}
                 onChange={(e) => setSport(e.target.value)}>
           <option value="">All sports</option>
           {sports.map((o) => <option key={o} value={o}>{o}</option>)}
         </select>
-        <select className="field w-44 py-1.5 text-xs" value={country}
+        <select aria-label="Filter by country" className="field w-44 py-1.5 text-xs" value={country}
                 onChange={(e) => setCountry(e.target.value)}>
           <option value="">All countries</option>
           {countries.map((o) => <option key={o} value={o}>{o}</option>)}
