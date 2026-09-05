@@ -195,10 +195,21 @@ def evidence_multiplier(proof_kind: str, proof_status: str,
 
 
 def age_from(birth_year: int | None, today_year: int | None = None) -> int | None:
+    """The *lowest* age the applicant can be, given only a year of birth.
+
+    A year alone cannot say whether this year's birthday has passed, so the
+    true age is one of two values. An age gate has to take the lower one:
+    admitting a fifteen-year-old in March because they turn sixteen in
+    November is precisely the failure the gate exists to prevent. The cost is
+    that some sixteen-year-olds are refused until the calendar year after
+    their birthday, which is the conservative side to err on. Collecting a
+    full date of birth removes the ambiguity; until then this is the honest
+    arithmetic.
+    """
     if not birth_year:
         return None
     year = today_year or datetime.now(timezone.utc).year
-    return year - birth_year
+    return year - birth_year - 1
 
 
 def athlete_credibility(application: dict, today_year: int | None = None) -> dict:

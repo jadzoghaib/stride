@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 
-from stride_api.admission import (ADMIT_AT, admission_decision, athlete_credibility,
+from stride_api.admission import (ADMIT_AT, admission_decision, age_from, athlete_credibility,
                                   club_legitimacy, nomination_floor, tenure_value)
 
 YEAR = 2026
@@ -30,7 +30,10 @@ def decide(application_overrides=None, **decision_kw) -> dict:
     application.update(application_overrides or {})
     scored = athlete_credibility(application, today_year=YEAR)
     kw = {"proof_status": application["proof_status"],
-          "age": YEAR - application["birth_year"] if application["birth_year"] else None,
+          # through age_from, not a copy of its arithmetic: the router uses
+          # age_from, so a test that reimplemented it could pass while the
+          # product did something else
+          "age": age_from(application["birth_year"], YEAR),
           "scoreable": scored["scoreable"]}
     kw.update(decision_kw)
     return admission_decision(scored["credibility"], **kw)
@@ -234,9 +237,12 @@ def test_an_incomplete_form_is_not_a_softer_landing_than_an_honest_weak_claim():
     heading for rejection did better by blanking a field, because `review` is a
     strictly better place to be than `rejected` — a human can still let you in.
     An incomplete form must therefore not be a decision at all."""
-    honest = decide({"competition_level": "local", "years_competing": 0, "birth_year": 2010,
+    # An adult, unambiguously: this test is about the form, not the age gate,
+    # and 2010 sat exactly on the sixteen-year boundary the gate now reads
+    # conservatively.
+    honest = decide({"competition_level": "local", "years_competing": 0, "birth_year": 2002,
                      "proof_kind": "none", "proof_status": "unverified"})
-    blanked = decide({"competition_level": "", "years_competing": 0, "birth_year": 2010,
+    blanked = decide({"competition_level": "", "years_competing": 0, "birth_year": 2002,
                       "proof_kind": "none", "proof_status": "unverified"})
     assert honest["decision"] == "rejected"
     assert blanked["decision"] == "pending"   # not "review" — it queues nobody

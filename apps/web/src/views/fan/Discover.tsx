@@ -191,14 +191,14 @@ export default function Discover() {
           both things a reader is looking for and splitting them into two
           directories meant asking the same question twice. */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <input className="field w-64 py-1.5 text-sm" placeholder="Search athletes and clubs"
+        <input aria-label="Search athletes and clubs" className="field w-64 py-1.5 text-sm" placeholder="Search athletes and clubs"
                value={q} onChange={(e) => setQ(e.target.value)} />
-        <select className="field w-40 py-1.5 text-xs" value={sport}
+        <select aria-label="Filter by sport" className="field w-40 py-1.5 text-xs" value={sport}
                 onChange={(e) => setSport(e.target.value)}>
           <option value="">All sports</option>
           {(facets?.sports ?? []).map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
-        <select className="field w-44 py-1.5 text-xs" value={country}
+        <select aria-label="Filter by country" className="field w-44 py-1.5 text-xs" value={country}
                 onChange={(e) => setCountry(e.target.value)}>
           <option value="">All countries</option>
           {(facets?.countries ?? []).map((c) => <option key={c} value={c}>{c}</option>)}

@@ -91,43 +91,45 @@ export default function ClubDashboard() {
           <PackageForm roster={ws.roster.map((m) => ({ slug: m.slug, name: m.display_name }))}
                        onDone={() => { setCreatingPackage(false); toast('Package published'); void load() }} />
         )}
-        <table className="w-full text-sm">
-          <thead>
-            <tr>
-              <th className="table-head">Package</th>
-              <th className="table-head">Type</th>
-              <th className="table-head">Player</th>
-              <th className="table-head text-right">Price</th>
-              <th className="table-head text-right">Backers</th>
-              <th className="table-head">Status</th>
-              <th className="table-head" />
-            </tr>
-          </thead>
-          <tbody>
-            {ws.packages.map((p) => (
-              <tr key={p.id}>
-                <td className="table-cell text-ink">{p.name}</td>
-                <td className="table-cell">
-                  <span className={`tag ${p.package_type === 'player_direct' ? 'border-accent text-ink' : ''}`}>
-                    {p.package_type === 'player_direct' ? 'Player-direct' : 'Club'}
-                  </span>
-                </td>
-                <td className="table-cell">{p.athlete_name ?? '—'}</td>
-                <td className="table-cell tnum text-right">{fmtMoney(p.price_eur)}</td>
-                <td className="table-cell tnum text-right">{p.active_backers}</td>
-                <td className="table-cell"><StatusChip status={p.status} /></td>
-                <td className="table-cell text-right">
-                  {p.status === 'active' && (
-                    <button className="btn px-2.5 py-1 text-xs"
-                            onClick={() => act(() => api.post(`/api/club/packages/${p.id}/archive`))}>
-                      Archive
-                    </button>
-                  )}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="table-head">Package</th>
+                <th className="table-head">Type</th>
+                <th className="table-head">Player</th>
+                <th className="table-head text-right">Price</th>
+                <th className="table-head text-right">Backers</th>
+                <th className="table-head">Status</th>
+                <th className="table-head" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {ws.packages.map((p) => (
+                <tr key={p.id}>
+                  <td className="table-cell text-ink">{p.name}</td>
+                  <td className="table-cell">
+                    <span className={`tag ${p.package_type === 'player_direct' ? 'border-accent text-ink' : ''}`}>
+                      {p.package_type === 'player_direct' ? 'Player-direct' : 'Club'}
+                    </span>
+                  </td>
+                  <td className="table-cell">{p.athlete_name ?? '—'}</td>
+                  <td className="table-cell tnum text-right">{fmtMoney(p.price_eur)}</td>
+                  <td className="table-cell tnum text-right">{p.active_backers}</td>
+                  <td className="table-cell"><StatusChip status={p.status} /></td>
+                  <td className="table-cell text-right">
+                    {p.status === 'active' && (
+                      <button className="btn px-2.5 py-1 text-xs"
+                              onClick={() => act(() => api.post(`/api/club/packages/${p.id}/archive`))}>
+                        Archive
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {ws.packages.length === 0 && <EmptyNote text="No packages yet — a package is what sponsors commit to." />}
       </Section>
 
@@ -181,30 +183,32 @@ export default function ClubDashboard() {
         {ws.commitments.length === 0 ? (
           <EmptyNote text="No sponsor commitments yet. Sponsors back packages from your public page." />
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr>
-                <th className="table-head">Sponsor</th>
-                <th className="table-head">Package</th>
-                <th className="table-head">Player</th>
-                <th className="table-head text-right">Amount</th>
-                <th className="table-head">Status</th>
-                <th className="table-head">Since</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ws.commitments.map((c) => (
-                <tr key={c.id}>
-                  <td className="table-cell text-ink">{c.org_name}</td>
-                  <td className="table-cell">{c.package_name}</td>
-                  <td className="table-cell">{c.athlete_name ?? '—'}</td>
-                  <td className="table-cell tnum text-right">{fmtMoney(c.amount_eur)}</td>
-                  <td className="table-cell"><StatusChip status={c.status} /></td>
-                  <td className="table-cell text-xs text-ink-3">{fmtDate(c.created_at)}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="table-head">Sponsor</th>
+                  <th className="table-head">Package</th>
+                  <th className="table-head">Player</th>
+                  <th className="table-head text-right">Amount</th>
+                  <th className="table-head">Status</th>
+                  <th className="table-head">Since</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {ws.commitments.map((c) => (
+                  <tr key={c.id}>
+                    <td className="table-cell text-ink">{c.org_name}</td>
+                    <td className="table-cell">{c.package_name}</td>
+                    <td className="table-cell">{c.athlete_name ?? '—'}</td>
+                    <td className="table-cell tnum text-right">{fmtMoney(c.amount_eur)}</td>
+                    <td className="table-cell"><StatusChip status={c.status} /></td>
+                    <td className="table-cell text-xs text-ink-3">{fmtDate(c.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Section>
 

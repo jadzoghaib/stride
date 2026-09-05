@@ -19,7 +19,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { CountryMap } from '../../components/charts'
-import { EmptyNote, LoadError, PageHeader, PageLoading, Section } from '../../components/ui'
+import { EmptyNote, LoadError, PageHeader, PageLoading, Section, SimulatedChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtMoney, fmtNum, fmtPct } from '../../lib/format'
 import { dealTypeLabel } from '../../types'
@@ -119,7 +119,7 @@ export default function CampaignAnalytics({ embedded = false }: { embedded?: boo
 
       {/* ── who carried it ─────────────────────────────────────────────── */}
       <Section title={`Athletes (${athletes.length})`}
-               aside={<span className="meta">every figure is the posts they attached</span>}>
+               aside={<span className="flex items-center gap-2"><SimulatedChip what="analytics" /><span className="meta">every figure is the posts they attached</span></span>}>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[52rem] text-sm">
             <thead>

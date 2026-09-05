@@ -150,7 +150,10 @@ export default function AthleteDashboard() {
         </Section>
 
         <div className="mt-10 grid items-start gap-6 lg:grid-cols-[1.85fr_1fr]">
-          <div>
+          {/* min-w-0 on both columns: a grid item defaults to min-width:auto,
+              so the platforms table below would otherwise widen this column to
+              its own width and scroll the whole page sideways on a phone. */}
+          <div className="min-w-0">
             <div className="mb-4 flex items-baseline justify-between gap-4 border-b border-line-strong pb-2.5">
               {/* tabIndex -1 so focus can land here after a connect completes:
                   the button that opened the consent dialog is gone by then
@@ -231,7 +234,7 @@ export default function AthleteDashboard() {
             </p>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <div className="mb-4 flex items-baseline justify-between gap-4 border-b border-line-strong pb-2.5">
               <h2 className="cap">Awaiting you</h2>
               <span className="meta">{openDeals.length}</span>

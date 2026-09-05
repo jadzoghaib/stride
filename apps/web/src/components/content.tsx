@@ -71,9 +71,12 @@ const PLATFORM_TINT: Record<string, { wash: string; edge: string; ink: string }>
   // composited to rgb(251,243,248) and YouTube's red to rgb(255,242,245) — two
   // pale pinks a reader cannot tell apart, which defeats the point of colouring
   // them at all. Purple, cyan and red separate cleanly at this strength.
-  instagram: { wash: 'rgba(131, 58, 180, 0.07)', edge: 'rgba(131, 58, 180, 0.32)', ink: '#833AB4' },
-  tiktok:    { wash: 'rgba(0, 194, 203, 0.07)',  edge: 'rgba(0, 194, 203, 0.34)',  ink: '#0E9AA2' },
-  youtube:   { wash: 'rgba(255, 0, 51, 0.05)',   edge: 'rgba(255, 0, 51, 0.26)',   ink: '#D62B3E' },
+  // The washes stay as raw brand rgba: at 5-7% alpha they are texture, not
+  // text, and contrast does not apply. The inks are label text, so they come
+  // from the token layer, re-weighted per theme to clear 4.5:1 on `panel`.
+  instagram: { wash: 'rgba(131, 58, 180, 0.07)', edge: 'rgba(131, 58, 180, 0.32)', ink: 'rgb(var(--c-plat-instagram))' },
+  tiktok:    { wash: 'rgba(0, 194, 203, 0.07)',  edge: 'rgba(0, 194, 203, 0.34)',  ink: 'rgb(var(--c-plat-tiktok))' },
+  youtube:   { wash: 'rgba(255, 0, 51, 0.05)',   edge: 'rgba(255, 0, 51, 0.26)',   ink: 'rgb(var(--c-plat-youtube))' },
 }
 
 function NewsCard({ item, showAuthor = false }: { item: NewsItem; showAuthor?: boolean }) {
