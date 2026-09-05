@@ -9,8 +9,9 @@
 </p>
 
 <p align="center">
-  Athletes own evidence-based marketability analytics. Sponsors match campaign briefs against the
-  athlete pool with fully decomposable scoring. Clubs sell packages. Fans follow.
+  Athletes own evidence-based marketability analytics and publish to the audience behind them.
+  Sponsors match campaign briefs against the athlete pool with fully decomposable scoring.
+  Clubs sell packages. Supporters follow for free, or subscribe for what sits behind the lock.
 </p>
 
 <p align="center">
@@ -58,21 +59,30 @@ Demo accounts, password `stride123`:
 | Athlete | `athlete@demo.stride` | Own analytics, platform connections, deal inbox |
 | Sponsor | `sponsor@demo.stride` | Campaign briefs, ranked matching, deal pipeline |
 | Club | `club@demo.stride` | Roster, sponsorship packages, commitments |
-| Supporter | `fan@demo.stride` | Discovery and a following feed |
+| Supporter | `fan@demo.stride` | Discovery, a following feed, subscriptions, polls and fan walls |
 | Admin | `admin@demo.stride` | Audit log and resilience drill |
 
 ---
 
 ## What it looks like
 
+The direction is a **stadium results board**, not a SaaS dashboard: enormous condensed numerals
+against 11px tracked caps, one accent (signal amber) for emphasis, semantic colour held separate
+for state, and a single orchestrated motion moment on load. Written down in
+[`apps/web/DESIGN.md`](apps/web/DESIGN.md) — and enforced by
+[`scripts/design_audit.py`](scripts/design_audit.py), which fails a build if a semantic colour
+drops under 4.5:1 where it is actually used, if a colour is written outside the token layer, or
+if a type size appears that is not on the scale.
+
 ### Matching that decomposes
 
-Every match is a weighted sum a sponsor can take apart. Bar length is each component's **contribution**
-to the score — component × the weight actually applied — so the chart ranks what really drove the
-match, not which raw number happened to be largest.
+Every match is a weighted sum a sponsor can take apart. Bar length is each component's
+**contribution** to the score — component × the weight actually applied — so the chart ranks what
+really drove the match, not which raw number happened to be largest. The reasons beside it are
+generated from the same arithmetic.
 
 <p align="center">
-  <img src="docs/media/score-composition.jpg" alt="Score composition ranked by contribution, with plain-language reasons and caveats" width="820">
+  <img src="docs/media/score-composition.jpg" alt="Score composition ranked by contribution, with the component times weight arithmetic and plain-language reasons" width="820">
 </p>
 
 ### The athlete's own board
@@ -84,22 +94,63 @@ against their own analytics is the point of the product.
   <img src="docs/media/athlete-dashboard.jpg" alt="Athlete dashboard with marketability board and ranked dimensions" width="820">
 </p>
 
+### Where the audience actually is
+
+Audience share as a choropleth rather than bubbles on centroids — filling the country says the
+same thing with no placement problem, because the shape *is* the label. A country nobody in this
+audience lives in is still drawn, plainly: that is a different statement from not drawing it.
+The chip is not decoration. Platform connectors are mocked in this build, and **every surface that
+shows an audience says so**.
+
+<p align="center">
+  <img src="docs/media/audience-map.jpg" alt="Audience by country as a choropleth, with a simulated-audience chip and the ranked country table" width="820">
+</p>
+
+### The page an athlete gives their audience
+
+Cover and avatar are generated from the name until the athlete uploads their own. Follow and
+subscribe are different relationships, not two words for one: following is free and public,
+subscribing is what opens the lock. The rate card and the score are stripped from this page for
+anyone who is not a sponsor, a club or an admin — an athlete previewing their own page sees
+exactly what a visitor sees.
+
+<p align="center">
+  <img src="docs/media/athlete-public.jpg" alt="An athlete's public page: generated cover art, verified badge, membership card and platform links" width="820">
+</p>
+
+### One wall, two kinds of post
+
+Posts an athlete writes sit beside the platform activity their connected accounts produce, and the
+platform items carry a very light wash of that platform's own colour — Instagram purple, TikTok
+cyan, YouTube red — at 5–7% behind a coloured edge. The label says the platform too, so the colour
+is never the only carrier. Locked posts show their title, their tier and what is behind them, and
+nothing else: no thumbnail leaks through the blur.
+
+<p align="center">
+  <img src="docs/media/creator-feed.jpg" alt="A wall mixing the athlete's own posts with platform activity, each tinted by platform" width="820">
+</p>
+
 <details>
-<summary><strong>More screens</strong> — ranked matching, directory, operations</summary>
+<summary><strong>More screens</strong> — ranked matching, directory, account, operations</summary>
 
 <br>
 
-**Ranked matches against a campaign brief**
+**Ranked matches against a campaign brief** — coverage stated on every row, because a score from
+one platform is not the same claim as a score from three
 
 <img src="docs/media/campaign-matches.jpg" alt="Campaign matches ranked with coverage chips" width="820">
 
 **Public athlete directory, sortable on the measurement**
 
-<img src="docs/media/directory.jpg" alt="Athlete directory with marketability column" width="820">
+<img src="docs/media/directory.jpg" alt="Athlete directory with marketability, rate card and analytics coverage columns" width="820">
 
-**Operations — audit log and resilience drill**
+**The account behind the profile** — address confirmation, password, sessions, export and deletion
 
-<img src="docs/media/operations.jpg" alt="Admin operations view with chaos controls" width="820">
+<img src="docs/media/account.jpg" alt="Account settings: confirmed email, password change, sessions and data controls" width="820">
+
+**Operations** — the moderation queue, the audit log and the resilience drill
+
+<img src="docs/media/operations.jpg" alt="Admin operations view with the report queue and chaos controls" width="820">
 
 </details>
 
@@ -108,7 +159,7 @@ against their own analytics is the point of the product.
 ## How it works
 
 ```
-apps/web/            React 18 · Vite · TS · Tailwind — 20 routes, each naming
+apps/web/            React 18 · Vite · TS · Tailwind — 32 routes, each naming
                      its own access rule (public, or guarded by role)
 apps/api/            FastAPI — auth + RBAC, routers per bounded context,
                      matching engine, JSON logs, /metrics, probes, chaos layer
@@ -127,7 +178,9 @@ growth, consistency. A dimension the engine cannot compute stays `null` all the 
 ranking — it is excluded and named, never silently scored as zero.
 
 **One code path, two databases.** SQLite by default; set `STRIDE_DATABASE_URL` for Postgres. A
-~100-line shim translates the dialect, so nothing above the connection changes.
+~100-line shim translates the dialect, so nothing above the connection changes — and the claim is
+checked rather than asserted: the same suite runs on both, 356 tests on SQLite and 358 on Postgres,
+where the two measurement tests that skip without a server can finally run.
 
 📐 Architecture: [`docs/architecture.md`](docs/architecture.md) · Client: [`docs/ui-architecture.md`](docs/ui-architecture.md) ·
 Visual: open [`docs/system-map.html`](docs/system-map.html) and [`docs/how-it-works.html`](docs/how-it-works.html) in a browser
@@ -162,6 +215,16 @@ rather than an afterthought:
 - **One cookie, and it is strictly necessary.** No analytics, no third-party scripts, no tracking —
   which is why there is no consent banner, a position the [Cookie Policy](apps/web/src/lib/legal.ts)
   explains rather than papers over.
+- **Six of six GDPR rights are live, and the page says which.** Access and portability are one JSON
+  export of everything held about you; erasure anonymises the person and keeps only the deal records
+  an accounting duty requires, with the name removed. Consent withdrawal, rectification and
+  restriction were already there. `/legal/data` states the status of each rather than implying a
+  button that does not exist.
+- **Terms acceptance is recorded with the version shown**, and a test reads `POLICY_VERSION` out of
+  the client to check the two constants cannot drift apart.
+- **Anyone can block anyone.** A block ends contact in both directions and tells the other side
+  nothing; a report reaches an admin queue with the message attached. With sixteen-year-olds
+  admitted and an open messaging network, that is a requirement rather than a feature.
 
 ---
 
