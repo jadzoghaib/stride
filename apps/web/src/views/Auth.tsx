@@ -113,7 +113,7 @@ export default function Auth() {
 
   const [gate, setGate] = useState({
     competition_level: '', discipline: '', club_name: '', league_name: '',
-    years_competing: '', birth_year: '', proof_url: '', proof_kind: 'none',
+    years_competing: '', birth_date: '', proof_url: '', proof_kind: 'none',
     legal_name: '', registration_id: '', federation_name: '', federation_id: '',
     founded_year: '', teams_count: '', registered_athletes: '', roster_url: '',
   })
@@ -134,7 +134,7 @@ export default function Auth() {
           club_name: gate.club_name,
           league_name: gate.league_name,
           years_competing: gate.years_competing === '' ? null : Number(gate.years_competing),
-          birth_year: gate.birth_year === '' ? null : Number(gate.birth_year),
+          birth_date: gate.birth_date === '' ? null : gate.birth_date,
           proof_url: gate.proof_url,
           proof_kind: gate.proof_kind,
         })
@@ -206,8 +206,8 @@ export default function Auth() {
                 <GateField label="League or competition" name="league_name" value={gate.league_name} onChange={setGateField} />
                 <GateField label="Seasons competing" name="years_competing" value={gate.years_competing} onChange={setGateField} type="number"
                        hint="Eight or more is full marks. Blank scores zero." />
-                <GateField label="Year of birth" name="birth_year" value={gate.birth_year} onChange={setGateField} type="number"
-                       hint="Accounts are 16 and over." />
+                <GateField label="Date of birth" name="birth_date" value={gate.birth_date} onChange={setGateField} type="date"
+                       hint="Accounts are 16 and over. The day matters: a year alone would read as the younger of two ages." />
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">

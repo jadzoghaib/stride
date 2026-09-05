@@ -36,7 +36,7 @@ from creatorlens.ingestion import sync_account
 
 # The seeded queue is scored by the real policy rather than typed in: a
 # hand-written verdict disagrees with the scorer the first time a threshold moves.
-from .admission import (POLICY_VERSION, admission_decision, age_from,
+from .admission import (POLICY_VERSION, admission_decision, age_from, age_of,
                         athlete_credibility, club_legitimacy)
 from .auth import hash_password
 from .config import settings
@@ -435,7 +435,7 @@ def seed(conn: sqlite3.Connection) -> dict:
         # a strong claim with a page to open: the reviewer's main path
         ("sofia-brandt", dict(
             discipline="Marathon", club_name="Halifax Harriers", league_name="Athletics Canada",
-            competition_level="national", years_competing=7, birth_year=1999,
+            competition_level="national", years_competing=7, birth_year=1999, birth_date="1999-04-12",
             proof_url="https://athletics.example/ca/rankings/marathon",
             proof_kind="results", proof_status="pending")),
         # a weaker claim behind a different kind of page, so the queue is ranked
@@ -443,7 +443,7 @@ def seed(conn: sqlite3.Connection) -> dict:
         # produces, not just one decision
         ("elif-kaya", dict(
             discipline="Outside hitter", club_name="Lyon Volley", league_name="Ligue A",
-            competition_level="regional", years_competing=4, birth_year=2003,
+            competition_level="regional", years_competing=4, birth_year=2003, birth_date="2003-11-02",
             proof_url="https://lyonvolley.example/equipe/effectif",
             proof_kind="roster", proof_status="pending")),
     ]
@@ -451,16 +451,16 @@ def seed(conn: sqlite3.Connection) -> dict:
         scored = athlete_credibility({**fields, "sport": athlete_sports[slug]})
         verdict = admission_decision(
             scored["credibility"], proof_status=fields["proof_status"],
-            social_score=None, age=age_from(fields["birth_year"]),
+            social_score=None, age=age_of(fields),
             club_floor=None, scoreable=scored["scoreable"])
         conn.execute(
             "INSERT INTO athlete_applications (athlete_id, discipline, club_name, league_name,"
-            " competition_level, years_competing, birth_year, proof_url, proof_kind,"
+            " competition_level, years_competing, birth_year, birth_date, proof_url, proof_kind,"
             " proof_status, credibility, decision, decision_rule, policy_version,"
-            " submitted_at, decided_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            " submitted_at, decided_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (athlete_ids[slug], fields["discipline"], fields["club_name"], fields["league_name"],
              fields["competition_level"], fields["years_competing"], fields["birth_year"],
-             fields["proof_url"], fields["proof_kind"], fields["proof_status"],
+             fields["birth_date"], fields["proof_url"], fields["proof_kind"], fields["proof_status"],
              scored["credibility"], verdict["decision"], verdict["rule"], POLICY_VERSION,
              now_iso(), now_iso()))
         summary["applications"] = summary.get("applications", 0) + 1

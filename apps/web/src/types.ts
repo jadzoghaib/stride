@@ -363,6 +363,7 @@ export interface AthleteApplication {
   competition_level: string
   years_competing: number | null
   birth_year: number | null
+  birth_date: string | null
   proof_url: string
   proof_kind: string
   proof_status: ProofStatus

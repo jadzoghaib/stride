@@ -27,15 +27,15 @@ from __future__ import annotations
 
 import secrets
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from statistics import median
 
 from creatorlens.analytics.scoring import latest_score
 from creatorlens.events import log_event
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
-from ..admission import (ADMIT_AT, COMPETITION_LEVELS, DISQUALIFYING_RULES,
+from ..admission import (age_of, ADMIT_AT, COMPETITION_LEVELS, DISQUALIFYING_RULES,
                          PROOF_KINDS, PROOF_STATUSES,
                          POLICY_VERSION, admission_decision, age_from,
                          athlete_credibility, club_legitimacy)
@@ -147,7 +147,7 @@ def _evaluate(conn, application: dict, profile: dict, *, via: str,
         scored["credibility"],
         proof_status=application["proof_status"],
         social_score=social,
-        age=age_from(application["birth_year"]),
+        age=age_of(application),
         club_floor=_club_floor(conn, application["nominated_by_club"]),
         scoreable=scored["scoreable"],
     )
@@ -222,8 +222,31 @@ class ApplicationIn(BaseModel):
     league_name: str = Field(default="", max_length=120)
     years_competing: int | None = Field(default=None, ge=0, le=60)
     birth_year: int | None = Field(default=None, ge=1930, le=_THIS_YEAR)
+    # The form sends this now; the year is derived from it so every reader of
+    # birth_year keeps working. A year on its own is still accepted, because
+    # older clients and clubs (who cannot know a date) send only that.
+    birth_date: str | None = Field(default=None, max_length=10)
     proof_url: str = Field(default="", max_length=500)
     proof_kind: str = Field(default="none", max_length=20)
+
+    @field_validator("birth_date")
+    @classmethod
+    def _real_past_date(cls, v: str | None) -> str | None:
+        if v is None or v == "":
+            return None
+        try:
+            born = date.fromisoformat(v)
+        except ValueError as e:
+            raise ValueError("birth_date must be an ISO date, YYYY-MM-DD") from e
+        if born.year < 1930 or born > datetime.now(timezone.utc).date():
+            raise ValueError("birth_date must be a real date in the past")
+        return born.isoformat()
+
+    @model_validator(mode="after")
+    def _year_follows_date(self):
+        if self.birth_date:
+            self.birth_year = int(self.birth_date[:4])
+        return self
 
 
 @router.post("/athlete/application", status_code=201)
@@ -247,19 +270,19 @@ def submit_application(body: ApplicationIn,
     if existing and existing["proof_status"] == "rejected":
         proof_status = "rejected"
     fields = (body.discipline, body.club_name, body.league_name, body.competition_level,
-              body.years_competing, body.birth_year, body.proof_url, body.proof_kind,
-              proof_status)
+              body.years_competing, body.birth_year, body.birth_date, body.proof_url,
+              body.proof_kind, proof_status)
     if existing:
         conn.execute(
             "UPDATE athlete_applications SET discipline = ?, club_name = ?, league_name = ?,"
-            " competition_level = ?, years_competing = ?, birth_year = ?, proof_url = ?,"
-            " proof_kind = ?, proof_status = ? WHERE id = ?", (*fields, existing["id"]))
+            " competition_level = ?, years_competing = ?, birth_year = ?, birth_date = ?,"
+            " proof_url = ?, proof_kind = ?, proof_status = ? WHERE id = ?", (*fields, existing["id"]))
         application_id = existing["id"]
     else:
         cur = conn.execute(
             "INSERT INTO athlete_applications (athlete_id, discipline, club_name, league_name,"
-            " competition_level, years_competing, birth_year, proof_url, proof_kind,"
-            " proof_status, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            " competition_level, years_competing, birth_year, birth_date, proof_url, proof_kind,"
+            " proof_status, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (profile["id"], *fields, now_iso()))
         application_id = cur.lastrowid
     application = row(conn, "SELECT * FROM athlete_applications WHERE id = ?", (application_id,))

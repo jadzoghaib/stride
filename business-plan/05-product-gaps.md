@@ -50,7 +50,7 @@ Ordered by what blocks revenue soonest.
 | ~~2~~ | ~~**Currency: EUR**~~ | ~~Everything~~ | — | **Shipped** — columns are `amount_eur`, `base_rate_eur`, `price_eur`, `budget_eur_*`, the interface renders €, and existing databases are renamed in place on start-up |
 | 3 | **Subscriptions + tiers** | Streams 1–3 | M | The subscribe relationship and the `min_tier` lock exist and gate content today. Missing: a tier entity with prices, recurring billing, entitlement expiry, grace/dunning |
 | 4 | **Content + media** | Streams 1–2 | L | Posts, image upload (magic-byte checked, server-named), locked delivery, polls and products are shipped. Missing: video transcode, object storage, CDN |
-| 5 | **Age assurance** | Legal launch | M | Partly delivered: admission collects a date of birth and refuses under-16s outright, and cannot auto-admit without one. Nothing *verifies* the date, and the 16/18 tiering below is designed but unbuilt |
+| 5 | **Age assurance** | Legal launch | M | Partly delivered: admission collects a full date of birth, computes age exactly from it (a year alone reads as a lower bound), refuses under-16s outright, and cannot auto-admit without one. Nothing *verifies* the date, and the 16/18 tiering below is designed but unbuilt |
 | 6 | **Moderation** | Legal launch | L | Automated classification + human review queue + appeals |
 | 7 | **Sponsor billing** | Stream 6 | M | Plan entity, entitlements, seat management |
 | 8 | **DAC7 reporting** | EU legal | M | Platforms must report seller income to tax authorities |

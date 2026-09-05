@@ -270,6 +270,7 @@ CREATE TABLE IF NOT EXISTS athlete_applications (
     competition_level TEXT NOT NULL DEFAULT '',
     years_competing   INTEGER,
     birth_year        INTEGER,
+    birth_date        TEXT,
     proof_url         TEXT NOT NULL DEFAULT '',
     proof_kind        TEXT NOT NULL DEFAULT 'none'
                       CHECK (proof_kind IN ('none','roster','results','licence')),
