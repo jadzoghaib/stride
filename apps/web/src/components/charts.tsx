@@ -11,8 +11,22 @@
  *  themes, and they are legible on both grounds.
  */
 
-import { useRef, useState, type ReactNode } from 'react'
-import { COUNTRY_NAMES, COUNTRY_PATHS } from './countries'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { COUNTRY_NAMES } from './countries'
+
+/** The 173 country outlines, fetched on demand.
+ *
+ *  They are ~102 kB — a third of the whole client — and one component draws
+ *  them. Imported statically they sat in the main bundle, so someone who only
+ *  ever signed in and read their inbox still paid for a world map. A dynamic
+ *  `import()` makes the bundler emit them as their own chunk, requested when a
+ *  map first mounts and cached by the browser for every map after that.
+ *
+ *  The promise is memoised at module scope rather than per-component: a page
+ *  can hold several maps, and they should share one request. */
+let pending: Promise<Record<string, string>> | null = null
+const loadCountryPaths = () =>
+  (pending ??= import('./country-paths').then((m) => m.COUNTRY_PATHS))
 
 const AGE_ORDER = ['13-17', '18-24', '25-34', '35-44', '45-54', '55+']
 
@@ -256,6 +270,55 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
   const py = (lat: number) => ((78 - lat) / 150) * H // crop polar dead space
   const ranked = Object.entries(data).sort((a, b) => b[1] - a[1])
   const h = useHover()
+  const [countryPaths, setPaths] = useState<Record<string, string> | null>(null)
+
+  /* Ignore a load that lands after unmount — a reader who clicks through three
+     athletes quickly would otherwise set state on three dead components. */
+  useEffect(() => {
+    let live = true
+    loadCountryPaths().then((p) => live && setPaths(p))
+    return () => { live = false }
+  }, [])
+
+  /* Until the shapes arrive, occupy exactly the space they will occupy, so
+     nothing below the card moves when they land. Measured rather than assumed:
+     the panel is 513.61px both before and after, on the same node. */
+  if (!countryPaths) {
+    return (
+      <ChartCard title="Countries">
+        <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
+          <div>
+            <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded bg-ground-deep"
+                 role="img" aria-label="Audience by country, loading">
+              <line x1={8} y1={py(0)} x2={W - 8} y2={py(0)} className="stroke-line-strong"
+                    strokeWidth={0.8} strokeDasharray="3 5" />
+            </svg>
+            {/* The legend's own markup, minus the numbers it cannot know yet.
+                Matching it structurally rather than guessing a height is the
+                point: the row is as tall as the "less"/"more" labels, so a
+                bare h-2 bar came up ~10px short and the page still jumped. */}
+            <div className="mt-2 flex items-center gap-2">
+              <span className="meta">less</span>
+              <div className="flex flex-1 gap-0.5">
+                {RAMP.map((o) => (
+                  <div key={o} className="h-2 flex-1 rounded-[1px] bg-raised" />
+                ))}
+              </div>
+              <span className="meta">more</span>
+            </div>
+          </div>
+          <div className="space-y-1.5 self-center text-xs">
+            {ranked.slice(0, 6).map(([code]) => (
+              <div key={code} className="flex items-center gap-2 px-1">
+                <span className="w-8 font-display font-semibold uppercase tracking-board text-ink-2">{code}</span>
+                <span className="bar h-1.5 flex-1" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </ChartCard>
+    )
+  }
 
   /* A choropleth, not bubbles.
    *
@@ -266,7 +329,7 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
    * labels fighting for the gaps. Filling the country says the same thing with
    * no placement problem and no label-avoidance code at all: the shape is the
    * label. */
-  const shares = Object.entries(data).filter(([code]) => code in COUNTRY_PATHS)
+  const shares = Object.entries(data).filter(([code]) => code in countryPaths)
   const maxShare = Math.max(...shares.map(([, v]) => v), 0.0001)
   const name = (code: string) => COUNTRY_NAMES[code] ?? CENTROIDS[code]?.name ?? code
 
@@ -282,7 +345,7 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
                 in is drawn, and drawn plainly, which is a different statement
                 from not drawing it. */}
             <g className="fill-raised stroke-line" strokeWidth={0.35}>
-              {Object.entries(COUNTRY_PATHS).map(([code, d]) => (
+              {Object.entries(countryPaths).map(([code, d]) => (
                 <path key={code} d={d} />
               ))}
             </g>
@@ -295,7 +358,7 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
             {shares.map(([code, share]) => (
               <path
                 key={code}
-                d={COUNTRY_PATHS[code]}
+                d={countryPaths[code]}
                 className={`cursor-default fill-accent transition-opacity ${focus(h.key, code)}`}
                 fillOpacity={RAMP[step(share, maxShare)]}
                 stroke={h.key === code ? 'currentColor' : 'none'}
@@ -334,7 +397,7 @@ export function CountryMap({ data }: { data: Record<string, number> }) {
                 h.key === code ? 'bg-raised' : ''
               }`}
               {...h.on(
-                code in COUNTRY_PATHS ? code : '',
+                code in countryPaths ? code : '',
                 `${name(code)} · ${pct(share)} of audience`,
               )}
             >
