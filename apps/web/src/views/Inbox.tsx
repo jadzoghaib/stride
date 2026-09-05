@@ -114,6 +114,7 @@ export default function Inbox() {
       ) : (
         <div className="grid gap-4 md:grid-cols-[19rem_1fr]">
           <div className="space-y-2">
+            <h2 className="sr-only">Conversations</h2>
             {threads.map((t) => (
               <button key={t.id} onClick={() => void openThread(t.id)}
                       className={`panel w-full p-3 text-left ${
@@ -143,6 +144,7 @@ export default function Inbox() {
             ) : (
               <>
                 <div className="flex items-center gap-2 border-b border-line pb-3">
+                  <h2 className="sr-only">Conversation with {open.with.display_name}</h2>
                   <Avatar name={open.with.display_name} size={30} />
                   {open.with.slug ? (
                     <Link to={`/${open.with.role === 'club' ? 'clubs' : 'athletes'}/${open.with.slug}`}

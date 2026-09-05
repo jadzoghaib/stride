@@ -133,6 +133,26 @@ settling sequence reads as intended. Everything checks
 - **Partial data is labelled, never hidden.** Two connected platforms means a
   two-platform score, stated as such.
 
+## Telling someone it worked
+
+Three devices, chosen by the weight of the action, not by which view you are in:
+
+| Weight | Device | Example |
+|---|---|---|
+| The state *is* the feedback | the control changes | Follow → Following; Block → Unblock |
+| Done, carry on | a toast | package published, password changed, report filed |
+| Done, and here is what happens next | the panel stays and explains | an offer sent: who sees it, what they can do, where to track it |
+
+This looked like three products until it was written down. It is not: a toast
+that has to explain a consequence is the wrong device, and a modal that stays
+open to say "saved" is in the way. **If the reader needs to know what happens
+next, keep the surface and say it. Otherwise toast it. If the control itself
+now reads differently, that is already the answer** — a second confirmation on
+top of a button that has visibly changed is noise.
+
+An error is not a toast. It belongs beside the thing that failed, where the
+input that caused it still is.
+
 ## Where things live
 
 | | |

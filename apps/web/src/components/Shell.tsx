@@ -154,6 +154,7 @@ export default function Shell({ children }: { children: ReactNode }) {
   if (!me) {
     return (
       <div className="min-h-screen bg-ground">
+        <a href="#main" className="skip-link">Skip to content</a>
         <header className="sticky top-0 z-20 border-b border-line bg-ground/90 backdrop-blur">
           <div className="mx-auto flex h-14 max-w-page items-center gap-8 px-7">
             <Link to="/"><Wordmark /></Link>
@@ -163,7 +164,7 @@ export default function Shell({ children }: { children: ReactNode }) {
             </div>
           </div>
         </header>
-        <main className="stride-main">{children}</main>
+        <main id="main" className="stride-main">{children}</main>
         <Footer />
       </div>
     )
@@ -171,6 +172,7 @@ export default function Shell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-ground md:flex">
+      <a href="#main" className="skip-link">Skip to content</a>
       {/* ── the rail ───────────────────────────────────────────────────────
           A sidebar rather than a top bar, because this product is read one
           long column at a time — a wall, a pipeline, a queue — and vertical
@@ -255,7 +257,7 @@ export default function Shell({ children }: { children: ReactNode }) {
       </header>
 
       <div className="min-w-0 flex-1">
-        <main className="stride-main">{children}</main>
+        <main id="main" className="stride-main">{children}</main>
         <Footer />
       </div>
     </div>

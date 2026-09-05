@@ -119,6 +119,9 @@ export default function Notifications() {
         <EmptyNote text="Nothing yet. Offers, messages and decisions about your account land here." />
       ) : (
         <div className="space-y-2">
+          {/* An H1 and then forty cards is nothing to navigate by; a reader
+              moving through this page by heading had one stop on it. */}
+          <h2 className="sr-only">Notifications</h2>
           {items.map((n) => {
             const Icon = iconFor(n.kind)
             const row = (

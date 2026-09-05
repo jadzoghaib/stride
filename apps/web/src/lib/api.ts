@@ -113,6 +113,10 @@ export const ERROR_TEXT: Record<string, string> = {
   not_on_roster: 'This athlete is not on your active roster.',
   unknown_athlete: 'No athlete found with that handle.',
   unknown_campaign: 'That campaign does not exist, or it belongs to another organization.',
+  campaign_not_active: 'This campaign is closed. Reopen it before sending offers.',
+  unknown_campaign_status: 'A campaign is either active or closed.',
+  website_must_be_a_url: 'A website has to start with http:// or https://.',
+  no_sponsor_org: 'This account has no organization yet.',
   unknown_deal: 'That deal no longer exists.',
 }
 

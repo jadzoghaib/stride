@@ -307,6 +307,30 @@
   }
 
   /* ── chips / tags ────────────────────────────────────────────────────── */
+  /* Visible only on focus. A keyboard reader lands on the wordmark, then a nav
+     of up to seven items, on every single page; without this they walk the
+     whole sidebar again for each one.
+
+     Positioned off-screen rather than `sr-only`, and written as real CSS
+     rather than @apply: `not-sr-only` on the focus rule did not undo
+     `sr-only` on the base rule -- the element stayed clipped to a 1px box and
+     the link was never visible to the reader it exists for. This is the
+     specificity trap DESIGN.md warns about, and the reason personality
+     belongs in CSS rather than in utilities. Off-screen-but-positioned also
+     keeps it in the tab order, which `display: none` would not. */
+  .skip-link {
+    @apply rounded-card border border-accent bg-panel px-4 py-2 font-display text-ui
+           font-semibold uppercase tracking-micro text-ink shadow-lift;
+    position: fixed;
+    left: 1rem;
+    top: -5rem;
+    z-index: 60;
+    transition: top 150ms ease-out;
+  }
+  .skip-link:focus {
+    top: 1rem;
+  }
+
   .tag {
     @apply inline-flex items-center whitespace-nowrap rounded-full border border-line-strong
            px-2.5 py-0.5 font-display text-label font-semibold uppercase tracking-micro text-ink-2;

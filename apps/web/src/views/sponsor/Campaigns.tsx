@@ -1,15 +1,18 @@
-import { Plus } from 'lucide-react'
+import { Pencil, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Board } from '../../components/Board'
 import { LoadError, PageLoading, EmptyNote, Section, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
+import { useToast } from '../../lib/toast'
 import { fmtMoney } from '../../lib/format'
 import type { Campaign, Deal, Facets } from '../../types'
 import { CATEGORIES, DEAL_TYPES, dealTypeLabel } from '../../types'
 
 interface Workspace {
-  org: { id: number; name: string; industry: string; regions: string[] }
+  // `website` was always in the payload — /api/sponsor/workspace returns the
+  // whole row — and only missing from this declaration, so nothing could read it.
+  org: { id: number; name: string; industry: string; website: string; regions: string[] }
   campaigns: Campaign[]
   deals: Deal[]
   club_commitments?: { id: number }[]
@@ -35,7 +38,23 @@ const AGE_BUCKETS = ['13-17', '18-24', '25-34', '35-44', '45-54', '55+']
 export default function SponsorCampaigns() {
   const [ws, setWs] = useState<Workspace | null>(null)
   const [creating, setCreating] = useState(false)
+  const [editing, setEditing] = useState<Campaign | null>(null)
+  const [editingOrg, setEditingOrg] = useState(false)
   const [error, setError] = useState('')
+  const toast = useToast()
+
+  /* Closing is not deleting: the deals under a campaign are the sponsor's own
+     record. A closed brief stops taking offers and can be reopened. */
+  const setStatus = async (c: Campaign, status: 'active' | 'closed') => {
+    setError('')
+    try {
+      await api.post(`/api/campaigns/${c.id}/status`, { status })
+      toast(status === 'closed' ? `${c.name} closed` : `${c.name} reopened`)
+      await load()
+    } catch (e) {
+      setError(errorText(e))
+    }
+  }
 
   const load = () => api.get<Workspace>('/api/sponsor/workspace').then(setWs).catch((e) => setError(errorText(e)))
   useEffect(() => {
@@ -84,6 +103,31 @@ export default function SponsorCampaigns() {
 
       <div>
       <Section
+        title="Organization"
+        aside={
+          <button className="btn px-3 py-1 text-xs" onClick={() => setEditingOrg((v) => !v)}>
+            <Pencil size={12} /> {editingOrg ? 'Cancel' : 'Edit details'}
+          </button>
+        }
+      >
+        {editingOrg ? (
+          <OrgForm org={ws.org} onDone={() => { setEditingOrg(false); toast('Organization updated'); void load() }} />
+        ) : (
+          <div className="panel flex flex-wrap items-baseline gap-x-5 gap-y-1 p-5">
+            <span className="font-medium text-ink">{ws.org.name}</span>
+            <span className="tag">{ws.org.industry || 'no industry set'}</span>
+            {ws.org.website
+              ? <a href={ws.org.website} target="_blank" rel="noreferrer noopener"
+                   className="meta text-accent-ink hover:underline">{ws.org.website}</a>
+              : <span className="meta">no website set</span>}
+            <span className="meta ml-auto">
+              {ws.org.regions.length ? ws.org.regions.join(' · ') : 'no regions set'}
+            </span>
+          </div>
+        )}
+      </Section>
+
+      <Section
         title="Campaigns"
         aside={
           <button className="btn px-3 py-1 text-xs" onClick={() => setCreating((c) => !c)}>
@@ -92,7 +136,7 @@ export default function SponsorCampaigns() {
         }
       >
         {creating && (
-          <CampaignForm onDone={() => { setCreating(false); void load() }}
+          <CampaignForm onDone={() => { setCreating(false); toast('Campaign created'); void load() }}
                         onCancel={() => setCreating(false)} />
         )}
         {ws.campaigns.length === 0 && !creating && (
@@ -133,7 +177,25 @@ export default function SponsorCampaigns() {
                 <Link to={`/sponsor/campaigns/${c.id}?tab=analytics`} className="btn px-3 py-1.5 text-xs">
                   Analytics
                 </Link>
+                <button className="btn ml-auto px-3 py-1.5 text-xs"
+                        onClick={() => { setEditing(c); setCreating(false) }}>
+                  <Pencil size={12} /> Edit
+                </button>
+                {c.status === 'closed' ? (
+                  <button className="btn px-3 py-1.5 text-xs" onClick={() => setStatus(c, 'active')}>
+                    Reopen
+                  </button>
+                ) : (
+                  <button className="btn px-3 py-1.5 text-xs" onClick={() => setStatus(c, 'closed')}>
+                    Close
+                  </button>
+                )}
               </div>
+              {editing?.id === c.id && (
+                <CampaignForm campaign={c}
+                              onDone={() => { setEditing(null); toast('Campaign updated'); void load() }}
+                              onCancel={() => setEditing(null)} />
+              )}
             </div>
           ))}
         </div>
@@ -143,7 +205,8 @@ export default function SponsorCampaigns() {
   )
 }
 
-function CampaignForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
+function CampaignForm({ campaign, onDone, onCancel }:
+                      { campaign?: Campaign; onDone: () => void; onCancel: () => void }) {
   // Countries and themes come from what the directory actually contains, so a
   // sponsor can target the first athlete from a new country the day they list,
   // rather than when somebody remembers to add the code to an array here.
@@ -156,9 +219,19 @@ function CampaignForm({ onDone, onCancel }: { onDone: () => void; onCancel: () =
   }, [])
 
   const [form, setForm] = useState({
-    name: '', objective: '', category: CATEGORIES[0],
-    deal_types: [] as string[], budget_eur_min: 2000, budget_eur_max: 20000,
-    target_age_buckets: [] as string[], target_countries: [] as string[], target_topics: [] as string[],
+    name: campaign?.name ?? '',
+    objective: campaign?.objective ?? '',
+    category: campaign?.category ?? CATEGORIES[0],
+    deal_types: (campaign?.deal_types ?? []) as string[],
+    budget_eur_min: campaign?.budget_eur_min ?? 2000,
+    budget_eur_max: campaign?.budget_eur_max ?? 20000,
+    target_age_buckets: (campaign?.target_age_buckets ?? []) as string[],
+    target_countries: (campaign?.target_countries ?? []) as string[],
+    target_topics: (campaign?.target_topics ?? []) as string[],
+    // Carried, not edited. This form has never offered a gender control, so
+    // an edit that omitted the field would have quietly blanked a targeting
+    // dimension the brief was written with.
+    target_genders: (campaign?.target_genders ?? []) as string[],
   })
   const [error, setError] = useState('')
   const toggle = (k: 'deal_types' | 'target_age_buckets' | 'target_countries' | 'target_topics', v: string) =>
@@ -168,7 +241,8 @@ function CampaignForm({ onDone, onCancel }: { onDone: () => void; onCancel: () =
     e.preventDefault()
     setError('')
     try {
-      await api.post('/api/campaigns', form)
+      if (campaign) await api.put(`/api/campaigns/${campaign.id}`, form)
+      else await api.post('/api/campaigns', form)
       onDone()
     } catch (err) {
       setError(errorText(err))
@@ -233,6 +307,69 @@ function CampaignForm({ onDone, onCancel }: { onDone: () => void; onCancel: () =
         <button className="btn-go" disabled={!facets && !facetsFailed}>
           {facets || facetsFailed ? 'Create campaign' : 'Loading targeting…'}</button>
         <button type="button" className="btn" onClick={onCancel}>Cancel</button>
+      </div>
+    </form>
+  )
+}
+
+
+/** The sponsor's own details. Athletes and clubs could always edit their public
+ *  identity; a sponsor's was whatever the sign-up form guessed, and it sits on
+ *  every offer they have ever sent. */
+function OrgForm({ org, onDone }: { org: Workspace['org']; onDone: () => void }) {
+  const [form, setForm] = useState({
+    name: org.name, industry: org.industry ?? '', website: org.website ?? '',
+    regions: org.regions ?? [],
+  })
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(''); setBusy(true)
+    try {
+      await api.put('/api/sponsor/org', form)
+      onDone()
+    } catch (err) {
+      setError(errorText(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="panel space-y-4 border-accent p-5">
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="block">
+          <span className="cap">Organization name</span>
+          <input className="field mt-1" required minLength={2} value={form.name}
+                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+        </label>
+        <label className="block">
+          <span className="cap">Industry</span>
+          <input className="field mt-1" value={form.industry}
+                 onChange={(e) => setForm((f) => ({ ...f, industry: e.target.value }))} />
+        </label>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="block">
+          <span className="cap">Website</span>
+          <input className="field mt-1" type="url" placeholder="https://" value={form.website}
+                 onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))} />
+        </label>
+        <label className="block">
+          <span className="cap">Regions</span>
+          <input className="field mt-1" placeholder="Europe, North America"
+                 value={form.regions.join(', ')}
+                 onChange={(e) => setForm((f) => ({
+                   ...f, regions: e.target.value.split(',').map((r) => r.trim()).filter(Boolean),
+                 }))} />
+          <span className="meta mt-1 block">Comma separated.</span>
+        </label>
+      </div>
+      {error && <div className="rounded border border-critical/40 bg-critical/10 px-3 py-2 text-sm text-critical">{error}</div>}
+      <div className="flex justify-end">
+        <button className="btn-go" disabled={busy}>{busy ? 'Saving…' : 'Save details'}</button>
       </div>
     </form>
   )
