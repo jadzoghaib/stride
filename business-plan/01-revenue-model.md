@@ -93,14 +93,48 @@ a deal closing. By Y7 it is €3.36M of the €26.52M — 13% of revenue at clos
 
 Headline rates across the platforms an athlete could plausibly choose instead:
 
-| Platform | Headline take | Other creator fees | Effective take, small creator |
-|---|---|---|---|
-| **Passes** | **10%** | **$0.30/txn + $29/mo creator fee** | **~16–25%** |
-| OnlyFans | 20% | — | 20% |
-| Fansly | 20% | — | 20% |
-| Fanfix | 20% | — | 20% |
-| Patreon | 8–12% | Payment fees passed to creator | ~12–15% |
-| **Stride (proposed)** | **15%** | **none — we absorb payment costs** | **15%** |
+| Platform | Headline take | Other creator fees | Effective take, small creator | Evidence |
+|---|---|---|---|---|
+| **Passes** | **10%** | **$0.30/txn + $29/mo creator fee** | **~16–25%** | Sacra; rebrand release |
+| OnlyFans | 20% | — | **19.5% measured** | filed accounts — see below |
+| Fansly | 20% | — | 20% | not published; consistently reported |
+| Fanfix | 20% | — | 20% | not published; consistently reported |
+| Patreon | **10%** | none — processing included | 10% | Patreon publishes it |
+| **Stride (proposed)** | **15%** | **none — we absorb payment costs** | **15%** | our decision |
+
+**OnlyFans' 20% is not a reported figure — it is arithmetic on filed accounts.**
+OnlyFans' parent, [Fenix International Limited, company no. 10354575](https://find-and-update.company-information.service.gov.uk/company/10354575),
+files publicly at Companies House. FY2024 (to 30 November 2024): **$7.22bn** of
+gross fan payments, of which **$1.41bn** was retained as OnlyFans' own revenue
+and **$5.8bn** paid out to creators. The take is 1.41 / 7.22 = **19.5%** —
+measured, not asserted, in a document that will still be there in five years.
+
+The two sides do not tie to exactly 100% (19.5% + 80.3% = 99.8%), and that is
+worth saying rather than rounding away: net revenue and creator payouts are
+separate lines in a set of accounts, not two halves of one split. The headline
+"80/20" is the company's description of its own pricing; 19.5% is what the money
+actually did. We use 20%, because that is the rate a creator is quoted.
+
+**Patreon's row was wrong and is now corrected.** It read 8–12% by plan tier with
+payment fees passed to the creator, for an effective 12–15%. Patreon has since
+moved to a single published rate:
+[10% of what you earn](https://www.patreon.com/pricing), which it states
+*includes* "payment processing, currency conversion, and payout fees". So
+Patreon is materially cheaper than this document previously claimed. It ties
+Passes on the headline — both say 10% — but Passes adds $0.30 a transaction and
+$29 a month, so **on all-in cost Patreon is the cheapest option in this table,
+cheaper than what we are proposing.** That is worth stating plainly rather than
+leaving it to be discovered. It does not undo the Passes argument below, because
+Patreon is a membership tool rather than an athlete product and its 10% buys
+none of the sponsorship-side machinery — but the table should not have been
+flattering us, and it was.
+
+**Fansly and Fanfix do not publish a rate at all.** Checked 2026-09-05: Fanfix's
+[Creator Terms of Use](https://auth.fanfix.io/creator-terms-of-use) and its
+public FAQ state no percentage, and Fansly's terms render client-side with
+nothing in the document. Both are private companies with no filings to derive it
+from. 20% is what every secondary source reports and what they charge in-app,
+but it is an estimate, and it is marked as one.
 
 And the middlemen the athlete is paying *on top* of the platform:
 

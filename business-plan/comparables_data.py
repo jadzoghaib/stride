@@ -18,13 +18,16 @@ from __future__ import annotations
 # ── Platform economics ───────────────────────────────────────────────────────
 # (metric, value, unit, platform, period, source)
 PLATFORM_FACTS: list[tuple] = [
-    # OnlyFans — FY2024 company financials, reported via Variety
+    # OnlyFans — FY2024 (year to 30 Nov 2024). These are not press estimates:
+    # the parent, Fenix International Limited (company no. 10354575), files at
+    # Companies House, and the trade press reported off those filed accounts.
+    # The registry is cited first because it outlives the article.
     ("Gross payments (GMV)", 7_220_000_000, "USD", "OnlyFans", "FY2024",
-     "Variety, OnlyFans FY2024 financials"),
+     "Fenix International Ltd filed accounts (Companies House 10354575)"),
     ("Net revenue", 1_410_000_000, "USD", "OnlyFans", "FY2024",
-     "Variety, OnlyFans FY2024 financials"),
+     "Fenix International Ltd filed accounts (Companies House 10354575)"),
     ("Paid to creators", 5_800_000_000, "USD", "OnlyFans", "FY2024",
-     "Variety — 80% creator share"),
+     "Fenix International Ltd filed accounts — 80.3% of gross"),
     ("Creator accounts", 4_634_000, "count", "OnlyFans", "FY2024",
      "Variety — +13% YoY"),
     ("Fan accounts", 377_500_000, "count", "OnlyFans", "FY2024",
@@ -72,7 +75,9 @@ PLATFORM_FACTS: list[tuple] = [
 # ── Take rates: what each platform actually costs a creator ──────────────────
 # (platform, headline_take, per_txn_usd, monthly_fee_usd, source)
 TAKE_RATES: list[tuple] = [
-    ("OnlyFans", 0.20, 0.00, 0.00, "Company disclosure — 80% creator share"),
+    # Not a claim — arithmetic on the filed accounts above:
+    # 1.41bn net revenue / 7.22bn gross fan payments = 19.5%.
+    ("OnlyFans", 0.20, 0.00, 0.00, "Derived: 1.41bn / 7.22bn = 19.5% (filed accounts)"),
     # Neither platform publishes its take rate. Checked 2026-09-05: Fanfix's
     # Creator Terms of Use and its FAQ state no percentage, and Fansly's terms
     # render client-side with nothing in the document. The 20% is consistent
@@ -81,7 +86,12 @@ TAKE_RATES: list[tuple] = [
     # anyone leans on it.
     ("Fansly", 0.20, 0.00, 0.00, "Not published in terms; widely reported"),
     ("Fanfix", 0.20, 0.00, 0.00, "Not published in terms; widely reported"),
-    ("Patreon", 0.10, 0.00, 0.00, "8-12% by plan tier; 10% midpoint"),
+    # The one platform here that publishes a rate outright, and it has changed:
+    # the old 8-12%-by-tier structure, with processing billed on top, is gone.
+    # patreon.com/pricing now states a single 10% "of the income you earn",
+    # explicitly including "payment processing, currency conversion, and payout
+    # fees, and applicable taxes". So 10% is all-in, not a midpoint of a range.
+    ("Patreon", 0.10, 0.00, 0.00, "Published: 10% all-in, processing included"),
     ("Passes", 0.10, 0.30, 29.00, "Sacra; Passes rebrand release Apr 2026"),
     ("Stride (proposed)", 0.15, 0.00, 0.00, "Our decision — see MarketModel"),
 ]
@@ -123,12 +133,20 @@ POPULATION_M: dict[str, float] = {
 #: The agent caps now come from the bodies that set them, and the numbers moved:
 #: playing-contract representation is 2-5%, not the 4-10% those pages reported.
 #:
-#: The platform take rates could *not* be replaced with published terms, because
-#: the platforms do not publish them -- see the note on the Fansly/Fanfix rows.
-#: An absent primary source is recorded as absent rather than papered over with
-#: another blog.
+#: The platform take rates split three ways once actually chased down:
+#:
+#:   Patreon publishes one, and ours was stale -- it is a flat 10% including
+#:   payment processing, not 8-12% by tier with fees billed on top.
+#:   OnlyFans does not publish a rate, but its parent files accounts, so 20%
+#:   is recoverable as arithmetic rather than taken on trust.
+#:   Fansly and Fanfix publish nothing and file nothing. Those two stay at the
+#:   reported 20% and stay labelled as estimates. An absent primary source is
+#:   recorded as absent rather than papered over with another blog.
 SOURCE_URLS = {
-    "OnlyFans FY2024": "https://variety.com/2025/digital/news/onlyfans-fiscal-2024-revenue-earnings-1236495750/",
+    "OnlyFans FY2024 filed accounts (Fenix International Ltd)":
+        "https://find-and-update.company-information.service.gov.uk/company/10354575/filing-history",
+    "OnlyFans FY2024 as reported": "https://variety.com/2025/digital/news/onlyfans-fiscal-2024-revenue-earnings-1236495750/",
+    "Patreon published take rate": "https://www.patreon.com/pricing",
     "Patreon creators": "https://backlinko.com/patreon-users",
     "Passes economics": "https://sacra.com/c/passes/",
     "Fanfix creator terms (states no take rate)": "https://auth.fanfix.io/creator-terms-of-use",
