@@ -17,7 +17,7 @@
   <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-1f2937?style=flat-square&logo=python&logoColor=FFB020">
   <img alt="React 18" src="https://img.shields.io/badge/react-18-1f2937?style=flat-square&logo=react&logoColor=FFB020">
   <img alt="FastAPI" src="https://img.shields.io/badge/fastapi-0.11x-1f2937?style=flat-square&logo=fastapi&logoColor=FFB020">
-  <img alt="Tests 303 passing" src="https://img.shields.io/badge/tests-303%20passing-1f2937?style=flat-square&logo=pytest&logoColor=3FCF8E">
+  <img alt="Tests 304 passing" src="https://img.shields.io/badge/tests-304%20passing-1f2937?style=flat-square&logo=pytest&logoColor=3FCF8E">
   <img alt="LLM cost zero" src="https://img.shields.io/badge/LLM%20inference%20cost-%240-1f2937?style=flat-square">
   <img alt="Status: first product draft" src="https://img.shields.io/badge/status-first%20product%20draft-1f2937?style=flat-square">
 </p>
@@ -168,13 +168,35 @@ rather than an afterthought:
 ## Verification
 
 ```bash
-uv run pytest -q                       # 35 passed — RBAC, matching, consent, chaos recovery
+uv run pytest -q                       # 304 passed, 2 skipped (those two need Postgres)
 cd apps/web && npx tsc -b && npx vite build
-python scripts/failure_drill.py        # latency → errors → db down → recovery
 ```
 
 The suite covers role boundaries, matching decomposition, campaign-specific audience fit, the
 consent trail, offer round-trips, and chaos injection with recovery.
+
+Beyond the unit tests, the checks below run against a *running* server, because what they
+assert is behaviour rather than code shape. Start the API first, then:
+
+```bash
+python scripts/journey.py     http://127.0.0.1:8490   # 38 product rules, end to end
+python scripts/permissions.py http://127.0.0.1:8490   # 408 role x route combinations
+python scripts/propagation.py http://127.0.0.1:8490   # 20 cross-role consequences
+python scripts/links.py --api http://127.0.0.1:8490   # every link and API call resolves
+python scripts/failure_drill.py                       # latency -> errors -> db down -> recovery
+python scripts/admission_stress.py                    # the admission bar under a funnel sweep
+```
+
+And the business plan is held to its own model rather than to prose discipline:
+
+```bash
+python scripts/doc_consistency.py     # every figure in prose still matches model.py
+python scripts/verify_workbook.py     # 1,973 formulas, no dangling refs, no cycles
+python scripts/links.py --external    # every URL the plan cites is still reachable
+```
+
+`journey.py` and `permissions.py` write to the demo database and restore it afterwards, so
+running them does not leave test applications sitting in the admin review queue.
 
 ---
 
