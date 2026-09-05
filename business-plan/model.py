@@ -117,7 +117,13 @@ class Assumptions:
     athletes_for_full_saas_value: int = 2_000
 
     # ---- take rates --------------------------------------------------------
-    take_fan: float = 0.15        # vs OnlyFans 20% — deliberately athlete-friendly
+    # The corridor, now that both ends are real numbers rather than one:
+    # OnlyFans 20% above (derived from Fenix International's filed accounts,
+    # 1.41bn / 7.22bn = 19.5%) and Patreon 10% below -- published, and all-in,
+    # including payment processing. This sat at "vs OnlyFans 20% -- deliberately
+    # athlete-friendly", which was true and was only the ceiling. 01 carries
+    # what each end of the corridor costs.
+    take_fan: float = 0.15
     take_sponsorship: float = 0.10
 
     # ---- payment rails (charged on GMV, not on our net revenue) ------------

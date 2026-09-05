@@ -18,7 +18,12 @@ tags: [business-plan, draft, stride, sports-tech, creator-economy]
 > Where a figure is an estimate rather than a model output, it is marked
 > **`[estimate]`**. Where research is still owed, it is marked **`[to research]`**.
 
-![Hero image — a trail runner mid-race, shot from behind, small in a large landscape. The point of the image is scale: one athlete, a big empty market.](attachments/hero-trail-runner.jpg)
+> [!example] 📷 ==PHOTO P1 — the opening image==
+> A trail runner mid-race, shot from behind, **small in a large landscape**.
+> The point of the image is scale: one athlete, a big empty market.
+> **File** · `attachments/hero-trail-runner.jpg` — not taken yet.
+> **Licensing** · Stock is fine here. A real athlete is better, and needs a
+> written release before it goes in a deck shown to investors.
 
 ---
 
@@ -59,6 +64,16 @@ EBITDA turns positive in **Y4**. Total capital to fund the plan: **€625k**
 (peak burn €446k plus a 40% buffer). Take rates are published and fixed: **15%
 on fan revenue, 10% on sponsorship**, no monthly athlete fee.
 
+> [!example] 📊 ==GRAPH G1 — the plan in one frame==
+> **Chart** · Revenue as columns, EBITDA as a line, one shared € axis, a zero
+> rule the line crosses in Y4. Shade Y1–Y3 lightly and label the band *funded
+> by the raise*.
+> **Data** · `attachments/chart-data/g1-revenue-ebitda.csv`
+> **Must say** · The loss is small, bounded and ends in Y4 — €274k at its worst,
+> against €9.99M seven years out.
+> **Watch** · Y1 revenue is €29k. On a linear axis it is one pixel; that is
+> fine, and truer than a log axis that flatters the early years.
+
 ### The ask
 
 **€400k pre-seed at €2.5M pre-money**, gated on evidence rather than milestones:
@@ -91,7 +106,17 @@ Consider a real profile — the kind we designed the product around.
 > Her audience is small, dense, and commercially excellent. Nobody has told her
 > that, and no one is going to.
 
-![A portrait of a niche athlete in their environment — a padel court at a municipal club, or a trail runner at a start line. Not a hero shot: an ordinary competitor at an ordinary event. The caption should name their sport, national ranking and follower count, so the reader sees the gap for themselves.](attachments/athlete-portrait.jpg)
+> [!example] 📷 ==PHOTO P2 — the athlete this plan is about==
+> A portrait in their environment — a padel court at a municipal club, or a
+> trail runner at a start line. **Not a hero shot**: an ordinary competitor at
+> an ordinary event.
+> **Caption** · Name their sport, national ranking and follower count, so the
+> reader sees the gap for themselves rather than being told about it. This is
+> the same argument as **G2**, made by a face instead of an axis.
+> **File** · `attachments/athlete-portrait.jpg` — not taken yet.
+> **Licensing** · ==A named, ranked, real person needs a signed release.== If
+> one is not available, use an unidentifiable shot and put the ranking in the
+> caption without the name.
 
 ## 2.2 The three failures
 
@@ -142,6 +167,19 @@ graph LR
     C --> D["The arbitrage<br/>category-leading<br/>+ commercially invisible"]
     style D fill:#FFB020,stroke:#8A5200,color:#14100A
 ```
+
+> [!example] 📊 ==GRAPH G2 — the decoupling, drawn==
+> **Chart** · Scatter. X = sporting rank in the sport (best on the left),
+> Y = annual sponsorship income. Two series: a popular sport, where the points
+> fall along a tight curve, and a niche one, where they lie flat along the
+> bottom. Circle the top-left corner of the niche series — a national champion
+> earning nothing — and label it *the arbitrage*.
+> **Data** · ==Illustrative, and it must say so on the chart.== Nothing in the
+> repo measures athlete income; this is the argument in §2.3 drawn, not a
+> finding. A real version needs the federation and income data §9.1 asks for,
+> and would be the single most valuable exhibit in the deck.
+> **Must say** · In one sport the two axes are the same line. In the other they
+> are unrelated. That is the whole business.
 
 ## 2.4 Why now
 
@@ -218,6 +256,16 @@ graph TD
 | With ≥5,000 social following — i.e. a monetisable audience | ~3% ≈ **138,000** | `[estimate]` — the softest number here |
 | **TAM** — annual revenue if all monetised at model ARPA | **≈ €70M** `[estimate]` | 138k × ~€510 blended net revenue per athlete at maturity |
 
+> [!example] 📊 ==GRAPH G3 — the funnel, on a log axis==
+> **Chart** · Horizontal bars, **logarithmic** — 520M to 52,000 is four orders
+> of magnitude and a linear axis renders the last four bars as nothing. Colour
+> the two `[estimate]` steps differently from the sourced one and put the basis
+> on each bar.
+> **Data** · `attachments/chart-data/g3-market-funnel.csv`
+> **Must say** · Two things at once: the funnel is transparent, and **SOM sits
+> almost on top of SAM** — the tension this section admits to. Draw SAM and SOM
+> as adjacent bars so a reader sees the gap close rather than reading about it.
+
 **SAM — the reachable subset by Y7:** Spain, Portugal, France, Italy, Nordics,
 UK. Roughly **40% of the above ≈ 55,000 athletes ≈ €28M**.
 
@@ -260,6 +308,19 @@ supply, fandom, monetisability, sponsor demand and agent density.
 | athletics | 53.1 | popular | mixed |
 | football | 53.1 | popular | spectator |
 
+> [!example] 📊 ==GRAPH G4 — 714 pairs, and where Spain sits in them==
+> **Chart** · Scatter of all 714 country × sport pairs. X = supply (athletes
+> available), Y = demand (sponsor appetite), point size = score, colour = niche
+> vs popular. Grey out everything, then light up **padel · Spain** and
+> **running/trail · Spain**, labelled. Optionally a small ranked bar chart of
+> the top ten beside it.
+> **Data** · `attachments/chart-data/g4-sport-index.csv` — all 714 rows, with the
+> `country_confidence` column so *measured* and *estimated* countries can be
+> drawn differently.
+> **Must say** · The launch choice fell out of a repeatable method applied to
+> 714 candidates, not out of the founders being Spanish. The cloud is the
+> evidence; the two lit points are the decision.
+
 > [!tip] The launch decision writes itself
 > We are a **Spanish company**. Spain's two best-scoring sports are **padel**
 > and **trail running**, both niche, both practitioner-audience, both in growth.
@@ -285,6 +346,20 @@ sport is one input.
 **Nobody occupies our square:** self-serve, long-tail, EU, fan revenue *and*
 sponsorship, priced transparently.
 
+> [!example] 📊 ==GRAPH G5 — the empty corner==
+> **Chart** · 2×2. X = reaches the long tail, Y = monetises fans directly.
+> Place the six competitors from the table above, then place Stride in the
+> top-right — where the only other occupant is Patreon, which has no sponsor
+> side. Annotate Stride's point with the third axis the square cannot show:
+> *and a sponsorship market on the same account*.
+> **Data** · `attachments/chart-data/g5-competitive-map.csv` — ==the coordinates are
+> editorial placements of the table above, not measurements.== The CSV exists so
+> the chart is reproducible, not so it looks quantitative. Do not add a
+> numbered axis.
+> **Must say** · The corner is empty, and it is empty for a structural reason —
+> agencies cannot serve the tail at their cost base, and creator platforms have
+> no reason to build a sponsor side.
+
 ### Our defensibility, honestly assessed
 
 | Moat | Strength | Why |
@@ -302,9 +377,10 @@ the plan spends on athlete acquisition rather than on engineering headcount.
 
 # 4 · Technology
 
-## 4.1 What exists today
+## 4.1 How it works
 
-A working product, not a prototype — end to end, in CI, on two databases.
+A working product, not a prototype — end to end, in CI, on two databases. Every
+screenshot below is the running application, not a mock-up.
 
 ```mermaid
 graph TD
@@ -312,25 +388,92 @@ graph TD
     A["Platform connectors<br/>Instagram · TikTok · YouTube"] --> B["Ingestion pipeline<br/>sync runs, post metrics"]
     end
     subgraph Analytics
-    B --> C["CreatorLens scoring<br/>8 dimensions, versioned snapshots"]
+    B --> C["CreatorLens scoring<br/>5 dimensions, versioned snapshots"]
     C --> D["Marketability score<br/>+ audience demographics"]
     end
     subgraph Marketplace
     D --> E["Admission gate<br/>credibility, proof, club nomination"]
-    E --> F["Campaign matching<br/>explainable ranking"]
+    E --> F["Campaign matching<br/>8 weighted components"]
     F --> G["Offers → deals → deliverables"]
     G --> H["Delivery measurement<br/>reach, engagement, cost per 1k"]
+    end
+    subgraph Audience
+    D --> I["The athlete's own page<br/>follow free · subscribe for the rest"]
+    I --> J["Posts, courses, events,<br/>products, polls, fan wall"]
     end
     H -.feeds.-> C
     style C fill:#FFB020,stroke:#8A5200,color:#14100A
 ```
 
-![Product screenshot — the campaign matches screen with a row expanded, showing the eight score components and the arithmetic. This is the single most persuasive image in the deck: it is the claim 'we measure this' made visible. Take it from the running demo at /sponsor/campaigns/1.](attachments/product-matching.png)
+### The athlete connects an account, and gets a number they can argue with
+
+One score, five dimensions, each with the evidence behind it. Coverage is stated
+rather than hidden: two connected platforms means a two-platform score, and it
+says so. Nothing here is a projection — every figure traces to posts the athlete
+actually published.
+
+![The athlete's own dashboard: the marketability score as a board headline, and the five dimensions ranked with the confidence attached to each.](attachments/product-athlete-board.jpg)
+
+The audience behind that score is aggregated only — age bands, gender split,
+country shares. No row in the schema can identify an individual follower,
+because no such data is ever requested from a platform. The chip is not
+decoration: platform connectors are mocked in this build, and every surface that
+shows an audience says so.
+
+![Audience by country as a choropleth, with the simulated-audience disclosure chip and the ranked country table beside it.](attachments/product-audience-map.jpg)
+
+### The sponsor briefs a campaign, and gets a ranking that shows its working
+
+This is the single most important screen in the product. Each match is a
+weighted sum the sponsor can take apart: bar length is each component's
+*contribution* — the component multiplied by the weight actually applied — so
+the chart ranks what drove the match rather than which raw number happened to be
+largest. The reasons beside it are generated from the same arithmetic, not
+written by hand.
+
+![A match expanded: eight score components ranked by contribution, each showing the component-times-weight arithmetic, with plain-language reasons and the send-offer action.](attachments/product-matching.jpg)
+
+The same ranking, collapsed, is the sponsor's shortlist. Coverage sits on every
+row, because a score from one platform is not the same claim as a score from
+three.
+
+![Ranked matches against a campaign brief, each row carrying its analytics coverage.](attachments/product-campaign-matches.jpg)
+
+### The offer, the deliverables, and what actually happened
+
+An offer becomes a deal; a deal requires at least one attached deliverable
+before it can be completed. Delivery is then measured against the projection
+captured **at offer time**, so variance is a real comparison rather than a
+number chosen after the fact. A deal marked complete with nothing attached
+reads as unmeasured, never as zero.
+
+### The audience side — free to follow, paid to see the rest
+
+Following is free and public. Subscribing is what opens the lock. They are
+different relationships in the schema, not two words for one, and the difference
+is the whole fan-revenue thesis.
+
+![An athlete's public page: generated cover art until they upload their own, the membership card, and follow and subscribe as separate actions.](attachments/product-athlete-page.jpg)
+
+The wall mixes what the athlete writes with the platform activity their
+connected accounts produce. Platform items carry a very light wash of that
+platform's own colour — 5–7% behind a coloured edge — and the label names the
+platform too, so colour is never the only carrier. A locked post shows its
+title, its tier and what sits behind it, and nothing else: no thumbnail leaks
+through the blur.
+
+![A wall mixing the athlete's own posts with platform activity, each tinted by platform, above a locked post showing only its title and tier.](attachments/product-creator-feed.jpg)
+
+### And the directory a sponsor browses
+
+![The public athlete directory, sortable on the measurement, with rate card and analytics coverage as columns.](attachments/product-directory.jpg)
 
 **Three design decisions worth a diligence call:**
 
 1. **Every match score decomposes.** Eight components, each weighted, arithmetic
-   visible — `audience fit 72 × 32% = 23.1`. No black-box ranking.
+   visible — `audience fit 72 × 32% = 23.1`. No black-box ranking. (The *score*
+   has five dimensions; the *match* adds budget alignment, format overlap and
+   category affinity to make eight.)
 2. **Missing data is `null`, never `0`.** An unmeasured campaign reads as
    unmeasured, not free. A dimension we could not measure is *excluded from the
    score*, not counted as zero.
@@ -338,29 +481,63 @@ graph TD
    for a human to open its roster page. A rejected proof cannot be cleared by
    re-submitting the form.
 
+> [!note] What the demo will and will not do
+> Sign in at any of the five demo accounts and the whole flow above runs on
+> seeded data. **No money moves anywhere in it.** The €9.99 on the membership
+> card is a label, not a price: there is no tier entity, no billing, and no
+> payment processor. That is §4.2, and it is the honest boundary between what
+> is built and what is funded by this plan.
+
 ## 4.2 What must still be built
 
-| Phase | Ships | Unlocks | Gate |
-|---|---|---|---|
-| **P0** | Stripe Connect, athlete KYC | Money can move | — |
-| **P1** | Tiers, subscriptions, entitlements, text/photo posts | **Fan revenue** | **Pre-seed** |
-| **P2** | Video upload, transcode, paywalled delivery, moderation, age gate | Video tier | Pre-seed → Seed |
-| **P3** | Deal payments, escrow, sponsor billing | Sponsorship revenue at scale | Seed |
-| **P4** | DAC7, refunds/disputes, multi-currency | EU operations | Series A |
+The phase table below has moved since the first draft, and it has moved in one
+direction: the **content** half of P1 and P2 shipped, and the **money** half did
+not. That is worth being precise about, because it changes what this plan is
+asking to fund.
 
-> [!important] P1 is the whole ballgame
-> It is the cheapest possible test of the only assumption the business cannot
-> survive being wrong about: **will fans of a semi-professional athlete pay
-> €9.99 a month?** Text and photo behind a paywall answer that — no transcoding,
-> no CDN decision, far less moderation exposure than video.
+| Phase | Ships | Status | Gate |
+|---|---|---|---|
+| **P0** | Stripe Connect, athlete KYC | **Not started** — the whole of it | — |
+| **P1** | Tier entity with prices, recurring billing, entitlement expiry, dunning | **Half built.** Posts, courses, events, products, polls, the free/locked split and the subscribe relationship all exist and are demonstrable. What is missing is everything that charges: there is no tier entity, no price, no renewal, no expiry | **Pre-seed** |
+| **P2** | Video transcode, object storage, CDN, automated moderation | **Half built.** Image and video upload are accepted, size-capped and signature-checked where the container has a signature to check, then served; locked delivery works; the athlete age gate takes a full date of birth and refuses anyone under 16; block, report and an admin review queue exist. What is missing is transcoding, a CDN decision, and automated classification ahead of the human queue | Pre-seed → Seed |
+| **P3** | Deal payments, escrow, sponsor billing plans | **Not started.** Deals record an amount and a status; no money moves | Seed |
+| **P4** | DAC7, refunds/disputes, multi-currency | **Not started** | Series A |
+
+Shipped alongside, and not previously on this table because a first draft did
+not think to ask for it: **account safety and data rights.** Terms acceptance
+recorded against the version shown, email verification, password reset, change
+of address, six of six GDPR rights live including a one-click export and an
+erasure that anonymises the person while keeping the deal records an accounting
+duty requires. None of it is a feature anyone will pay for. All of it is a
+precondition for putting a real person in front of the product, and it is done.
+
+> [!important] P1 is still the whole ballgame — and it is now a smaller bet
+> The question has not changed: **will fans of a semi-professional athlete pay
+> €9.99 a month?** What has changed is the cost of asking it. The first draft
+> put a content layer, a paywall and a billing system between here and the
+> answer. Two of those three exist. What stands between this plan and its own
+> most important experiment is **a payment processor and a tier that has a
+> price**, against a content surface that already publishes, locks and delivers.
+>
+> The €9.99 on the membership card today is a label rendered by the client.
+> There is no tier entity behind it. That single sentence is the honest summary
+> of the gap.
 
 ## 4.3 The fan product — specification
 
-> [!warning] This is the least-built and most valuable part of the plan
-> **87% of Y1 revenue is fan subscriptions**, and the product currently has *no
-> content object of any kind*. Fans can follow an athlete and see a marketability
-> sparkline. They cannot see a single post. This section is the specification,
-> not a description of something that exists.
+> [!warning] This was the least-built part of the plan. It is now the least-*paid* part
+> **87% of Y1 revenue is fan subscriptions.** When this section was first
+> written it was a specification for something that did not exist: there was no
+> content object of any kind, and a fan could follow an athlete and see a
+> sparkline and nothing else.
+>
+> Most of what follows now describes the product rather than proposing it —
+> the content types in 4.3.2, the free layer in 4.3.1, the sponsored and
+> highlighted labels in 4.3.4, and clubs as publishers in 4.3.5 are all built.
+> What is *not* built is the part that takes money: the tiers in **4.3.3** are
+> a schema column and a display string, not a price anyone can pay. Read this
+> section as a description with one specification-shaped hole in the middle of
+> it, and read 4.3.3 knowing that is the hole.
 
 ### 4.3.1 The free layer — the reason to open the app
 
@@ -520,6 +697,17 @@ salary, taken once, at the start.
 in the low 70s rather than a SaaS 80%+, and pretending otherwise would be the
 easiest way to lose credibility with anyone who has run a marketplace.
 
+> [!example] 📊 ==GRAPH G11 — what the cost of revenue is actually made of==
+> **Chart** · Stacked columns, Y1–Y7: payments, infrastructure, moderation,
+> verification. Overlay the naive-infrastructure figure as a dashed line so the
+> egress decision is visible as the gap between it and the real infrastructure
+> band.
+> **Data** · `attachments/chart-data/g11-cogs-composition.csv`
+> **Must say** · The reflex on hearing "content platform" is a bandwidth bill.
+> **It is a payments bill** — €6.04M against €419k at Y7. The architecture
+> decision is real and worth taking; it is not the thing that decides the
+> margin.
+
 ## 4.5 Team and scaling
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y7 |
@@ -585,7 +773,14 @@ in them has privately wondered and none can answer.
 > vs Sweden"* · *"Why your sport pays less than the one next to it."* Each post
 > is a genuine finding from real data, and each ends at a product that proves it.
 
-![A race expo or tournament village — crowded, branded, physical. The argument this image makes is density: every person in frame is a practitioner, which is why the channel works.](attachments/race-expo.jpg)
+> [!example] 📷 ==PHOTO P3 — why the race-day channel works==
+> A race expo or tournament village: crowded, branded, physical. The argument
+> the image makes is **density** — every person in frame is a practitioner,
+> which is the whole reason this channel converts.
+> **File** · `attachments/race-expo.jpg` — not taken yet.
+> **Licensing** · Crowd shots at a public event are the easy case. Avoid frames
+> where a single identifiable person is the subject, and avoid other brands'
+> logos being the most legible thing in the picture.
 
 ### 2 · Race-day and tournament presence — where 100% of them are
 
@@ -728,6 +923,16 @@ misunderstood: the demo shows the *sponsorship* engine, because that is what is
 built — but the model's early years are a subscription business. Both are true
 and the sequencing is deliberate.
 
+> [!example] 📊 ==GRAPH G6 — the business changing shape==
+> **Chart** · 100% stacked area, Y1–Y7: fan, sponsorship, SaaS. Then a second
+> panel — or a secondary axis — carrying absolute revenue, because the share
+> chart alone hides that the total grew 900×.
+> **Data** · `attachments/chart-data/g6-revenue-mix.csv`
+> **Must say** · Y1 is a subscription business and Y7 is a two-sided one, and
+> the transition is gradual rather than a pivot. This is also the honest
+> counterweight to §4: the built half of the product is the half that pays
+> later.
+
 ## 6.3 Unit economics
 
 | | Niche | Popular |
@@ -740,6 +945,17 @@ and the sequencing is deliberate.
 
 Niche share of athletes falls **95% → 41%** across the plan — niche-first, then
 popular sports enter from a position of proof.
+
+> [!example] 📊 ==GRAPH G7 — why niche first, in two lines==
+> **Chart** · Small multiples, four panels sharing an X axis of Y1–Y10, each
+> with a niche line and a popular line: CAC, monetising rate, athlete churn,
+> and niche share of the roster. Same two colours throughout so the reader
+> learns them once.
+> **Data** · `attachments/chart-data/g7-unit-economics.csv`
+> **Must say** · Niche athletes cost less than half as much, monetise twice as
+> often, and churn less — and the plan still lets popular sports become the
+> majority by Y10. The strategy is a **sequence**, not a permanent preference,
+> and the falling niche-share line is what makes that legible.
 
 ## 6.4 Capital
 
@@ -755,6 +971,17 @@ popular sports enter from a position of proof.
 needs leaves no room for the assumption that turns out wrong, and a company that
 runs out of cash in Y3 at the trough dies with a working product.
 
+> [!example] 📊 ==GRAPH G8 — the trough, and the buffer over it==
+> **Chart** · Cumulative cash line, Y1–Y7, with the raises as step-ups. Mark
+> the **Y3 trough at −€446k** with a dropline, draw the €625k requirement as a
+> horizontal rule above it, and shade the gap between them: that band is the
+> buffer, and it is the argument of this section.
+> **Data** · `attachments/chart-data/g8-cash-and-capital.csv` — the cumulative column
+> is stated **before** raises, so the trough is the number the raise has to
+> clear.
+> **Must say** · The whole company is asking for €400k to cross a €446k hole
+> with room to be wrong once. Anyone can check the arithmetic from the chart.
+
 ## 6.5 Valuation
 
 **DCF: €22.8M enterprise value** (WACC 25%, terminal growth 3%). Terminal value
@@ -769,24 +996,49 @@ rather you weight the comparables.
 > still grew 22%. That is the standard failure of perpetuity-growth DCF applied
 > to a company that has not finished growing — not an error in either method.
 
+> [!example] 📊 ==GRAPH G10 — the football field==
+> **Chart** · Horizontal range bar per method — DCF, 4.0× / 6.5× / 9.0×
+> revenue, 14× EBITDA — on one € axis. The DCF bar will sit near the origin and
+> the multiples an order of magnitude out. **Do not compress the axis to make
+> them agree.** The distance is the finding.
+> **Data** · `attachments/chart-data/g10-valuation.csv`
+> **Must say** · The two methods disagree by 10×, we are showing you both, and
+> the note above explains why. A deck that showed only the flattering one is
+> the deck this chart exists not to be.
+
 ---
 
 # 7 · Risk Register
 
-Scored **probability × impact**, both 1–5. Ordered by product.
+Scored **probability × impact**, both 1–5, and listed by score. The **R-codes
+are stable identifiers, not ranks** — R11 was added after §8 was written and
+sits where its score puts it, so that adding a risk never renumbers the ones
+already being referred to in conversation.
 
 | # | Risk | P | I | Score | Mitigation |
 |---|---|---|---|---|---|
 | **R1** | **Fans do not pay for niche athletes** — the thesis fails | 3 | 5 | **15** | P1 is built specifically to test this for €80k, not €2.4M. Pre-seed gate requires 3 months of real churn data. If false, the sponsorship marketplace remains a smaller, viable business |
 | **R2** | **Churn is at benchmark, not 45% better** | 3 | 4 | **12** | See below — the model understates this. Mitigation is measurement, early, on one athlete |
 | **R3** | **Athlete acquisition is slower than modelled** | 3 | 4 | **12** | Club and federation channels are multiplicative (1 conversation = 20–40 athletes). Anchor-athlete referral loop. CAC has room: niche CAC is €16 against €40 popular |
+| **R11** | **VAT deemed-supplier treatment** — Art 9a presumes we supply the fan in our own name, and the presumption cannot be rebutted by a platform that both sets the terms and processes the payment. We do both | 4 | 3 | **12** | See [[#8 · Legal & Regulatory]] **L1**. Y7 revenue −9.0%, Y7 EBITDA −14.1%, trough €446k → €571k. High probability, contained impact, and **answerable in one conversation with a Spanish tax adviser** — which is why it is the first item on the pre-launch legal list rather than a monitored risk |
+| **R5** | **Regulatory — DAC7 due diligence, age assurance, Spanish startup law changes** | 3 | 3 | **9** | Re-scored. **DAC7 is not a P4 build**: sponsorship deliverables are "personal services" with no de minimis, so seller due diligence is needed before the first paid deal — see §8.1 **L3**. Accounts are 16+; fan subscriptions stay 18+ in v1, deliberately conservative. Legal budget €18k→€270k |
+| **R7** | **Moderation / content liability** | 3 | 3 | **9** | Re-scored upward: image **and video** upload now ship, so the P2 exposure arrived ahead of the P2 tooling. Block, report and an admin review queue exist and the queue is budgeted from Y1; automated classification ahead of the human queue does not exist yet. 18+ subscriptions |
 | **R4** | **A funded competitor enters the niche** | 2 | 4 | **8** | Data and liquidity are the moat, not the code. 18–24 month head start on measured athlete data. Communities reward incumbency |
-| **R5** | **Regulatory — DAC7, age assurance, Spanish startup law changes** | 2 | 4 | **8** | 18+ for fan subscriptions in v1, deliberately conservative. DAC7 is a P4 build. Legal budget €18k→€270k |
-| **R6** | **Payment processing costs rise / Stripe terms change** | 2 | 4 | **8** | PSP is the dominant COGS line — €6.04M at Y7. Multi-PSP architecture from P0; take rate has headroom (15% vs 20% tested) |
-| **R7** | **Moderation / content liability** | 2 | 3 | **6** | Text and photo only until P2. 18+ subscriptions. Moderation queue budgeted from Y1 |
+| **R6** | **Payment processing costs rise / Stripe terms change** | 2 | 4 | **8** | PSP is the dominant COGS line — €6.04M at Y7. Multi-PSP architecture from P0; take rate has headroom (10–20% corridor tested). The controllable half is the **content policy**: prohibiting adult content keeps us on mainstream rates, and §8.1 **L2** recommends exactly that |
 | **R8** | **Key-person dependency on the anchor athlete** | 3 | 2 | **6** | Sign 3–5 rather than 1 as soon as capital allows. The proof is the *data*, which survives any individual leaving |
 | **R9** | **Sponsor side never densifies** | 2 | 3 | **6** | Fan revenue leads by design; sponsorship is upside, not the base case. Y1 sponsorship is 9% of revenue |
 | **R10** | **Infrastructure costs exceed model** | 1 | 3 | **3** | Zero-egress architecture is a 9× saving already designed in. Infra is 1.6% of Y7 revenue |
+
+> [!example] 📊 ==GRAPH G12 — the risk map==
+> **Chart** · 5×5 grid, probability across, impact up, one labelled dot per
+> risk, area or colour by score. Shade the top-right quadrant. R1 sits alone in
+> it, which is the point.
+> **Data** · The table directly above — code, P, I. ==Read it from the plan, not
+> from a copy==, so the chart cannot drift from the register the way a
+> re-keyed spreadsheet does.
+> **Must say** · There is **one** risk in the danger quadrant and it is the
+> thesis itself; everything else is a manageable middle. A deck whose risk map
+> is evenly scattered has not thought about which risk is the real one.
 
 ## R1 & R2 — the honest disclosure
 
@@ -815,9 +1067,113 @@ presenting it.
 
 ---
 
-# 8 · Appendix
+# 8 · Legal & Regulatory
 
-## 8.1 What still needs research
+The short version. We are a Spanish company operating an EU platform that pays
+individuals and carries paid promotional content, which puts us inside four
+regimes at once: data protection, VAT and platform tax reporting, advertising
+and sponsorship law, and the platform-liability rules. Most of it is ordinary and already
+handled. **Three items are not ordinary, because they move the numbers in §6**,
+and they are first for that reason.
+
+The model already carries the cost of all of this: `legal_compliance_eur` runs
+**€18k in Y1 to €270k in Y7**, a line that exists because a marketplace paying
+individuals across borders does not get to treat compliance as a founder's
+weekend.
+
+## 8.1 The three that touch the financial model
+
+| # | Issue | Why it matters here | Effect if it lands against us |
+|---|---|---|---|
+| **L1** | **VAT: are we the deemed supplier?** Art 9a of the VAT Implementing Regulation presumes a platform supplying electronic services acts *in its own name*. The presumption is **irrebuttable** where the platform sets the essential terms **and** processes the payment. We publish fixed take rates and run the PSP — we do both | The fan pays €9.99. If we are the deemed supplier, VAT is due on the **whole** €9.99, not on our €1.50 commission, and the model's `fan_arpu_month` of €9.49 has to be read as VAT-**inclusive** | **Y7 revenue €26.52M → €24.13M (−9.0%), Y7 EBITDA €9.99M → €8.58M (−14.1%), and the cash trough deepens from €446k to €571k** — which would consume most of the €625k requirement's buffer |
+| **L2** | **Adult content: permitted or not?** The plan cites OnlyFans as proof of the model. It does not follow that we copy their content policy. Stripe and every mainstream PSP prohibit adult content | The PSP assumption in §4.4 is **1.9% + €0.25**. High-risk processing for adult platforms runs several times that, and payments are already the dominant COGS line | Payments are €6.04M at Y7 on the mainstream rate. A high-risk rate does not dent the margin, it removes it. **Recommendation: prohibit adult content in the terms, explicitly, from day one** — the athlete audience is practitioner-led and the policy costs us nothing we want |
+| **L3** | **DAC7 arrives earlier than P4.** The reporting directive covers "personal services" — time- or task-based work performed *at a user's request*. Commentary is fairly settled that pre-recorded subscription content falls **outside** that. A sponsorship deliverable — a post an athlete produces because a sponsor briefed it — falls squarely **inside**, and personal services carry **no de minimis**: one deal is reportable | §4.2 schedules DAC7 at P4/Series A. That is right for the subscription side and wrong for the sponsorship side, which is **already built** | Seller due diligence (TIN, address, business registration) has to be collected **before the first paid deal**, not in Y4. Cheap if designed in, expensive as a retrofit against a live roster |
+
+> [!warning] ==L1 is the one to resolve first.==
+> It is a single question — *do we quote prices VAT-inclusive or VAT-exclusive,
+> and who remits* — with a 14% EBITDA swing behind it, and it is answerable in
+> one conversation with a Spanish tax adviser. Until it is answered, **read the
+> §6 figures as VAT-exclusive**, which is the optimistic reading. It belongs in
+> the risk register as well as here.
+
+## 8.2 Data protection — the part that is already done
+
+Spanish controller, so **GDPR plus LOPDGDD**. The architecture was built for
+this rather than retrofitted, and it is the cheapest compliance we will ever
+get:
+
+| Obligation | Where we stand |
+|---|---|
+| **Six data-subject rights** | All six live in the product: access, rectification, erasure, restriction, portability (one-click export), objection |
+| **Erasure vs. retention** | Erasure anonymises the person and **keeps the deal records**, because commercial and tax law requires retaining them. Both duties are satisfied; neither is quietly dropped |
+| **Audience data** | **Aggregates only — age bands, gender split, country shares.** No follower-level row exists anywhere in the schema, because none is ever requested from a platform. This is the single most important design decision in the section: the data we do not hold cannot be breached, subpoenaed, or mis-shared |
+| **Terms acceptance** | Recorded against the **version shown at the time**, not a boolean. A changed policy is a new acceptance |
+| **Minimum age** | **16.** Spain's LOPDGDD sets the digital-consent floor at **14**; GDPR's default is 16. We took the stricter of the two, which avoids a per-country gate and is **forward-compatible**: Spain's draft law on minors in digital environments would move the floor to 16 anyway. Note this is the floor for an *account* — the age model is tiered, and 18 still governs payouts and paid subscriptions |
+| **Lawful basis** | Contract for the service itself; consent for marketing; legitimate interest for the analytics — with the aggregates-only design doing most of the work in the balancing test |
+
+`[to do]` The paperwork behind the product: a Record of Processing (Art 30), a
+**DPIA** — profiling individuals for commercial ranking is exactly the case Art
+35 contemplates — and DPAs with every processor. None is difficult. All of it
+is unglamorous and none of it is written.
+
+## 8.3 Sports sponsorship — what to actually look out for
+
+This is the part with genuine sport-specific traps, and the first row is the
+one that can void a deal we have already taken a fee on:
+
+| Risk | The trap | What we do about it |
+|---|---|---|
+| **Image rights already assigned** | An athlete under club, federation or national-team contract has frequently assigned some or all commercial image rights, or is bound by category exclusivity during a competition period. **They may not own what they are selling on our platform** | An explicit warranty in the athlete terms that they hold the rights they grant; a conflicts field on the profile for existing sponsors and exclusivities; and the club-nomination flow, which surfaces the club relationship at admission rather than at dispute |
+| **Competition-period blackouts** | Olympic **Rule 40** and its equivalents restrict a personal sponsor's advertising around a Games. Liberalised since 2019, but still a notice-and-approval regime, not a free-for-all | A campaign date range that can be checked against the athlete's competition calendar. Not built; belongs with deals, not before them |
+| **Athletes aged 16–18** | Admitted at 16, but a minor's commercial contract in Spain is voidable without guardian authorisation, and advertising rules involving minors are stricter in both directions | A separate consent step and a restricted category set for under-18s. `[to build]` — flagged here because the age gate letting them in is what creates the obligation |
+| **Restricted brand categories** | Gambling above all. Spain's RD 958/2020 was cut back by **Supreme Court judgment 527/2024**, which annulled the prohibition on public figures appearing in gambling advertising among other articles — so athlete-fronted betting promotion is now a live commercial proposition rather than a theoretical one, and demand will arrive. Alcohol, tobacco, and food-to-minors carry their own regimes | A **category blocklist on the sponsor side**, set by us, published, and defended as brand positioning rather than as legal caution. The athlete our thesis starts with — a national-champion trail runner with a practitioner audience — is not helped by a betting ad, whatever the law now permits |
+| **Anti-doping** | An athlete endorsing a supplement can breach federation rules, and a contaminated product is the athlete's problem regardless of who introduced them | Supplements flagged as a review category rather than blocked. This is a reputational exposure that lands on the athlete, which makes it ours |
+| **Ad disclosure** | Undisclosed paid content is an unfair commercial practice under the UCPD; in Spain, the AUTOCONTROL/AEA influencer code has applied since 2021 | **The platform generates the disclosure, rather than trusting the athlete to remember it.** We already render a `sponsored` label on paid items; the deliverable spec should carry the required tag into the athlete's own caption too |
+
+> [!note] One regime that does **not** catch us, and it is worth knowing why
+> Spain's "influencer law" — **RD 444/2024**, implementing Art 94 of the
+> audiovisual law — applies to *usuarios de especial relevancia*: **€300k of
+> gross annual income from video platforms and 1M followers on one platform (or
+> 2M across several), plus 24+ videos a year**. Our thesis is the long tail.
+> Our athletes sit two orders of magnitude below that threshold by design, and
+> Stride is not a video-sharing platform in the first place. It is worth
+> checking annually rather than assuming — the anchor athlete is the one who
+> could eventually cross it.
+
+## 8.4 Platform obligations, briefly
+
+| Regime | Position |
+|---|---|
+| **DSA** | We are an online platform hosting user content — nowhere near VLOP scale, and likely inside the small-enterprise exemption from the heavier Section 3 duties at launch. The core mechanics exist: **block, report, an admin review queue** with a resolution step. What is missing is the paperwork around them — statements of reasons, an internal complaint route, and a transparency report |
+| **Consumer law** | Digital subscriptions to EU consumers carry a **14-day withdrawal right** unless properly waived, plus auto-renewal transparency and cancellation that is as easy as signing up. All of it lands in P1 with billing, and all of it is standard |
+| **Payments** | We use a PSP's connected-accounts model so that **KYC/AML sits with the PSP and we never hold client money**. Becoming a payment institution ourselves is a different company; the flow of funds must be designed so we never accidentally become one |
+| **Platform connector terms** | Instagram, TikTok and YouTube each restrict what their API data may be stored for and how long. Our aggregates-only design is well positioned, but the terms have to be read before the connectors go live — **which is one of the reasons they are still mocked** |
+
+## 8.5 What goes to counsel before launch
+
+Short, in order of what it would cost to get wrong:
+
+1. **VAT: deemed supplier or not, and is €9.99 inclusive or exclusive?** (L1 — a 14% EBITDA question)
+2. **Terms of service, athlete agreement and sponsor agreement**, with the image-rights warranty in the athlete agreement
+3. **DAC7 seller due diligence before the first paid deal** (L3)
+4. **DPIA and Record of Processing**, and DPAs with the processors
+5. **The under-18 consent flow**, which the age gate at 16 has already created a need for
+6. Adult-content and restricted-category policies, published (L2)
+
+Everything on that list is bounded and none of it is novel. The section exists
+so that no one reading §6 has to wonder whether it was considered.
+
+> [!note] What this section is
+> A founder's map of the terrain, written to be short enough to read and
+> specific enough to act on — **not legal advice, and not a substitute for
+> counsel.** Every position above is stated so that a lawyer can correct it
+> quickly, which is the cheapest way to buy an hour of their time.
+
+---
+
+# 9 · Appendix
+
+## 9.1 What still needs research
 
 Ordered by how much the plan would change if the answer surprised us.
 
@@ -832,12 +1188,12 @@ Ordered by how much the plan would change if the answer surprised us.
 | 7 | **Disclosure rules for sponsored content behind a paywall** (EU) | §4.3.4 — a different regime from a sponsored social post, and we ship a disclosure module already | 1 week |
 | 8 | **News aggregation: attribution, excerpt length, licensing** | §4.3.1 — the free layer depends on it, and it is the one part with real legal texture | 2 weeks |
 
-## 8.2 Method notes
+## 9.2 Method notes
 
 - **Financial model:** `business-plan/model.py`. Ten-year projection, real
   working capital, capex, amortisation, loss carry-forward, Spanish Startup Law
   tax step (15% for four profitable years, then 25%).
-- **Consistency:** an automated guard checks **46 prose claims across 9
+- **Consistency:** an automated guard checks **59 prose claims across 9
   documents** against the model, plus the evidence chain from published
   comparables → derived assumptions. The build fails if any figure drifts —
   including this sentence, whose two numbers are themselves pinned to the
@@ -848,7 +1204,7 @@ Ordered by how much the plan would change if the answer surprised us.
 - **Sport index:** `sport_index.py` — 714 country × sport pairs from a decomposed
   34-country × 21-sport matrix.
 
-## 8.3 Sources
+## 9.3 Sources
 
 | Source | Used for |
 |---|---|
@@ -861,7 +1217,49 @@ Ordered by how much the plan would change if the answer surprised us.
 | Spanish Startup Law (Ley 28/2022) | Tax treatment |
 | **Federation licence data** | **`[to research]` — see 8.1** |
 
-## 8.4 Full document set
+## 9.4 Where the pictures go
+
+Twelve slots are marked through the plan as `📊 GRAPH Gn` callouts. Each says
+what the chart is, what it must make land, and where its numbers come from.
+Nine have a CSV written straight out of the model, so a chart can never quietly
+disagree with the arithmetic behind it:
+
+```
+python business-plan/graph_data.py     # → business-plan/attachments/chart-data/*.csv
+```
+
+Re-run it after any change to `model.py`; the numbers move and the files move
+with them.
+
+| Slot | Section | Chart | Data |
+|---|---|---|---|
+| **G1** | §1 Executive Summary | Revenue columns + EBITDA line, crossing zero in Y4 | `g1-revenue-ebitda.csv` |
+| **G2** | §2.3 The rank arbitrage | Rank vs. income scatter, two sports | **Illustrative** — no data exists; see §9.1 |
+| **G3** | §3.3 Market sizing | Funnel, log axis, 520M → 52,000 | `g3-market-funnel.csv` |
+| **G4** | §3.4 The sport index | 714-pair scatter, Spain lit up | `g4-sport-index.csv` |
+| **G5** | §3.5 Competitive landscape | 2×2, the empty corner | `g5-competitive-map.csv` *(editorial placements)* |
+| **G6** | §6.2 The seven-year shape | 100% stacked area, revenue mix | `g6-revenue-mix.csv` |
+| **G7** | §6.3 Unit economics | Four small multiples, niche vs. popular | `g7-unit-economics.csv` |
+| **G8** | §6.4 Capital | Cash line, the trough, the buffer over it | `g8-cash-and-capital.csv` |
+| **G9** | `01-revenue-model.md` | Take-rate corridor, 10 / 15 / 20% | `g9-take-rate-corridor.csv` |
+| **G10** | §6.5 Valuation | Football field, DCF against multiples | `g10-valuation.csv` |
+| **G11** | §4.4 Infrastructure | Stacked COGS — it is a payments bill | `g11-cogs-composition.csv` |
+| **G12** | §7 Risk Register | 5×5 probability × impact map | The §7 table itself |
+
+**Seven product screenshots are already in place**, all seven in §4.1 and all
+seven taken from the running application rather than mocked. Three photographs
+are briefed and not yet taken:
+
+| Slot | Section | Photograph | Note |
+|---|---|---|---|
+| **P1** | §1, opening | Trail runner, small in a large landscape | Stock is acceptable |
+| **P2** | §2.1 The athlete | Ordinary competitor at an ordinary event | **Needs a signed release if named** |
+| **P3** | §5.2 Race-day presence | Race expo — density, not personality | Crowd shot, avoid other brands' logos |
+
+**G9's slot lives in the revenue-model doc rather than here**, because that is
+where the corridor is argued; the CSV is written by the same script.
+
+## 9.5 Full document set
 
 | # | Document | Settles |
 |---|---|---|

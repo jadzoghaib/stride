@@ -205,13 +205,44 @@ two decisions have to agree with each other.
 
 ### The lever, quantified
 
-At Y7 each point of take on fan GMV is worth **€0.92M of revenue**; 15% → 20%
-adds €4.6M. It is the single biggest lever in the model.
+At Y7 each point of take on fan GMV is worth **€0.92M of revenue**. It is the
+single biggest lever in the model, and it now has a real number at both ends
+rather than one:
 
-**Recommendation: hold 15%, and never add a monthly creator fee.** The fee is
-what makes Passes beatable, and copying it would forfeit the only pricing
-argument that survives contact with a long-tail athlete. Revisit the percentage
-at Series A, when the network — not the price — is the reason to stay.
+| Take | Y7 revenue | Y7 EBITDA | Against |
+|---|---|---|---|
+| 20% | €31.12M | €14.22M | OnlyFans' rate, derived from filed accounts |
+| **15%** | **€26.52M** | **€9.99M** | **our proposal** |
+| 10% | €21.93M | €5.77M | Patreon's published, all-in rate |
+
+Read the bottom row before the top one. **Matching Patreon costs €4.59M of Y7
+revenue and €4.23M of EBITDA — EBITDA falls 42%, from €9.99M to €5.77M.** The
+same five points that look like upside going up are what a price war costs
+going down, and the downside lands harder because the cost base does not shrink
+with the take.
+
+> [!example] 📊 ==GRAPH G9 — the corridor, not the sensitivity==
+> **Chart** · Three grouped columns — revenue and EBITDA at 10%, 15%, 20% — with
+> the 15% pair highlighted and the other two labelled by the competitor they
+> represent, not by the percentage alone. A sensitivity table nobody reads
+> becomes a picture of where we sit between two real companies.
+> **Data** · `attachments/chart-data/g9-take-rate-corridor.csv`
+> **Must say** · ==The downside is steeper than the upside.== Five points up
+> adds €4.6M of revenue; five points down costs €4.6M of revenue and **42% of
+> EBITDA**, because the cost base does not shrink with the take. Draw the EBITDA
+> series so that asymmetry is the thing the eye lands on.
+
+**Recommendation: hold 15%, and never add a monthly creator fee.** But hold it
+for the right reason. The Passes argument below — that 10% plus $0.30 a
+transaction plus $29 a month is worse than a flat 15% for any athlete earning
+under €1,380 a month — is arithmetic, and it survives. It does **not** cover
+Patreon, whose 10% carries no fee at all and is genuinely cheaper for everyone.
+Against Patreon the argument has to be that the 15% buys something Patreon does
+not sell: the sponsorship side, the score a brand will price against, the
+admission gate that makes the roster mean something. If an athlete only wants a
+paywall, Patreon is cheaper and we should expect to lose that athlete. Revisit
+the percentage at Series A, when the network — not the price — is the reason to
+stay.
 
 *Sources: [Passes fee structure (Sacra)](https://sacra.com/c/passes/) ·
 [Passes 10% confirmed at 2026 rebrand](https://www.prnewswire.com/news-releases/passes-rebrands-as-the-creator-accelerator-platform-302749690.html) ·
@@ -221,14 +252,14 @@ at Series A, when the network — not the price — is the reason to stay.
 [OnlyFans agency commissions 20–50%](https://arunatalent.com/blog/onlyfans-agency-commission-rates/) ·
 [Fanfix Creator Terms of Use](https://auth.fanfix.io/creator-terms-of-use) — cited for what it does *not* say
 
-**On the platform rates in the first table.** Those could not be moved to
-published terms, because the platforms do not publish them. Checked 2026-09-05:
-Fanfix's Creator Terms of Use and its public FAQ state no percentage, Fansly's
-terms render client-side with nothing in the document, and OnlyFans' terms are
-not reachable without an account. The 20% is consistent across secondary
-reporting and is what these platforms charge in-product, but it is not a
-published figure — so it is recorded here as an estimate to re-check in-app,
-rather than dressed up with another citation.
+**On the platform rates in the first table.** They split three ways once
+actually chased down, and this note used to say flatly that none of them could
+be sourced. That was true of half of them. Patreon publishes its rate outright.
+OnlyFans does not, but its parent files accounts, so the 20% is recoverable as
+arithmetic rather than taken on trust. Fansly and Fanfix publish nothing and
+file nothing — checked 2026-09-05, Fanfix's Creator Terms and public FAQ state
+no percentage and Fansly's terms render client-side with nothing in the
+document — so those two stay at the reported 20% and stay marked as estimates.
 
 **What does not depend on any of this:** the recommendation to hold 15%. It
 rests on the Passes comparison — Sacra plus the rebrand release, both live and

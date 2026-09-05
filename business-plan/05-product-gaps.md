@@ -285,22 +285,34 @@ the platform has a moderation team rather than before.
 
 ## Sequenced build
 
-| Phase | Ships | Unlocks | Gate it serves |
+The content halves of P1 and P2 have shipped since this table was first
+written. What has not shipped is every part of them that charges — which is the
+useful way to read the table now, so the *Ships* column below carries only what
+is genuinely outstanding:
+
+| Phase | Still to ship | Already shipped | Gate it serves |
 |---|---|---|---|
-| **P0** — pre-revenue | EUR migration, Stripe Connect, athlete KYC | Money can move | — |
-| **P1** — first revenue | Tiers, subscriptions, entitlements, simple text/photo posts | Streams 1 + 3 | **Pre-seed gate** |
-| **P2** — the thesis test | Video upload, transcode, paywalled delivery, moderation queue, age gate | Stream 2, legal launch | Pre-seed → Seed |
-| **P3** — second engine | Deal payments, escrow, sponsor billing plans | Streams 4, 5, 6 | Seed gate |
-| **P4** — scale | DAC7, refunds/disputes, multi-currency, notifications | EU operations | Series A gate |
+| **P0** — pre-revenue | Stripe Connect, athlete KYC | EUR migration | — |
+| **P1** — first revenue | **A tier entity with a price**, recurring billing, entitlement expiry, dunning | Posts, courses, events, products, polls, free-vs-locked, subscribe as its own relationship, fan feed, fan DMs | **Pre-seed gate** |
+| **P2** — the thesis test | Transcode, object storage, CDN, automated classification ahead of the human queue | Image **and video** upload, locked delivery, age gate at 16, block, report, admin review queue | Pre-seed → Seed |
+| **P3** — second engine | Deal payments, escrow, sponsor billing plans | Deals, deliverables, measurement against the offer-time projection | Seed gate |
+| **P4** — scale | Refunds/disputes, multi-currency, notifications | — | Series A gate |
 
-**P1 is the whole ballgame.** It is the cheapest possible test of the only
-assumption the business cannot survive being wrong about: *will fans of a
-semi-professional athlete pay €9.99 a month?*
+> [!warning] DAC7 has moved out of P4
+> Sponsorship deliverables are "personal services" under the reporting
+> directive, and personal services carry **no de minimis** — one paid deal is
+> reportable. Seller due diligence therefore belongs with **P3**, not P4.
+> Subscription content is a different matter and probably outside scope. See
+> §8.1 **L3** of the plan.
 
-Text and photo posts behind a paywall answer that question. They need no
-transcoding pipeline, no CDN decision, and far less moderation exposure than
-video. **Ship P1, get three months of churn data from one anchor athlete, and
-only then commit to P2's cost structure.**
+**P1 is still the whole ballgame, and it is now a smaller bet.** The question
+has not changed: *will fans of a semi-professional athlete pay €9.99 a month?*
+What has changed is the cost of asking it. This table used to put a content
+layer, a paywall and a billing system between here and the answer. Two of the
+three exist; the paywall works and has nothing behind it to charge.
+
+**Ship a tier with a price, get three months of churn data from one anchor
+athlete, and only then commit to P2's remaining cost structure.**
 
 If the answer is no, the sponsorship marketplace still works and the plan
 becomes a different, smaller, entirely viable business — one the product already

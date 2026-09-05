@@ -1,0 +1,715 @@
+country,region,sport,segment,score,supply,demand,appetite,agent_density,country_confidence
+Finland,nordics,running / trail,niche,80.6,1.0,0.521,0.925,0.1,measured
+Finland,nordics,cycling,niche,67.6,0.842,0.561,0.77,0.35,measured
+Finland,nordics,swimming,niche,68.8,0.819,0.472,0.841,0.25,measured
+Finland,nordics,football,popular,50.8,0.795,0.806,0.313,0.88,measured
+Finland,nordics,fitness / gym,niche,72.8,0.868,0.312,0.956,0.08,measured
+Finland,nordics,padel,niche,75.7,0.793,0.482,0.807,0.15,measured
+Finland,nordics,tennis,popular,48.3,0.666,0.606,0.438,0.78,measured
+Finland,nordics,basketball,popular,49.9,0.705,0.674,0.385,0.78,measured
+Finland,nordics,volleyball,popular,56.1,0.642,0.472,0.626,0.45,measured
+Finland,nordics,climbing,niche,65.3,0.626,0.32,0.811,0.12,measured
+Finland,nordics,athletics,popular,57.1,0.687,0.561,0.549,0.48,measured
+Finland,nordics,triathlon,niche,56.6,0.474,0.28,0.676,0.14,measured
+Finland,nordics,surfing,niche,55.6,0.502,0.361,0.589,0.22,measured
+Finland,nordics,golf,popular,47.7,0.615,0.532,0.482,0.72,measured
+Finland,nordics,boxing,popular,39.5,0.468,0.44,0.401,0.7,measured
+Finland,nordics,MMA,popular,40.0,0.447,0.489,0.295,0.66,measured
+Finland,nordics,gymnastics,niche,51.5,0.525,0.413,0.539,0.42,measured
+Finland,nordics,handball,niche,58.6,0.623,0.542,0.477,0.42,measured
+Finland,nordics,rowing,niche,54.0,0.423,0.265,0.626,0.18,measured
+Finland,nordics,skateboarding,niche,55.3,0.525,0.339,0.661,0.28,measured
+Finland,nordics,motorsport,popular,29.2,0.255,0.573,0.063,0.85,measured
+Sweden,nordics,running / trail,niche,80.5,0.993,0.529,0.918,0.1,measured
+Sweden,nordics,cycling,niche,67.3,0.835,0.568,0.752,0.35,measured
+Sweden,nordics,swimming,niche,68.6,0.813,0.48,0.828,0.25,measured
+Sweden,nordics,football,popular,50.5,0.788,0.814,0.293,0.88,measured
+Sweden,nordics,fitness / gym,niche,72.7,0.861,0.32,0.952,0.08,measured
+Sweden,nordics,padel,niche,75.4,0.786,0.49,0.791,0.15,measured
+Sweden,nordics,tennis,popular,48.0,0.659,0.614,0.415,0.78,measured
+Sweden,nordics,basketball,popular,49.5,0.698,0.682,0.363,0.78,measured
+Sweden,nordics,volleyball,popular,55.8,0.636,0.48,0.603,0.45,measured
+Sweden,nordics,climbing,niche,65.0,0.619,0.327,0.796,0.12,measured
+Sweden,nordics,athletics,popular,56.7,0.68,0.568,0.525,0.48,measured
+Sweden,nordics,triathlon,niche,56.2,0.467,0.288,0.655,0.14,measured
+Sweden,nordics,surfing,niche,55.2,0.495,0.369,0.565,0.22,measured
+Sweden,nordics,golf,popular,47.3,0.608,0.539,0.457,0.72,measured
+Sweden,nordics,boxing,popular,39.2,0.461,0.448,0.378,0.7,measured
+Sweden,nordics,MMA,popular,39.7,0.44,0.497,0.275,0.66,measured
+Sweden,nordics,gymnastics,niche,51.1,0.519,0.421,0.515,0.42,measured
+Sweden,nordics,handball,niche,58.2,0.616,0.55,0.453,0.42,measured
+Sweden,nordics,rowing,niche,53.6,0.417,0.272,0.603,0.18,measured
+Sweden,nordics,skateboarding,niche,55.0,0.519,0.347,0.639,0.28,measured
+Sweden,nordics,motorsport,popular,29.1,0.248,0.581,0.057,0.85,measured
+Denmark,nordics,running / trail,niche,80.0,0.979,0.529,0.91,0.1,measured
+Denmark,nordics,cycling,niche,66.6,0.82,0.568,0.734,0.35,measured
+Denmark,nordics,swimming,niche,68.0,0.798,0.48,0.814,0.25,measured
+Denmark,nordics,football,popular,49.8,0.774,0.814,0.273,0.88,measured
+Denmark,nordics,fitness / gym,niche,72.3,0.846,0.32,0.947,0.08,measured
+Denmark,nordics,padel,niche,74.8,0.772,0.49,0.775,0.15,measured
+Denmark,nordics,tennis,popular,47.3,0.645,0.614,0.392,0.78,measured
+Denmark,nordics,basketball,popular,48.8,0.683,0.682,0.341,0.78,measured
+Denmark,nordics,volleyball,popular,55.1,0.621,0.48,0.58,0.45,measured
+Denmark,nordics,climbing,niche,64.4,0.605,0.327,0.78,0.12,measured
+Denmark,nordics,athletics,popular,56.0,0.665,0.568,0.501,0.48,measured
+Denmark,nordics,triathlon,niche,55.6,0.452,0.288,0.633,0.14,measured
+Denmark,nordics,surfing,niche,54.5,0.48,0.369,0.542,0.22,measured
+Denmark,nordics,golf,popular,46.6,0.593,0.539,0.434,0.72,measured
+Denmark,nordics,boxing,popular,38.5,0.446,0.448,0.356,0.7,measured
+Denmark,nordics,MMA,popular,39.0,0.426,0.497,0.256,0.66,measured
+Denmark,nordics,gymnastics,niche,50.4,0.504,0.421,0.491,0.42,measured
+Denmark,nordics,handball,niche,57.5,0.601,0.55,0.429,0.42,measured
+Denmark,nordics,rowing,niche,52.9,0.402,0.272,0.58,0.18,measured
+Denmark,nordics,skateboarding,niche,54.3,0.504,0.347,0.617,0.28,measured
+Denmark,nordics,motorsport,popular,28.6,0.233,0.581,0.052,0.85,measured
+Netherlands,benelux,running / trail,niche,76.6,0.929,0.49,0.905,0.1,estimate
+Netherlands,benelux,cycling,niche,74.1,0.929,0.679,0.723,0.35,estimate
+Netherlands,benelux,swimming,niche,70.1,0.828,0.516,0.805,0.25,estimate
+Netherlands,benelux,football,popular,52.9,0.82,0.866,0.263,0.88,estimate
+Netherlands,benelux,fitness / gym,niche,72.5,0.848,0.33,0.944,0.08,estimate
+Netherlands,benelux,padel,niche,64.5,0.623,0.356,0.766,0.15,estimate
+Netherlands,benelux,tennis,popular,47.3,0.647,0.623,0.379,0.78,estimate
+Netherlands,benelux,basketball,popular,48.9,0.685,0.692,0.329,0.78,estimate
+Netherlands,benelux,volleyball,popular,55.1,0.623,0.49,0.566,0.45,estimate
+Netherlands,benelux,climbing,niche,62.2,0.573,0.304,0.771,0.12,estimate
+Netherlands,benelux,athletics,popular,56.0,0.667,0.578,0.487,0.48,estimate
+Netherlands,benelux,triathlon,niche,55.6,0.454,0.297,0.62,0.14,estimate
+Netherlands,benelux,surfing,niche,54.6,0.482,0.379,0.528,0.22,estimate
+Netherlands,benelux,golf,popular,46.7,0.595,0.549,0.421,0.72,estimate
+Netherlands,benelux,boxing,popular,43.9,0.526,0.532,0.343,0.7,estimate
+Netherlands,benelux,MMA,popular,42.9,0.482,0.558,0.246,0.66,estimate
+Netherlands,benelux,gymnastics,niche,50.4,0.506,0.431,0.478,0.42,estimate
+Netherlands,benelux,handball,niche,49.2,0.482,0.445,0.416,0.42,estimate
+Netherlands,benelux,rowing,niche,51.0,0.376,0.255,0.566,0.18,estimate
+Netherlands,benelux,skateboarding,niche,54.3,0.506,0.356,0.604,0.28,estimate
+Netherlands,benelux,motorsport,popular,31.2,0.269,0.623,0.05,0.85,estimate
+Luxembourg,benelux,running / trail,niche,75.6,0.911,0.453,0.917,0.1,estimate
+Luxembourg,benelux,cycling,niche,73.3,0.911,0.642,0.75,0.35,estimate
+Luxembourg,benelux,swimming,niche,69.2,0.81,0.479,0.826,0.25,estimate
+Luxembourg,benelux,football,popular,52.2,0.801,0.828,0.29,0.88,estimate
+Luxembourg,benelux,fitness / gym,niche,71.4,0.83,0.293,0.951,0.08,estimate
+Luxembourg,benelux,padel,niche,63.7,0.605,0.319,0.789,0.15,estimate
+Luxembourg,benelux,tennis,popular,46.6,0.629,0.586,0.412,0.78,estimate
+Luxembourg,benelux,basketball,popular,48.2,0.667,0.655,0.36,0.78,estimate
+Luxembourg,benelux,volleyball,popular,54.4,0.605,0.453,0.6,0.45,estimate
+Luxembourg,benelux,climbing,niche,61.3,0.554,0.267,0.794,0.12,estimate
+Luxembourg,benelux,athletics,popular,55.4,0.649,0.541,0.522,0.48,estimate
+Luxembourg,benelux,triathlon,niche,54.9,0.436,0.26,0.652,0.14,estimate
+Luxembourg,benelux,surfing,niche,53.9,0.464,0.342,0.562,0.22,estimate
+Luxembourg,benelux,golf,popular,46.0,0.577,0.512,0.455,0.72,estimate
+Luxembourg,benelux,boxing,popular,43.2,0.508,0.495,0.375,0.7,estimate
+Luxembourg,benelux,MMA,popular,42.1,0.464,0.521,0.273,0.66,estimate
+Luxembourg,benelux,gymnastics,niche,49.8,0.488,0.394,0.512,0.42,estimate
+Luxembourg,benelux,handball,niche,48.5,0.464,0.407,0.45,0.42,estimate
+Luxembourg,benelux,rowing,niche,50.3,0.358,0.218,0.6,0.18,estimate
+Luxembourg,benelux,skateboarding,niche,53.6,0.488,0.319,0.636,0.28,estimate
+Luxembourg,benelux,motorsport,popular,30.1,0.251,0.586,0.057,0.85,estimate
+Belgium,benelux,running / trail,niche,75.4,0.895,0.485,0.888,0.1,estimate
+Belgium,benelux,cycling,niche,72.5,0.895,0.674,0.684,0.35,estimate
+Belgium,benelux,swimming,niche,68.7,0.794,0.512,0.774,0.25,estimate
+Belgium,benelux,football,popular,51.5,0.786,0.861,0.228,0.88,estimate
+Belgium,benelux,fitness / gym,niche,71.4,0.814,0.325,0.934,0.08,estimate
+Belgium,benelux,padel,niche,63.0,0.589,0.352,0.73,0.15,estimate
+Belgium,benelux,tennis,popular,45.7,0.613,0.619,0.336,0.78,estimate
+Belgium,benelux,basketball,popular,47.4,0.651,0.687,0.289,0.78,estimate
+Belgium,benelux,volleyball,popular,53.5,0.589,0.485,0.52,0.45,estimate
+Belgium,benelux,climbing,niche,60.7,0.539,0.3,0.736,0.12,estimate
+Belgium,benelux,athletics,popular,54.4,0.633,0.573,0.441,0.48,estimate
+Belgium,benelux,triathlon,niche,54.0,0.421,0.293,0.575,0.14,estimate
+Belgium,benelux,surfing,niche,52.9,0.448,0.374,0.481,0.22,estimate
+Belgium,benelux,golf,popular,45.0,0.561,0.544,0.376,0.72,estimate
+Belgium,benelux,boxing,popular,42.4,0.493,0.527,0.302,0.7,estimate
+Belgium,benelux,MMA,popular,41.5,0.448,0.554,0.213,0.66,estimate
+Belgium,benelux,gymnastics,niche,48.8,0.472,0.426,0.431,0.42,estimate
+Belgium,benelux,handball,niche,47.6,0.448,0.44,0.371,0.42,estimate
+Belgium,benelux,rowing,niche,49.4,0.342,0.251,0.52,0.18,estimate
+Belgium,benelux,skateboarding,niche,52.7,0.472,0.352,0.558,0.28,estimate
+Belgium,benelux,motorsport,popular,30.1,0.236,0.619,0.042,0.85,estimate
+Austria,dach,running / trail,niche,75.9,0.911,0.485,0.898,0.1,estimate
+Austria,dach,cycling,niche,68.7,0.845,0.612,0.706,0.35,estimate
+Austria,dach,swimming,niche,67.4,0.782,0.485,0.792,0.25,estimate
+Austria,dach,football,popular,53.0,0.814,0.873,0.247,0.88,estimate
+Austria,dach,fitness / gym,niche,71.8,0.83,0.325,0.94,0.08,estimate
+Austria,dach,padel,niche,52.1,0.436,0.192,0.75,0.15,estimate
+Austria,dach,tennis,popular,46.5,0.629,0.619,0.359,0.78,estimate
+Austria,dach,basketball,popular,48.1,0.667,0.687,0.31,0.78,estimate
+Austria,dach,volleyball,popular,54.3,0.605,0.485,0.545,0.45,estimate
+Austria,dach,climbing,niche,65.7,0.617,0.359,0.755,0.12,estimate
+Austria,dach,athletics,popular,55.2,0.649,0.573,0.466,0.48,estimate
+Austria,dach,triathlon,niche,54.8,0.436,0.293,0.6,0.14,estimate
+Austria,dach,surfing,niche,53.7,0.464,0.374,0.507,0.22,estimate
+Austria,dach,golf,popular,44.7,0.561,0.529,0.4,0.72,estimate
+Austria,dach,boxing,popular,43.1,0.508,0.527,0.324,0.7,estimate
+Austria,dach,MMA,popular,42.1,0.464,0.554,0.231,0.66,estimate
+Austria,dach,gymnastics,niche,49.6,0.488,0.426,0.457,0.42,estimate
+Austria,dach,handball,niche,55.7,0.571,0.541,0.396,0.42,estimate
+Austria,dach,rowing,niche,50.1,0.358,0.251,0.545,0.18,estimate
+Austria,dach,skateboarding,niche,53.5,0.488,0.352,0.583,0.28,estimate
+Austria,dach,motorsport,popular,34.2,0.303,0.668,0.046,0.85,estimate
+Germany,dach,running / trail,niche,75.6,0.895,0.512,0.869,0.1,estimate
+Germany,dach,cycling,niche,67.9,0.829,0.638,0.644,0.35,estimate
+Germany,dach,swimming,niche,66.7,0.766,0.512,0.741,0.25,estimate
+Germany,dach,football,popular,52.4,0.798,0.899,0.198,0.88,estimate
+Germany,dach,fitness / gym,niche,71.7,0.814,0.352,0.921,0.08,estimate
+Germany,dach,padel,niche,51.3,0.421,0.218,0.693,0.15,estimate
+Germany,dach,tennis,popular,45.7,0.613,0.645,0.296,0.78,estimate
+Germany,dach,basketball,popular,47.4,0.651,0.714,0.253,0.78,estimate
+Germany,dach,volleyball,popular,53.3,0.589,0.512,0.474,0.45,estimate
+Germany,dach,climbing,niche,65.0,0.601,0.385,0.699,0.12,estimate
+Germany,dach,athletics,popular,54.3,0.633,0.6,0.396,0.48,estimate
+Germany,dach,triathlon,niche,53.8,0.421,0.319,0.53,0.14,estimate
+Germany,dach,surfing,niche,52.8,0.448,0.401,0.436,0.22,estimate
+Germany,dach,golf,popular,43.8,0.545,0.555,0.334,0.72,estimate
+Germany,dach,boxing,popular,42.4,0.493,0.554,0.265,0.7,estimate
+Germany,dach,MMA,popular,41.6,0.448,0.58,0.184,0.66,estimate
+Germany,dach,gymnastics,niche,48.7,0.472,0.453,0.387,0.42,estimate
+Germany,dach,handball,niche,54.8,0.555,0.567,0.33,0.42,estimate
+Germany,dach,rowing,niche,49.2,0.342,0.277,0.474,0.18,estimate
+Germany,dach,skateboarding,niche,52.6,0.472,0.378,0.513,0.28,estimate
+Germany,dach,motorsport,popular,34.1,0.287,0.694,0.035,0.85,estimate
+Ireland,uk_ie,running / trail,niche,77.7,0.928,0.53,0.878,0.1,estimate
+Ireland,uk_ie,cycling,niche,65.4,0.793,0.592,0.663,0.35,estimate
+Ireland,uk_ie,swimming,niche,66.9,0.771,0.503,0.757,0.25,estimate
+Ireland,uk_ie,football,popular,54.8,0.835,0.921,0.212,0.88,estimate
+Ireland,uk_ie,fitness / gym,niche,71.8,0.819,0.343,0.928,0.08,estimate
+Ireland,uk_ie,padel,niche,56.6,0.497,0.278,0.711,0.15,estimate
+Ireland,uk_ie,tennis,popular,45.9,0.617,0.637,0.315,0.78,estimate
+Ireland,uk_ie,basketball,popular,47.6,0.656,0.705,0.27,0.78,estimate
+Ireland,uk_ie,volleyball,popular,53.6,0.594,0.503,0.496,0.45,estimate
+Ireland,uk_ie,climbing,niche,59.0,0.515,0.291,0.717,0.12,estimate
+Ireland,uk_ie,athletics,popular,54.5,0.638,0.592,0.417,0.48,estimate
+Ireland,uk_ie,triathlon,niche,54.1,0.425,0.311,0.552,0.14,estimate
+Ireland,uk_ie,surfing,niche,53.0,0.453,0.392,0.458,0.22,estimate
+Ireland,uk_ie,golf,popular,48.0,0.606,0.601,0.354,0.72,estimate
+Ireland,uk_ie,boxing,popular,46.9,0.56,0.604,0.283,0.7,estimate
+Ireland,uk_ie,MMA,popular,41.7,0.453,0.572,0.198,0.66,estimate
+Ireland,uk_ie,gymnastics,niche,48.9,0.477,0.444,0.408,0.42,estimate
+Ireland,uk_ie,handball,niche,47.7,0.453,0.458,0.35,0.42,estimate
+Ireland,uk_ie,rowing,niche,53.8,0.409,0.328,0.496,0.18,estimate
+Ireland,uk_ie,skateboarding,niche,52.8,0.477,0.37,0.535,0.28,estimate
+Ireland,uk_ie,motorsport,popular,34.1,0.292,0.686,0.038,0.85,estimate
+United Kingdom,uk_ie,running / trail,niche,77.7,0.923,0.557,0.853,0.1,estimate
+United Kingdom,uk_ie,cycling,niche,65.0,0.789,0.619,0.613,0.35,estimate
+United Kingdom,uk_ie,swimming,niche,66.7,0.766,0.531,0.715,0.25,estimate
+United Kingdom,uk_ie,football,popular,54.7,0.83,0.948,0.178,0.88,estimate
+United Kingdom,uk_ie,fitness / gym,niche,71.9,0.814,0.371,0.912,0.08,estimate
+United Kingdom,uk_ie,padel,niche,56.3,0.493,0.306,0.665,0.15,estimate
+United Kingdom,uk_ie,tennis,popular,45.7,0.613,0.664,0.27,0.78,estimate
+United Kingdom,uk_ie,basketball,popular,47.4,0.651,0.733,0.229,0.78,estimate
+United Kingdom,uk_ie,volleyball,popular,53.2,0.589,0.531,0.442,0.45,estimate
+United Kingdom,uk_ie,climbing,niche,58.7,0.511,0.319,0.671,0.12,estimate
+United Kingdom,uk_ie,athletics,popular,54.2,0.633,0.619,0.366,0.48,estimate
+United Kingdom,uk_ie,triathlon,niche,53.7,0.421,0.338,0.498,0.14,estimate
+United Kingdom,uk_ie,surfing,niche,52.7,0.448,0.42,0.405,0.22,estimate
+United Kingdom,uk_ie,golf,popular,47.7,0.601,0.628,0.306,0.72,estimate
+United Kingdom,uk_ie,boxing,popular,46.7,0.555,0.632,0.241,0.7,estimate
+United Kingdom,uk_ie,MMA,popular,41.7,0.448,0.599,0.165,0.66,estimate
+United Kingdom,uk_ie,gymnastics,niche,48.6,0.472,0.472,0.357,0.42,estimate
+United Kingdom,uk_ie,handball,niche,47.4,0.448,0.485,0.302,0.42,estimate
+United Kingdom,uk_ie,rowing,niche,53.4,0.404,0.355,0.442,0.18,estimate
+United Kingdom,uk_ie,skateboarding,niche,52.5,0.472,0.397,0.48,0.28,estimate
+United Kingdom,uk_ie,motorsport,popular,34.5,0.287,0.713,0.031,0.85,estimate
+France,france,running / trail,niche,75.2,0.883,0.508,0.863,0.1,estimate
+France,france,cycling,niche,69.5,0.848,0.664,0.632,0.35,estimate
+France,france,swimming,niche,66.2,0.754,0.508,0.731,0.25,estimate
+France,france,football,popular,51.1,0.774,0.883,0.189,0.88,estimate
+France,france,fitness / gym,niche,71.3,0.802,0.348,0.918,0.08,estimate
+France,france,padel,niche,60.1,0.543,0.342,0.682,0.15,estimate
+France,france,tennis,popular,47.1,0.629,0.668,0.286,0.78,estimate
+France,france,basketball,popular,46.8,0.639,0.71,0.243,0.78,estimate
+France,france,volleyball,popular,52.7,0.577,0.508,0.462,0.45,estimate
+France,france,climbing,niche,61.0,0.539,0.334,0.688,0.12,estimate
+France,france,athletics,popular,53.7,0.621,0.596,0.384,0.48,estimate
+France,france,triathlon,niche,53.3,0.408,0.315,0.517,0.14,estimate
+France,france,surfing,niche,52.2,0.436,0.397,0.424,0.22,estimate
+France,france,golf,popular,44.4,0.549,0.567,0.323,0.72,estimate
+France,france,boxing,popular,41.8,0.48,0.549,0.255,0.7,estimate
+France,france,MMA,popular,41.1,0.436,0.576,0.176,0.66,estimate
+France,france,gymnastics,niche,48.1,0.46,0.449,0.375,0.42,estimate
+France,france,handball,niche,51.9,0.508,0.531,0.319,0.42,estimate
+France,france,rowing,niche,48.6,0.33,0.273,0.462,0.18,estimate
+France,france,skateboarding,niche,52.0,0.46,0.374,0.5,0.28,estimate
+France,france,motorsport,popular,30.2,0.223,0.641,0.033,0.85,estimate
+Spain,iberia,running / trail,niche,74.9,0.872,0.527,0.837,0.1,estimate
+Spain,iberia,cycling,niche,66.3,0.8,0.648,0.583,0.35,estimate
+Spain,iberia,swimming,niche,65.7,0.743,0.527,0.689,0.25,estimate
+Spain,iberia,football,popular,53.1,0.797,0.935,0.16,0.88,estimate
+Spain,iberia,fitness / gym,niche,71.1,0.791,0.367,0.901,0.08,estimate
+Spain,iberia,padel,niche,78.2,0.803,0.618,0.636,0.15,estimate
+Spain,iberia,tennis,popular,44.7,0.59,0.661,0.246,0.78,estimate
+Spain,iberia,basketball,popular,48.3,0.657,0.756,0.208,0.78,estimate
+Spain,iberia,volleyball,popular,52.1,0.566,0.527,0.412,0.45,estimate
+Spain,iberia,climbing,niche,57.6,0.488,0.315,0.643,0.12,estimate
+Spain,iberia,athletics,popular,53.1,0.61,0.615,0.337,0.48,estimate
+Spain,iberia,triathlon,niche,52.6,0.398,0.334,0.467,0.14,estimate
+Spain,iberia,surfing,niche,51.6,0.426,0.416,0.375,0.22,estimate
+Spain,iberia,golf,popular,40.1,0.484,0.534,0.28,0.72,estimate
+Spain,iberia,boxing,popular,41.4,0.47,0.569,0.219,0.7,estimate
+Spain,iberia,MMA,popular,40.8,0.426,0.595,0.149,0.66,estimate
+Spain,iberia,gymnastics,niche,47.5,0.449,0.468,0.329,0.42,estimate
+Spain,iberia,handball,niche,49.2,0.466,0.52,0.276,0.42,estimate
+Spain,iberia,rowing,niche,48.0,0.319,0.293,0.412,0.18,estimate
+Spain,iberia,skateboarding,niche,49.0,0.415,0.361,0.45,0.28,estimate
+Spain,iberia,motorsport,popular,33.0,0.253,0.699,0.027,0.85,estimate
+Portugal,iberia,running / trail,niche,70.2,0.76,0.512,0.733,0.1,measured
+Portugal,iberia,cycling,niche,60.9,0.688,0.632,0.429,0.35,measured
+Portugal,iberia,swimming,niche,60.4,0.631,0.512,0.543,0.25,measured
+Portugal,iberia,football,popular,49.0,0.685,0.92,0.093,0.88,measured
+Portugal,iberia,fitness / gym,niche,67.0,0.679,0.352,0.83,0.08,measured
+Portugal,iberia,padel,niche,72.8,0.691,0.603,0.484,0.15,measured
+Portugal,iberia,tennis,popular,40.1,0.478,0.645,0.149,0.78,measured
+Portugal,iberia,basketball,popular,44.0,0.545,0.74,0.123,0.78,measured
+Portugal,iberia,volleyball,popular,46.9,0.454,0.512,0.273,0.45,measured
+Portugal,iberia,climbing,niche,52.3,0.376,0.3,0.491,0.12,measured
+Portugal,iberia,athletics,popular,48.2,0.498,0.6,0.214,0.48,measured
+Portugal,iberia,triathlon,niche,47.3,0.286,0.319,0.319,0.14,measured
+Portugal,iberia,surfing,niche,46.5,0.314,0.401,0.243,0.22,measured
+Portugal,iberia,golf,popular,35.4,0.372,0.519,0.172,0.72,measured
+Portugal,iberia,boxing,popular,37.0,0.358,0.554,0.13,0.7,measured
+Portugal,iberia,MMA,popular,36.7,0.314,0.58,0.086,0.66,measured
+Portugal,iberia,gymnastics,niche,42.6,0.337,0.453,0.208,0.42,measured
+Portugal,iberia,handball,niche,44.5,0.354,0.505,0.17,0.42,measured
+Portugal,iberia,rowing,niche,42.8,0.207,0.277,0.273,0.18,measured
+Portugal,iberia,skateboarding,niche,43.7,0.303,0.346,0.304,0.28,measured
+Portugal,iberia,motorsport,popular,29.7,0.141,0.683,0.015,0.85,measured
+Italy,italy,running / trail,niche,73.6,0.839,0.523,0.809,0.1,estimate
+Italy,italy,cycling,niche,66.6,0.794,0.671,0.536,0.35,estimate
+Italy,italy,swimming,niche,64.2,0.71,0.523,0.646,0.25,estimate
+Italy,italy,football,popular,52.5,0.774,0.941,0.136,0.88,estimate
+Italy,italy,fitness / gym,niche,69.9,0.758,0.363,0.882,0.08,estimate
+Italy,italy,padel,niche,65.7,0.611,0.464,0.591,0.15,estimate
+Italy,italy,tennis,popular,43.2,0.556,0.657,0.212,0.78,estimate
+Italy,italy,basketball,popular,46.1,0.61,0.739,0.178,0.78,estimate
+Italy,italy,volleyball,popular,56.8,0.623,0.609,0.366,0.45,estimate
+Italy,italy,climbing,niche,56.0,0.454,0.311,0.597,0.12,estimate
+Italy,italy,athletics,popular,51.6,0.577,0.612,0.296,0.48,estimate
+Italy,italy,triathlon,niche,51.0,0.364,0.331,0.419,0.14,estimate
+Italy,italy,surfing,niche,50.0,0.392,0.412,0.331,0.22,estimate
+Italy,italy,golf,popular,42.4,0.505,0.582,0.243,0.72,estimate
+Italy,italy,boxing,popular,40.0,0.436,0.565,0.188,0.7,estimate
+Italy,italy,MMA,popular,39.5,0.392,0.592,0.126,0.66,estimate
+Italy,italy,gymnastics,niche,46.0,0.416,0.464,0.288,0.42,estimate
+Italy,italy,handball,niche,45.0,0.392,0.478,0.239,0.42,estimate
+Italy,italy,rowing,niche,46.4,0.286,0.289,0.366,0.18,estimate
+Italy,italy,skateboarding,niche,49.7,0.416,0.39,0.402,0.28,estimate
+Italy,italy,motorsport,popular,33.5,0.241,0.716,0.023,0.85,estimate
+Greece,balkans,running / trail,niche,71.3,0.786,0.49,0.791,0.1,measured
+Greece,balkans,cycling,niche,59.9,0.68,0.578,0.508,0.35,measured
+Greece,balkans,swimming,niche,61.8,0.657,0.49,0.62,0.25,measured
+Greece,balkans,football,popular,49.7,0.711,0.898,0.123,0.88,measured
+Greece,balkans,fitness / gym,niche,67.8,0.705,0.33,0.87,0.08,measured
+Greece,balkans,padel,niche,43.9,0.277,0.164,0.563,0.15,measured
+Greece,balkans,tennis,popular,41.0,0.504,0.623,0.194,0.78,measured
+Greece,balkans,basketball,popular,47.8,0.615,0.76,0.162,0.78,measured
+Greece,balkans,volleyball,popular,51.7,0.532,0.539,0.34,0.45,measured
+Greece,balkans,climbing,niche,53.7,0.402,0.278,0.57,0.12,measured
+Greece,balkans,athletics,popular,49.3,0.525,0.578,0.273,0.48,measured
+Greece,balkans,triathlon,niche,48.6,0.312,0.297,0.392,0.14,measured
+Greece,balkans,surfing,niche,34.9,0.155,0.204,0.307,0.22,measured
+Greece,balkans,golf,popular,27.4,0.268,0.374,0.223,0.72,measured
+Greece,balkans,boxing,popular,37.8,0.384,0.532,0.171,0.7,measured
+Greece,balkans,MMA,popular,37.4,0.34,0.558,0.114,0.66,measured
+Greece,balkans,gymnastics,niche,43.7,0.363,0.431,0.265,0.42,measured
+Greece,balkans,handball,niche,47.7,0.412,0.513,0.22,0.42,measured
+Greece,balkans,rowing,niche,44.0,0.233,0.255,0.34,0.18,measured
+Greece,balkans,skateboarding,niche,47.4,0.363,0.356,0.376,0.28,measured
+Greece,balkans,motorsport,popular,27.2,0.127,0.623,0.02,0.85,measured
+Croatia,balkans,running / trail,niche,74.2,0.861,0.49,0.86,0.1,estimate
+Croatia,balkans,cycling,niche,63.6,0.754,0.578,0.627,0.35,estimate
+Croatia,balkans,swimming,niche,65.2,0.732,0.49,0.726,0.25,estimate
+Croatia,balkans,football,popular,52.5,0.786,0.898,0.186,0.88,estimate
+Croatia,balkans,fitness / gym,niche,70.3,0.78,0.33,0.916,0.08,estimate
+Croatia,balkans,padel,niche,47.5,0.352,0.164,0.677,0.15,estimate
+Croatia,balkans,tennis,popular,44.2,0.579,0.623,0.281,0.78,estimate
+Croatia,balkans,basketball,popular,50.8,0.689,0.76,0.239,0.78,estimate
+Croatia,balkans,volleyball,popular,55.3,0.607,0.539,0.456,0.45,estimate
+Croatia,balkans,climbing,niche,57.2,0.476,0.278,0.683,0.12,estimate
+Croatia,balkans,athletics,popular,52.7,0.599,0.578,0.379,0.48,estimate
+Croatia,balkans,triathlon,niche,52.3,0.386,0.297,0.512,0.14,estimate
+Croatia,balkans,surfing,niche,38.4,0.229,0.204,0.418,0.22,estimate
+Croatia,balkans,golf,popular,30.7,0.342,0.374,0.318,0.72,estimate
+Croatia,balkans,boxing,popular,40.9,0.458,0.532,0.251,0.7,estimate
+Croatia,balkans,MMA,popular,40.1,0.414,0.558,0.173,0.66,estimate
+Croatia,balkans,gymnastics,niche,47.1,0.438,0.431,0.37,0.42,estimate
+Croatia,balkans,handball,niche,50.9,0.486,0.513,0.314,0.42,estimate
+Croatia,balkans,rowing,niche,47.6,0.308,0.255,0.456,0.18,estimate
+Croatia,balkans,skateboarding,niche,51.0,0.438,0.356,0.495,0.28,estimate
+Croatia,balkans,motorsport,popular,29.2,0.201,0.623,0.032,0.85,estimate
+Slovenia,balkans,running / trail,niche,75.7,0.906,0.472,0.903,0.1,estimate
+Slovenia,balkans,cycling,niche,65.7,0.8,0.561,0.718,0.35,estimate
+Slovenia,balkans,swimming,niche,67.2,0.777,0.472,0.801,0.25,estimate
+Slovenia,balkans,football,popular,54.3,0.831,0.881,0.258,0.88,estimate
+Slovenia,balkans,fitness / gym,niche,71.5,0.826,0.312,0.943,0.08,estimate
+Slovenia,balkans,padel,niche,49.5,0.398,0.146,0.761,0.15,estimate
+Slovenia,balkans,tennis,popular,46.3,0.624,0.606,0.373,0.78,estimate
+Slovenia,balkans,basketball,popular,52.9,0.735,0.743,0.323,0.78,estimate
+Slovenia,balkans,volleyball,popular,57.7,0.652,0.521,0.56,0.45,estimate
+Slovenia,balkans,climbing,niche,59.3,0.522,0.26,0.766,0.12,estimate
+Slovenia,balkans,athletics,popular,55.0,0.645,0.561,0.481,0.48,estimate
+Slovenia,balkans,triathlon,niche,54.6,0.432,0.28,0.614,0.14,estimate
+Slovenia,balkans,surfing,niche,40.8,0.275,0.186,0.522,0.22,estimate
+Slovenia,balkans,golf,popular,32.9,0.388,0.356,0.414,0.72,estimate
+Slovenia,balkans,boxing,popular,42.9,0.504,0.514,0.337,0.7,estimate
+Slovenia,balkans,MMA,popular,41.9,0.46,0.541,0.241,0.66,estimate
+Slovenia,balkans,gymnastics,niche,49.4,0.484,0.413,0.471,0.42,estimate
+Slovenia,balkans,handball,niche,53.2,0.532,0.496,0.41,0.42,estimate
+Slovenia,balkans,rowing,niche,50.0,0.353,0.238,0.56,0.18,estimate
+Slovenia,balkans,skateboarding,niche,53.3,0.484,0.339,0.598,0.28,estimate
+Slovenia,balkans,motorsport,popular,30.3,0.247,0.606,0.048,0.85,estimate
+Bulgaria,balkans,running / trail,niche,72.5,0.82,0.459,0.854,0.1,estimate
+Bulgaria,balkans,cycling,niche,61.8,0.714,0.547,0.615,0.35,estimate
+Bulgaria,balkans,swimming,niche,63.5,0.692,0.459,0.717,0.25,estimate
+Bulgaria,balkans,football,popular,50.7,0.746,0.867,0.179,0.88,estimate
+Bulgaria,balkans,fitness / gym,niche,68.6,0.74,0.299,0.912,0.08,estimate
+Bulgaria,balkans,padel,niche,45.7,0.312,0.133,0.667,0.15,estimate
+Bulgaria,balkans,tennis,popular,42.4,0.538,0.592,0.272,0.78,estimate
+Bulgaria,balkans,basketball,popular,49.1,0.649,0.729,0.231,0.78,estimate
+Bulgaria,balkans,volleyball,popular,53.5,0.566,0.508,0.444,0.45,estimate
+Bulgaria,balkans,climbing,niche,55.4,0.436,0.247,0.673,0.12,estimate
+Bulgaria,balkans,athletics,popular,50.9,0.559,0.547,0.368,0.48,estimate
+Bulgaria,balkans,triathlon,niche,50.5,0.346,0.266,0.5,0.14,estimate
+Bulgaria,balkans,surfing,niche,36.6,0.189,0.172,0.407,0.22,estimate
+Bulgaria,balkans,golf,popular,28.9,0.302,0.342,0.308,0.72,estimate
+Bulgaria,balkans,boxing,popular,39.1,0.418,0.5,0.242,0.7,estimate
+Bulgaria,balkans,MMA,popular,38.4,0.374,0.527,0.167,0.66,estimate
+Bulgaria,balkans,gymnastics,niche,45.3,0.398,0.4,0.359,0.42,estimate
+Bulgaria,balkans,handball,niche,49.2,0.446,0.482,0.304,0.42,estimate
+Bulgaria,balkans,rowing,niche,45.8,0.268,0.224,0.444,0.18,estimate
+Bulgaria,balkans,skateboarding,niche,49.2,0.398,0.325,0.483,0.28,estimate
+Bulgaria,balkans,motorsport,popular,27.6,0.161,0.592,0.031,0.85,estimate
+Romania,balkans,running / trail,niche,72.4,0.817,0.464,0.846,0.1,estimate
+Romania,balkans,cycling,niche,61.6,0.71,0.553,0.6,0.35,estimate
+Romania,balkans,swimming,niche,63.3,0.688,0.464,0.704,0.25,estimate
+Romania,balkans,football,popular,50.6,0.742,0.873,0.17,0.88,estimate
+Romania,balkans,fitness / gym,niche,68.6,0.736,0.304,0.907,0.08,estimate
+Romania,balkans,padel,niche,45.5,0.308,0.138,0.652,0.15,estimate
+Romania,balkans,tennis,popular,42.2,0.534,0.598,0.259,0.78,estimate
+Romania,balkans,basketball,popular,48.9,0.645,0.735,0.22,0.78,estimate
+Romania,balkans,volleyball,popular,53.3,0.562,0.513,0.429,0.45,estimate
+Romania,balkans,climbing,niche,55.2,0.432,0.252,0.659,0.12,estimate
+Romania,balkans,athletics,popular,50.7,0.555,0.553,0.353,0.48,estimate
+Romania,balkans,triathlon,niche,50.2,0.342,0.272,0.484,0.14,estimate
+Romania,balkans,surfing,niche,36.4,0.185,0.178,0.391,0.22,estimate
+Romania,balkans,golf,popular,28.7,0.298,0.348,0.294,0.72,estimate
+Romania,balkans,boxing,popular,38.9,0.414,0.506,0.231,0.7,estimate
+Romania,balkans,MMA,popular,38.3,0.37,0.533,0.158,0.66,estimate
+Romania,balkans,gymnastics,niche,45.1,0.394,0.405,0.344,0.42,estimate
+Romania,balkans,handball,niche,49.0,0.442,0.488,0.29,0.42,estimate
+Romania,balkans,rowing,niche,45.6,0.264,0.23,0.429,0.18,estimate
+Romania,balkans,skateboarding,niche,49.0,0.394,0.331,0.467,0.28,estimate
+Romania,balkans,motorsport,popular,27.6,0.157,0.598,0.029,0.85,estimate
+Cyprus,balkans,running / trail,niche,72.7,0.828,0.453,0.865,0.1,estimate
+Cyprus,balkans,cycling,niche,62.2,0.722,0.541,0.636,0.35,estimate
+Cyprus,balkans,swimming,niche,63.8,0.699,0.453,0.735,0.25,estimate
+Cyprus,balkans,football,popular,51.0,0.753,0.861,0.193,0.88,estimate
+Cyprus,balkans,fitness / gym,niche,68.8,0.747,0.293,0.919,0.08,estimate
+Cyprus,balkans,padel,niche,46.0,0.319,0.127,0.686,0.15,estimate
+Cyprus,balkans,tennis,popular,42.7,0.546,0.586,0.29,0.78,estimate
+Cyprus,balkans,basketball,popular,49.4,0.657,0.723,0.247,0.78,estimate
+Cyprus,balkans,volleyball,popular,53.9,0.574,0.502,0.467,0.45,estimate
+Cyprus,balkans,climbing,niche,55.8,0.444,0.241,0.692,0.12,estimate
+Cyprus,balkans,athletics,popular,51.3,0.566,0.541,0.389,0.48,estimate
+Cyprus,balkans,triathlon,niche,50.9,0.353,0.26,0.522,0.14,estimate
+Cyprus,balkans,surfing,niche,37.0,0.197,0.166,0.429,0.22,estimate
+Cyprus,balkans,golf,popular,29.2,0.309,0.336,0.327,0.72,estimate
+Cyprus,balkans,boxing,popular,39.4,0.426,0.495,0.259,0.7,estimate
+Cyprus,balkans,MMA,popular,38.7,0.381,0.521,0.179,0.66,estimate
+Cyprus,balkans,gymnastics,niche,45.7,0.405,0.394,0.38,0.42,estimate
+Cyprus,balkans,handball,niche,49.5,0.454,0.476,0.323,0.42,estimate
+Cyprus,balkans,rowing,niche,46.2,0.275,0.218,0.467,0.18,estimate
+Cyprus,balkans,skateboarding,niche,49.6,0.405,0.319,0.505,0.28,estimate
+Cyprus,balkans,motorsport,popular,27.7,0.169,0.586,0.034,0.85,estimate
+Malta,italy,running / trail,niche,72.8,0.832,0.443,0.875,0.1,estimate
+Malta,italy,cycling,niche,66.7,0.787,0.591,0.656,0.35,estimate
+Malta,italy,swimming,niche,64.0,0.703,0.443,0.752,0.25,estimate
+Malta,italy,football,popular,51.8,0.767,0.861,0.207,0.88,estimate
+Malta,italy,fitness / gym,niche,68.8,0.751,0.283,0.925,0.08,estimate
+Malta,italy,padel,niche,65.6,0.604,0.384,0.705,0.15,estimate
+Malta,italy,tennis,popular,42.9,0.549,0.577,0.308,0.78,estimate
+Malta,italy,basketball,popular,45.6,0.603,0.659,0.264,0.78,estimate
+Malta,italy,volleyball,popular,56.8,0.616,0.529,0.489,0.45,estimate
+Malta,italy,climbing,niche,56.0,0.447,0.231,0.711,0.12,estimate
+Malta,italy,athletics,popular,51.5,0.57,0.532,0.41,0.48,estimate
+Malta,italy,triathlon,niche,51.1,0.357,0.251,0.544,0.14,estimate
+Malta,italy,surfing,niche,50.0,0.385,0.332,0.45,0.22,estimate
+Malta,italy,golf,popular,42.2,0.498,0.502,0.347,0.72,estimate
+Malta,italy,boxing,popular,39.6,0.429,0.485,0.277,0.7,estimate
+Malta,italy,MMA,popular,38.8,0.385,0.512,0.193,0.66,estimate
+Malta,italy,gymnastics,niche,45.9,0.409,0.384,0.401,0.42,estimate
+Malta,italy,handball,niche,44.7,0.385,0.398,0.343,0.42,estimate
+Malta,italy,rowing,niche,46.5,0.279,0.209,0.489,0.18,estimate
+Malta,italy,skateboarding,niche,49.8,0.409,0.31,0.527,0.28,estimate
+Malta,italy,motorsport,popular,31.9,0.235,0.636,0.037,0.85,estimate
+Poland,cee,running / trail,niche,71.9,0.8,0.485,0.811,0.1,measured
+Poland,cee,cycling,niche,60.6,0.694,0.573,0.538,0.35,measured
+Poland,cee,swimming,niche,62.5,0.671,0.485,0.649,0.25,measured
+Poland,cee,football,popular,48.6,0.703,0.873,0.137,0.88,measured
+Poland,cee,fitness / gym,niche,68.2,0.719,0.325,0.883,0.08,measured
+Poland,cee,padel,niche,41.5,0.247,0.117,0.593,0.15,measured
+Poland,cee,tennis,popular,41.5,0.518,0.619,0.214,0.78,measured
+Poland,cee,basketball,popular,43.3,0.556,0.687,0.179,0.78,measured
+Poland,cee,volleyball,popular,53.1,0.556,0.544,0.368,0.45,measured
+Poland,cee,climbing,niche,54.4,0.416,0.273,0.6,0.12,measured
+Poland,cee,athletics,popular,51.8,0.566,0.6,0.298,0.48,measured
+Poland,cee,triathlon,niche,49.3,0.325,0.293,0.422,0.14,measured
+Poland,cee,surfing,niche,23.9,0.0,0.039,0.333,0.22,measured
+Poland,cee,golf,popular,31.0,0.325,0.411,0.245,0.72,measured
+Poland,cee,boxing,popular,38.3,0.398,0.527,0.189,0.7,measured
+Poland,cee,MMA,popular,37.8,0.353,0.554,0.127,0.66,measured
+Poland,cee,gymnastics,niche,44.3,0.377,0.426,0.29,0.42,measured
+Poland,cee,handball,niche,46.8,0.405,0.489,0.241,0.42,measured
+Poland,cee,rowing,niche,44.7,0.247,0.251,0.368,0.18,measured
+Poland,cee,skateboarding,niche,48.0,0.377,0.352,0.405,0.28,measured
+Poland,cee,motorsport,popular,27.5,0.141,0.619,0.023,0.85,measured
+Czechia,cee,running / trail,niche,74.9,0.883,0.48,0.884,0.1,estimate
+Czechia,cee,cycling,niche,64.6,0.776,0.568,0.674,0.35,estimate
+Czechia,cee,swimming,niche,66.2,0.754,0.48,0.766,0.25,estimate
+Czechia,cee,football,popular,51.8,0.786,0.868,0.22,0.88,estimate
+Czechia,cee,fitness / gym,niche,70.9,0.802,0.32,0.931,0.08,estimate
+Czechia,cee,padel,niche,45.4,0.33,0.112,0.721,0.15,estimate
+Czechia,cee,tennis,popular,45.2,0.601,0.614,0.326,0.78,estimate
+Czechia,cee,basketball,popular,46.8,0.639,0.682,0.28,0.78,estimate
+Czechia,cee,volleyball,popular,57.2,0.639,0.539,0.508,0.45,estimate
+Czechia,cee,climbing,niche,58.2,0.498,0.268,0.727,0.12,estimate
+Czechia,cee,athletics,popular,55.8,0.649,0.595,0.429,0.48,estimate
+Czechia,cee,triathlon,niche,53.4,0.408,0.288,0.564,0.14,estimate
+Czechia,cee,surfing,niche,27.9,0.083,0.034,0.47,0.22,estimate
+Czechia,cee,golf,popular,34.8,0.408,0.406,0.365,0.72,estimate
+Czechia,cee,boxing,popular,41.8,0.48,0.522,0.293,0.7,estimate
+Czechia,cee,MMA,popular,41.0,0.436,0.549,0.205,0.66,estimate
+Czechia,cee,gymnastics,niche,48.2,0.46,0.421,0.42,0.42,estimate
+Czechia,cee,handball,niche,50.6,0.488,0.484,0.361,0.42,estimate
+Czechia,cee,rowing,niche,48.8,0.33,0.246,0.508,0.18,estimate
+Czechia,cee,skateboarding,niche,52.1,0.46,0.347,0.547,0.28,estimate
+Czechia,cee,motorsport,popular,29.7,0.223,0.614,0.04,0.85,estimate
+Slovakia,cee,running / trail,niche,73.8,0.855,0.464,0.876,0.1,estimate
+Slovakia,cee,cycling,niche,63.4,0.748,0.553,0.658,0.35,estimate
+Slovakia,cee,swimming,niche,65.0,0.726,0.464,0.753,0.25,estimate
+Slovakia,cee,football,popular,50.6,0.758,0.852,0.208,0.88,estimate
+Slovakia,cee,fitness / gym,niche,69.8,0.774,0.304,0.926,0.08,estimate
+Slovakia,cee,padel,niche,44.2,0.302,0.096,0.706,0.15,estimate
+Slovakia,cee,tennis,popular,43.9,0.573,0.598,0.31,0.78,estimate
+Slovakia,cee,basketball,popular,45.6,0.611,0.666,0.265,0.78,estimate
+Slovakia,cee,volleyball,popular,55.9,0.611,0.523,0.49,0.45,estimate
+Slovakia,cee,climbing,niche,57.0,0.47,0.252,0.712,0.12,estimate
+Slovakia,cee,athletics,popular,54.5,0.621,0.579,0.412,0.48,estimate
+Slovakia,cee,triathlon,niche,52.1,0.38,0.272,0.546,0.14,estimate
+Slovakia,cee,surfing,niche,26.6,0.055,0.018,0.452,0.22,estimate
+Slovakia,cee,golf,popular,33.5,0.38,0.39,0.348,0.72,estimate
+Slovakia,cee,boxing,popular,40.6,0.452,0.506,0.278,0.7,estimate
+Slovakia,cee,MMA,popular,39.8,0.408,0.533,0.194,0.66,estimate
+Slovakia,cee,gymnastics,niche,46.9,0.432,0.405,0.402,0.42,estimate
+Slovakia,cee,handball,niche,49.3,0.46,0.468,0.344,0.42,estimate
+Slovakia,cee,rowing,niche,47.5,0.302,0.23,0.49,0.18,estimate
+Slovakia,cee,skateboarding,niche,50.8,0.432,0.331,0.529,0.28,estimate
+Slovakia,cee,motorsport,popular,28.6,0.195,0.598,0.037,0.85,estimate
+Hungary,cee,running / trail,niche,73.5,0.845,0.472,0.862,0.1,estimate
+Hungary,cee,cycling,niche,62.9,0.739,0.561,0.631,0.35,estimate
+Hungary,cee,swimming,niche,64.6,0.716,0.472,0.73,0.25,estimate
+Hungary,cee,football,popular,50.3,0.748,0.86,0.189,0.88,estimate
+Hungary,cee,fitness / gym,niche,69.6,0.764,0.312,0.917,0.08,estimate
+Hungary,cee,padel,niche,43.7,0.292,0.105,0.681,0.15,estimate
+Hungary,cee,tennis,popular,43.5,0.563,0.606,0.285,0.78,estimate
+Hungary,cee,basketball,popular,45.2,0.602,0.674,0.243,0.78,estimate
+Hungary,cee,volleyball,popular,55.4,0.602,0.532,0.461,0.45,estimate
+Hungary,cee,climbing,niche,56.5,0.461,0.26,0.687,0.12,estimate
+Hungary,cee,athletics,popular,54.0,0.612,0.587,0.383,0.48,estimate
+Hungary,cee,triathlon,niche,51.6,0.371,0.28,0.516,0.14,estimate
+Hungary,cee,surfing,niche,26.1,0.045,0.026,0.423,0.22,estimate
+Hungary,cee,golf,popular,33.0,0.371,0.398,0.322,0.72,estimate
+Hungary,cee,boxing,popular,40.2,0.443,0.514,0.255,0.7,estimate
+Hungary,cee,MMA,popular,39.4,0.399,0.541,0.176,0.66,estimate
+Hungary,cee,gymnastics,niche,46.4,0.422,0.413,0.374,0.42,estimate
+Hungary,cee,handball,niche,48.9,0.45,0.476,0.318,0.42,estimate
+Hungary,cee,rowing,niche,47.0,0.292,0.238,0.461,0.18,estimate
+Hungary,cee,skateboarding,niche,50.3,0.422,0.339,0.499,0.28,estimate
+Hungary,cee,motorsport,popular,28.5,0.186,0.606,0.033,0.85,estimate
+Estonia,cee,running / trail,niche,74.6,0.883,0.453,0.902,0.1,estimate
+Estonia,cee,cycling,niche,64.7,0.776,0.541,0.714,0.35,estimate
+Estonia,cee,swimming,niche,66.1,0.754,0.453,0.798,0.25,estimate
+Estonia,cee,football,popular,51.8,0.786,0.84,0.254,0.88,estimate
+Estonia,cee,fitness / gym,niche,70.5,0.802,0.293,0.942,0.08,estimate
+Estonia,cee,padel,niche,45.4,0.33,0.085,0.758,0.15,estimate
+Estonia,cee,tennis,popular,45.3,0.601,0.586,0.368,0.78,estimate
+Estonia,cee,basketball,popular,46.9,0.639,0.655,0.319,0.78,estimate
+Estonia,cee,volleyball,popular,57.4,0.639,0.512,0.556,0.45,estimate
+Estonia,cee,climbing,niche,58.2,0.498,0.241,0.763,0.12,estimate
+Estonia,cee,athletics,popular,55.9,0.649,0.567,0.476,0.48,estimate
+Estonia,cee,triathlon,niche,53.6,0.408,0.26,0.61,0.14,estimate
+Estonia,cee,surfing,niche,28.1,0.083,0.006,0.517,0.22,estimate
+Estonia,cee,golf,popular,34.9,0.408,0.378,0.41,0.72,estimate
+Estonia,cee,boxing,popular,41.9,0.48,0.495,0.333,0.7,estimate
+Estonia,cee,MMA,popular,40.9,0.436,0.521,0.238,0.66,estimate
+Estonia,cee,gymnastics,niche,48.4,0.46,0.394,0.467,0.42,estimate
+Estonia,cee,handball,niche,50.7,0.488,0.456,0.405,0.42,estimate
+Estonia,cee,rowing,niche,48.9,0.33,0.218,0.556,0.18,estimate
+Estonia,cee,skateboarding,niche,52.3,0.46,0.319,0.593,0.28,estimate
+Estonia,cee,motorsport,popular,29.3,0.223,0.586,0.048,0.85,estimate
+Latvia,cee,running / trail,niche,73.8,0.861,0.446,0.892,0.1,estimate
+Latvia,cee,cycling,niche,63.7,0.754,0.535,0.693,0.35,estimate
+Latvia,cee,swimming,niche,65.2,0.732,0.446,0.782,0.25,estimate
+Latvia,cee,football,popular,50.8,0.764,0.834,0.236,0.88,estimate
+Latvia,cee,fitness / gym,niche,69.8,0.78,0.286,0.936,0.08,estimate
+Latvia,cee,padel,niche,44.5,0.308,0.079,0.739,0.15,estimate
+Latvia,cee,tennis,popular,44.2,0.579,0.58,0.345,0.78,estimate
+Latvia,cee,basketball,popular,45.9,0.617,0.648,0.298,0.78,estimate
+Latvia,cee,volleyball,popular,56.3,0.617,0.505,0.531,0.45,estimate
+Latvia,cee,climbing,niche,57.3,0.476,0.234,0.744,0.12,estimate
+Latvia,cee,athletics,popular,54.9,0.627,0.561,0.451,0.48,estimate
+Latvia,cee,triathlon,niche,52.5,0.386,0.254,0.586,0.14,estimate
+Latvia,cee,surfing,niche,27.0,0.061,0.0,0.492,0.22,estimate
+Latvia,cee,golf,popular,33.9,0.386,0.372,0.386,0.72,estimate
+Latvia,cee,boxing,popular,40.9,0.458,0.488,0.311,0.7,estimate
+Latvia,cee,MMA,popular,40.0,0.414,0.515,0.22,0.66,estimate
+Latvia,cee,gymnastics,niche,47.3,0.438,0.387,0.442,0.42,estimate
+Latvia,cee,handball,niche,49.7,0.466,0.45,0.381,0.42,estimate
+Latvia,cee,rowing,niche,47.9,0.308,0.212,0.531,0.18,estimate
+Latvia,cee,skateboarding,niche,51.2,0.438,0.313,0.569,0.28,estimate
+Latvia,cee,motorsport,popular,28.5,0.201,0.58,0.043,0.85,estimate
+Lithuania,cee,running / trail,niche,73.7,0.855,0.459,0.88,0.1,estimate
+Lithuania,cee,cycling,niche,63.4,0.748,0.547,0.667,0.35,estimate
+Lithuania,cee,swimming,niche,65.0,0.726,0.459,0.76,0.25,estimate
+Lithuania,cee,football,popular,50.6,0.758,0.846,0.214,0.88,estimate
+Lithuania,cee,fitness / gym,niche,69.7,0.774,0.299,0.929,0.08,estimate
+Lithuania,cee,padel,niche,44.2,0.302,0.091,0.714,0.15,estimate
+Lithuania,cee,tennis,popular,43.9,0.573,0.592,0.318,0.78,estimate
+Lithuania,cee,basketball,popular,45.6,0.611,0.661,0.273,0.78,estimate
+Lithuania,cee,volleyball,popular,55.9,0.611,0.518,0.5,0.45,estimate
+Lithuania,cee,climbing,niche,57.0,0.47,0.247,0.72,0.12,estimate
+Lithuania,cee,athletics,popular,54.5,0.621,0.573,0.421,0.48,estimate
+Lithuania,cee,triathlon,niche,52.2,0.38,0.266,0.556,0.14,estimate
+Lithuania,cee,surfing,niche,26.7,0.055,0.012,0.462,0.22,estimate
+Lithuania,cee,golf,popular,33.5,0.38,0.384,0.357,0.72,estimate
+Lithuania,cee,boxing,popular,40.6,0.452,0.5,0.286,0.7,estimate
+Lithuania,cee,MMA,popular,39.7,0.408,0.527,0.2,0.66,estimate
+Lithuania,cee,gymnastics,niche,47.0,0.432,0.4,0.412,0.42,estimate
+Lithuania,cee,handball,niche,49.3,0.46,0.462,0.353,0.42,estimate
+Lithuania,cee,rowing,niche,47.5,0.302,0.224,0.5,0.18,estimate
+Lithuania,cee,skateboarding,niche,50.9,0.432,0.325,0.538,0.28,estimate
+Lithuania,cee,motorsport,popular,28.6,0.195,0.592,0.038,0.85,estimate
+United States,north_america,running / trail,niche,77.3,0.911,0.562,0.838,0.1,estimate
+United States,north_america,cycling,niche,60.6,0.722,0.572,0.585,0.35,estimate
+United States,north_america,swimming,niche,66.2,0.754,0.536,0.691,0.25,estimate
+United States,north_america,football,popular,40.8,0.623,0.769,0.161,0.88,estimate
+United States,north_america,fitness / gym,niche,71.6,0.802,0.376,0.902,0.08,estimate
+United States,north_america,padel,niche,46.9,0.353,0.19,0.638,0.15,estimate
+United States,north_america,tennis,popular,45.1,0.601,0.669,0.248,0.78,estimate
+United States,north_america,basketball,popular,56.2,0.774,0.865,0.209,0.78,estimate
+United States,north_america,volleyball,popular,52.6,0.577,0.536,0.414,0.45,estimate
+United States,north_america,climbing,niche,58.1,0.498,0.324,0.645,0.12,estimate
+United States,north_america,athletics,popular,53.6,0.621,0.624,0.339,0.48,estimate
+United States,north_america,triathlon,niche,53.1,0.408,0.343,0.469,0.14,estimate
+United States,north_america,surfing,niche,52.1,0.436,0.425,0.377,0.22,estimate
+United States,north_america,golf,popular,50.6,0.639,0.681,0.282,0.72,estimate
+United States,north_america,boxing,popular,43.8,0.508,0.604,0.22,0.7,estimate
+United States,north_america,MMA,popular,45.5,0.498,0.663,0.15,0.66,estimate
+United States,north_america,gymnastics,niche,48.0,0.46,0.477,0.331,0.42,estimate
+United States,north_america,handball,niche,22.5,0.083,0.155,0.278,0.42,estimate
+United States,north_america,rowing,niche,48.5,0.33,0.301,0.414,0.18,estimate
+United States,north_america,skateboarding,niche,56.1,0.522,0.461,0.452,0.28,estimate
+United States,north_america,motorsport,popular,30.6,0.223,0.669,0.027,0.85,estimate
+Canada,north_america,running / trail,niche,77.3,0.916,0.534,0.867,0.1,estimate
+Canada,north_america,cycling,niche,61.0,0.727,0.544,0.639,0.35,estimate
+Canada,north_america,swimming,niche,66.4,0.759,0.508,0.737,0.25,estimate
+Canada,north_america,football,popular,40.9,0.628,0.741,0.195,0.88,estimate
+Canada,north_america,fitness / gym,niche,71.4,0.807,0.348,0.92,0.08,estimate
+Canada,north_america,padel,niche,47.2,0.359,0.162,0.689,0.15,estimate
+Canada,north_america,tennis,popular,45.3,0.606,0.641,0.292,0.78,estimate
+Canada,north_america,basketball,popular,56.3,0.779,0.837,0.249,0.78,estimate
+Canada,north_america,volleyball,popular,53.0,0.582,0.508,0.47,0.45,estimate
+Canada,north_america,climbing,niche,58.4,0.503,0.296,0.695,0.12,estimate
+Canada,north_america,athletics,popular,53.9,0.626,0.596,0.392,0.48,estimate
+Canada,north_america,triathlon,niche,53.5,0.413,0.315,0.525,0.14,estimate
+Canada,north_america,surfing,niche,52.4,0.441,0.397,0.432,0.22,estimate
+Canada,north_america,golf,popular,50.9,0.644,0.652,0.33,0.72,estimate
+Canada,north_america,boxing,popular,44.0,0.513,0.576,0.262,0.7,estimate
+Canada,north_america,MMA,popular,45.6,0.503,0.635,0.181,0.66,estimate
+Canada,north_america,gymnastics,niche,48.3,0.465,0.449,0.383,0.42,estimate
+Canada,north_america,handball,niche,22.7,0.088,0.127,0.326,0.42,estimate
+Canada,north_america,rowing,niche,48.9,0.335,0.273,0.47,0.18,estimate
+Canada,north_america,skateboarding,niche,56.5,0.527,0.433,0.508,0.28,estimate
+Canada,north_america,motorsport,popular,30.3,0.228,0.641,0.034,0.85,estimate
+Mexico,latam,running / trail,niche,73.5,0.839,0.512,0.821,0.1,estimate
+Mexico,latam,cycling,niche,62.4,0.732,0.6,0.556,0.35,estimate
+Mexico,latam,swimming,niche,64.2,0.71,0.512,0.664,0.25,estimate
+Mexico,latam,football,popular,55.8,0.822,0.976,0.146,0.88,estimate
+Mexico,latam,fitness / gym,niche,69.8,0.758,0.352,0.89,0.08,estimate
+Mexico,latam,padel,niche,58.0,0.498,0.346,0.61,0.15,estimate
+Mexico,latam,tennis,popular,43.2,0.556,0.645,0.226,0.78,estimate
+Mexico,latam,basketball,popular,45.0,0.595,0.714,0.19,0.78,estimate
+Mexico,latam,volleyball,popular,54.9,0.595,0.571,0.385,0.45,estimate
+Mexico,latam,climbing,niche,56.1,0.454,0.3,0.616,0.12,estimate
+Mexico,latam,athletics,popular,51.6,0.577,0.6,0.312,0.48,estimate
+Mexico,latam,triathlon,niche,51.1,0.364,0.319,0.439,0.14,estimate
+Mexico,latam,surfing,niche,55.0,0.464,0.469,0.349,0.22,estimate
+Mexico,latam,golf,popular,35.0,0.398,0.47,0.258,0.72,estimate
+Mexico,latam,boxing,popular,45.0,0.508,0.622,0.2,0.7,estimate
+Mexico,latam,MMA,popular,43.0,0.444,0.629,0.135,0.66,estimate
+Mexico,latam,gymnastics,niche,46.0,0.416,0.453,0.304,0.42,estimate
+Mexico,latam,handball,niche,35.2,0.251,0.333,0.254,0.42,estimate
+Mexico,latam,rowing,niche,46.5,0.286,0.277,0.385,0.18,estimate
+Mexico,latam,skateboarding,niche,49.8,0.416,0.378,0.422,0.28,estimate
+Mexico,latam,motorsport,popular,30.9,0.207,0.672,0.024,0.85,estimate
+Brazil,latam,running / trail,niche,74.0,0.848,0.536,0.805,0.1,estimate
+Brazil,latam,cycling,niche,62.7,0.742,0.624,0.53,0.35,estimate
+Brazil,latam,swimming,niche,64.6,0.72,0.536,0.641,0.25,estimate
+Brazil,latam,football,popular,56.3,0.832,1.0,0.133,0.88,estimate
+Brazil,latam,fitness / gym,niche,70.4,0.768,0.376,0.88,0.08,estimate
+Brazil,latam,padel,niche,58.3,0.508,0.37,0.585,0.15,estimate
+Brazil,latam,tennis,popular,43.7,0.566,0.669,0.209,0.78,estimate
+Brazil,latam,basketball,popular,45.5,0.605,0.738,0.175,0.78,estimate
+Brazil,latam,volleyball,popular,55.2,0.605,0.595,0.361,0.45,estimate
+Brazil,latam,climbing,niche,56.5,0.464,0.324,0.592,0.12,estimate
+Brazil,latam,athletics,popular,52.0,0.587,0.624,0.291,0.48,estimate
+Brazil,latam,triathlon,niche,51.4,0.374,0.343,0.414,0.14,estimate
+Brazil,latam,surfing,niche,55.4,0.474,0.493,0.326,0.22,estimate
+Brazil,latam,golf,popular,35.5,0.408,0.494,0.239,0.72,estimate
+Brazil,latam,boxing,popular,45.5,0.518,0.646,0.184,0.7,estimate
+Brazil,latam,MMA,popular,43.6,0.454,0.653,0.124,0.66,estimate
+Brazil,latam,gymnastics,niche,46.4,0.426,0.477,0.283,0.42,estimate
+Brazil,latam,handball,niche,35.7,0.261,0.357,0.235,0.42,estimate
+Brazil,latam,rowing,niche,46.8,0.296,0.301,0.361,0.18,estimate
+Brazil,latam,skateboarding,niche,50.1,0.426,0.402,0.397,0.28,estimate
+Brazil,latam,motorsport,popular,31.6,0.217,0.696,0.022,0.85,estimate
+Australia,oceania,running / trail,niche,78.9,0.947,0.562,0.868,0.1,estimate
+Australia,oceania,cycling,niche,67.5,0.828,0.638,0.642,0.35,estimate
+Australia,oceania,swimming,niche,73.5,0.868,0.609,0.74,0.25,estimate
+Australia,oceania,football,popular,46.3,0.714,0.821,0.197,0.88,estimate
+Australia,oceania,fitness / gym,niche,72.2,0.826,0.363,0.921,0.08,estimate
+Australia,oceania,padel,niche,51.8,0.432,0.23,0.692,0.15,estimate
+Australia,oceania,tennis,popular,46.2,0.624,0.657,0.295,0.78,estimate
+Australia,oceania,basketball,popular,48.9,0.677,0.739,0.252,0.78,estimate
+Australia,oceania,volleyball,popular,53.8,0.601,0.523,0.473,0.45,estimate
+Australia,oceania,climbing,niche,59.2,0.522,0.311,0.698,0.12,estimate
+Australia,oceania,athletics,popular,54.8,0.645,0.612,0.395,0.48,estimate
+Australia,oceania,triathlon,niche,54.3,0.432,0.331,0.529,0.14,estimate
+Australia,oceania,surfing,niche,64.9,0.629,0.572,0.435,0.22,estimate
+Australia,oceania,golf,popular,45.5,0.573,0.582,0.333,0.72,estimate
+Australia,oceania,boxing,popular,42.9,0.504,0.565,0.264,0.7,estimate
+Australia,oceania,MMA,popular,42.1,0.46,0.592,0.183,0.66,estimate
+Australia,oceania,gymnastics,niche,49.2,0.484,0.464,0.386,0.42,estimate
+Australia,oceania,handball,niche,30.9,0.213,0.244,0.329,0.42,estimate
+Australia,oceania,rowing,niche,49.7,0.353,0.289,0.473,0.18,estimate
+Australia,oceania,skateboarding,niche,53.1,0.484,0.39,0.511,0.28,estimate
+Australia,oceania,motorsport,popular,31.1,0.247,0.657,0.035,0.85,estimate
+India,south_asia,running / trail,niche,72.7,0.82,0.485,0.83,0.1,estimate
+India,south_asia,cycling,niche,61.6,0.714,0.573,0.571,0.35,estimate
+India,south_asia,swimming,niche,58.0,0.613,0.411,0.679,0.25,estimate
+India,south_asia,football,popular,39.2,0.577,0.733,0.154,0.88,estimate
+India,south_asia,fitness / gym,niche,68.9,0.74,0.325,0.897,0.08,estimate
+India,south_asia,padel,niche,38.2,0.205,0.058,0.625,0.15,estimate
+India,south_asia,tennis,popular,42.4,0.538,0.619,0.237,0.78,estimate
+India,south_asia,basketball,popular,44.2,0.577,0.687,0.2,0.78,estimate
+India,south_asia,volleyball,popular,49.8,0.515,0.485,0.4,0.45,estimate
+India,south_asia,climbing,niche,42.6,0.251,0.098,0.632,0.12,estimate
+India,south_asia,athletics,popular,49.7,0.543,0.558,0.327,0.48,estimate
+India,south_asia,triathlon,niche,50.3,0.346,0.293,0.455,0.14,estimate
+India,south_asia,surfing,niche,32.2,0.127,0.14,0.364,0.22,estimate
+India,south_asia,golf,popular,36.2,0.408,0.47,0.27,0.72,estimate
+India,south_asia,boxing,popular,40.2,0.433,0.541,0.211,0.7,estimate
+India,south_asia,MMA,popular,36.2,0.34,0.521,0.143,0.66,estimate
+India,south_asia,gymnastics,niche,45.2,0.398,0.426,0.318,0.42,estimate
+India,south_asia,handball,niche,31.4,0.189,0.265,0.267,0.42,estimate
+India,south_asia,rowing,niche,45.7,0.268,0.251,0.4,0.18,estimate
+India,south_asia,skateboarding,niche,49.0,0.398,0.352,0.438,0.28,estimate
+India,south_asia,motorsport,popular,28.0,0.161,0.619,0.026,0.85,estimate
