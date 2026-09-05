@@ -233,6 +233,36 @@ CREATE TABLE IF NOT EXISTS auth_tokens (
 );
 CREATE INDEX IF NOT EXISTS idx_auth_tokens_user ON auth_tokens(user_id, purpose);
 
+-- Safety. A block is one person's decision about who may reach them; it is
+-- theirs to place and lift, and the other side is told nothing. A report is a
+-- note to a reviewer, kept until a human resolves it. They are separate rows
+-- because they are separate acts: reporting does not block, blocking does not
+-- report, and the client offers both.
+CREATE TABLE IF NOT EXISTS user_blocks (
+    id         INTEGER PRIMARY KEY,
+    blocker_id INTEGER NOT NULL REFERENCES users(id),
+    blocked_id INTEGER NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL,
+    UNIQUE (blocker_id, blocked_id)
+);
+CREATE INDEX IF NOT EXISTS idx_blocks_blocked ON user_blocks(blocked_id);
+
+CREATE TABLE IF NOT EXISTS reports (
+    id               INTEGER PRIMARY KEY,
+    reporter_id      INTEGER NOT NULL REFERENCES users(id),
+    reported_user_id INTEGER NOT NULL REFERENCES users(id),
+    reason           TEXT NOT NULL,
+    detail           TEXT NOT NULL DEFAULT '',
+    message_id       INTEGER REFERENCES messages(id),
+    content_id       INTEGER REFERENCES content_items(id),
+    created_at       TEXT NOT NULL,
+    resolved_at      TEXT,
+    resolved_by      INTEGER REFERENCES users(id),
+    resolution       TEXT CHECK (resolution IN ('dismissed','warned','suspended')),
+    resolution_note  TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_reports_open ON reports(resolved_at, id);
+
 CREATE TABLE IF NOT EXISTS poll_options (
     id         INTEGER PRIMARY KEY,
     content_id INTEGER NOT NULL REFERENCES content_items(id),

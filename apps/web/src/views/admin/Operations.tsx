@@ -24,6 +24,23 @@ interface AuditEvent {
   detail: Record<string, unknown>
 }
 
+interface Report {
+  id: number
+  reason: string
+  detail: string
+  created_at: string
+  reporter_name: string
+  reporter_role: string
+  reported_user_id: number
+  reported_name: string
+  reported_role: string
+  reported_status: string
+  message_body: string | null
+  prior_reports: number
+  resolved_at: string | null
+  resolution: string | null
+}
+
 interface ChaosState {
   enabled: boolean
   latency_ms: number
@@ -34,17 +51,20 @@ interface ChaosState {
 export default function Operations() {
   const [events, setEvents] = useState<AuditEvent[] | null>(null)
   const [chaos, setChaos] = useState<ChaosState | null>(null)
+  const [reports, setReports] = useState<Report[]>([])
   const [filter, setFilter] = useState('')
   const [error, setError] = useState('')
   const toast = useToast()
 
   const load = async () => {
-    const [e, c] = await Promise.all([
+    const [e, c, r] = await Promise.all([
       api.get<AuditEvent[]>('/api/admin/events?limit=200'),
       api.get<ChaosState>('/api/admin/chaos'),
+      api.get<Report[]>('/api/admin/reports?status=open'),
     ])
     setEvents(e)
     setChaos(c)
+    setReports(r)
   }
 
   useEffect(() => {
@@ -58,6 +78,17 @@ export default function Operations() {
         latency_ms: 0, error_rate: 0, db_down: false, ...body,
       }))
       toast('Chaos state applied')
+    } catch (e) {
+      setError(errorText(e))
+    }
+  }
+
+  const resolve = async (id: number, resolution: 'dismissed' | 'warned' | 'suspended') => {
+    setError('')
+    try {
+      await api.post(`/api/admin/reports/${id}/resolve`, { resolution })
+      toast(resolution === 'suspended' ? 'Account suspended and every session ended' : `Report ${resolution}`)
+      await load()
     } catch (e) {
       setError(errorText(e))
     }
@@ -97,6 +128,37 @@ export default function Operations() {
           {error}
         </div>
       )}
+
+      {/* Reports first: the one thing on this page that is somebody waiting. */}
+      <Section title="Reports" aside={<span className="meta">{reports.length} open</span>}>
+        {reports.length === 0 ? (
+          <EmptyNote text="Nothing reported. When a person reports another from a conversation, it lands here with the message attached." />
+        ) : (
+          <div className="space-y-2">
+            {reports.map((r) => (
+              <div key={r.id} className="panel p-4">
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <span className="tag tag-warn">{r.reason.replace('_', ' ')}</span>
+                  <span className="font-medium text-ink">{r.reported_name}</span>
+                  <span className="cap text-ink-3">{r.reported_role}</span>
+                  {r.prior_reports > 0 && <span className="tag tag-critical">{r.prior_reports} prior</span>}
+                  <span className="meta ml-auto">by {r.reporter_name} · {fmtDT(r.created_at)}</span>
+                </div>
+                {r.message_body && (
+                  <blockquote className="mt-3 border-l-2 border-line-strong pl-3 text-sm text-ink-2">{r.message_body}</blockquote>
+                )}
+                {r.detail && <p className="mt-2 text-sm text-ink-2">{r.detail}</p>}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button className="btn" onClick={() => resolve(r.id, 'dismissed')}>Dismiss</button>
+                  <button className="btn" onClick={() => resolve(r.id, 'warned')}>Mark warned</button>
+                  <button className="btn border-critical/60 text-critical hover:border-critical hover:bg-critical/10 hover:text-critical"
+                          onClick={() => resolve(r.id, 'suspended')}>Suspend account</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
 
       <Section
         title="Resilience drill"
