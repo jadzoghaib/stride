@@ -477,6 +477,8 @@ _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     ("users", "accepted_policy_version", "TEXT"),
     ("users", "accepted_at", "TEXT"),
     ("users", "email_verified_at", "TEXT"),
+    # set by account deletion; the row stays for the ledger, anonymised
+    ("users", "deleted_at", "TEXT"),
     ("deals", "completed_at", "TEXT"),
     ("deals", "projected_reach", "INTEGER"),
     ("campaigns", "require_verified_athletes", "BOOLEAN NOT NULL DEFAULT FALSE"),

@@ -68,6 +68,8 @@ export const ERROR_TEXT: Record<string, string> = {
   terms_not_accepted: 'You need to accept the Terms of Service and Privacy Policy to create an account.',
   invalid_or_expired_token: 'That link has already been used or has expired.',
   wrong_password: 'Your current password is not right.',
+  confirmation_word_mismatch: 'Type DELETE to confirm.',
+  admin_accounts_are_removed_by_another_admin: 'An administrator account is removed by another administrator, not from here.',
   password_managed_elsewhere: 'This account signs in through an identity provider; change the password there.',
   email_exists: 'An account with this email already exists.',
   offer_already_open: 'There is already an open offer to this athlete for this campaign.',
