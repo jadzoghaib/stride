@@ -81,14 +81,40 @@ def test_a_subscription_has_somewhere_to_go(fan, athlete, db):
     assert note["actor"]["role"] == "fan"
 
 
-def test_the_system_speaking_for_itself_has_no_actor(athlete2):
+def test_the_system_speaking_for_itself_has_no_actor(admin, athlete2, db):
     """An admission decision is raised by the policy. There is nobody to reply
-    to, and inventing one would put a reply control on a machine."""
-    for note in athlete2.get("/api/notifications?limit=100").json()["items"]:
-        if note["kind"].startswith("admission."):
-            assert note["actor"] is None
-            return
-    pytest.skip("no admission notification on this account")
+    to, and inventing one would put a reply control on a machine.
+
+    The decision is *made* here rather than hoped for. An earlier version walked
+    the seeded notifications and skipped when it found none — which is a test
+    that passes forever once the behaviour it guards stops happening.
+    """
+    # Submitted here rather than read from the seed. `test_admission_api.py`
+    # clears `athlete_applications` wholesale, so a test that looks up the
+    # seeded row passes alone and fails in the suite depending on ordering --
+    # which is what this one did on its first outing.
+    submitted = athlete2.post("/api/athlete/application", json={
+        "discipline": "Athletics", "club_name": "Halifax Harriers",
+        "league_name": "Athletics Canada", "competition_level": "national",
+        "years_competing": 7, "birth_year": 1999,
+        "proof_url": "https://athletics.example/ca/rankings/marathon",
+        "proof_kind": "results"})
+    assert submitted.status_code == 201, submitted.text
+
+    application = row(db, """
+        SELECT ap.id FROM athlete_applications ap
+        JOIN athlete_profiles a ON a.id = ap.athlete_id
+        WHERE a.slug = 'sofia-brandt'""")
+    assert application, "the application just submitted is there to decide on"
+    decided = admin.post(f"/api/admin/applications/{application['id']}/proof",
+                         json={"proof_status": "verified"})
+    assert decided.status_code == 200, decided.text
+
+    admission = [n for n in athlete2.get("/api/notifications?limit=100").json()["items"]
+                 if n["kind"].startswith("admission.")]
+    assert admission, "deciding an application tells the applicant"
+    assert admission[0]["actor"] is None, "the policy decided, not a person"
+    assert admission[0]["link"], "and it still says where to look"
 
 
 def test_the_reply_control_is_never_a_refusal_in_waiting(athlete, db):
