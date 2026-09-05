@@ -76,6 +76,15 @@ class Settings:
         # "1" everywhere with a comment saying "off in prod" -- true only if the
         # deployment remembered to set STRIDE_CHAOS=0. A default that injects
         # 503s into any environment that forgets a flag is the wrong default.
+        # Where links in outgoing emails point (verify, reset). The first CORS
+        # origin is the client in every deployment this has, so it is the default.
+        self.public_url = os.environ.get("STRIDE_PUBLIC_URL", "").rstrip("/") or self.cors_origins[0]
+        # The version of the Terms and Privacy Policy a new account accepts.
+        # Must match POLICY_VERSION in apps/web/src/lib/legal.ts -- a test
+        # reads the TypeScript file and checks. Bump both when the documents
+        # change; the acceptance recorded on each account says which text they
+        # agreed to.
+        self.legal_policy_version = os.environ.get("STRIDE_LEGAL_POLICY_VERSION", "2026-08-17")
         self.chaos_enabled = os.environ.get(
             "STRIDE_CHAOS", "1" if self.env in ("dev", "test") else "0") == "1"
 

@@ -10,6 +10,9 @@ import Legal from './views/legal/Legal'
 import YourData from './views/legal/YourData'
 import AthletePublicView from './views/AthletePublic'
 import Auth from './views/Auth'
+import Verify from './views/auth/Verify'
+import Reset from './views/auth/Reset'
+import Settings from './views/Settings'
 import Directory from './views/Directory'
 import MyClubs from './views/athlete/MyClubs'
 import Inbox from './views/Inbox'
@@ -81,6 +84,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/verify" element={<Verify />} />
+          <Route path="/reset" element={<Reset />} />
+          <Route path="/settings" element={<Guard roles={['athlete', 'club', 'sponsor', 'fan', 'admin']}><Settings /></Guard>} />
 
           <Route path="/athletes" element={<Public><Directory /></Public>} />
           <Route path="/athletes/:slug" element={<Public><AthletePublicView /></Public>} />

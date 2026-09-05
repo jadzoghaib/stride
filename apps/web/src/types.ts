@@ -3,6 +3,8 @@ export interface Me {
   email: string
   role: 'athlete' | 'sponsor' | 'fan' | 'club' | 'admin'
   display_name: string
+  email_verified: boolean
+  accepted_policy_version: string | null
   athlete_profile?: { id: number; slug: string; status: string } | null
   org?: { id: number; name: string; industry: string } | null
   club?: { id: number; slug: string; name: string; status: string } | null

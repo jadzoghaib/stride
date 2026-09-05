@@ -471,6 +471,17 @@ CREATE TABLE IF NOT EXISTS email_outbox (
     sent_at    TEXT
 );
 
+CREATE TABLE IF NOT EXISTS auth_tokens (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id    BIGINT NOT NULL REFERENCES users(id),
+    purpose    TEXT NOT NULL CHECK (purpose IN ('verify_email','reset_password')),
+    token_hash TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    used_at    TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_auth_tokens_user ON auth_tokens(user_id, purpose);
+
 CREATE TABLE IF NOT EXISTS poll_options (
     id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     content_id BIGINT NOT NULL REFERENCES content_items(id),

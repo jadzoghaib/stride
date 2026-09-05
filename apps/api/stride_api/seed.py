@@ -39,6 +39,7 @@ from creatorlens.ingestion import sync_account
 from .admission import (POLICY_VERSION, admission_decision, age_from,
                         athlete_credibility, club_legitimacy)
 from .auth import hash_password
+from .config import settings
 # The offer endpoint's own projection, so a seeded deal is priced against the
 # same number a real one would be.
 from .routers.sponsors import _projected_reach
@@ -164,9 +165,13 @@ CAMPAIGNS = [
 
 
 def _insert_user(conn, email, name, role, password=DEMO_PASSWORD) -> int:
+    # Demo accounts arrive verified and with the current policy accepted: they
+    # are fixtures for showing the product, not people who were asked.
     cur = conn.execute(
-        "INSERT INTO users (email, password_hash, role, display_name, created_at) VALUES (?, ?, ?, ?, ?)",
-        (email, hash_password(password), role, name, now_iso()))
+        "INSERT INTO users (email, password_hash, role, display_name, created_at,"
+        " email_verified_at, accepted_policy_version, accepted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (email, hash_password(password), role, name, now_iso(), now_iso(),
+         settings.legal_policy_version, now_iso()))
     log_event(conn, "system", "user.registered", "user", cur.lastrowid, {"email": email, "role": role})
     return cur.lastrowid
 

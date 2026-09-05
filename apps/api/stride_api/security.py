@@ -47,7 +47,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         path = request.url.path
         if path.startswith("/api"):
             ip = request.client.host if request.client else "unknown"
-            if path.startswith("/api/auth/login") or path.startswith("/api/auth/register"):
+            if path.startswith(("/api/auth/login", "/api/auth/register",
+                                "/api/auth/forgot", "/api/auth/reset", "/api/auth/password")):
                 allowed = buckets.allow(f"auth:{ip}", AUTH_BURST, AUTH_REFILL)
             else:
                 allowed = buckets.allow(f"api:{ip}", API_BURST, API_REFILL)
