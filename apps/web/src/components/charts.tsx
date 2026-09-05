@@ -100,7 +100,7 @@ function useHover() {
       <div
         className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[calc(100%+12px)]
                    whitespace-nowrap rounded border border-line-strong bg-panel px-2.5 py-1.5
-                   font-mono text-[11px] text-ink shadow-lift"
+                   font-mono text-label text-ink shadow-lift"
         style={{ left: tip.x, top: tip.y }}
       >
         {tip.text}

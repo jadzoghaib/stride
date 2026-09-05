@@ -123,7 +123,7 @@ export function PageHeader({
     <header className="mb-8">
       {eyebrow && <div className="cap mb-1.5">{eyebrow}</div>}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <h1 className="text-[30px] leading-tight tracking-board">{title}</h1>
+        <h1 className="text-display leading-tight tracking-board">{title}</h1>
         {tags}
         {aside && <div className="ml-auto">{aside}</div>}
       </div>
@@ -220,7 +220,7 @@ export function Modal({
     >
       <div className="panel flex min-h-0 flex-col">
         <div className="flex items-start gap-4 border-b border-line px-6 py-4">
-          <h2 id={titleId} className="min-w-0 flex-1 text-[21px] leading-tight tracking-board">
+          <h2 id={titleId} className="min-w-0 flex-1 text-intro leading-tight tracking-board">
             {title}
           </h2>
           <button type="button" onClick={requestClose} aria-label="Close"
@@ -336,13 +336,13 @@ export function Tabs<T extends string>({ tabs, active, onChange }: {
           role="tab"
           aria-selected={active === t.key}
           onClick={() => onChange(t.key)}
-          className={`flex-1 rounded py-2 font-display text-[13px] font-semibold uppercase tracking-micro transition-colors ${
+          className={`flex-1 rounded py-2 font-display text-small font-semibold uppercase tracking-micro transition-colors ${
             active === t.key ? 'bg-track text-ink' : 'text-ink-3 hover:text-ink-2'
           }`}
         >
           {t.label}
           {t.count !== undefined && (
-            <span className={`tnum ml-2 text-[11px] ${active === t.key ? 'text-accent-ink' : 'text-ink-3'}`}>
+            <span className={`tnum ml-2 text-label ${active === t.key ? 'text-accent-ink' : 'text-ink-3'}`}>
               {t.count}
             </span>
           )}
@@ -501,7 +501,7 @@ const STATUS_STYLE: Record<string, string> = {
 export function SimulatedChip({ what = 'data' }: { what?: string }) {
   return (
     <span
-      className="tag border-warn/45 bg-warn/10 text-ink-2"
+      className="tag tag-warn"
       title="Platform connectors are mocked in this build — these figures are generated, not measured from a live account."
     >
       simulated {what}
@@ -629,7 +629,7 @@ export function KV({ label, value, to }: { label: string; value: ReactNode; to?:
   const body = (
     <>
       <span className="cap">{label}</span>
-      <b className="tnum font-display text-[19px] font-bold text-ink">{value}</b>
+      <b className="tnum font-display text-lead font-bold text-ink">{value}</b>
       {to && (
         <ArrowUpRight
           size={13}

@@ -111,7 +111,7 @@ export default function CampaignMatches({ embedded = false }: { embedded?: boole
                   <span className="lane-no w-7 text-right">{idx + 1}</span>
                   <Avatar name={m.display_name} size={36} />
                   <div className="min-w-0">
-                    <div className="font-display text-[15px] font-semibold uppercase tracking-board text-ink">
+                    <div className="font-display text-body font-semibold uppercase tracking-board text-ink">
                       {m.display_name}
                     </div>
                     <div className="text-xs text-ink-3">
@@ -123,7 +123,7 @@ export default function CampaignMatches({ embedded = false }: { embedded?: boole
                       coverage={m.analytics_summary ? { ...m.analytics_summary.coverage, list: [] } : null}
                     />
                     <div className="w-28">
-                      <div className="tnum text-right font-display text-[26px] font-bold leading-none text-ink">
+                      <div className="tnum text-right font-display text-head font-bold leading-none text-ink">
                         {m.score.toFixed(1)}
                       </div>
                       <div className="mt-1.5">
@@ -210,7 +210,7 @@ function Composition({ match }: { match: Match }) {
                 muted={r.contribution < top / 2}
               />
             )}
-            <span className="tnum text-right font-display text-[15px] font-bold text-ink">
+            <span className="tnum text-right font-display text-body font-bold text-ink">
               {r.contribution === null ? '—' : (100 * r.contribution).toFixed(1)}
             </span>
             <span className="meta text-right">

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Wordmark } from '../components/Shell'
+import { ThemeToggle, Wordmark } from '../components/Shell'
 import { api, errorText } from '../lib/api'
 import { COUNTRIES, SPORTS, withCurrent } from '../lib/reference'
 import { roleHome, useAuth } from '../lib/auth'
@@ -52,7 +52,10 @@ function GateField({ label, name, value, onChange, hint, type = 'text', placehol
 export default function Auth() {
   const [params] = useSearchParams()
   const [mode, setMode] = useState<'login' | 'register'>(params.get('mode') === 'register' ? 'register' : 'login')
-  const [role, setRole] = useState('athlete')
+  // the landing deep-links a role in; anything else falls back to the first tile
+  const [role, setRole] = useState(
+    ROLES.some((r) => r.key === params.get('role')) ? (params.get('role') as string) : 'athlete',
+  )
   const [form, setForm] = useState({ email: '', password: '', display_name: '', sport: '', country: '', org_name: '', industry: 'Sportswear' })
   /** Registration is two steps for the roles that have to qualify. Step one
    *  creates the account — which lands as `draft`, invisible to the directory
@@ -151,8 +154,9 @@ export default function Auth() {
   if (step === 'eligibility') {
     return (
       <div className="min-h-screen bg-ground">
-        <header className="mx-auto flex h-16 max-w-[1140px] items-center px-7">
-          <Link to="/"><Wordmark size="text-[22px]" /></Link>
+        <header className="mx-auto flex h-16 max-w-page items-center justify-between px-7">
+          <Link to="/"><Wordmark size="text-title" /></Link>
+          <ThemeToggle />
         </header>
         <div className="mx-auto max-w-2xl px-7 py-10">
           <p className="cap">Step 2 of 2</p>
@@ -245,10 +249,11 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-ground">
-      <header className="mx-auto flex h-16 max-w-[1140px] items-center px-7">
+      <header className="mx-auto flex h-16 max-w-page items-center justify-between px-7">
         <Link to="/">
-          <Wordmark size="text-[22px]" />
+          <Wordmark size="text-title" />
         </Link>
+        <ThemeToggle />
       </header>
       <div className="mx-auto max-w-md px-7 py-10">
         <div className="flex gap-1 rounded-card border border-line bg-panel p-1">
@@ -257,7 +262,7 @@ export default function Auth() {
               key={m}
               onClick={() => setMode(m)}
               aria-pressed={mode === m}
-              className={`flex-1 rounded py-2 font-display text-[13px] font-semibold uppercase tracking-micro transition-colors ${
+              className={`flex-1 rounded py-2 font-display text-small font-semibold uppercase tracking-micro transition-colors ${
                 mode === m ? 'bg-track text-ink' : 'text-ink-3 hover:text-ink-2'
               }`}
             >

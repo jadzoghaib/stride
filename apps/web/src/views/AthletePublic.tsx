@@ -195,13 +195,13 @@ export default function AthletePublicView() {
 
             <div className="flex flex-wrap items-start gap-3">
               <div className="min-w-0">
-                <h1 className="font-display text-[30px] font-bold leading-none text-ink">
+                <h1 className="font-display text-display font-bold leading-none text-ink">
                   {a.display_name}
                 </h1>
                 <p className="meta mt-1">@{a.slug}</p>
               </div>
               {a.status === 'listed' && (
-                <span className="tag border-ok/50 text-ok">Verified athlete</span>
+                <span className="tag tag-ok">Verified athlete</span>
               )}
             </div>
 
@@ -279,7 +279,7 @@ export default function AthletePublicView() {
             <div className="mt-4 flex flex-wrap gap-2">
               {(['all', 'free', 'unlocked', 'locked'] as const).map((f) => (
                 <button key={f} onClick={() => setFilter(f)}
-                        className={`rounded-full border px-4 py-1.5 font-display text-[12px]
+                        className={`rounded-full border px-4 py-1.5 font-display text-fine
                                     uppercase tracking-micro transition-colors ${
                           filter === f
                             ? 'border-accent bg-accent text-accent-on'
@@ -403,7 +403,7 @@ export default function AthletePublicView() {
 function Stat({ n, label, plural }: { n: number; label: string; plural?: string }) {
   return (
     <span className="flex items-baseline gap-1.5">
-      <span className="tnum font-display text-[17px] font-bold text-ink">{fmtNum(n)}</span>
+      <span className="tnum font-display text-read font-bold text-ink">{fmtNum(n)}</span>
       <span className="meta">{n === 1 ? label : plural ?? `${label}s`}</span>
     </span>
   )
@@ -423,7 +423,7 @@ function MembershipCard({ athlete, canRelate, isSelf = false, onJoin }: {
         <p className="cap text-ink-3">Membership</p>
         <p className="mt-1 font-medium text-ink">{MEMBERSHIP.name}</p>
         <p className="mt-1">
-          <span className="font-display text-[26px] font-bold text-ink">{MEMBERSHIP.price}</span>
+          <span className="font-display text-head font-bold text-ink">{MEMBERSHIP.price}</span>
           <span className="meta">/month</span>
         </p>
         {isSelf ? (

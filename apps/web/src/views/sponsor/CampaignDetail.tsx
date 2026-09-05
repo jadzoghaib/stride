@@ -59,7 +59,7 @@ export default function CampaignDetail() {
 
       <div className="mb-5">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="font-display text-[30px] font-bold leading-none tracking-board text-ink">
+          <h1 className="font-display text-display font-bold leading-none tracking-board text-ink">
             {campaign.name}
           </h1>
           <span className="tag">{campaign.category}</span>

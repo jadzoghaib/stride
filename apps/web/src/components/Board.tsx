@@ -60,11 +60,11 @@ export function Board({
 
   return (
     <header className="board bleed" style={ruleStyle}>
-      <div className="relative mx-auto w-full max-w-[1140px] px-7 pb-8 pt-10">
+      <div className="relative mx-auto w-full max-w-page px-7 pb-8 pt-10">
         <Rise delay={40}>
           <div className="flex flex-wrap items-center gap-3">
             {eyebrow && <span className="cap">{eyebrow}</span>}
-            <h1 className="text-[30px] leading-tight tracking-board">{title}</h1>
+            <h1 className="text-display leading-tight tracking-board">{title}</h1>
             {tags}
           </div>
         </Rise>
@@ -77,7 +77,7 @@ export function Board({
                 <div className="pt-2">
                   <div className="cap">{scoreLabel}</div>
                   {delta !== undefined && delta !== null && (
-                    <div className="mt-0.5 text-[19px]">
+                    <div className="mt-0.5 text-lead">
                       <Delta value={delta} />
                     </div>
                   )}

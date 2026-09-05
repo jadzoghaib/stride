@@ -148,7 +148,7 @@ function Metric({ label, value, note }: { label: string; value: string; note: st
   return (
     <div className="panel p-4">
       <div className="cap text-ink-3">{label}</div>
-      <div className="tnum mt-1 font-display text-[26px] font-bold leading-none text-ink">{value}</div>
+      <div className="tnum mt-1 font-display text-head font-bold leading-none text-ink">{value}</div>
       <div className="meta mt-1.5">{note}</div>
     </div>
   )

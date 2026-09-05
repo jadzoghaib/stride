@@ -212,7 +212,11 @@ def test_club_workspace_and_guardrails(clubu):
     ws = clubu.get("/api/club/workspace").json()
     assert ws["club"]["slug"] == "meridian-fc"
     assert len(ws["roster"]) == 2
-    assert ws["revenue_active"] == 0
+    # The seed backs one of this club's packages, so the figure is the sum of
+    # its active commitments rather than a hard-coded zero -- a demo club with
+    # no revenue demonstrated the board and not the reason for it.
+    assert ws["revenue_active"] == sum(x["amount_eur"] for x in ws["commitments"]
+                                       if x["status"] == "active") > 0
     bad = clubu.post("/api/club/packages", json={
         "name": "Bad package", "package_type": "player_direct",
         "price_eur": 100, "athlete_slug": "kaia-mercer"})
@@ -223,13 +227,14 @@ def test_package_backing_lifecycle(client, sponsor, clubu, fan):
     mfc = client.get("/api/clubs/meridian-fc").json()
     pd = next(p for p in mfc["packages"] if p["package_type"] == "player_direct")
 
+    before = clubu.get("/api/club/workspace").json()["revenue_active"]
     assert fan.post(f"/api/clubs/packages/{pd['id']}/commit").status_code == 403
     commit = sponsor.post(f"/api/clubs/packages/{pd['id']}/commit")
     assert commit.status_code == 201
     assert sponsor.post(f"/api/clubs/packages/{pd['id']}/commit").status_code == 409
 
     ws = clubu.get("/api/club/workspace").json()
-    assert ws["revenue_active"] == pd["price_eur"]
+    assert ws["revenue_active"] == before + pd["price_eur"]
     sws = sponsor.get("/api/sponsor/workspace").json()
     assert any(x["package_id"] == pd["id"] and x["status"] == "active"
                for x in sws["club_commitments"])
@@ -239,13 +244,16 @@ def test_package_backing_lifecycle(client, sponsor, clubu, fan):
 def test_roster_removal_ends_commitments(client, sponsor, clubu):
     mfc = client.get("/api/clubs/meridian-fc").json()
     pd = next(p for p in mfc["packages"] if p["package_type"] == "player_direct")
+    before = clubu.get("/api/club/workspace").json()["revenue_active"]
     assert sponsor.post(f"/api/clubs/packages/{pd['id']}/commit").status_code == 201
 
     marcus = next(m for m in mfc["roster"] if m["slug"] == "marcus-oyelaran")
     removed = clubu.post(f"/api/club/members/{marcus['athlete_id']}/remove").json()
     assert removed["commitments_ended"] == 1
     ws = clubu.get("/api/club/workspace").json()
-    assert ws["revenue_active"] == 0
+    # only the player-direct commitment ends; the club-level one the seed
+    # placed is untouched by a roster change
+    assert ws["revenue_active"] == before
     assert len(ws["roster"]) == 1
 
 

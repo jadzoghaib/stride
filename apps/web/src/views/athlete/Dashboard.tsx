@@ -184,7 +184,7 @@ export default function AthleteDashboard() {
                       <td className="table-cell">
                         <StatusChip status={a.connection_status} />
                       </td>
-                      <td className="table-cell tnum text-right font-display text-[17px] font-bold text-ink">
+                      <td className="table-cell tnum text-right font-display text-read font-bold text-ink">
                         {fmtNum(a.followers)}
                       </td>
                       <td className="table-cell meta">
@@ -248,10 +248,10 @@ export default function AthleteDashboard() {
                     {/* stripe marks "needs your response" — it appears on no other state */}
                     <span className="absolute bottom-0 left-0 top-0 w-[3px] bg-accent" aria-hidden />
                     <div className="flex items-baseline justify-between gap-3">
-                      <span className="font-display text-[15px] font-semibold uppercase tracking-board text-ink">
+                      <span className="font-display text-body font-semibold uppercase tracking-board text-ink">
                         {d.org_name}
                       </span>
-                      <span className="tnum font-display text-[21px] font-bold text-ink">{fmtMoney(d.amount_eur)}</span>
+                      <span className="tnum font-display text-intro font-bold text-ink">{fmtMoney(d.amount_eur)}</span>
                     </div>
                     <p className="meta mt-1">
                       {d.deal_type.replace(/_/g, ' ')} · {d.category} · offered {fmtDT(d.created_at).slice(0, 10)}

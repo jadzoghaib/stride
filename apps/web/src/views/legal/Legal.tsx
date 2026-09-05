@@ -27,13 +27,13 @@ export default function Legal() {
       {d.sections.map((s) => (
         <Section key={s.h} title={s.h}>
           {s.p?.map((para) => (
-            <p key={para.slice(0, 40)} className="mb-3 text-[15px] leading-relaxed text-ink-2 last:mb-0">
+            <p key={para.slice(0, 40)} className="mb-3 text-body leading-relaxed text-ink-2 last:mb-0">
               {para}
             </p>
           ))}
 
           {s.list && (
-            <ul className="space-y-1.5 text-[15px] text-ink-2">
+            <ul className="space-y-1.5 text-body text-ink-2">
               {s.list.map((li) => (
                 <li key={li} className="flex gap-2.5">
                   <span className="mt-2 h-px w-3 shrink-0 bg-accent" aria-hidden />

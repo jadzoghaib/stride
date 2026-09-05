@@ -37,6 +37,33 @@ export default {
         line: { DEFAULT: 'var(--line)', strong: 'var(--line-strong)' },
       },
 
+      fontSize: {
+        // The scale, named. These were 100 arbitrary `text-[Npx]` values across
+        // 49 distinct shapes; DESIGN.md says "set a type scale and stay on it"
+        // and the code had never written the scale down. Sizes only -- line
+        // height stays with the element -- so adopting these changed nothing on
+        // screen. Add a size here or do not use it.
+        micro: '10px',    // legend ticks
+        label: '11px',    // tracked caps: .cap, .tag, .meta
+        fine: '12px',     // secondary meta
+        small: '13px',    // dense table text
+        ui: '14px',       // controls
+        body: '15px',     // running text
+        read: '17px',     // ledes
+        lead: '19px',     // card titles
+        intro: '21px',
+        title: '22px',    // section titles, wordmark in the shell
+        brand: '24px',    // wordmark on the landing
+        head: '26px',
+        prime: '28px',   // the one board numeral between head and display
+        display: '30px',  // the smallest board numeral
+      },
+
+      maxWidth: {
+        // the one content track; nine views typed 1140px by hand
+        page: '1140px',
+      },
+
       fontFamily: {
         // Barlow Condensed is the board face: numerals, labels, table heads.
         display: ['Barlow Condensed', 'Bahnschrift', 'DIN Alternate', 'Arial Narrow', 'ui-sans-serif', 'sans-serif'],
