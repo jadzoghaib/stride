@@ -104,11 +104,29 @@ Headline rates across the platforms an athlete could plausibly choose instead:
 
 And the middlemen the athlete is paying *on top* of the platform:
 
-| Intermediary | Takes |
-|---|---|
-| Sports agent, endorsement deal | **10–20%** |
-| Sports agent, playing contract | 4–10% |
-| OnlyFans management agency | **20–50% of net**, on top of the platform's 20% |
+| Intermediary | Takes | Where the number comes from |
+|---|---|---|
+| Sports agent, endorsement deal | **10–20%** | unregulated — no governing body caps it |
+| Sports agent, playing contract | **2–5%** | capped, and the caps are published |
+| OnlyFans management agency | **20–50% of net**, on top of the platform's 20% | agency rate guides |
+
+The playing-contract row used to read 4–10% on the authority of a blog that has
+since been deleted. The bodies that actually set these caps publish them: the
+[NBPA regulations](https://imgix.cosmicjs.com/cd844850-97c7-11f0-91fa-d9e1671c2776-NBPA-REGULATIONS-GOVERNING-PLAYER-AGENTS-09-2025.pdf)
+(amended September 2025) allow **2%** where the player earns the CBA minimum and
+**4%** above it, and
+[FIFA's Football Agent Regulations, article 15](https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf)
+allow **5%** at or below USD 200,000 of annual remuneration and **3%** above, for
+representing the player. *(FIFA's cap was suspended during litigation; the CJEU
+[upheld it on 16 July 2026](https://inside.fifa.com/news/welcomes-court-of-justice-european-union-decision-football-agent-regulations)
+and it takes effect with the new transfer system on 1 January 2027.)*
+
+**The gap between those two rows is the point, and it is structural.** The NBPA
+regulations do not contain the word "endorsement" once: unions cap what an agent
+may charge for negotiating a *playing contract*, and leave marketing work
+uncapped. That is why endorsement representation costs an athlete several times
+what a union permits on their salary — and endorsement is exactly the work
+Stride's 15% replaces.
 
 ### Why 15% beats Passes' 10% for the athletes we serve
 
@@ -163,30 +181,25 @@ at Series A, when the network — not the price — is the reason to stay.
 
 *Sources: [Passes fee structure (Sacra)](https://sacra.com/c/passes/) ·
 [Passes 10% confirmed at 2026 rebrand](https://www.prnewswire.com/news-releases/passes-rebrands-as-the-creator-accelerator-platform-302749690.html) ·
-[Platform comparison](https://www.mexc.com/news/1014749) *(dead — 410 Gone as of 2026-09-05)* ·
+[NBPA agent fee cap, amended Sept 2025](https://imgix.cosmicjs.com/cd844850-97c7-11f0-91fa-d9e1671c2776-NBPA-REGULATIONS-GOVERNING-PLAYER-AGENTS-09-2025.pdf) ·
+[FIFA Football Agent Regulations, art. 15](https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf) ·
+[CJEU upholds the FIFA cap, 16 Jul 2026](https://inside.fifa.com/news/welcomes-court-of-justice-european-union-decision-football-agent-regulations) ·
 [OnlyFans agency commissions 20–50%](https://arunatalent.com/blog/onlyfans-agency-commission-rates/) ·
-[Sports agent endorsement commissions](https://www.oreateai.com/blog/understanding-sports-agents-commission-what-percentage-do-they-take/95c2df506ae450b9b71340b89cfcfece) *(dead — 410 Gone as of 2026-09-05)*
+[Fanfix Creator Terms of Use](https://auth.fanfix.io/creator-terms-of-use) — cited for what it does *not* say
 
-**Two of these sources are dead, and they were not corroborating — they carried
-rows on their own.** An earlier note here claimed the fee comparison rested on
-Sacra and PRNewswire; that was wrong. Those two source the *Passes* row. What
-the dead links carried:
+**On the platform rates in the first table.** Those could not be moved to
+published terms, because the platforms do not publish them. Checked 2026-09-05:
+Fanfix's Creator Terms of Use and its public FAQ state no percentage, Fansly's
+terms render client-side with nothing in the document, and OnlyFans' terms are
+not reachable without an account. The 20% is consistent across secondary
+reporting and is what these platforms charge in-product, but it is not a
+published figure — so it is recorded here as an estimate to re-check in-app,
+rather than dressed up with another citation.
 
-| row | sole source | state |
-|---|---|---|
-| OnlyFans / Fansly / Fanfix at 20% | "Platform comparison" | 410 Gone |
-| Sports agent 10–20% and 4–10% | "Agent commissions" | 410 Gone |
-
-Both publishers are also weak for the purpose. `mexc.com` is a cryptocurrency
-exchange, and the second is a hash-slugged blog of the kind that churns. Neither
-is a primary source for creator-platform economics; both should be replaced with
-the platforms' own published terms, which are checkable and will not vanish.
-
-**What does *not* depend on them:** the recommendation to hold 15%. That rests
-entirely on the Passes comparison — Sacra plus the PRNewswire rebrand release,
-both live — and on the crossover arithmetic, which is computed from the model
-rather than cited. The competitor table is context for that argument, not its
-foundation.*
+**What does not depend on any of this:** the recommendation to hold 15%. It
+rests on the Passes comparison — Sacra plus the rebrand release, both live and
+both primary — and on the crossover arithmetic, which is computed from the model
+rather than cited.*
 
 ---
 
