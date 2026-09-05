@@ -73,8 +73,14 @@ PLATFORM_FACTS: list[tuple] = [
 # (platform, headline_take, per_txn_usd, monthly_fee_usd, source)
 TAKE_RATES: list[tuple] = [
     ("OnlyFans", 0.20, 0.00, 0.00, "Company disclosure — 80% creator share"),
-    ("Fansly", 0.20, 0.00, 0.00, "MEXC platform comparison 2026"),
-    ("Fanfix", 0.20, 0.00, 0.00, "Outseeker comparison 2026"),
+    # Neither platform publishes its take rate. Checked 2026-09-05: Fanfix's
+    # Creator Terms of Use and its FAQ state no percentage, and Fansly's terms
+    # render client-side with nothing in the document. The 20% is consistent
+    # across secondary reporting and is what the platforms charge in-product,
+    # but it is not a published figure and should be re-checked in-app before
+    # anyone leans on it.
+    ("Fansly", 0.20, 0.00, 0.00, "Not published in terms; widely reported"),
+    ("Fanfix", 0.20, 0.00, 0.00, "Not published in terms; widely reported"),
     ("Patreon", 0.10, 0.00, 0.00, "8-12% by plan tier; 10% midpoint"),
     ("Passes", 0.10, 0.30, 29.00, "Sacra; Passes rebrand release Apr 2026"),
     ("Stride (proposed)", 0.15, 0.00, 0.00, "Our decision — see MarketModel"),
@@ -82,8 +88,17 @@ TAKE_RATES: list[tuple] = [
 
 # ── Intermediaries the athlete already pays ─────────────────────────────────
 INTERMEDIARY_RATES: list[tuple] = [
-    ("Sports agent — endorsement", 0.10, 0.20, "Oreate / Sapling agent-commission surveys"),
-    ("Sports agent — playing contract", 0.04, 0.10, "Same"),
+    # Endorsement work sits *outside* the union caps below -- the NBPA
+    # regulations do not use the word "endorsement" once -- which is the
+    # structural reason marketing commissions run several times the rate a
+    # union permits on a playing contract. The range is widely reported and
+    # not published by any governing body; treat it as an estimate.
+    ("Sports agent — endorsement", 0.10, 0.20, "Unregulated; widely reported, no primary source"),
+    # Capped by the governing bodies, and the caps are public documents.
+    # NBPA: 2% where the player earns the CBA minimum, 4% above it.
+    # FIFA FFAR art. 15: 5% at or below USD 200k annual remuneration, 3% above,
+    # for representing the player.
+    ("Sports agent — playing contract", 0.02, 0.05, "NBPA reg. 4.B (Sept 2025); FIFA FFAR art. 15"),
     ("OnlyFans management agency", 0.20, 0.50, "Aruna Talent rate guide 2026 — on top of the 20%"),
 ]
 
@@ -101,31 +116,26 @@ POPULATION_M: dict[str, float] = {
     "Australia": 27.2, "India": 1_450.0,
 }
 
-#: Checked 2026-09-05. Two entries return **410 Gone** -- the publishers removed
-#: them -- and are kept rather than deleted so the provenance of the original
-#: research is not silently rewritten.
+#: Sources checked 2026-09-05. Two entries that had gone 410 -- a cryptocurrency
+#: exchange's news page and a hash-slugged blog -- have been replaced rather than
+#: patched, because neither was a primary source for what it was carrying.
 #:
-#: They were **not** corroborating, which an earlier version of this note got
-#: wrong. Each was the sole source for rows in the benchmark table:
-#: "Platform comparison" for OnlyFans/Fansly/Fanfix at 20%, "Agent commissions"
-#: for the 10-20% and 4-10% agent ranges. Those rows are now unverifiable.
+#: The agent caps now come from the bodies that set them, and the numbers moved:
+#: playing-contract representation is 2-5%, not the 4-10% those pages reported.
 #:
-#: Both were also weak publishers -- mexc.com is a cryptocurrency exchange, the
-#: other a hash-slugged blog -- so replacing them with the platforms' own
-#: published terms is worth doing regardless of the 410s.
-#:
-#: Nothing numeric in this module or the workbook reads from either: they are
-#: prose citations, and the take-rate recommendation rests on "Passes economics"
-#: plus the crossover arithmetic, which is computed rather than cited.
-DEAD_SINCE = {"Platform comparison": "2026-09-05", "Agent commissions": "2026-09-05"}
-
+#: The platform take rates could *not* be replaced with published terms, because
+#: the platforms do not publish them -- see the note on the Fansly/Fanfix rows.
+#: An absent primary source is recorded as absent rather than papered over with
+#: another blog.
 SOURCE_URLS = {
     "OnlyFans FY2024": "https://variety.com/2025/digital/news/onlyfans-fiscal-2024-revenue-earnings-1236495750/",
     "Patreon creators": "https://backlinko.com/patreon-users",
     "Passes economics": "https://sacra.com/c/passes/",
-    "Platform comparison": "https://www.mexc.com/news/1014749",
+    "Fanfix creator terms (states no take rate)": "https://auth.fanfix.io/creator-terms-of-use",
     "Agency commissions": "https://arunatalent.com/blog/onlyfans-agency-commission-rates/",
-    "Agent commissions": "https://www.oreateai.com/blog/understanding-sports-agents-commission-what-percentage-do-they-take/95c2df506ae450b9b71340b89cfcfece",
+    "NBPA agent fee cap (amended Sept 2025)": "https://imgix.cosmicjs.com/cd844850-97c7-11f0-91fa-d9e1671c2776-NBPA-REGULATIONS-GOVERNING-PLAYER-AGENTS-09-2025.pdf",
+    "FIFA Football Agent Regulations art. 15": "https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf",
+    "CJEU upholds the FIFA fee cap (16 Jul 2026)": "https://inside.fifa.com/news/welcomes-court-of-justice-european-union-decision-football-agent-regulations",
     "Eurobarometer 525": "https://europa.eu/eurobarometer/surveys/detail/2668",
     "FIP World Padel Report 2025": "https://www.padelfip.com/2025/12/online-the-fip-world-padel-report-2025-a-comprehensive-analysis-of-a-sport-in-constant-growth/",
     "Stripe EU pricing": "https://stripe.com/es/pricing",
