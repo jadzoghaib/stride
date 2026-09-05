@@ -167,10 +167,26 @@ at Series A, when the network — not the price — is the reason to stay.
 [OnlyFans agency commissions 20–50%](https://arunatalent.com/blog/onlyfans-agency-commission-rates/) ·
 [Sports agent endorsement commissions](https://www.oreateai.com/blog/understanding-sports-agents-commission-what-percentage-do-they-take/95c2df506ae450b9b71340b89cfcfece) *(dead — 410 Gone as of 2026-09-05)*
 
-The two dead links corroborated rather than carried: the platform fee comparison
-rests on Sacra and the PRNewswire rebrand release, and the commission range on
-the OnlyFans agency figure, all three of which still resolve. No number above
-depends on a source that has gone.*
+**Two of these sources are dead, and they were not corroborating — they carried
+rows on their own.** An earlier note here claimed the fee comparison rested on
+Sacra and PRNewswire; that was wrong. Those two source the *Passes* row. What
+the dead links carried:
+
+| row | sole source | state |
+|---|---|---|
+| OnlyFans / Fansly / Fanfix at 20% | "Platform comparison" | 410 Gone |
+| Sports agent 10–20% and 4–10% | "Agent commissions" | 410 Gone |
+
+Both publishers are also weak for the purpose. `mexc.com` is a cryptocurrency
+exchange, and the second is a hash-slugged blog of the kind that churns. Neither
+is a primary source for creator-platform economics; both should be replaced with
+the platforms' own published terms, which are checkable and will not vanish.
+
+**What does *not* depend on them:** the recommendation to hold 15%. That rests
+entirely on the Passes comparison — Sacra plus the PRNewswire rebrand release,
+both live — and on the crossover arithmetic, which is computed from the model
+rather than cited. The competitor table is context for that argument, not its
+foundation.*
 
 ---
 

@@ -103,10 +103,20 @@ POPULATION_M: dict[str, float] = {
 
 #: Checked 2026-09-05. Two entries return **410 Gone** -- the publishers removed
 #: them -- and are kept rather than deleted so the provenance of the original
-#: research is not silently rewritten. Both were corroborating: the fee
-#: comparison rests on "Passes economics" and the PRNewswire rebrand release,
-#: the commission range on "Agency commissions". No figure in the model has a
-#: dead link as its only source.
+#: research is not silently rewritten.
+#:
+#: They were **not** corroborating, which an earlier version of this note got
+#: wrong. Each was the sole source for rows in the benchmark table:
+#: "Platform comparison" for OnlyFans/Fansly/Fanfix at 20%, "Agent commissions"
+#: for the 10-20% and 4-10% agent ranges. Those rows are now unverifiable.
+#:
+#: Both were also weak publishers -- mexc.com is a cryptocurrency exchange, the
+#: other a hash-slugged blog -- so replacing them with the platforms' own
+#: published terms is worth doing regardless of the 410s.
+#:
+#: Nothing numeric in this module or the workbook reads from either: they are
+#: prose citations, and the take-rate recommendation rests on "Passes economics"
+#: plus the crossover arithmetic, which is computed rather than cited.
 DEAD_SINCE = {"Platform comparison": "2026-09-05", "Agent commissions": "2026-09-05"}
 
 SOURCE_URLS = {
