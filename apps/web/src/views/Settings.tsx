@@ -14,7 +14,7 @@ import { useAuth } from '../lib/auth'
 import { useToast } from '../lib/toast'
 
 export default function Settings() {
-  const { me, logout } = useAuth()
+  const { me, logout, refresh } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
   const [current, setCurrent] = useState('')
@@ -23,6 +23,10 @@ export default function Settings() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [resent, setResent] = useState(false)
+  const [changingEmail, setChangingEmail] = useState(false)
+  const [newEmail, setNewEmail] = useState('')
+  const [emailPassword, setEmailPassword] = useState('')
+  const [emailError, setEmailError] = useState('')
   const [delPassword, setDelPassword] = useState('')
   const [delWord, setDelWord] = useState('')
   const [delError, setDelError] = useState('')
@@ -42,6 +46,19 @@ export default function Settings() {
       setError(errorText(err))
     } finally {
       setBusy(false)
+    }
+  }
+
+  const requestEmailChange = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setEmailError('')
+    try {
+      await api.post('/api/auth/email', { password: emailPassword, new_email: newEmail })
+      setChangingEmail(false); setNewEmail(''); setEmailPassword('')
+      toast('Confirm from the new address to finish the move')
+      await refresh()
+    } catch (err) {
+      setEmailError(errorText(err))
     }
   }
 
@@ -85,6 +102,13 @@ export default function Settings() {
         : <span className="tag tag-warn">not confirmed</span>}>
         <div className="panel p-5">
           <p className="text-body text-ink">{me.email}</p>
+          {me.pending_email && (
+            <p className="mt-2 text-body text-ink-2">
+              <span className="tag tag-warn mr-2">pending</span>
+              Waiting for <span className="text-ink">{me.pending_email}</span> to confirm. Until it does,
+              this address stays the one you sign in with.
+            </p>
+          )}
           {me.email_verified ? (
             <p className="mt-2 text-body text-ink-2">This address is confirmed.</p>
           ) : (
@@ -102,6 +126,38 @@ export default function Settings() {
               </p>
             </>
           )}
+
+          <div className="mt-5 border-t border-line pt-4">
+            {changingEmail ? (
+              <form onSubmit={requestEmailChange} className="space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="cap">New address</span>
+                    <input className="field mt-1" type="email" required autoComplete="email"
+                           value={newEmail} onChange={(ev) => setNewEmail(ev.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="cap">Your password</span>
+                    <input className="field mt-1" type="password" required autoComplete="current-password"
+                           value={emailPassword} onChange={(ev) => setEmailPassword(ev.target.value)} />
+                  </label>
+                </div>
+                {emailError && <div className="rounded border border-critical/40 bg-critical/10 px-3 py-2 text-sm text-critical">{emailError}</div>}
+                <div className="flex items-center justify-between gap-4">
+                  <span className="meta">
+                    We send the confirmation to the new address, and tell this one it was asked for.
+                    Nothing moves until the new address opens the link.
+                  </span>
+                  <div className="flex gap-2">
+                    <button type="button" className="btn" onClick={() => { setChangingEmail(false); setEmailError('') }}>Cancel</button>
+                    <button className="btn-go">Send confirmation</button>
+                  </div>
+                </div>
+              </form>
+            ) : (
+              <button className="btn" onClick={() => setChangingEmail(true)}>Change email address</button>
+            )}
+          </div>
         </div>
       </Section>
 
