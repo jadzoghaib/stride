@@ -17,7 +17,7 @@
   <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-1f2937?style=flat-square&logo=python&logoColor=FFB020">
   <img alt="React 18" src="https://img.shields.io/badge/react-18-1f2937?style=flat-square&logo=react&logoColor=FFB020">
   <img alt="FastAPI" src="https://img.shields.io/badge/fastapi-0.11x-1f2937?style=flat-square&logo=fastapi&logoColor=FFB020">
-  <img alt="Tests 281 passing" src="https://img.shields.io/badge/tests-281%20passing-1f2937?style=flat-square&logo=pytest&logoColor=3FCF8E">
+  <img alt="Tests 303 passing" src="https://img.shields.io/badge/tests-303%20passing-1f2937?style=flat-square&logo=pytest&logoColor=3FCF8E">
   <img alt="LLM cost zero" src="https://img.shields.io/badge/LLM%20inference%20cost-%240-1f2937?style=flat-square">
   <img alt="Status: first product draft" src="https://img.shields.io/badge/status-first%20product%20draft-1f2937?style=flat-square">
 </p>

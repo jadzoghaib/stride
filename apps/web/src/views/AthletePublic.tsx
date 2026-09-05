@@ -70,12 +70,33 @@ export default function AthletePublicView() {
   const [filter, setFilter] = useState<Filter>('all')
   const [error, setError] = useState('')
 
+  //: The commercial fields, stripped at the door when previewing.
+  //
+  //  The server sends them because the profile is *yours* — `sees_commercials`
+  //  lets an athlete see their own rate card and score, which is correct
+  //  everywhere except here. A preview that keeps them is a preview that lies,
+  //  and it lies in the reassuring direction: it shows you a page no visitor
+  //  will ever get.
+  //
+  //  Stripped once on arrival rather than guarded at each render site. Three
+  //  fields are commercial today; guarding them individually means the fourth
+  //  one added leaks silently until somebody notices it on screen — which is
+  //  exactly how the rate card survived the first version of this preview.
+  const asVisitor = (raw: Athlete): Athlete => previewing
+    ? { ...raw, base_rate_eur: undefined, score: undefined, audience: {} }
+    : raw
+
   useEffect(() => {
-    api.get<Athlete>(`/api/athletes/${slug}`).then(setA).catch((e) => setError(errorText(e)))
+    api.get<Athlete>(`/api/athletes/${slug}`).then((raw) => setA(asVisitor(raw)))
+      .catch((e) => setError(errorText(e)))
     api.get<ContentItem[]>(`/api/athletes/${slug}/content`).then(setContent).catch(() => setContent([]))
     api.get<NewsItem[]>(`/api/athletes/${slug}/news`).then(setNews).catch(() => setNews([]))
     api.get<FanPost[]>(`/api/athletes/${slug}/wall-posts`).then(setWall).catch(() => setWall([]))
-  }, [slug])
+    // `previewing` belongs here as much as `slug` does: adding `?preview=1` to a
+    // page you are already on changes what may be shown without changing which
+    // athlete is shown, and an effect keyed only on the slug would keep serving
+    // the unstripped copy fetched a moment earlier.
+  }, [slug, previewing])
 
   //: Your own page is the one profile you cannot subscribe to. The server
   //  refuses it, so offering the button anyway would be a control whose only
@@ -326,12 +347,12 @@ export default function AthletePublicView() {
 
         {/* Sponsor-facing evidence. Absent from a fan's payload entirely, so
             these do not render rather than rendering empty. */}
-        {!previewing && a.score !== undefined && (
+        {a.score !== undefined && (
           <Section title="Marketability">
             <DimensionGrid score={a.score} />
           </Section>
         )}
-        {!previewing && a.audience && Object.keys(a.audience).length > 0 && (
+        {a.audience && Object.keys(a.audience).length > 0 && (
           <Section title="Audience">
             <AudiencePanel audience={a.audience} />
           </Section>
