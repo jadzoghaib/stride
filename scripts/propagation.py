@@ -29,6 +29,8 @@ if hasattr(sys.stdout, "reconfigure"):
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:5173"
 PASSWORD = "stride123"
 TAG = "Propagation probe"
+#: The only athlete this script writes as. Cleanup is scoped to them.
+PROBE_ATHLETE = "kaia-mercer"
 
 passed: list[str] = []
 failed: list[str] = []
@@ -99,8 +101,14 @@ def sweep(con) -> None:
     """
     con.execute("DELETE FROM content_items WHERE title LIKE ?", (f"{TAG}%",))
     con.execute("DELETE FROM deals WHERE message = ?", (f"{TAG} offer",))
+    # Scoped to the one athlete this probe ever disconnects. The blanket version
+    # of this ("reconnect everything disconnected") would silently repair a demo
+    # account that was *meant* to show the disconnected state -- a test script
+    # quietly editing the product's own seed data.
     con.execute("UPDATE platform_accounts SET connection_status = 'connected'"
-                " WHERE connection_status = 'disconnected'")
+                " WHERE connection_status = 'disconnected' AND creator_id IN ("
+                "   SELECT creatorlens_creator_id FROM athlete_profiles WHERE slug = ?)",
+                (PROBE_ATHLETE,))
     con.commit()
 
 
