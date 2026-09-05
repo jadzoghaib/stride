@@ -6,7 +6,7 @@
  *  marked with an amber edge, the same rule that closes a board header, so the
  *  navigation and the pages read as one system. */
 
-import { BadgeCheck, BarChart3, Bell, Briefcase, ClipboardCheck, Compass, FileSearch, LayoutDashboard, LogOut, Mail, Moon, Radio, Shield, Sun, Users } from 'lucide-react'
+import { BadgeCheck, BarChart3, Bell, Briefcase, ClipboardCheck, Compass, FileSearch, LayoutDashboard, LogOut, Mail, Moon, Radio, Settings as SettingsIcon, Shield, Sun, Users } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
@@ -212,6 +212,10 @@ export default function Shell({ children }: { children: ReactNode }) {
             <div className="truncate text-sm font-medium text-ink">{me.display_name}</div>
             <div className="cap text-ink-3">{me.role}</div>
           </div>
+          <Link to="/settings" className="text-ink-3 transition-colors hover:text-ink" title="Account settings"
+                aria-label="Account settings">
+            <SettingsIcon size={16} strokeWidth={1.9} />
+          </Link>
           <button className="text-ink-3 transition-colors hover:text-ink" title="Sign out"
                   aria-label="Sign out"
                   onClick={async () => { await logout(); navigate('/') }}>
@@ -227,6 +231,9 @@ export default function Shell({ children }: { children: ReactNode }) {
           <div className="ml-auto flex items-center gap-3">
             <Signals />
             <ThemeToggle />
+            <Link to="/settings" className="text-ink-3" aria-label="Account settings">
+              <SettingsIcon size={16} strokeWidth={1.9} />
+            </Link>
             <button className="text-ink-3" aria-label="Sign out"
                     onClick={async () => { await logout(); navigate('/') }}>
               <LogOut size={16} strokeWidth={1.9} />

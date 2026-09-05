@@ -285,7 +285,7 @@ def test_registration_creates_analytics_identity(client):
     reg = TestClient(app)
     me = reg.post("/api/auth/register", json={
         "email": "contract-test@stride.test", "password": "longenough1",
-        "display_name": "Contract Athlete", "role": "athlete",
+        "display_name": "Contract Athlete", "role": "athlete", "accept_terms": True,
         "sport": "Rowing", "country": "Ireland"})
     assert me.status_code == 201
     assert me.json()["athlete_profile"] is not None
@@ -316,7 +316,7 @@ def test_platform_consent_and_withdrawal_are_both_recorded(admin):
     athlete = TestClient(app)
     assert athlete.post("/api/auth/register", json={
         "email": "consent-test@stride.test", "password": "longenough1",
-        "display_name": "Consent Athlete", "role": "athlete",
+        "display_name": "Consent Athlete", "role": "athlete", "accept_terms": True,
         "sport": "Judo", "country": "Spain"}).status_code == 201
 
     connected = athlete.post("/api/athlete/platforms/connect",
@@ -340,7 +340,7 @@ def test_platform_consent_and_withdrawal_are_both_recorded(admin):
 def test_duplicate_email_rejected(client):
     dup = client.post("/api/auth/register", json={
         "email": "contract-test@stride.test", "password": "longenough1",
-        "display_name": "Someone Else", "role": "fan"})
+        "display_name": "Someone Else", "role": "fan", "accept_terms": True})
     assert dup.status_code == 409
 
 

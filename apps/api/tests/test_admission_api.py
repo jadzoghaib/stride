@@ -664,7 +664,7 @@ def test_an_admitted_athlete_with_no_analytics_is_not_listed(client, admin, db):
     fresh_client = TestClient(app)
     made = fresh_client.post("/api/auth/register", json={
         "email": "noanalytics@test.local", "password": "longenough1",
-        "display_name": "No Analytics", "role": "athlete",
+        "display_name": "No Analytics", "role": "athlete", "accept_terms": True,
         "sport": "Trail", "country": "Spain"})
     assert made.status_code == 201, made.text
 
@@ -700,6 +700,8 @@ def test_an_admitted_athlete_with_no_analytics_is_not_listed(client, admin, db):
         if user_id:
             db.execute("DELETE FROM email_outbox WHERE to_user_id = ?", (user_id["id"],))
             db.execute("DELETE FROM notifications WHERE user_id = ?", (user_id["id"],))
+            # registration now mints a verification token that points at the user too
+            db.execute("DELETE FROM auth_tokens WHERE user_id = ?", (user_id["id"],))
         db.execute("DELETE FROM athlete_applications WHERE athlete_id = ?", (profile["id"],))
         db.execute("DELETE FROM athlete_profiles WHERE id = ?", (profile["id"],))
         db.execute("DELETE FROM users WHERE email = 'noanalytics@test.local'")

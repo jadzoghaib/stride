@@ -4,6 +4,7 @@ import { ThemeToggle, Wordmark } from '../components/Shell'
 import { api, errorText } from '../lib/api'
 import { COUNTRIES, SPORTS, withCurrent } from '../lib/reference'
 import { roleHome, useAuth } from '../lib/auth'
+import { POLICY_VERSION } from '../lib/legal'
 import { COMPETITION_LEVELS, PROOF_KINDS } from '../types'
 import type { Me } from '../types'
 
@@ -51,7 +52,10 @@ function GateField({ label, name, value, onChange, hint, type = 'text', placehol
 
 export default function Auth() {
   const [params] = useSearchParams()
-  const [mode, setMode] = useState<'login' | 'register'>(params.get('mode') === 'register' ? 'register' : 'login')
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(
+    params.get('mode') === 'register' ? 'register' : params.get('mode') === 'forgot' ? 'forgot' : 'login',
+  )
+  const [accepted, setAccepted] = useState(false)
   // the landing deep-links a role in; anything else falls back to the first tile
   const [role, setRole] = useState(
     ROLES.some((r) => r.key === params.get('role')) ? (params.get('role') as string) : 'athlete',
@@ -77,10 +81,18 @@ export default function Auth() {
     setError('')
     setNotice('')
     try {
+      if (mode === 'forgot') {
+        // Always the same answer, whatever the address: the server will not say
+        // whether an account exists, and neither will this screen.
+        await api.post('/api/auth/forgot', { email: form.email })
+        setNotice('If that address has an account, a reset link is on its way. It works once, for two hours.')
+        return
+      }
       const me =
         mode === 'login'
           ? await api.post<Me & { needs_email_confirmation?: boolean }>('/api/auth/login', { email: form.email, password: form.password })
-          : await api.post<Me & { needs_email_confirmation?: boolean }>('/api/auth/register', { ...form, role })
+          : await api.post<Me & { needs_email_confirmation?: boolean }>('/api/auth/register',
+              { ...form, role, accept_terms: accepted, policy_version: POLICY_VERSION })
       if (me.needs_email_confirmation) {
         setNotice('Account created. Check your inbox for the confirmation email, then sign in.')
         setMode('login')
@@ -299,12 +311,30 @@ export default function Auth() {
           )}
           <label className="block">
             <span className="cap">Email</span>
-            <input className="field mt-1" type="email" required value={form.email} onChange={(e) => set('email', e.target.value)} />
+            <input className="field mt-1" type="email" required autoComplete="email" value={form.email} onChange={(e) => set('email', e.target.value)} />
           </label>
-          <label className="block">
-            <span className="cap">Password</span>
-            <input className="field mt-1" type="password" required minLength={8} value={form.password} onChange={(e) => set('password', e.target.value)} />
-          </label>
+          {mode !== 'forgot' && (
+            <label className="block">
+              <span className="cap">Password</span>
+              <input className="field mt-1" type="password" required minLength={8}
+                     autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                     value={form.password} onChange={(e) => set('password', e.target.value)} />
+              {mode === 'login' && (
+                <button type="button" className="meta mt-1.5 block text-accent-ink hover:underline"
+                        onClick={() => { setMode('forgot'); setError(''); setNotice('') }}>
+                  Forgot your password?
+                </button>
+              )}
+            </label>
+          )}
+          {mode === 'forgot' && (
+            <p className="text-sm text-ink-2">
+              Enter the address you signed up with and we will queue a reset link.{' '}
+              <button type="button" className="text-accent-ink hover:underline" onClick={() => setMode('login')}>
+                Back to sign in
+              </button>
+            </p>
+          )}
 
           {mode === 'register' && role === 'athlete' && (
             <div className="grid grid-cols-2 gap-3">
@@ -355,11 +385,25 @@ export default function Auth() {
             </div>
           )}
 
+          {mode === 'register' && (
+            <label className="flex items-start gap-2.5 text-sm text-ink-2">
+              <input type="checkbox" className="mt-1 h-4 w-4 accent-[rgb(var(--c-accent))]" required
+                     checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />
+              <span>
+                I accept the{' '}
+                <Link to="/legal/terms" target="_blank" className="text-accent-ink hover:underline">Terms of Service</Link>
+                {' '}and the{' '}
+                <Link to="/legal/privacy" target="_blank" className="text-accent-ink hover:underline">Privacy Policy</Link>
+                {' '}<span className="meta">(version {POLICY_VERSION})</span>
+              </span>
+            </label>
+          )}
+
           {error && <div className="rounded border border-critical/40 bg-critical/10 px-3 py-2 text-sm text-critical">{error}</div>}
           {notice && <div className="rounded border border-ok/40 bg-ok/10 px-3 py-2 text-sm text-ok">{notice}</div>}
 
-          <button className="btn-go w-full" disabled={busy}>
-            {busy ? 'Working…' : mode === 'login' ? 'Sign in' : 'Create account'}
+          <button className="btn-go w-full" disabled={busy || (mode === 'register' && !accepted)}>
+            {busy ? 'Working…' : mode === 'login' ? 'Sign in' : mode === 'forgot' ? 'Send reset link' : 'Create account'}
           </button>
         </form>
 

@@ -219,6 +219,20 @@ CREATE TABLE IF NOT EXISTS email_outbox (
     sent_at    TEXT
 );
 
+-- One-time tokens for email verification and password reset. Only the hash is
+-- stored: the token itself lives in the email and nowhere else, so a copy of
+-- this table cannot be replayed. Single use, short-lived, purpose-bound.
+CREATE TABLE IF NOT EXISTS auth_tokens (
+    id         INTEGER PRIMARY KEY,
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    purpose    TEXT NOT NULL CHECK (purpose IN ('verify_email','reset_password')),
+    token_hash TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    used_at    TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_auth_tokens_user ON auth_tokens(user_id, purpose);
+
 CREATE TABLE IF NOT EXISTS poll_options (
     id         INTEGER PRIMARY KEY,
     content_id INTEGER NOT NULL REFERENCES content_items(id),
@@ -456,6 +470,13 @@ CREATE INDEX IF NOT EXISTS idx_content_part_of ON content_items(part_of);
 # additive: it is a column backfill, not a migration framework, and anything
 # that rewrites or drops data needs a real one.
 _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
+    # Which version of the Terms and Privacy Policy the person accepted, and
+    # when. Null on accounts that predate the checkbox -- the demo accounts are
+    # stamped by the seed, a real pre-checkbox account would be asked on next
+    # sign-in once that flow exists.
+    ("users", "accepted_policy_version", "TEXT"),
+    ("users", "accepted_at", "TEXT"),
+    ("users", "email_verified_at", "TEXT"),
     ("deals", "completed_at", "TEXT"),
     ("deals", "projected_reach", "INTEGER"),
     ("campaigns", "require_verified_athletes", "BOOLEAN NOT NULL DEFAULT FALSE"),
