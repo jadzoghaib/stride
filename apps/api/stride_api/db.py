@@ -367,6 +367,9 @@ CREATE TABLE IF NOT EXISTS athlete_applications (
     competition_level TEXT NOT NULL DEFAULT '',
     years_competing   INTEGER,
     birth_year        INTEGER,
+    -- ISO date. The year is derived from it when present; the year alone is
+    -- what older applications carry, and reads as a lower bound on age.
+    birth_date        TEXT,
     proof_url         TEXT NOT NULL DEFAULT '',
     proof_kind        TEXT NOT NULL DEFAULT 'none'
                       CHECK (proof_kind IN ('none','roster','results','licence')),
@@ -509,6 +512,7 @@ _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     ("users", "email_verified_at", "TEXT"),
     # set by account deletion; the row stays for the ledger, anonymised
     ("users", "deleted_at", "TEXT"),
+    ("athlete_applications", "birth_date", "TEXT"),
     ("deals", "completed_at", "TEXT"),
     ("deals", "projected_reach", "INTEGER"),
     ("campaigns", "require_verified_athletes", "BOOLEAN NOT NULL DEFAULT FALSE"),

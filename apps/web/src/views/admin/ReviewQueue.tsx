@@ -264,7 +264,7 @@ export default function ReviewQueue() {
 
                 <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1">
                   <span className="meta">
-                    {a.years_competing ?? '—'} seasons · born {a.birth_year ?? 'not given'} ·
+                    {a.years_competing ?? '—'} seasons · born {a.birth_date ?? a.birth_year ?? 'not given'} ·
                     submitted {fmtDate(a.submitted_at)}
                   </span>
                   <span className="meta">proof {proofStatusLabel(a.proof_status)}</span>

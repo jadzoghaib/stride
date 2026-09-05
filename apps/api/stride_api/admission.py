@@ -45,7 +45,7 @@ against them instead of re-argued.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from .proofcheck import looks_openable
 
@@ -210,6 +210,31 @@ def age_from(birth_year: int | None, today_year: int | None = None) -> int | Non
         return None
     year = today_year or datetime.now(timezone.utc).year
     return year - birth_year - 1
+
+
+def age_on(birth_date: str | None, today: date | None = None) -> int | None:
+    """Exact age from an ISO date of birth. None if there is no date or it does
+    not parse -- a malformed date is refused at the form, so here it is only
+    ever absent."""
+    if not birth_date:
+        return None
+    try:
+        born = date.fromisoformat(birth_date[:10])
+    except ValueError:
+        return None
+    today = today or datetime.now(timezone.utc).date()
+    had_birthday = (today.month, today.day) >= (born.month, born.day)
+    return today.year - born.year - (0 if had_birthday else 1)
+
+
+def age_of(application: dict, today: date | None = None) -> int | None:
+    """What the gate uses. The date when we have it, exactly; the year alone
+    as the lower bound it can honestly support; nothing when neither is on the
+    form. Applications that predate the date field keep working unchanged."""
+    exact = age_on(application.get("birth_date"), today)
+    if exact is not None:
+        return exact
+    return age_from(application.get("birth_year"), today.year if today else None)
 
 
 def athlete_credibility(application: dict, today_year: int | None = None) -> dict:

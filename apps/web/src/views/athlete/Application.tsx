@@ -32,14 +32,14 @@ interface FormState {
   club_name: string
   league_name: string
   years_competing: string
-  birth_year: string
+  birth_date: string
   proof_kind: string
   proof_url: string
 }
 
 const EMPTY: FormState = {
   competition_level: '', discipline: '', club_name: '', league_name: '',
-  years_competing: '', birth_year: '', proof_kind: 'none', proof_url: '',
+  years_competing: '', birth_date: '', proof_kind: 'none', proof_url: '',
 }
 
 export default function AthleteApplication() {
@@ -59,7 +59,9 @@ export default function AthleteApplication() {
           club_name: v.application.club_name,
           league_name: v.application.league_name,
           years_competing: v.application.years_competing?.toString() ?? '',
-          birth_year: v.application.birth_year?.toString() ?? '',
+          // never invent a day from an old year: an invented January would
+          // read as the *older* of two ages, the wrong direction for a gate
+          birth_date: v.application.birth_date ?? '',
           proof_kind: v.application.proof_kind,
           proof_url: v.application.proof_url,
         })
@@ -81,7 +83,7 @@ export default function AthleteApplication() {
         club_name: form.club_name,
         league_name: form.league_name,
         years_competing: form.years_competing === '' ? null : Number(form.years_competing),
-        birth_year: form.birth_year === '' ? null : Number(form.birth_year),
+        birth_date: form.birth_date === '' ? null : form.birth_date,
         proof_kind: form.proof_kind,
         proof_url: form.proof_url,
       })
@@ -221,8 +223,9 @@ export default function AthleteApplication() {
                 label="Year of birth"
                 hint="Accounts are 16 and over, and we cannot admit anyone whose age we do not know."
               >
-                <input className="field mt-1 tnum" type="number" min={1930} max={2030}
-                       value={form.birth_year} onChange={set('birth_year')} />
+                <input className="field mt-1 tnum" type="date" min="1930-01-01"
+                       max={new Date().toISOString().slice(0, 10)}
+                       value={form.birth_date} onChange={set('birth_date')} />
               </FormRow>
             </div>
 
