@@ -35,7 +35,7 @@ function DiscoverCard({ a, rank, best = false, me, onFollow, onSubscribe }: {
                     {a.display_name}
                   </Link>
                   {best && (
-                    <span className="rounded-full bg-accent px-2 py-0.5 font-display text-[10px]
+                    <span className="rounded-full bg-accent px-2 py-0.5 font-display text-micro
                                      font-bold uppercase tracking-board text-accent-on">
                       Best match
                     </span>
@@ -206,7 +206,7 @@ export default function Discover() {
         <div className="flex gap-1 rounded border border-line p-0.5">
           {(['all', 'athlete', 'club'] as const).map((k) => (
             <button key={k} onClick={() => setKind(k)}
-                    className={`rounded px-3 py-1 font-display text-[11px] uppercase tracking-micro ${
+                    className={`rounded px-3 py-1 font-display text-label uppercase tracking-micro ${
                       kind === k ? 'bg-track text-ink' : 'text-ink-3 hover:text-ink-2'}`}>
               {k === 'all' ? 'Everyone' : k === 'athlete' ? 'Athletes' : 'Clubs'}
             </button>

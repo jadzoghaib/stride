@@ -106,17 +106,17 @@ export default function Operations() {
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
             <div className="flex items-baseline gap-2.5">
               <span className="cap">Latency</span>
-              <b className="tnum font-display text-[19px] font-bold text-ink">{chaos.latency_ms}ms</b>
+              <b className="tnum font-display text-lead font-bold text-ink">{chaos.latency_ms}ms</b>
             </div>
             <div className="flex items-baseline gap-2.5">
               <span className="cap">Error rate</span>
-              <b className="tnum font-display text-[19px] font-bold text-ink">
+              <b className="tnum font-display text-lead font-bold text-ink">
                 {(100 * chaos.error_rate).toFixed(0)}%
               </b>
             </div>
             <div className="flex items-baseline gap-2.5">
               <span className="cap">Database</span>
-              <b className="font-display text-[19px] font-bold text-ink">
+              <b className="font-display text-lead font-bold text-ink">
                 {chaos.db_down ? 'unreachable' : 'reachable'}
               </b>
             </div>

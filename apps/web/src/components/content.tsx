@@ -143,7 +143,7 @@ function LockedPanel({ item, onUnlock }: {
 
   const cta = (
     <span className="inline-flex items-center gap-2 rounded-full bg-panel/95 px-4 py-2
-                     font-display text-[13px] uppercase tracking-micro text-ink shadow-sm
+                     font-display text-small uppercase tracking-micro text-ink shadow-sm
                      ring-1 ring-line transition-transform group-hover:scale-[1.03]">
       <Lock size={13} strokeWidth={2.2} />
       Subscribe to unlock
@@ -179,7 +179,7 @@ function LockedPanel({ item, onUnlock }: {
               {cta}
             </Link>
           )}
-          <span className="font-mono text-[12px] text-white/70">
+          <span className="font-mono text-fine text-white/70">
             1 {noun} · subscribers only
           </span>
         </div>
@@ -265,7 +265,7 @@ function Badges({ item }: { item: ContentItem }) {
   return (
     <span className="ml-auto flex shrink-0 items-center gap-2">
       {item.label === 'sponsored' && (
-        <span className="tag border-warn text-warn">Sponsored · {item.sponsor_name}</span>
+        <span className="tag tag-warn">Sponsored · {item.sponsor_name}</span>
       )}
       {item.label === 'highlighted' && <span className="tag text-accent-ink">Highlighted</span>}
       {item.kind !== 'product' && (

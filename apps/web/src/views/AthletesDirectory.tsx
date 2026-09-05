@@ -184,7 +184,7 @@ export default function AthletesDirectory({ embedded = false }: { embedded?: boo
         <div className="relative">
           <input
             className="field w-56 py-1.5 pr-[5.5rem] text-sm"
-            placeholder="Search name or sport"
+            placeholder="Search athletes"
             aria-label="Search athletes by name or sport"
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
@@ -254,7 +254,7 @@ export default function AthletesDirectory({ embedded = false }: { embedded?: boo
                         <span className="cap block text-right text-ink-3">not scored</span>
                       ) : (
                         <div className="ml-auto w-24">
-                          <div className="tnum text-right font-display text-[19px] font-bold leading-none text-ink">
+                          <div className="tnum text-right font-display text-lead font-bold leading-none text-ink">
                             {Math.round(a.mean)}
                           </div>
                           <div className="mt-1.5">

@@ -180,7 +180,7 @@ export default function CampaignAnalytics({ embedded = false }: { embedded?: boo
               <div className="panel mb-3 flex flex-wrap items-center gap-3 p-4">
                 <div>
                   <div className="cap text-ink-3">On target</div>
-                  <div className="tnum font-display text-[26px] font-bold leading-none text-ink">
+                  <div className="tnum font-display text-head font-bold leading-none text-ink">
                     {est.on_target_share != null ? fmtPct(est.on_target_share) : '—'}
                   </div>
                 </div>
@@ -207,7 +207,7 @@ function Metric({ label, value, note }: { label: string; value: string; note: st
   return (
     <div className="panel p-4">
       <div className="cap text-ink-3">{label}</div>
-      <div className="tnum mt-1 font-display text-[26px] font-bold leading-none text-ink">{value}</div>
+      <div className="tnum mt-1 font-display text-head font-bold leading-none text-ink">{value}</div>
       <div className="meta mt-1.5">{note}</div>
     </div>
   )

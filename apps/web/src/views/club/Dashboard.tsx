@@ -153,7 +153,7 @@ export default function ClubDashboard() {
                     {m.display_name}
                   </Link>
                   {m.membership_status === 'invited' && (
-                    <span className="tag border-warn/50 text-warn">Invited</span>
+                    <span className="tag tag-warn">Invited</span>
                   )}
                 </div>
                 <div className="text-xs text-ink-3">
@@ -530,7 +530,7 @@ function InviteLinks() {
                 {l.athlete ? (
                   <div className="text-sm text-ink">
                     {l.athlete.display_name}
-                    {l.athlete.frozen_at && <span className="tag ml-2 text-critical">frozen</span>}
+                    {l.athlete.frozen_at && <span className="tag tag-critical ml-2">frozen</span>}
                     <span className="meta ml-2">redeemed{l.redeemed_at ? ` ${l.redeemed_at.slice(0, 10)}` : ''}</span>
                   </div>
                 ) : (
@@ -538,7 +538,7 @@ function InviteLinks() {
                     {l.label || <span className="text-ink-3">Unassigned link</span>}
                   </div>
                 )}
-                <code className="block truncate text-[11px] text-ink-3">{l.token.slice(0, 18)}…</code>
+                <code className="block truncate text-label text-ink-3">{l.token.slice(0, 18)}…</code>
                 {l.athlete && l.label && (
                   // Both, when they differ: you invited one person and somebody
                   // else redeemed it, and that is worth being able to see.

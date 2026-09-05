@@ -81,11 +81,11 @@ export default function YourData() {
 
       <Section title="What Stride holds">
         <div className="panel p-5">
-          <p className="text-[15px] text-ink-2">
+          <p className="text-body text-ink-2">
             Your account, your profile, the metrics from platforms you chose to connect, and
             aggregated statistics about your audience — age bands, gender split and country shares.
           </p>
-          <p className="mt-3 text-[15px] text-ink-2">
+          <p className="mt-3 text-body text-ink-2">
             <b className="text-ink">Not the audience itself.</b> No row in this system identifies an
             individual follower, because no such data is ever requested from a platform. The
             demographics table can hold only a dimension, a bucket and a share.
@@ -134,7 +134,7 @@ export default function YourData() {
                   <td className="table-cell">
                     <span
                       className={`tag ${
-                        c.status === 'live' ? 'border-ok/45 bg-ok/10 text-ok' : 'border-warn/45 bg-warn/10 text-warn'
+                        c.status === 'live' ? 'tag-ok' : 'tag-warn'
                       }`}
                     >
                       {c.status}
@@ -149,7 +149,7 @@ export default function YourData() {
 
       <Section title="Cookies">
         <div className="panel p-5">
-          <p className="text-[15px] text-ink-2">
+          <p className="text-body text-ink-2">
             One cookie keeps you signed in; one stored preference remembers your theme. Both are
             strictly necessary, so there is no consent banner and nothing to manage. Stride runs no
             analytics and loads nothing from a third party.

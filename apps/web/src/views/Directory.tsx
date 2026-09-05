@@ -26,7 +26,7 @@ export default function Directory() {
   return (
     <div>
       <PageHeader
-        eyebrow="Directory"
+        eyebrow="Browse"
         title="Directory"
         lede={which === 'athletes'
           ? 'Every listed athlete on Stride, searchable by name, sport and country.'

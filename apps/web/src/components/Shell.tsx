@@ -49,7 +49,7 @@ const NAV: Record<string, { to: string; label: string; icon: typeof Compass }[]>
   ],
 }
 
-export function Wordmark({ size = 'text-[22px]' }: { size?: string }) {
+export function Wordmark({ size = 'text-title' }: { size?: string }) {
   return (
     <span className={`flex items-baseline gap-2 font-display font-bold tracking-board text-ink ${size}`}>
       <i className="block h-[3px] w-5 bg-accent" />
@@ -135,7 +135,7 @@ function Signals({ boxed = false }: { boxed?: boolean } = {}) {
 
 function Dot({ n }: { n: number }) {
   return (
-    <span className="tnum absolute -right-1.5 -top-1.5 rounded-full bg-accent px-1 text-[10px]
+    <span className="tnum absolute -right-1.5 -top-1.5 rounded-full bg-accent px-1 text-micro
                      font-bold leading-[1.35] text-accent-on">
       {n > 9 ? '9+' : n}
     </span>
@@ -155,7 +155,7 @@ export default function Shell({ children }: { children: ReactNode }) {
     return (
       <div className="min-h-screen bg-ground">
         <header className="sticky top-0 z-20 border-b border-line bg-ground/90 backdrop-blur">
-          <div className="mx-auto flex h-14 max-w-[1140px] items-center gap-8 px-7">
+          <div className="mx-auto flex h-14 max-w-page items-center gap-8 px-7">
             <Link to="/"><Wordmark /></Link>
             <div className="ml-auto flex items-center gap-3">
               <ThemeToggle />
@@ -193,7 +193,7 @@ export default function Shell({ children }: { children: ReactNode }) {
               to={to}
               end={hasChildTab(to)}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded px-3 py-2 font-display text-[14px] font-semibold
+                `flex items-center gap-3 rounded px-3 py-2 font-display text-ui font-semibold
                  uppercase tracking-micro transition-colors ${
                   isActive
                     ? 'bg-raised text-ink shadow-[inset_2px_0_0_rgb(var(--c-accent))]'
@@ -238,7 +238,7 @@ export default function Shell({ children }: { children: ReactNode }) {
             <NavLink key={to} to={to} end={hasChildTab(to)}
                      className={({ isActive }) =>
                        `flex shrink-0 items-center gap-1.5 rounded px-3 py-1.5 font-display
-                        text-[12px] font-semibold uppercase tracking-micro ${
+                        text-fine font-semibold uppercase tracking-micro ${
                          isActive ? 'bg-raised text-ink' : 'text-ink-3'}`}>
               <Icon size={14} strokeWidth={1.9} />
               {label}

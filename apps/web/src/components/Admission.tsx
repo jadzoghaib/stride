@@ -169,7 +169,7 @@ export function ScoreBreakdown({
               {totalLabel}
             </td>
             <td className="table-cell" />
-            <td className="table-cell tnum text-right font-display text-[19px] font-bold text-ink">
+            <td className="table-cell tnum text-right font-display text-lead font-bold text-ink">
               {total.toFixed(1)}
             </td>
             <td className="table-cell" />

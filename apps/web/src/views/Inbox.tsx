@@ -90,7 +90,7 @@ export default function Inbox() {
                     <div className="truncate text-xs text-ink-3">{t.last_message}</div>
                   </div>
                   {t.unread > 0 && (
-                    <span className="tnum rounded-full bg-accent px-1.5 py-0.5 text-[11px] font-bold text-accent-on">
+                    <span className="tnum rounded-full bg-accent px-1.5 py-0.5 text-label font-bold text-accent-on">
                       {t.unread}
                     </span>
                   )}
@@ -123,7 +123,7 @@ export default function Inbox() {
                       <div className={`max-w-[80%] rounded px-3 py-2 text-sm ${
                         m.mine ? 'bg-accent text-accent-on' : 'bg-raised text-ink-2'}`}>
                         <p className="whitespace-pre-line">{m.body}</p>
-                        <p className={`mt-1 text-[11px] ${m.mine ? 'text-accent-on/70' : 'text-ink-3'}`}>
+                        <p className={`mt-1 text-label ${m.mine ? 'text-accent-on/70' : 'text-ink-3'}`}>
                           {stamp(m.at)}
                         </p>
                       </div>

@@ -48,7 +48,7 @@ export default function Feed() {
       {athletes.length > 0 && upcoming.length > 0 && (
         <div className="mb-8">
           <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-line pb-2">
-            <span className="cap text-accent-ink">Coming up</span>
+            <h2 className="cap text-accent-ink">Coming up</h2>
             <span className="meta">from the athletes you follow</span>
           </div>
           <div className="space-y-2">
@@ -60,7 +60,7 @@ export default function Feed() {
       {athletes.length > 0 && (wallPosts.length > 0 || news.length > 0) && (
         <div className="mb-8">
           <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-line pb-2">
-            <span className="cap">Wall</span>
+            <h2 className="cap">Wall</h2>
             <span className="meta">newest first · locked items show what they would take</span>
           </div>
           <Wall items={wallPosts} news={news} showAuthor empty="Nothing published yet." />
@@ -68,7 +68,7 @@ export default function Feed() {
       )}
 
       {athletes.length > 0 && (
-        <div className="mb-3 border-b border-line pb-2"><span className="cap">Trajectory</span></div>
+        <div className="mb-3 border-b border-line pb-2"><h2 className="cap">Trajectory</h2></div>
       )}
 
       {athletes.length === 0 ? (

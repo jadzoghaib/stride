@@ -286,7 +286,7 @@ function Fact({ label, value, strong = false }: { label: string; value: string; 
   return (
     <div className="rounded border border-line bg-raised px-3 py-2.5">
       <div className="cap text-ink-3">{label}</div>
-      <div className={`tnum mt-0.5 ${strong ? 'font-display text-[19px] font-bold text-ink' : 'text-sm text-ink-2'}`}>
+      <div className={`tnum mt-0.5 ${strong ? 'font-display text-lead font-bold text-ink' : 'text-sm text-ink-2'}`}>
         {value}
       </div>
     </div>

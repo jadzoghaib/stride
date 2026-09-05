@@ -24,7 +24,9 @@ Demo accounts (password for all: stride123)
 from __future__ import annotations
 
 import json
+import secrets
 import sqlite3
+from datetime import datetime, timedelta, timezone
 
 from creatorlens.actions import connect_platform, create_creator, create_target
 from creatorlens.analytics.kpis import creator_kpis
@@ -584,8 +586,9 @@ def seed(conn: sqlite3.Connection) -> dict:
     for slug in ("kaia-mercer", "marcus-oyelaran", "priya-raman", "cole-navarro"):
         conn.execute("INSERT INTO follows (user_id, athlete_id, created_at) VALUES (?, ?, ?)",
                      (fan_id, athlete_ids[slug], now_iso()))
+    fan_uids: list[int] = []
     for i in range(2, 6):
-        _insert_user(conn, f"fan{i}@demo.stride", f"Fan Account {i}", "fan")
+        fan_uids.append(_insert_user(conn, f"fan{i}@demo.stride", f"Fan Account {i}", "fan"))
         summary["users"] += 1
 
     # ---- a wall with something on it -----------------------------------------
@@ -651,6 +654,72 @@ def seed(conn: sqlite3.Connection) -> dict:
                          (athlete_uid, "Ha — three times more than I want to. Report is up.")):
         conn.execute("INSERT INTO fan_posts (athlete_id, user_id, body, created_at)"
                      " VALUES (?, ?, ?, ?)", (kaia_profile, author, note, now_iso()))
+
+    # ---- the money side, lit -----------------------------------------------
+    # Every feature below worked and none of it was seeded, so a first-time
+    # viewer met a marketplace nobody was using: an empty inbox, "0 of 3
+    # packages backed", zero subscribers, a poll nobody had voted in. The code
+    # told one story and the database told another. One of each, enough to show
+    # the shape without inventing a business that does not exist yet.
+    sponsor_uid = row(conn, "SELECT user_id FROM sponsor_orgs WHERE id = ?", (org_ids[0],))["user_id"]
+    meridian_uid = row(conn, "SELECT user_id FROM clubs WHERE slug = 'meridian-fc'")["user_id"]
+
+    def _thread(a: int, b: int, lines: list[tuple[int, str]]) -> None:
+        low, high = sorted((a, b))
+        cur = conn.execute("INSERT INTO conversations (user_a, user_b, created_at, last_message_at)"
+                           " VALUES (?, ?, ?, ?)", (low, high, now_iso(), now_iso()))
+        for sender, body in lines:
+            conn.execute("INSERT INTO messages (conversation_id, sender_id, body, created_at, read_at)"
+                         " VALUES (?, ?, ?, ?, ?)", (cur.lastrowid, sender, body, now_iso(), now_iso()))
+
+    # A sponsor and an athlete actually talking -- the thing the open network is for.
+    _thread(sponsor_uid, athlete_uid, [
+        (sponsor_uid, "Kaia -- saw the hill block series. We are planning a spring line around "
+                      "exactly that kind of training-diary content. Would a two-post feature be "
+                      "something you would consider?"),
+        (athlete_uid, "Thanks Maya. Yes, in principle. I would want the posts to be mine -- same "
+                      "format as the block, product in frame where it is actually being used."),
+        (sponsor_uid, "That is precisely what we want. I will send an offer through the campaign "
+                      "so the terms are on the record."),
+    ])
+    # A club and one of its athletes.
+    _thread(meridian_uid, athlete_uid, [
+        (meridian_uid, "The Northwind package has a player-direct option. Happy for us to put you "
+                       "forward as the named athlete?"),
+        (athlete_uid, "Yes -- go ahead."),
+    ])
+    conn.execute("INSERT INTO notifications (user_id, actor_user_id, kind, title, body, link, created_at)"
+                 " VALUES (?, ?, 'message', ?, ?, '/inbox', ?)",
+                 (athlete_uid, sponsor_uid, "Maya Chen-Ortega messaged you",
+                  "I will send an offer through the campaign so the terms are on the record.", now_iso()))
+
+    # A supporter who pays -- free in this build, but the relationship is real,
+    # so the locked content on Kaia's wall opens for somebody. fan1, not fan@:
+    # fan@ is the baseline the journey audit uses to prove the lock holds.
+    conn.execute("INSERT INTO subscriptions (user_id, athlete_id, created_at) VALUES (?, ?, ?)",
+                 (fan_uids[0], athlete_ids["kaia-mercer"], now_iso()))
+
+    # A sponsor backing the demo club's headline package, so the club's own
+    # board reports revenue rather than a zero.
+    pkg = row(conn, "SELECT id, price_eur FROM club_packages WHERE id = ?",
+              (first_pkg_ids["meridian-fc"],))
+    conn.execute("INSERT INTO package_commitments (package_id, org_id, amount_eur, status, created_at)"
+                 " VALUES (?, ?, ?, 'active', ?)", (pkg["id"], org_ids[0], pkg["price_eur"], now_iso()))
+    log_event(conn, "system", "package.committed", "package", pkg["id"],
+              {"org_id": org_ids[0], "amount_eur": pkg["price_eur"]})
+
+    # No invite link is seeded. Every seeded member was placed on the roster
+    # directly, so a "redeemed" link would describe a joining that never
+    # happened -- and each non-revoked link spends one slot of the roster
+    # budget the club declared, which is the club's to spend from its own
+    # dashboard, not the seed's.
+
+    # Votes on the poll. A poll with no votes demonstrates a form; one with a
+    # split demonstrates why an athlete would post one.
+    options = rows(conn, "SELECT id FROM poll_options WHERE content_id = ? ORDER BY position", (poll,))
+    for i, uid in enumerate([fan_id, *fan_uids]):
+        conn.execute("INSERT INTO poll_votes (content_id, option_id, user_id, created_at)"
+                     " VALUES (?, ?, ?, ?)", (poll, options[(i * 2) % len(options)]["id"], uid, now_iso()))
 
     conn.commit()
     return summary

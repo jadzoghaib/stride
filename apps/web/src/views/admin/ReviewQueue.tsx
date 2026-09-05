@@ -256,7 +256,7 @@ export default function ReviewQueue() {
                     {a.league_name && ` · ${a.league_name}`}
                     {a.club_name && ` · ${a.club_name}`}
                   </span>
-                  <span className="tnum ml-auto font-display text-[19px] font-bold text-ink">
+                  <span className="tnum ml-auto font-display text-lead font-bold text-ink">
                     {a.credibility?.toFixed(1) ?? '—'}
                   </span>
                   <StatusChip status={a.decision} />
@@ -332,7 +332,7 @@ export default function ReviewQueue() {
                   <span className="text-sm text-ink-2">
                     {c.legal_name || 'no legal name'} · {c.registration_id || 'no registration'}
                   </span>
-                  <span className="tnum ml-auto font-display text-[19px] font-bold text-ink">
+                  <span className="tnum ml-auto font-display text-lead font-bold text-ink">
                     {c.legitimacy?.toFixed(1) ?? '—'}
                   </span>
                   <StatusChip status={c.decision} />

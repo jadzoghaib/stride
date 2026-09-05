@@ -191,9 +191,9 @@ function Row({ item, onPublish, onEdit, onDelete, compact = false }: {
       <span className="cap w-16 shrink-0 text-ink-3">{item.kind}</span>
       <span className={compact ? 'text-sm text-ink-2' : 'font-medium text-ink'}>{item.title}</span>
       {item.label === 'sponsored' && (
-        <span className="tag border-warn/50 text-warn">Sponsored · {item.sponsor_name}</span>
+        <span className="tag tag-warn">Sponsored · {item.sponsor_name}</span>
       )}
-      {item.label === 'highlighted' && <span className="tag border-accent/50 text-accent-ink">Highlighted</span>}
+      {item.label === 'highlighted' && <span className="tag tag-accent">Highlighted</span>}
       <span className="tag">{item.tier_label}</span>
       {item.starts_at && (
         <span className="meta">{new Date(item.starts_at).toLocaleDateString()} · {item.location || 'TBC'}

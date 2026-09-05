@@ -132,7 +132,9 @@ def test_a_pair_has_one_thread_whoever_opened_it(athlete, sponsor, db):
     assert len(with_sponsor) == 1, "one conversation, not one per direction"
 
     full = athlete.get(f"/api/inbox/{with_sponsor[0]['id']}").json()
-    assert [m["mine"] for m in full["messages"]] == [False, True]
+    # the seed already opened this pair's thread, so the two messages above
+    # landed at the end of it rather than starting a second one
+    assert [m["mine"] for m in full["messages"]][-2:] == [False, True]
 
 
 def test_a_thread_you_are_not_in_is_a_404(athlete, sponsor, fan):
