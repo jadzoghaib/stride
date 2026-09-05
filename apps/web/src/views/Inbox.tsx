@@ -13,8 +13,18 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar, EmptyNote, LoadError, PageHeader, PageLoading } from '../components/ui'
 import { api, errorText } from '../lib/api'
+import { useToast } from '../lib/toast'
 
-interface Correspondent { id: number; display_name: string; role: string; slug: string | null }
+interface Correspondent { id: number; display_name: string; role: string; slug: string | null; blocked: boolean }
+
+const REPORT_REASONS: [string, string][] = [
+  ['harassment', 'Harassment or threats'],
+  ['spam', 'Spam or unwanted commercial messages'],
+  ['impersonation', 'Pretending to be someone else'],
+  ['inappropriate', 'Inappropriate content'],
+  ['underage_concern', 'Concern about a minor'],
+  ['other', 'Something else'],
+]
 interface Thread { id: number; with: Correspondent; last_message: string; last_at: string; unread: number }
 interface Message { id: number; body: string; at: string; mine: boolean }
 
@@ -31,6 +41,34 @@ export default function Inbox() {
   const [open, setOpen] = useState<{ id: number; with: Correspondent; messages: Message[] } | null>(null)
   const [draft, setDraft] = useState('')
   const [error, setError] = useState('')
+  const [reporting, setReporting] = useState(false)
+  const [reason, setReason] = useState(REPORT_REASONS[0][0])
+  const [detail, setDetail] = useState('')
+  const toast = useToast()
+
+  /* A block is placed from the thread, because that is where the unwelcome
+     message is. It is the reader's decision alone: the other side is told
+     nothing, the thread stays readable, and the composer goes. */
+  const toggleBlock = async () => {
+    if (!open) return
+    try {
+      if (open.with.blocked) await api.del(`/api/blocks/${open.with.id}`)
+      else await api.post(`/api/blocks/${open.with.id}`)
+      toast(open.with.blocked ? `Unblocked ${open.with.display_name}` : `Blocked ${open.with.display_name}`)
+      await openThread(open.id)
+    } catch (e) { setError(errorText(e)) }
+  }
+
+  const fileReport = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!open) return
+    try {
+      const theirs = [...open.messages].reverse().find((m) => !m.mine)
+      await api.post('/api/reports', { user_id: open.with.id, reason, detail, message_id: theirs?.id ?? null })
+      setReporting(false); setDetail('')
+      toast('Reported. A reviewer will look at it.')
+    } catch (e2) { setError(errorText(e2)) }
+  }
 
   const load = () => api.get<Thread[]>('/api/inbox').then(setThreads).catch((e) => setError(errorText(e)))
   useEffect(() => { void load() }, [])
@@ -115,7 +153,38 @@ export default function Inbox() {
                     <span className="font-medium text-ink">{open.with.display_name}</span>
                   )}
                   <span className="cap text-ink-3">{open.with.role}</span>
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <button type="button" className="tag hover:border-ink-3 hover:text-ink"
+                            onClick={() => setReporting((v) => !v)} aria-expanded={reporting}>
+                      Report
+                    </button>
+                    <button type="button" className={`tag hover:border-ink-3 hover:text-ink ${open.with.blocked ? 'tag-critical' : ''}`}
+                            onClick={toggleBlock}>
+                      {open.with.blocked ? 'Unblock' : 'Block'}
+                    </button>
+                  </div>
                 </div>
+
+                {reporting && (
+                  <form onSubmit={fileReport} className="mt-3 space-y-2 rounded border border-line bg-raised p-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="cap">Report {open.with.display_name}</span>
+                      <select className="field w-auto py-1 text-sm" value={reason} onChange={(e) => setReason(e.target.value)}
+                              aria-label="Reason">
+                        {REPORT_REASONS.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+                      </select>
+                    </div>
+                    <textarea className="field w-full text-sm" rows={2} placeholder="Anything a reviewer should know (optional)"
+                              aria-label="Details" value={detail} onChange={(e) => setDetail(e.target.value)} />
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="meta">Their latest message is attached. Reporting does not block them — that is the other button.</span>
+                      <div className="flex gap-2">
+                        <button type="button" className="btn" onClick={() => setReporting(false)}>Cancel</button>
+                        <button className="btn-go">Send report</button>
+                      </div>
+                    </div>
+                  </form>
+                )}
 
                 <div className="flex-1 space-y-2 overflow-y-auto py-4">
                   {open.messages.map((m) => (
@@ -131,6 +200,9 @@ export default function Inbox() {
                   ))}
                 </div>
 
+                {open.with.blocked ? (
+                  <p className="meta border-t border-line pt-3">You have blocked {open.with.display_name}. Unblock them to write again.</p>
+                ) : (
                 <div className="flex items-end gap-2 border-t border-line pt-3">
                   <textarea className="field min-h-[3rem] flex-1" value={draft} rows={2}
                             placeholder={`Message ${open.with.display_name}`}
@@ -139,6 +211,7 @@ export default function Inbox() {
                     Send
                   </button>
                 </div>
+                )}
               </>
             )}
           </div>

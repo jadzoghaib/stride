@@ -33,6 +33,7 @@ from pydantic import BaseModel, Field
 
 from ..auth import get_db, require_role
 from ..db import now_iso, row, rows
+from .safety import is_blocked_between
 
 router = APIRouter(prefix="/api", tags=["messaging"])
 
@@ -95,7 +96,11 @@ def existing_thread(conn, a: int, b: int) -> dict | None:
 
 
 def may_message(conn, sender: dict, recipient: dict) -> bool:
-    """Start a new one, or answer one that is already open."""
+    """Start a new one, or answer one that is already open -- unless either of
+    them has blocked the other, which ends the conversation whatever the
+    matrix or the thread history says."""
+    if is_blocked_between(conn, sender["id"], recipient["id"]):
+        return False
     if existing_thread(conn, sender["id"], recipient["id"]) is not None:
         return True
     return may_open(conn, sender, recipient)
@@ -134,7 +139,10 @@ def _other(conn, conversation: dict, me: int) -> dict:
     athlete = row(conn, "SELECT slug FROM athlete_profiles WHERE user_id = ?", (other_id,))
     club = row(conn, "SELECT slug FROM clubs WHERE user_id = ?", (other_id,))
     return {"id": other_id, "display_name": who["display_name"], "role": who["role"],
-            "slug": (athlete or club or {}).get("slug")}
+            "slug": (athlete or club or {}).get("slug"),
+            # the thread still shows; the composer does not
+            "blocked": row(conn, "SELECT 1 FROM user_blocks WHERE blocker_id = ? AND blocked_id = ?",
+                           (me, other_id)) is not None}
 
 
 @router.get("/inbox")
@@ -290,6 +298,8 @@ def _may_write(conn, sender: dict, recipient: dict) -> bool:
     thread rather than from the role: a fan who has since unsubscribed keeps the
     thread they already have.
     """
+    if is_blocked_between(conn, sender["id"], recipient["id"]):
+        return False
     a, b = sorted((sender["id"], recipient["id"]))
     if row(conn, "SELECT id FROM conversations WHERE user_a = ? AND user_b = ?", (a, b)):
         return True
