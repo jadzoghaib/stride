@@ -100,9 +100,15 @@ def test_a_january_sixteen_year_old_is_no_longer_refused_for_the_whole_year(db):
         _remove_throwaway(db, uid, pid)
 
 
-def test_the_seeded_applications_carry_dates():
+def test_the_seeded_applications_carry_dates(sqlite_backend):
     """On a database nothing else has touched: the session-scoped one has had
-    Sofia's application replaced by earlier tests."""
+    Sofia's application replaced by earlier tests.
+
+    `sqlite_backend` because this builds its own sqlite3 connection, and
+    `init_db` dispatches on the configured backend -- without it, the Postgres
+    run aims Postgres DDL at a SQLite connection. The fixture exists for
+    exactly this and I had not used it; only running the suite on Postgres
+    showed that."""
     import sqlite3  # noqa: PLC0415
     from stride_api.db import init_db  # noqa: PLC0415
     from stride_api.seed import seed  # noqa: PLC0415

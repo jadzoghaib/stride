@@ -168,31 +168,46 @@ rather than an afterthought:
 ## Verification
 
 ```bash
-uv run pytest -q                       # 346 passed, 2 skipped (those two need Postgres)
-cd apps/web && npx tsc -b && npx vite build
+python scripts/verify.py                 # everything: 12 checks, ~3 minutes
+python scripts/verify.py --quick         # skip the build, the drill, the workbook
 ```
 
-The suite covers role boundaries, matching decomposition, campaign-specific audience fit, the
-consent trail, offer round-trips, and chaos injection with recovery.
+That is the whole protocol. It runs the unit suite, the design-token audit, the
+build, the four API audits, the failure drill, the admission sweep and the two
+business-plan guards, then prints one table. It exists because running them by
+hand in sequence *drains the API rate limiter* -- 300 requests of burst against
+audits that fire hundreds -- and a drill that starts on an empty bucket used to
+die half way and leave a 60% error rate injected. `verify.py` waits for the
+bucket between phases. Checks that need something which is not running are
+reported as skipped rather than failed, because "the API was down" and "the
+product is broken" are different sentences.
 
-Beyond the unit tests, the checks below run against a *running* server, because what they
-assert is behaviour rather than code shape. Start the API first, then:
+To include the Postgres run, point it at a server:
 
 ```bash
+docker run -d --name stride-pg -e POSTGRES_PASSWORD=stride -p 55432:5432 postgres:16-alpine
+python scripts/verify.py --postgres postgresql://postgres:stride@127.0.0.1:55432/stride
+python scripts/verify.py --external      # also reach every URL the business plan cites
+```
+
+Two tests are skipped on SQLite and only run there; on Postgres the suite is
+348 rather than 346. The dual backend is a claim this repository makes, so it
+is worth the container to check it.
+
+The individual checks, if you want one on its own:
+
+```bash
+cd apps/api && uv run pytest -q          # 346 passed, 2 skipped (those two need Postgres)
+cd apps/web && npx tsc -b && npx vite build
+python scripts/design_audit.py           # contrast measured, type scale named, DESIGN.md honoured
 python scripts/journey.py     http://127.0.0.1:8490   # 38 product rules, end to end
 python scripts/permissions.py http://127.0.0.1:8490   # 408 role x route combinations
 python scripts/propagation.py http://127.0.0.1:8490   # 20 cross-role consequences
 python scripts/links.py --api http://127.0.0.1:8490   # every link and API call resolves
 python scripts/failure_drill.py                       # latency -> errors -> db down -> recovery
 python scripts/admission_stress.py                    # the admission bar under a funnel sweep
-```
-
-And the business plan is held to its own model rather than to prose discipline:
-
-```bash
-python scripts/doc_consistency.py     # every figure in prose still matches model.py
-python scripts/verify_workbook.py     # 1,973 formulas, no dangling refs, no cycles
-python scripts/links.py --external    # every URL the plan cites is still reachable
+python scripts/doc_consistency.py                     # every figure in prose still matches model.py
+python scripts/verify_workbook.py                     # 1,973 formulas, no dangling refs, no cycles
 ```
 
 `journey.py` and `permissions.py` write to the demo database and restore it afterwards, so
