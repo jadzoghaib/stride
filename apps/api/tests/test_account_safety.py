@@ -186,3 +186,75 @@ def test_changing_the_password_needs_the_current_one_and_keeps_this_session(db):
             "email": REGISTER["email"], "password": "brandnewpass2"}).status_code == 200
     finally:
         _cleanup(db, REGISTER["email"])
+
+
+# ── change of address ────────────────────────────────────────────────────────
+
+def test_changing_the_address_waits_for_the_new_one_to_confirm(db):
+    """A typo that took effect immediately would lock the account out of its
+    own recovery: reset is the only way back, and it mails the address on
+    file. So the live address does not move until the new one opens a link."""
+    c = TestClient(app)
+    try:
+        c.post("/api/auth/register", json={**REGISTER, "accept_terms": True})
+        asked = c.post("/api/auth/email", json={"password": REGISTER["password"],
+                                                "new_email": "moved@test.local"})
+        assert asked.status_code == 200
+        assert asked.json()["pending_email"] == "moved@test.local"
+
+        # nothing has moved yet, and the old address still signs in
+        assert c.get("/api/auth/me").json()["email"] == REGISTER["email"]
+        assert TestClient(app).post("/api/auth/login", json={
+            "email": REGISTER["email"], "password": REGISTER["password"]}).status_code == 200
+
+        # the confirmation went to the NEW address; the old one got a warning
+        token = _outbox_link(db, "moved@test.local", "auth.verify_email")
+        assert row(db, "SELECT id FROM email_outbox WHERE to_email = ? AND kind ="
+                       " 'auth.email_change_notice'", (REGISTER["email"],)), \
+            "the address being left is told, so a session-theft cannot move it in silence"
+
+        moved = TestClient(app).post("/api/auth/verify-email", json={"token": token})
+        assert moved.status_code == 200 and moved.json()["email"] == "moved@test.local"
+        assert TestClient(app).post("/api/auth/login", json={
+            "email": "moved@test.local", "password": REGISTER["password"]}).status_code == 200
+        assert TestClient(app).post("/api/auth/login", json={
+            "email": REGISTER["email"], "password": REGISTER["password"]}).status_code == 401
+    finally:
+        _cleanup(db, REGISTER["email"])
+        _cleanup(db, "moved@test.local")
+
+
+def test_a_change_of_address_needs_the_password_and_a_free_address(db, athlete):
+    c = TestClient(app)
+    try:
+        c.post("/api/auth/register", json={**REGISTER, "accept_terms": True})
+        wrong = c.post("/api/auth/email", json={"password": "not-it", "new_email": "x@test.local"})
+        assert wrong.status_code == 403 and wrong.json()["detail"] == "wrong_password"
+
+        taken = c.post("/api/auth/email", json={"password": REGISTER["password"],
+                                                "new_email": "athlete@demo.stride"})
+        assert taken.status_code == 409 and taken.json()["detail"] == "email_exists"
+
+        same = c.post("/api/auth/email", json={"password": REGISTER["password"],
+                                               "new_email": REGISTER["email"]})
+        assert same.status_code == 409 and same.json()["detail"] == "same_email"
+
+        bad = c.post("/api/auth/email", json={"password": REGISTER["password"], "new_email": "nope"})
+        assert bad.status_code == 422
+        assert c.get("/api/auth/me").json()["email"] == REGISTER["email"], "nothing moved"
+    finally:
+        _cleanup(db, REGISTER["email"])
+
+
+def test_a_plain_verification_still_just_verifies(db):
+    """The same endpoint does both jobs. With nothing pending it must not
+    invent a change."""
+    c = TestClient(app)
+    try:
+        c.post("/api/auth/register", json={**REGISTER, "accept_terms": True})
+        token = _outbox_link(db, REGISTER["email"], "auth.verify_email")
+        done = TestClient(app).post("/api/auth/verify-email", json={"token": token})
+        assert done.status_code == 200 and done.json()["email"] == REGISTER["email"]
+        assert c.get("/api/auth/me").json()["email_verified"] is True
+    finally:
+        _cleanup(db, REGISTER["email"])

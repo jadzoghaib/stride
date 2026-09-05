@@ -65,6 +65,48 @@ JSON evidence) is append-only document-ish; it lives comfortably in Postgres JSO
 this scale. A dedicated store (ClickHouse/Timescale for metrics) is a Phase-4 concern,
 adopted only when metric volume hurts — not before.
 
+## What a route name means
+
+A product review read the API and reported that "deletion is expressed three
+ways" -- `DELETE /content/{id}` beside `POST .../remove`, `.../revoke`,
+`.../archive`, `.../withdraw` -- and called it a cleanup worth doing. Checking
+it against the handlers rather than the names, there is no inconsistency to
+clean up. There is a rule nobody had written down:
+
+| Shape | Means | The row afterwards |
+|---|---|---|
+| `DELETE /thing/{id}` | the thing ceases to exist | gone |
+| `POST /thing/{id}/<verb>` | the thing changes state | still there, with a new status |
+
+It holds without exception. All five `DELETE` routes really do delete --
+`content_items`, `follows`, `subscriptions`, `fan_posts`, `user_blocks` -- and
+every named `POST` is an `UPDATE ... SET status` (or `SET decision`) that keeps
+the record:
+
+- `POST /club/members/{id}/remove` sets the membership inactive **and ends the
+  commitments that depended on it**, returning how many. A `DELETE` would
+  promise the row was gone and hide the consequence that matters.
+- `POST /club/invite-links/{id}/revoke` stamps `revoked_at`. The link has to
+  stay readable: it spent a slot of the club's declared roster budget, and a
+  deleted row cannot explain where that slot went.
+- `POST /club/packages/{id}/archive` and `POST /campaigns/{id}/status` stop new
+  business against a thing whose past business is somebody's account.
+- `POST /deals/{id}/withdraw` moves a deal to a terminal state. The athlete was
+  offered something; that it was withdrawn is part of the record.
+
+So the verb is not decoration and the choice is not arbitrary: **if a duty,
+an audit trail or another party's record depends on the row, it is a named
+state transition, not a delete.** Reach for `DELETE` only when nobody has a
+claim on the thing existing.
+
+The one genuine outlier is `POST /content/{item_id}` for an edit, where the
+rest of the API uses `PUT` for a whole-resource replace (`PUT /athlete/profile`,
+`PUT /club/profile`, `PUT /sponsor/org`, `PUT /campaigns/{id}`). It is
+harmless and it is wrong, and it is left alone deliberately: renaming it churns
+the client, the tests and the 408-row permission matrix to move one route onto
+a convention this paragraph can state in a sentence. Worth doing in a pass that
+is already touching content; not worth a pass of its own.
+
 ## Observability (three pillars)
 - **Logs**: one JSON line per request (method, path, status, duration_ms, request_id),
   machine-parseable; app events via the same formatter; audit events in the DB.

@@ -34,7 +34,7 @@ export default function Footer() {
             <Link
               key={l.to}
               to={l.to}
-              className="font-display text-fine font-semibold uppercase tracking-micro text-ink-3 transition-colors hover:text-ink"
+              className="-my-1 py-1 font-display text-fine font-semibold uppercase tracking-micro text-ink-3 transition-colors hover:text-ink"
             >
               {l.label}
             </Link>

@@ -99,7 +99,7 @@ function NewsCard({ item, showAuthor = false }: { item: NewsItem; showAuthor?: b
           <Avatar name={item.author} size={28} />
           {item.author_slug ? (
             <Link to={`/athletes/${item.author_slug}`}
-                  className="text-sm font-medium text-ink hover:text-accent">
+                  className="-my-1 py-1 text-sm font-medium text-ink hover:text-accent">
               {item.author}
             </Link>
           ) : (
@@ -110,8 +110,11 @@ function NewsCard({ item, showAuthor = false }: { item: NewsItem; showAuthor?: b
       <div className="flex flex-wrap items-center gap-2">
         <span className="cap" style={tint ? { color: tint.ink } : undefined}>{item.platform}</span>
         <h3 className="min-w-0 font-medium text-ink-2">{item.title}</h3>
+        {/* -my-1 py-1: the link is the row's action and was 18px tall. The
+            padding lifts the hit area over the 24px floor and the negative
+            margin gives the space back, so nothing on the row moves. */}
         <a href={item.permalink} target="_blank" rel="noreferrer noopener"
-           className="ml-auto meta hover:text-accent">Open on {item.platform} &rarr;</a>
+           className="-my-1 ml-auto py-1 meta hover:text-accent">Open on {item.platform} &rarr;</a>
       </div>
       <p className="meta mt-1">{stamp(item.published_at)}</p>
     </article>

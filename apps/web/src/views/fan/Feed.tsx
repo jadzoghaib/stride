@@ -81,7 +81,7 @@ export default function Feed() {
             <div key={a.id} className="panel panel-hover flex items-center gap-4 p-4">
               <Avatar name={a.display_name} size={42} />
               <div className="min-w-0">
-                <Link to={`/athletes/${a.slug}`} className="font-medium text-ink hover:text-accent">
+                <Link to={`/athletes/${a.slug}`} className="-my-1 py-1 font-medium text-ink hover:text-accent">
                   {a.display_name}
                 </Link>
                 <div className="text-xs text-ink-3">{a.sport} · {a.country}</div>

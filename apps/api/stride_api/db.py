@@ -510,6 +510,9 @@ _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     ("users", "accepted_policy_version", "TEXT"),
     ("users", "accepted_at", "TEXT"),
     ("users", "email_verified_at", "TEXT"),
+    # An address the account has asked to move to and not yet proved it
+    # owns. The live `email` is untouched until the link is opened.
+    ("users", "pending_email", "TEXT"),
     # set by account deletion; the row stays for the ledger, anonymised
     ("users", "deleted_at", "TEXT"),
     ("athlete_applications", "birth_date", "TEXT"),

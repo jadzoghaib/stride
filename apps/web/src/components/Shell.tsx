@@ -75,7 +75,7 @@ export function ThemeToggle({ boxed = false }: { boxed?: boolean } = {}) {
   return (
     <button
       onClick={toggle}
-      className={boxed ? RAIL_SLOT : 'text-ink-3 transition-colors hover:text-ink'}
+      className={boxed ? RAIL_SLOT : 'icon-btn text-ink-3 hover:text-ink'}
       title={`Switch to ${next} theme`}
       aria-label={`Switch to ${next} theme`}
     >
@@ -104,7 +104,8 @@ function Signals({ boxed = false }: { boxed?: boolean } = {}) {
   const [unreadMail, setUnreadMail] = useState(0)
   const [unreadBells, setUnreadBells] = useState(0)
   const location = useLocation()
-  const shape = boxed ? RAIL_SLOT : 'relative text-ink-3 transition-colors hover:text-ink'
+  // unboxed is the mobile header, where these were a bare 16px glyph
+  const shape = boxed ? RAIL_SLOT : 'icon-btn relative text-ink-3 hover:text-ink'
 
   useEffect(() => {
     api.get<{ id: number; unread: number }[]>('/api/inbox')
@@ -214,11 +215,11 @@ export default function Shell({ children }: { children: ReactNode }) {
             <div className="truncate text-sm font-medium text-ink">{me.display_name}</div>
             <div className="cap text-ink-3">{me.role}</div>
           </div>
-          <Link to="/settings" className="text-ink-3 transition-colors hover:text-ink" title="Account settings"
+          <Link to="/settings" className="icon-btn text-ink-3 hover:text-ink" title="Account settings"
                 aria-label="Account settings">
             <SettingsIcon size={16} strokeWidth={1.9} />
           </Link>
-          <button className="text-ink-3 transition-colors hover:text-ink" title="Sign out"
+          <button className="icon-btn text-ink-3 hover:text-ink" title="Sign out"
                   aria-label="Sign out"
                   onClick={async () => { await logout(); navigate('/') }}>
             <LogOut size={16} strokeWidth={1.9} />
@@ -233,10 +234,10 @@ export default function Shell({ children }: { children: ReactNode }) {
           <div className="ml-auto flex items-center gap-3">
             <Signals />
             <ThemeToggle />
-            <Link to="/settings" className="text-ink-3" aria-label="Account settings">
+            <Link to="/settings" className="icon-btn text-ink-3" aria-label="Account settings">
               <SettingsIcon size={16} strokeWidth={1.9} />
             </Link>
-            <button className="text-ink-3" aria-label="Sign out"
+            <button className="icon-btn text-ink-3" aria-label="Sign out"
                     onClick={async () => { await logout(); navigate('/') }}>
               <LogOut size={16} strokeWidth={1.9} />
             </button>

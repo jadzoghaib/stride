@@ -68,6 +68,7 @@ export const ERROR_TEXT: Record<string, string> = {
   terms_not_accepted: 'You need to accept the Terms of Service and Privacy Policy to create an account.',
   invalid_or_expired_token: 'That link has already been used or has expired.',
   wrong_password: 'Your current password is not right.',
+  same_email: 'That is already your address.',
   confirmation_word_mismatch: 'Type DELETE to confirm.',
   cannot_message_this_person: 'You cannot message this person.',
   cannot_block_yourself: 'You cannot block yourself.',

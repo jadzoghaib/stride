@@ -65,6 +65,19 @@ class PasswordIn(BaseModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
+class EmailIn(BaseModel):
+    password: str = Field(min_length=1, max_length=128)
+    new_email: str = Field(max_length=254)
+
+    @field_validator("new_email")
+    @classmethod
+    def _email_shape(cls, v: str) -> str:
+        v = v.strip().lower()
+        if "@" not in v or "." not in v.split("@")[-1] or len(v) < 6:
+            raise ValueError("invalid email")
+        return v
+
+
 # ── one-time tokens ──────────────────────────────────────────────────────────
 
 TOKEN_TTL = {"verify_email": timedelta(days=3), "reset_password": timedelta(hours=2)}
@@ -97,6 +110,13 @@ def consume_one_time_token(conn, token: str, purpose: str) -> dict:
         raise HTTPException(400, "invalid_or_expired_token")
     conn.execute("UPDATE auth_tokens SET used_at = ? WHERE id = ?", (now_iso(), found["id"]))
     return row(conn, "SELECT * FROM users WHERE id = ?", (found["user_id"],))
+
+
+def queue_plain_email(conn, to_email: str, user_id: int | None, subject: str,
+                      lines: list[str], kind: str) -> None:
+    conn.execute("INSERT INTO email_outbox (to_email, to_user_id, subject, body, kind, created_at)"
+                 " VALUES (?, ?, ?, ?, ?, ?)",
+                 (to_email, user_id, subject, "\n\n".join([*lines, "-- Stride"]), kind, now_iso()))
 
 
 def queue_auth_email(conn, user: dict, purpose: str, token: str) -> None:
@@ -269,11 +289,60 @@ def verify_email(body: VerifyIn, conn: sqlite3.Connection = Depends(get_db)):
     """No session required: the person may be opening the link on a different
     device from the one they registered on."""
     user = consume_one_time_token(conn, body.token, "verify_email")
-    conn.execute("UPDATE users SET email_verified_at = COALESCE(email_verified_at, ?) WHERE id = ?",
-                 (now_iso(), user["id"]))
-    log_event(conn, "user", "user.email_verified", "user", user["id"], {})
+    # The same link does both jobs, because they are the same job: prove an
+    # address is yours. Which address is whichever one is waiting.
+    moving_to = user.get("pending_email")
+    if moving_to and not row(conn, "SELECT id FROM users WHERE email = ? AND id <> ?",
+                             (moving_to, user["id"])):
+        conn.execute("UPDATE users SET email = ?, pending_email = NULL, email_verified_at = ?"
+                     " WHERE id = ?", (moving_to, now_iso(), user["id"]))
+        log_event(conn, "user", "user.email_changed", "user", user["id"], {})
+    else:
+        conn.execute("UPDATE users SET email_verified_at = COALESCE(email_verified_at, ?),"
+                     " pending_email = NULL WHERE id = ?", (now_iso(), user["id"]))
+        log_event(conn, "user", "user.email_verified", "user", user["id"], {})
     conn.commit()
-    return {"ok": True, "email": user["email"]}
+    fresh = row(conn, "SELECT email FROM users WHERE id = ?", (user["id"],))
+    return {"ok": True, "email": fresh["email"]}
+
+
+@router.post("/email")
+def change_email(body: EmailIn, user: dict = Depends(current_user),
+                 conn: sqlite3.Connection = Depends(get_db)):
+    """Ask to move the account to another address.
+
+    The live address does not change here. A typo that took effect immediately
+    would lock the account out of its own recovery: a reset link would go to an
+    inbox nobody reads, and password reset is the only way back. So the new
+    address is held as `pending_email`, the confirmation link goes *to it*, and
+    only opening that link moves the account.
+
+    The old address is told, separately and immediately. Somebody who has taken
+    a session should not be able to walk the account away in silence -- the
+    notice is what makes that visible to the person who owns it.
+    """
+    if not user["password_hash"].startswith("pbkdf2$"):
+        raise HTTPException(409, "password_managed_elsewhere")
+    if not verify_password(body.password, user["password_hash"]):
+        raise HTTPException(403, "wrong_password")
+    if body.new_email == user["email"]:
+        raise HTTPException(409, "same_email")
+    if row(conn, "SELECT id FROM users WHERE email = ? AND id <> ?", (body.new_email, user["id"])):
+        raise HTTPException(409, "email_exists")
+
+    conn.execute("UPDATE users SET pending_email = ? WHERE id = ?", (body.new_email, user["id"]))
+    token = issue_one_time_token(conn, user["id"], "verify_email")
+    queue_auth_email(conn, {**user, "email": body.new_email}, "verify_email", token)
+    queue_plain_email(
+        conn, user["email"], user["id"], "Your Stride address was asked to change",
+        [f"Hi {user['display_name']},",
+         f"Somebody asked to move this account to {body.new_email}. Nothing has changed yet -- "
+         "the move only happens when that address confirms it.",
+         "If this was not you, change your password now: whoever asked had your current one."],
+        "auth.email_change_notice")
+    log_event(conn, "user", "user.email_change_requested", "user", user["id"], {})
+    conn.commit()
+    return {"ok": True, "pending_email": body.new_email}
 
 
 @router.post("/resend-verification")
@@ -342,6 +411,7 @@ def _me(user: dict, conn: sqlite3.Connection) -> dict:
     out = {"id": user["id"], "email": user["email"], "role": user["role"],
            "display_name": user["display_name"],
            "email_verified": bool(user.get("email_verified_at")),
+           "pending_email": user.get("pending_email"),
            "accepted_policy_version": user.get("accepted_policy_version")}
     if user["role"] == "athlete":
         profile = row(conn, "SELECT id, slug, status FROM athlete_profiles WHERE user_id = ?",

@@ -225,7 +225,7 @@ export default function AthletesDirectory({ embedded = false }: { embedded?: boo
               {COLUMNS.filter((c) => c.key === 'display_name' || commercial).map((col) => (
                 <th key={col.key} className={`table-head ${col.align ?? ''}`} aria-sort={sortKey === col.key ? (sortDesc ? 'descending' : 'ascending') : 'none'}>
                   <button
-                    className="inline-flex items-center gap-1 uppercase tracking-micro transition-colors hover:text-ink"
+                    className="-my-1 inline-flex min-h-6 items-center gap-1 py-1 uppercase tracking-micro transition-colors hover:text-ink"
                     onClick={() => toggle(col.key)}
                   >
                     {col.label}

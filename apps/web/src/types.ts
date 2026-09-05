@@ -4,6 +4,7 @@ export interface Me {
   role: 'athlete' | 'sponsor' | 'fan' | 'club' | 'admin'
   display_name: string
   email_verified: boolean
+  pending_email: string | null
   accepted_policy_version: string | null
   athlete_profile?: { id: number; slug: string; status: string } | null
   org?: { id: number; name: string; industry: string } | null
