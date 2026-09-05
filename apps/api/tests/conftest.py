@@ -103,6 +103,13 @@ def sponsor(client):
 
 
 @pytest.fixture(scope="session")
+def sponsor2(client):
+    """A second organisation. Anything about one org not reaching another's
+    campaigns needs a session that genuinely belongs somewhere else."""
+    return make_session("sponsor2@demo.stride")
+
+
+@pytest.fixture(scope="session")
 def fan(client):
     return make_session("fan@demo.stride")
 

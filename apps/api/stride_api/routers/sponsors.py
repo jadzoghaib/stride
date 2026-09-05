@@ -4,6 +4,7 @@ evidence view for any listed athlete (the CreatorLens engine end-to-end)."""
 from __future__ import annotations
 
 import json
+import secrets
 import sqlite3
 import time
 from datetime import datetime
@@ -139,7 +140,7 @@ def create_campaign(body: CampaignIn, user: dict = Depends(require_role("sponsor
         raise HTTPException(422, "budget_max_below_min")
     # every campaign brief becomes a CreatorLens sponsor target — audience fit
     # is then computed against THIS campaign, not a generic default
-    target = create_target(conn, f"{body.name} target #{org['id']}-{now_iso()}",
+    target = create_target(conn, _target_name(body.name, org["id"]),
                            body.target_age_buckets, body.target_genders,
                            body.target_countries, body.target_topics, actor="user")
     cur = conn.execute(
@@ -158,6 +159,126 @@ def create_campaign(body: CampaignIn, user: dict = Depends(require_role("sponsor
               {"name": body.name, "org_id": org["id"]})
     conn.commit()
     return _campaign_view(row(conn, "SELECT * FROM campaigns WHERE id = ?", (cur.lastrowid,)))
+
+
+class CampaignStatusIn(BaseModel):
+    status: str = Field(max_length=10)
+
+
+@router.put("/campaigns/{campaign_id}")
+def update_campaign(campaign_id: int, body: CampaignIn,
+                    user: dict = Depends(require_role("sponsor")),
+                    conn: sqlite3.Connection = Depends(get_db)):
+    """Edit a brief that is already out.
+
+    A campaign was write-once, which meant a typo in the name or a budget that
+    moved was a reason to abandon it and start again -- taking its offers and
+    its measured delivery with it.
+
+    Targeting gets a *new* CreatorLens target rather than an edit to the old
+    one. Score snapshots reference the target they were computed against, and
+    a snapshot taken under the previous brief was correct under that brief:
+    rewriting the target in place would silently restate history. So the
+    campaign points at a new target and the old rows stay true.
+    """
+    org = _own_org(conn, user)
+    campaign = row(conn, "SELECT * FROM campaigns WHERE id = ? AND org_id = ?",
+                   (campaign_id, org["id"]))
+    if campaign is None:
+        raise HTTPException(404, "unknown_campaign")
+    if body.budget_eur_max < body.budget_eur_min:
+        raise HTTPException(422, "budget_max_below_min")
+
+    retargeted = (json.loads(campaign["target_age_buckets"]) != body.target_age_buckets
+                  or json.loads(campaign["target_genders"]) != body.target_genders
+                  or json.loads(campaign["target_countries"]) != body.target_countries
+                  or json.loads(campaign["target_topics"]) != body.target_topics)
+    target_id = campaign["sponsor_target_id"]
+    if retargeted:
+        target_id = create_target(conn, _target_name(body.name, org["id"]),
+                                  body.target_age_buckets, body.target_genders,
+                                  body.target_countries, body.target_topics, actor="user")["id"]
+
+    conn.execute(
+        "UPDATE campaigns SET name = ?, objective = ?, category = ?, deal_types = ?,"
+        " budget_eur_min = ?, budget_eur_max = ?, target_age_buckets = ?, target_genders = ?,"
+        " target_countries = ?, target_topics = ?, sponsor_target_id = ?,"
+        " require_verified_athletes = ? WHERE id = ?",
+        (body.name, body.objective, body.category, json.dumps(body.deal_types),
+         body.budget_eur_min, body.budget_eur_max, json.dumps(body.target_age_buckets),
+         json.dumps(body.target_genders), json.dumps(body.target_countries),
+         json.dumps(body.target_topics), target_id, body.require_verified_athletes, campaign_id))
+    log_event(conn, "user", "campaign.updated", "campaign", campaign_id,
+              {"org_id": org["id"], "retargeted": retargeted})
+    conn.commit()
+    return _campaign_view(row(conn, "SELECT * FROM campaigns WHERE id = ?", (campaign_id,)))
+
+
+@router.post("/campaigns/{campaign_id}/status")
+def set_campaign_status(campaign_id: int, body: CampaignStatusIn,
+                        user: dict = Depends(require_role("sponsor")),
+                        conn: sqlite3.Connection = Depends(get_db)):
+    """Close a campaign, or reopen one.
+
+    Closing is not deleting: the deals under it, and everything measured about
+    them, are the sponsor's own record and a matter of account between them and
+    the athlete. A closed campaign stops taking new offers and stops appearing
+    as somewhere to send one; it keeps its history and can be reopened.
+    """
+    if body.status not in ("active", "closed"):
+        raise HTTPException(422, "unknown_campaign_status")
+    org = _own_org(conn, user)
+    campaign = row(conn, "SELECT * FROM campaigns WHERE id = ? AND org_id = ?",
+                   (campaign_id, org["id"]))
+    if campaign is None:
+        raise HTTPException(404, "unknown_campaign")
+    conn.execute("UPDATE campaigns SET status = ? WHERE id = ?", (body.status, campaign_id))
+    log_event(conn, "user", f"campaign.{body.status}", "campaign", campaign_id, {"org_id": org["id"]})
+    conn.commit()
+    return _campaign_view(row(conn, "SELECT * FROM campaigns WHERE id = ?", (campaign_id,)))
+
+
+class OrgIn(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
+    industry: str = Field(default="", max_length=80)
+    website: str = Field(default="", max_length=200)
+    regions: list[str] = Field(default=[], max_length=20)
+
+
+@router.put("/sponsor/org")
+def update_org(body: OrgIn, user: dict = Depends(require_role("sponsor")),
+               conn: sqlite3.Connection = Depends(get_db)):
+    """The sponsor's own details.
+
+    Athletes and clubs could edit their public identity; a sponsor's was set
+    once at registration from whatever the sign-up form guessed -- an
+    organisation that renamed itself had no way to say so, while its name sits
+    on every offer it has sent.
+    """
+    org = _own_org(conn, user)
+    website = body.website.strip()
+    if website and not website.startswith(("http://", "https://")):
+        raise HTTPException(422, "website_must_be_a_url")
+    conn.execute("UPDATE sponsor_orgs SET name = ?, industry = ?, website = ?, regions = ?"
+                 " WHERE id = ?",
+                 (body.name.strip(), body.industry.strip(), website,
+                  json.dumps(body.regions), org["id"]))
+    log_event(conn, "user", "org.updated", "sponsor_org", org["id"], {"name": body.name.strip()})
+    conn.commit()
+    fresh = row(conn, "SELECT * FROM sponsor_orgs WHERE id = ?", (org["id"],))
+    return {**fresh, "regions": json.loads(fresh["regions"])}
+
+
+def _target_name(campaign_name: str, org_id: int) -> str:
+    """A name no other target can already hold.
+
+    This used to be built from `now_iso()`, which has second resolution: two
+    campaigns with the same name created in the same second collided on
+    `sponsor_targets.name`, `create_target` raised, and the sponsor got a 500.
+    A double-clicked "Create campaign" was enough. The random tail is unique by
+    construction; the readable prefix is what makes the row identifiable.
+    """
+    return f"{campaign_name} target #{org_id}-{secrets.token_hex(4)}"
 
 
 def _projected_reach(conn, creator_id: int | None) -> int | None:
@@ -256,6 +377,11 @@ def send_offer(campaign_id: int, body: OfferIn, user: dict = Depends(require_rol
                conn: sqlite3.Connection = Depends(get_db)):
     org = _own_org(conn, user)
     campaign = _own_campaign(conn, org, campaign_id)
+    # Closing a campaign has to mean something. Without this the status was a
+    # label: a closed brief kept taking offers, and the athlete receiving one
+    # had no way to know it came from a campaign its own owner had shut.
+    if campaign["status"] != "active":
+        raise HTTPException(409, "campaign_not_active")
     athlete = row(conn, "SELECT * FROM athlete_profiles WHERE id = ? AND status = 'listed'",
                   (body.athlete_id,))
     if athlete is None:
