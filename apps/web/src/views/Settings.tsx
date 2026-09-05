@@ -1,27 +1,32 @@
 /** /settings — the account itself, as distinct from the profile.
  *
  *  A profile is what other people see; this is what only the account holder
- *  can do: prove the address, change the password, sign out everywhere, and
- *  reach the data-rights page. Every role gets the same page because every
- *  role has the same account.
+ *  can do: prove the address, change the password, sign out everywhere, take
+ *  their data out, and end the account. Every role gets the same page because
+ *  every role has the same account.
  */
 
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { PageHeader, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { useToast } from '../lib/toast'
 
 export default function Settings() {
-  const { me, refresh, logout } = useAuth()
+  const { me, logout } = useAuth()
   const toast = useToast()
+  const navigate = useNavigate()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [again, setAgain] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [resent, setResent] = useState(false)
+  const [delPassword, setDelPassword] = useState('')
+  const [delWord, setDelWord] = useState('')
+  const [delError, setDelError] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   if (!me) return null
 
@@ -50,6 +55,20 @@ export default function Settings() {
     await api.post('/api/auth/logout-all')
     await logout()
     window.location.assign('/')
+  }
+
+  const deleteAccount = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setDeleting(true); setDelError('')
+    try {
+      await api.post('/api/account/delete', { password: delPassword, confirm: delWord })
+      // the server has already cleared the cookie; this just drops the client copy
+      await logout().catch(() => undefined)
+      navigate('/', { replace: true })
+    } catch (err) {
+      setDelError(errorText(err))
+      setDeleting(false)
+    }
   }
 
   return (
@@ -125,15 +144,49 @@ export default function Settings() {
       <Section title="Your data">
         <div className="panel p-5">
           <p className="text-body text-ink-2">
-            What Stride holds about you and the controls over it — including which of your rights are live
-            today and which are not yet built.
+            What Stride holds about you and the controls over it — including a one-click export of all of it.
           </p>
-          <Link to="/legal/data" className="btn mt-4 inline-flex">Open your data</Link>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <a href="/api/account/export" download={`stride-export-${me.id}.json`} className="btn">Download my data</a>
+            <Link to="/legal/data" className="btn">Every control, explained</Link>
+          </div>
           <p className="meta mt-3">
             Terms accepted: {me.accepted_policy_version ? `version ${me.accepted_policy_version}` : 'not recorded'}.
           </p>
         </div>
       </Section>
+
+      {me.role !== 'admin' && (
+        <Section title="Delete account" aside={<span className="tag tag-critical">permanent</span>}>
+          <form onSubmit={deleteAccount} className="panel space-y-4 border-critical/40 p-5">
+            <p className="text-body text-ink-2">
+              Your account, profile, posts, follows, subscriptions, votes, wall posts and notifications are
+              removed, and your side of every conversation is blanked. Deal and commitment records stay, with
+              your name removed, where accounting or dispute duties require it — as the Privacy Policy says.
+              This cannot be undone.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="cap">Your password</span>
+                <input className="field mt-1" type="password" required autoComplete="current-password"
+                       value={delPassword} onChange={(e) => setDelPassword(e.target.value)} />
+              </label>
+              <label className="block">
+                <span className="cap">Type DELETE to confirm</span>
+                <input className="field mt-1" required autoComplete="off" spellCheck={false}
+                       value={delWord} onChange={(e) => setDelWord(e.target.value)} />
+              </label>
+            </div>
+            {delError && <div className="rounded border border-critical/40 bg-critical/10 px-3 py-2 text-sm text-critical">{delError}</div>}
+            <div className="flex justify-end">
+              <button className="btn border-critical/60 text-critical hover:border-critical hover:bg-critical/10 hover:text-critical"
+                      disabled={deleting || delWord.trim().toUpperCase() !== 'DELETE'}>
+                {deleting ? 'Deleting…' : 'Delete my account'}
+              </button>
+            </div>
+          </form>
+        </Section>
+      )}
     </div>
   )
 }

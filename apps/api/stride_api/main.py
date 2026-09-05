@@ -14,7 +14,7 @@ from .chaos import ChaosMiddleware, chaos
 from .config import settings
 from .db import connect, init_db
 from .observability import RequestContextMiddleware, configure_logging, metrics
-from .routers import (admin, admission, athletes, auth, clubs, content, discover, media,
+from .routers import (account, admin, admission, athletes, auth, clubs, content, discover, media,
                       messaging, sponsors)
 from .security import BodySizeLimitMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
 from .seed import is_seeded, seed
@@ -53,6 +53,7 @@ app.add_middleware(
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=settings.forwarded_allow_ips)
 
 app.include_router(auth.router)
+app.include_router(account.router)
 app.include_router(athletes.router)
 app.include_router(sponsors.router)
 app.include_router(clubs.router)

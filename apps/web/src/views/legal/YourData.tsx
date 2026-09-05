@@ -2,12 +2,14 @@
  *
  *  Stride has no non-essential cookies to manage, but it does hold real personal
  *  data: connected-platform metrics and aggregated audience statistics. The
- *  meaningful controls are therefore about *platform consent and erasure*, not
- *  about storage on the device — so that is what this page exposes.
+ *  meaningful controls are therefore about *platform consent, access and
+ *  erasure*, not about storage on the device — so that is what this page
+ *  exposes.
  *
  *  Each control states honestly whether it is live or specified, because a
  *  rights page that implies a button exists when it does not is worse than one
- *  that admits the gap.
+ *  that admits the gap. Six of six are live now; the column stays, because the
+ *  next right somebody specifies will start out not built.
  */
 
 import { Link } from 'react-router-dom'
@@ -20,6 +22,7 @@ interface Control {
   what: string
   status: 'live' | 'specified'
   where: string
+  to?: string
 }
 
 const CONTROLS: Control[] = [
@@ -29,6 +32,7 @@ const CONTROLS: Control[] = [
     what: 'Disconnect any social platform. Collection stops and that platform leaves your future scores.',
     status: 'live',
     where: 'Athlete dashboard → Connected platforms',
+    to: '/athlete',
   },
   {
     right: 'Rectification',
@@ -36,6 +40,7 @@ const CONTROLS: Control[] = [
     what: 'Edit your profile, rate card, deal formats and content themes directly.',
     status: 'live',
     where: 'Profile',
+    to: '/athlete/profile',
   },
   {
     right: 'Restrict processing',
@@ -43,27 +48,29 @@ const CONTROLS: Control[] = [
     what: 'Set your profile to hidden — you leave the directory and sponsor matching without deleting anything.',
     status: 'live',
     where: 'Profile → Visibility',
+    to: '/athlete/profile',
   },
   {
     right: 'Access',
     article: 'Art. 15',
-    what: 'A copy of everything held about you: account, profile, platform metrics, score snapshots and their evidence, deals, and your audit trail.',
-    status: 'specified',
-    where: 'Export — build before public launch',
+    what: 'A copy of everything held about you: account, profile, platform metrics, score snapshots, content, deals, threads, notifications and your audit trail.',
+    status: 'live',
+    where: 'Export, below',
   },
   {
     right: 'Portability',
     article: 'Art. 20',
-    what: 'The same export in a machine-readable form, so your analytics history is not locked in.',
-    status: 'specified',
-    where: 'Export — build before public launch',
+    what: 'The same export, as one machine-readable JSON document, so your analytics history is not locked in.',
+    status: 'live',
+    where: 'Export, below',
   },
   {
     right: 'Erasure',
     article: 'Art. 17',
-    what: 'Delete the account and the data attached to it, with deal records retained only where accounting or dispute duties require.',
-    status: 'specified',
-    where: 'Delete account — build before public launch',
+    what: 'Delete the account and everything that only existed because you were here. Deal and commitment records stay, with your name removed, where accounting or dispute duties require it.',
+    status: 'live',
+    where: 'Settings → Delete account',
+    to: '/settings',
   },
 ]
 
@@ -129,21 +136,43 @@ export default function YourData() {
                   <td className="table-cell meta whitespace-nowrap">{c.article}</td>
                   <td className="table-cell text-ink-2">
                     {c.what}
-                    <span className="meta mt-1 block">{c.where}</span>
+                    {c.to && me ? (
+                      <Link to={c.to} className="meta mt-1 block text-accent-ink hover:underline">{c.where}</Link>
+                    ) : (
+                      <span className="meta mt-1 block">{c.where}</span>
+                    )}
                   </td>
                   <td className="table-cell">
-                    <span
-                      className={`tag ${
-                        c.status === 'live' ? 'tag-ok' : 'tag-warn'
-                      }`}
-                    >
-                      {c.status}
-                    </span>
+                    <span className={`tag ${c.status === 'live' ? 'tag-ok' : 'tag-warn'}`}>{c.status}</span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      </Section>
+
+      <Section title="Export" aside={<span className="meta">Art. 15 · Art. 20</span>}>
+        <div className="panel p-5">
+          {me ? (
+            <>
+              <p className="text-body text-ink-2">
+                One JSON document with everything above in it, generated now. Other people appear in it only as
+                they appear to you inside the product — a name on a thread, a handle on a deal — never their
+                email. Taking the export is itself recorded in your audit trail.
+              </p>
+              {/* a plain link: the browser downloads it with your session cookie, no
+                  script in the middle and nothing to copy out of a console */}
+              <a href="/api/account/export" download={`stride-export-${me.id}.json`} className="btn-go mt-4 inline-flex">
+                Download my data
+              </a>
+            </>
+          ) : (
+            <p className="text-body text-ink-2">
+              Sign in and this becomes a download button. The export is everything held about the account you
+              are signed in to, and nothing about anyone else.
+            </p>
+          )}
         </div>
       </Section>
 
