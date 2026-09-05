@@ -78,17 +78,67 @@ def churn_gross_adds() -> tuple[float, float]:
     return run(market_model.NICHE_ENGAGEMENT), run(1.0)
 
 
-def take_rate_delta() -> float:
-    """Y7 revenue forgone by charging 15% on fan revenue instead of 20%."""
+def at_take(rate: float) -> dict:
+    """Year 7 with the fan take rate moved, everything else held.
+
+    Both ends of the corridor are real competitor rates now -- Patreon's
+    published 10% below, OnlyFans' derived 20% above -- so the doc quotes a
+    table rather than one sentence, and every cell in it is pinned here.
+    """
     import copy
     alt = copy.deepcopy(A)
     alt.segments = A.segments          # deepcopy would detach the segment objects
-    alt.take_fan = 0.20
+    alt.take_fan = rate
     original, model.A = model.A, alt
     try:
-        return model.build()[6]["revenue"] - Y7["revenue"]
+        return model.build()[6]
     finally:
         model.A = original
+
+
+TAKE_20 = at_take(0.20)
+TAKE_10 = at_take(0.10)
+
+
+def take_rate_delta() -> float:
+    """Y7 revenue forgone by charging 15% on fan revenue instead of 20%."""
+    return TAKE_20["revenue"] - Y7["revenue"]
+
+
+def _trough(rows: list[dict]) -> float:
+    """Deepest point of cumulative free cash flow, as a positive number."""
+    cum = trough = 0.0
+    for r in rows:
+        cum += r["fcf"]
+        trough = min(trough, cum)
+    return -trough
+
+
+def vat_inclusive() -> list[dict]:
+    """The plan re-run on the reading that fan ARPU is VAT-*inclusive*.
+
+    Art 9a of the VAT Implementing Regulation makes a platform that both sets
+    the terms and processes the payment the deemed supplier, irrebuttably --
+    which is our shape exactly. If that is how it lands, the EUR 9.49 in the
+    segments is gross of Spanish VAT rather than net of it, and every fan
+    figure in the plan is 21% smaller than it reads. The model has no VAT
+    treatment at all, so this is the honest way to size the exposure rather
+    than adding an assumption nobody has checked.
+    """
+    import copy
+    alt = copy.deepcopy(A)
+    alt.segments = [copy.deepcopy(seg) for seg in A.segments]
+    for seg in alt.segments:
+        seg.fan_arpu_month = [x / 1.21 for x in seg.fan_arpu_month]
+    original, model.A = model.A, alt
+    try:
+        return model.build()
+    finally:
+        model.A = original
+
+
+VAT = vat_inclusive()
+VAT_Y7 = VAT[6]
 
 
 # The capital the plan needs: the deepest point of cumulative free cash flow,
@@ -234,11 +284,48 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # Pinned beside the per-point figure above, because the two are the same
     # statement twice and a paragraph that quotes both can contradict itself:
     # it said EUR 0.92M a point and EUR 5.3M for five of them.
-    ("01-revenue-model.md", "revenue added by moving 15% to 20%",
-     r"15% → 20%\s+adds €([\d.]+)M", take_rate_delta() / 1e6, 0.1),
+    # The corridor table. Every cell is the model run at that take rate, so a
+    # paragraph arguing about price cannot quietly disagree with the arithmetic
+    # underneath it -- which is exactly what happened when this was one
+    # sentence: it said EUR 0.92M a point and EUR 5.3M for five of them.
+    ("01-revenue-model.md", "Y7 revenue at a 20% fan take",
+     r"\| 20% \| €([\d.]+)M", TAKE_20["revenue"] / 1e6, 0.05),
+    ("01-revenue-model.md", "Y7 EBITDA at a 20% fan take",
+     r"\| 20% \| €[\d.]+M \| €([\d.]+)M", TAKE_20["ebitda"] / 1e6, 0.05),
+    ("01-revenue-model.md", "Y7 revenue at the proposed 15%",
+     r"\| \*\*15%\*\* \| \*\*€([\d.]+)M\*\*", Y7["revenue"] / 1e6, 0.05),
+    ("01-revenue-model.md", "Y7 EBITDA at the proposed 15%",
+     r"\| \*\*15%\*\* \| \*\*€[\d.]+M\*\* \| \*\*€([\d.]+)M\*\*", Y7["ebitda"] / 1e6, 0.05),
+    ("01-revenue-model.md", "Y7 revenue at a 10% fan take",
+     r"\| 10% \| €([\d.]+)M", TAKE_10["revenue"] / 1e6, 0.05),
+    ("01-revenue-model.md", "Y7 EBITDA at a 10% fan take",
+     r"\| 10% \| €[\d.]+M \| €([\d.]+)M", TAKE_10["ebitda"] / 1e6, 0.05),
+    ("01-revenue-model.md", "revenue given up by matching Patreon",
+     r"costs €([\d.]+)M of Y7\s+revenue", (Y7["revenue"] - TAKE_10["revenue"]) / 1e6, 0.05),
+    ("01-revenue-model.md", "EBITDA given up by matching Patreon",
+     r"revenue and €([\d.]+)M of EBITDA", (Y7["ebitda"] - TAKE_10["ebitda"]) / 1e6, 0.05),
+    ("01-revenue-model.md", "the share of EBITDA a price war costs",
+     r"EBITDA falls (\d+)%", 100 * (Y7["ebitda"] - TAKE_10["ebitda"]) / Y7["ebitda"], 0.6),
 
     ("11-admission-and-matching.md", "Y10 blended admission rate",
      r"admission rate climbs from 20% to (\d+)%", Y10["admit_rate"] * 100, 0.6),
+
+    # --- section 8, the VAT exposure ---------------------------------------
+    # Every one of these is a number a reader could act on -- it is the largest
+    # single swing in the plan that is not a thesis risk -- and none of them
+    # exists anywhere but in prose, which is precisely the shape of figure that
+    # goes stale first.
+    ("stride-business-plan-draft.md", "Y7 revenue if fan ARPU is VAT-inclusive",
+     r"Y7 revenue €[\d.]+M → €([\d.]+)M", VAT_Y7["revenue"] / 1e6, 0.05),
+    ("stride-business-plan-draft.md", "the revenue the VAT reading costs, as a share",
+     r"Y7 revenue €[\d.]+M → €[\d.]+M \(−([\d.]+)%\)",
+     100 * (Y7["revenue"] - VAT_Y7["revenue"]) / Y7["revenue"], 0.15),
+    ("stride-business-plan-draft.md", "Y7 EBITDA if fan ARPU is VAT-inclusive",
+     r"Y7 EBITDA €[\d.]+M → €([\d.]+)M", VAT_Y7["ebitda"] / 1e6, 0.05),
+    ("stride-business-plan-draft.md", "the EBITDA the VAT reading costs, as a share",
+     r"Y7 EBITDA −([\d.]+)%", 100 * (Y7["ebitda"] - VAT_Y7["ebitda"]) / Y7["ebitda"], 0.15),
+    ("stride-business-plan-draft.md", "the cash trough under the VAT reading",
+     r"trough €\d+k → €(\d+)k", _trough(VAT) / 1e3, 2.0),
 ]
 
 WORDS = {"fourteen": 14, "fifteen": 15, "sixteen": 16, "twenty": 20, "ten": 10, "twelve": 12}

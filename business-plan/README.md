@@ -72,7 +72,13 @@ number can be traced back to the inputs that produced it.
 ```bash
 uv run python business-plan/build_workbook.py    # regenerate the workbook
 python business-plan/model.py --write            # regenerate the doc tables
+python business-plan/graph_data.py               # regenerate the chart CSVs
 ```
+
+The plan marks twelve places where a graph belongs, as `📊 GRAPH Gn` callouts.
+`graph_data.py` writes the series behind nine of them into
+[`attachments/chart-data/`](attachments/), so a chart drawn from these files
+cannot disagree with the model. §9.4 of the plan indexes every slot.
 
 ---
 
@@ -102,12 +108,15 @@ consent, and adults paying for private access to a 16-year-old is a
 categorically different risk from a sponsor paying for a post. See
 [05](05-product-gaps.md#the-age-model).
 
-**4. Nothing can be paid for today.** The product has no payment, subscription,
-tier, payout or wallet entity of any kind, and a fan's only available action is
-to follow. The entire revenue model in this plan is unbuilt. That is not a
-criticism of the product — it was built as an analytics-led marketplace and it
-is good at that — but the gap between what exists and what this plan monetises
-is the honest starting point.
+**4. Nothing can be paid for today.** There is no payment, tier-price, payout
+or wallet entity of any kind. What has changed since this was first written is
+everything *around* that hole: a fan can now follow, subscribe, read a wall,
+hit a paywall, vote in a poll, post and message. The paywall works and has
+nothing behind it to charge — the €9.99 on the membership card is a label
+rendered by the client, not a price. So the gap is no longer "the creator
+platform is unbuilt"; it is **one entity and one processor**, which is a much
+smaller and much better-defined ask. See
+[05](05-product-gaps.md#sequenced-build).
 
 ---
 
