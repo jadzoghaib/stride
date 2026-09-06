@@ -251,8 +251,10 @@ def test_an_unmeasured_attachment_is_excluded_from_every_figure(sponsor, athlete
     # `db` is session-scoped, so anything removed here is removed for every test
     # that runs afterwards -- and several of them select posts on `m.reach > 0`
     # and assert how many came back. Put the snapshots back whatever happens.
+    # `.fetchall()`, not iteration: SQLite's cursor is iterable and the Postgres
+    # shim's `_Cursor` is not, which is a difference only the Postgres job sees
     snapshots = [dict(r) for r in db.execute(
-        "SELECT * FROM post_metrics WHERE post_id = ?", (posts[1]["id"],))]
+        "SELECT * FROM post_metrics WHERE post_id = ?", (posts[1]["id"],)).fetchall()]
     assert snapshots, "nothing to remove means nothing is being tested"
     db.execute("DELETE FROM post_metrics WHERE post_id = ?", (posts[1]["id"],))
     db.commit()
@@ -278,9 +280,18 @@ def test_an_unmeasured_attachment_is_excluded_from_every_figure(sponsor, athlete
         measured = len([d for d in one_measured["deliverables"] if d["reach"] is not None])
         assert measured == 1 and measured != one_measured["delivered"]["posts"]
     finally:
+        # Column names read from the rows themselves so this works on either
+        # backend -- minus `id`, which Postgres declares GENERATED ALWAYS and
+        # refuses to be told (schema_pg.sql). The new ids are immaterial:
+        # nothing looks a metric up by id. Same shape as the restore in
+        # `test_an_attached_post_with_no_metrics_is_unmeasured_not_zero`, which
+        # covers the all-unmeasured case this one deliberately does not: here
+        # some posts are measured and some are not, which is the only state in
+        # which `delivered.posts` and the measured count disagree.
         for snap in snapshots:
-            db.execute(f"INSERT INTO post_metrics ({', '.join(snap)})"
-                       f" VALUES ({', '.join('?' * len(snap))})", list(snap.values()))
+            keys = [k for k in snap if k != "id"]
+            db.execute(f"INSERT INTO post_metrics ({', '.join(keys)}) VALUES"
+                       f" ({', '.join('?' for _ in keys)})", tuple(snap[k] for k in keys))
         db.commit()
 
     # and the shared database is as it was found
