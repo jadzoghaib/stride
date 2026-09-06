@@ -253,8 +253,12 @@ def test_an_unmeasured_attachment_is_excluded_from_every_figure(sponsor, athlete
     # and assert how many came back. Put the snapshots back whatever happens.
     # `.fetchall()`, not iteration: SQLite's cursor is iterable and the Postgres
     # shim's `_Cursor` is not, which is a difference only the Postgres job sees
+    # Ordered, because the restore regenerates ids and the API breaks a
+    # `captured_at` tie with `id DESC`. Reinserting in a different relative
+    # order would silently change which snapshot counts as the latest.
     snapshots = [dict(r) for r in db.execute(
-        "SELECT * FROM post_metrics WHERE post_id = ?", (posts[1]["id"],)).fetchall()]
+        "SELECT * FROM post_metrics WHERE post_id = ?"
+        " ORDER BY captured_at ASC, id ASC", (posts[1]["id"],)).fetchall()]
     assert snapshots, "nothing to remove means nothing is being tested"
     db.execute("DELETE FROM post_metrics WHERE post_id = ?", (posts[1]["id"],))
     db.commit()
@@ -740,7 +744,8 @@ def test_an_attached_post_with_no_metrics_is_unmeasured_not_zero(sponsor, athlet
     assert athlete.post(f"/api/athlete/deals/{deal_id}/deliverables",
                         json={"post_id": post_id}).status_code == 201
 
-    saved = db.execute("SELECT * FROM post_metrics WHERE post_id = ?", (post_id,)).fetchall()
+    saved = db.execute("SELECT * FROM post_metrics WHERE post_id = ?"
+                       " ORDER BY captured_at ASC, id ASC", (post_id,)).fetchall()
     assert saved, "this test needs a post that starts out measured"
     deleted = False
     try:
