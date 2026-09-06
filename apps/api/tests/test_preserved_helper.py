@@ -134,9 +134,20 @@ def test_it_survives_a_changed_row_pointing_at_an_added_one(client, db):
     before_msgs = {r["id"]: dict(r) for r in rows(db, "SELECT * FROM messages")}
     before_convs = {r["id"]: dict(r) for r in rows(db, "SELECT * FROM conversations")}
 
+    # Ids looked up, not hardcoded: `conversations` is unique on
+    # `(user_a, user_b)` and the schema requires `user_a < user_b`, so a pair
+    # guessed from seed insertion order could collide with a seeded thread or
+    # silently point somewhere else after a reseed. These two demo accounts
+    # have no thread between them.
+    pair = sorted(row(db, "SELECT id FROM users WHERE email = ?", (email,))["id"]
+                  for email in ("fan2@demo.stride", "fan3@demo.stride"))
+    assert row(db, "SELECT id FROM conversations WHERE user_a = ? AND user_b = ?",
+               tuple(pair)) is None, "these two should not already have a thread"
+
     with preserved(db, ("messages", "conversations")):
         db.execute("INSERT INTO conversations (user_a, user_b, created_at, last_message_at)"
-                   " VALUES (1, 2, '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')")
+                   " VALUES (?, ?, '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
+                   tuple(pair))
         db.commit()
         new_conv = row(db, "SELECT id FROM conversations ORDER BY id DESC LIMIT 1")["id"]
         assert new_conv not in before_convs
@@ -148,6 +159,46 @@ def test_it_survives_a_changed_row_pointing_at_an_added_one(client, db):
 
     assert {r["id"]: dict(r) for r in rows(db, "SELECT * FROM messages")} == before_msgs
     assert {r["id"]: dict(r) for r in rows(db, "SELECT * FROM conversations")} == before_convs
+
+
+def test_it_survives_a_deleted_row_being_replaced_on_the_same_unique_key(client, db):
+    """Unsubscribe, then re-subscribe — an ordinary thing for a test to do.
+
+    `subscriptions` is unique on `(user_id, athlete_id)`, so putting the
+    original row back while its replacement still holds the key is refused by
+    the index. This left the table half-restored for the rest of the session,
+    with the seeded subscription gone and a test-made one in its place.
+    """
+    athlete = row(db, "SELECT id FROM athlete_profiles WHERE slug = 'kaia-mercer'")["id"]
+    fan = row(db, "SELECT id FROM users WHERE email = 'fan4@demo.stride'")["id"]
+    # A second, later row so the one under test is not the highest id. SQLite
+    # reuses a rowid when the deleted row held the maximum, which would make the
+    # replacement land on the *same* id and turn this into an in-place change --
+    # a different restore path from the one this test exists for. Postgres never
+    # reuses an IDENTITY value, so without this the two backends would exercise
+    # different code from the same test.
+    tail = row(db, "SELECT id FROM users WHERE email = 'fan5@demo.stride'")["id"]
+
+    with preserved(db, ("subscriptions",)):          # outer: cleans up the setup
+        for who in (fan, tail):
+            db.execute("INSERT INTO subscriptions (user_id, athlete_id, created_at)"
+                       " VALUES (?, ?, '2026-01-01T00:00:00Z')", (who, athlete))
+        db.commit()
+        original = row(db, "SELECT * FROM subscriptions WHERE user_id = ? AND athlete_id = ?",
+                       (fan, athlete))
+        before = {r["id"]: dict(r) for r in rows(db, "SELECT * FROM subscriptions")}
+
+        with preserved(db, ("subscriptions",)):      # inner: the thing under test
+            db.execute("DELETE FROM subscriptions WHERE id = ?", (original["id"],))
+            db.execute("INSERT INTO subscriptions (user_id, athlete_id, created_at)"
+                       " VALUES (?, ?, '2026-02-02T00:00:00Z')", (fan, athlete))
+            db.commit()
+
+            live = {r["id"]: dict(r) for r in rows(db, "SELECT * FROM subscriptions")}
+            assert original["id"] not in live, "the original row is gone"
+            assert len(live) == len(before), "a different row now holds its unique key"
+
+        assert {r["id"]: dict(r) for r in rows(db, "SELECT * FROM subscriptions")} == before
 
 
 def test_it_restores_even_when_the_test_fails(client, db):

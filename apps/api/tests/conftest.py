@@ -183,6 +183,28 @@ def preserved(db, tables):
     `GENERATED ALWAYS AS IDENTITY` on Postgres — hence the override, which is
     Postgres-only syntax and empty on SQLite.
 
+    **`tables` must be ordered child-before-parent.** Phase 1 walks it
+    reversed to insert parents first; phase 3 walks it forwards to delete
+    children first. Hand it the wrong order and the restore raises on a foreign
+    key instead of restoring. `MESSAGING_TABLES` is ordered for this.
+
+    **One hazard this cannot order its way out of.** The three phases have
+    circular requirements: reverting a change needs its original foreign-key
+    target back (so deletions restore first), deleting an addition needs
+    nothing pointing at it (so changes revert first), and re-inserting a
+    deleted row needs its unique key free (so additions delete first). No
+    single order satisfies all three, so this one favours the case the suite
+    actually exercises -- a changed row pointing at an added row, which
+    `test_it_survives_a_changed_row_pointing_at_an_added_one` covers.
+
+    Delete-then-re-add of a uniquely-keyed row is handled: phase 1 clears a
+    table's added rows before inserting into that table, so the replacement is
+    not still holding the key. What remains unhandled is only the three-way
+    combination -- a table that both needs a row put back *and* holds an added
+    row that some changed row elsewhere still points at. Nothing here does
+    that, and if anything ever does it raises the explanatory error below
+    rather than a bare IntegrityError from inside a fixture.
+
     Lives in conftest rather than in a test module because more than one file
     needs it, and a copy in each is a copy that drifts.
     """
@@ -193,56 +215,93 @@ def preserved(db, tables):
     try:
         yield
     finally:
-        after = {t: snapshot(t) for t in tables}
+        _restore(db, tables, before, {t: snapshot(t) for t in tables})
 
-        # Three phases, and the order between them is the whole correctness
-        # argument. Foreign keys are enforced on both backends -- SQLite gets
-        # `PRAGMA foreign_keys = ON` in db.py -- so a restore that runs them in
-        # the wrong order raises instead of restoring, and leaves the database
-        # worse than it found it.
-        #
-        # Deleting additions last is the part that is easy to get backwards. A
-        # test can point a *pre-existing* row at a row it added
-        # (`UPDATE messages SET conversation_id = <a new conversation>`); delete
-        # the added parent first and that still-modified child blocks it.
-        override = " OVERRIDING SYSTEM VALUE" if ON_POSTGRES else ""
 
-        # 1 · Put deleted rows back, parent before child. Their original values
-        #     reference rows that existed at snapshot time, which are either
-        #     still here or restored earlier in this same pass.
-        for table in reversed(tables):
-            for row_id, original in before[table].items():
-                if row_id in after[table]:
-                    continue
-                cols = list(original)
-                db.execute(
-                    f"INSERT INTO {table} ({', '.join(cols)}){override}"
-                    f" VALUES ({', '.join('?' for _ in cols)})",
-                    [original[c] for c in cols])
+def _restore(db, tables, before, after):
+    """Put the tables back, or explain why it could not.
 
-        # 2 · Revert rows that were changed in place. Every foreign key they
-        #     originally held now resolves again, because of phase 1.
-        for table in reversed(tables):
-            for row_id, original in before[table].items():
-                current = after[table].get(row_id)
-                if current is None or current == original:
-                    continue
-                cols = [c for c in original if c != "id"]
-                db.execute(
-                    f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in cols)}"
-                    f" WHERE id = ?",
-                    [original[c] for c in cols] + [row_id])
+    A fixture that dies with a bare IntegrityError sends the next person
+    reading it into the wrong file. Anything raised here is a limitation of
+    this helper rather than a fault in the test that tripped it, and the
+    message says so.
+    """
+    try:
+        _restore_phases(db, tables, before, after)
+    except Exception as exc:      # noqa: BLE001 -- re-raised immediately
+        raise RuntimeError(
+            "preserved() could not restore the database. This is a limitation of"
+            " the helper, not of the test that hit it -- see its docstring. The"
+            " usual cause is a scope that deleted a uniquely-keyed row and added"
+            " another with the same key, which the phase order cannot undo."
+            f" Original error: {exc!r}") from exc
 
-        # 3 · Only now delete what was added, child before parent. Nothing that
-        #     survives still points at these: every pre-existing reference was
-        #     reverted in phase 2, and references between added rows are handled
-        #     by the child-first order of `tables`.
-        for table in tables:
-            added = [i for i in after[table] if i not in before[table]]
-            if added:
-                db.execute(f"DELETE FROM {table} WHERE id IN"
-                           f" ({', '.join('?' for _ in added)})", added)
-        db.commit()
+
+def _restore_phases(db, tables, before, after):
+
+    # Three phases, and the order between them is the whole correctness
+    # argument. Foreign keys are enforced on both backends -- SQLite gets
+    # `PRAGMA foreign_keys = ON` in db.py -- so a restore that runs them in
+    # the wrong order raises instead of restoring, and leaves the database
+    # worse than it found it.
+    #
+    # Deleting additions last is the part that is easy to get backwards. A
+    # test can point a *pre-existing* row at a row it added
+    # (`UPDATE messages SET conversation_id = <a new conversation>`); delete
+    # the added parent first and that still-modified child blocks it.
+    override = " OVERRIDING SYSTEM VALUE" if ON_POSTGRES else ""
+
+    # 1 · Put deleted rows back, parent before child. Their original values
+    #     reference rows that existed at snapshot time, which are either
+    #     still here or restored earlier in this same pass.
+    #
+    #     Where a table needs a row put back, that table's *added* rows are
+    #     cleared first, because a test that deletes a uniquely-keyed row and
+    #     adds another with the same key would otherwise have the replacement
+    #     still sitting on the key -- `subscriptions` is unique on
+    #     `(user_id, athlete_id)` and unsubscribe-then-resubscribe is an
+    #     ordinary thing for a test to do. Only tables being inserted into are
+    #     touched, so the additions phase 3 defers on behalf of a changed row
+    #     pointing at them are left exactly where they are.
+    for table in reversed(tables):
+        missing = [i for i in before[table] if i not in after[table]]
+        if not missing:
+            continue
+        added = [i for i in after[table] if i not in before[table]]
+        if added:
+            db.execute(f"DELETE FROM {table} WHERE id IN"
+                       f" ({', '.join('?' for _ in added)})", added)
+        for row_id in missing:
+            original = before[table][row_id]
+            cols = list(original)
+            db.execute(
+                f"INSERT INTO {table} ({', '.join(cols)}){override}"
+                f" VALUES ({', '.join('?' for _ in cols)})",
+                [original[c] for c in cols])
+
+    # 2 · Revert rows that were changed in place. Every foreign key they
+    #     originally held now resolves again, because of phase 1.
+    for table in reversed(tables):
+        for row_id, original in before[table].items():
+            current = after[table].get(row_id)
+            if current is None or current == original:
+                continue
+            cols = [c for c in original if c != "id"]
+            db.execute(
+                f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in cols)}"
+                f" WHERE id = ?",
+                [original[c] for c in cols] + [row_id])
+
+    # 3 · Only now delete what was added, child before parent. Nothing that
+    #     survives still points at these: every pre-existing reference was
+    #     reverted in phase 2, and references between added rows are handled
+    #     by the child-first order of `tables`.
+    for table in tables:
+        added = [i for i in after[table] if i not in before[table]]
+        if added:
+            db.execute(f"DELETE FROM {table} WHERE id IN"
+                       f" ({', '.join('?' for _ in added)})", added)
+    db.commit()
 
 
 @pytest.fixture
