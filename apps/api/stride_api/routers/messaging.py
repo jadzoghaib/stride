@@ -148,8 +148,23 @@ def _other(conn, conversation: dict, me: int) -> dict:
 @router.get("/inbox")
 def inbox(user: dict = Depends(require_role(*MESSAGING_ROLES)),
           conn: sqlite3.Connection = Depends(get_db)):
-    threads = rows(conn, "SELECT * FROM conversations WHERE user_a = ? OR user_b = ?"
-                         " ORDER BY last_message_at DESC", (user["id"], user["id"]))
+    # Ordered on the newest message's id, not on `last_message_at`.
+    #
+    # `last_message_at` comes from `now_iso()`, which is second-resolution, so
+    # two threads touched in the same second tie -- and a tie in SQL is not an
+    # order, it is whatever the executor felt like. SQLite and Postgres felt
+    # differently about the demo athlete's two threads, both seeded in the same
+    # second, which is how this surfaced: an inbox test that passed on one
+    # backend and failed on the other, intermittently, depending on whether the
+    # seed and the request landed inside the same tick.
+    #
+    # For a person it meant their inbox could reorder between two refreshes with
+    # nothing having happened. `messages.id` is monotonic, so this is exact at
+    # any clock resolution. `last_message_at` is still what gets displayed.
+    threads = rows(conn, "SELECT c.* FROM conversations c WHERE c.user_a = ? OR c.user_b = ?"
+                         " ORDER BY (SELECT MAX(m.id) FROM messages m"
+                         "           WHERE m.conversation_id = c.id) DESC NULLS LAST,"
+                         "          c.id DESC", (user["id"], user["id"]))
     out = []
     for t in threads:
         last = row(conn, "SELECT body, sender_id, created_at FROM messages"
