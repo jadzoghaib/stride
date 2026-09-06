@@ -1,0 +1,72 @@
+# Stride — the whole demo in one container.
+#
+# The two-service build (Dockerfile.api + Dockerfile.web behind nginx) is the
+# right shape for a real deployment and stays where it is. This one exists for a
+# different job: a free, public, shareable link. One process serving both the
+# client and the API needs one instance, no private network, no second image and
+# no upstream address wired by hand — which is the difference between a demo
+# that costs nothing to host and one that asks for a card before it will start.
+#
+# Portable on purpose. It binds $PORT and needs no attached services, so it runs
+# unchanged on Render's free tier, Hugging Face Spaces, Koyeb, Fly or any box
+# with Docker.
+#
+#   docker build -f infra/docker/Dockerfile.demo -t stride-demo .
+#   docker run -p 8080:8080 -e PORT=8080 -e STRIDE_SECRET=... stride-demo
+#
+# Registration is closed by default here, so that run line is already safe.
+
+# ── the client ──────────────────────────────────────────────────────────────
+FROM node:22-alpine AS web
+WORKDIR /web
+COPY apps/web/package.json apps/web/package-lock.json* ./
+RUN npm install --no-audit --no-fund
+COPY apps/web/ .
+RUN npm run build
+
+# ── the server's dependencies ───────────────────────────────────────────────
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS api
+WORKDIR /app
+COPY pyproject.toml ./
+COPY apps/api/ apps/api/
+COPY packages/creatorlens/ packages/creatorlens/
+RUN uv sync --no-dev --directory apps/api
+
+# ── what actually runs ──────────────────────────────────────────────────────
+FROM python:3.12-slim-bookworm
+# /home/stride is created by useradd and owned by the runtime user, so both the
+# database directory and the media directory can be made at start-up. Nothing
+# here writes to a mounted volume: managed platforms mount disks root-owned,
+# which an unprivileged process cannot use.
+RUN useradd --create-home stride
+USER stride
+WORKDIR /app
+
+COPY --from=api --chown=stride /app /app
+COPY --from=web --chown=stride /web/dist /app/web
+
+# /app/.venv, not /app/apps/api/.venv: `uv sync --directory apps/api` resolves
+# the workspace root and builds the environment there.
+#
+# STRIDE_ALLOW_SIGNUP is 0 here, unlike the application default. Open is right
+# for development and wrong for an image whose whole purpose is a public link:
+# run without the variable and it would accept registrations it can neither
+# verify nor email. Override it explicitly to open the door; nothing should have
+# to remember to close it.
+ENV PATH="/app/.venv/bin:$PATH" \
+    STRIDE_ENV=production \
+    STRIDE_CHAOS=0 \
+    STRIDE_ALLOW_SIGNUP=0 \
+    STRIDE_DB=/home/stride/data/stride.db \
+    STRIDE_MEDIA_DIR=/home/stride/media \
+    STRIDE_WEB_DIST=/app/web \
+    PORT=8080
+
+EXPOSE 8080
+HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
+  CMD python -c "import os,urllib.request;urllib.request.urlopen('http://127.0.0.1:'+os.environ.get('PORT','8080')+'/healthz')"
+
+# `exec`, so uvicorn replaces the shell as PID 1 and receives SIGTERM directly.
+# Without it the shell holds PID 1, swallows the signal, and every redeploy
+# drops whatever requests were in flight.
+CMD ["sh", "-c", "exec stride serve --host 0.0.0.0 --port ${PORT:-8080}"]

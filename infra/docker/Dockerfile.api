@@ -7,16 +7,35 @@ COPY packages/creatorlens/ packages/creatorlens/
 RUN uv sync --no-dev --directory apps/api
 
 FROM python:3.12-slim-bookworm
-RUN useradd --create-home stride
+# /data is created here, as root, and handed to the runtime user. A bare
+# `VOLUME /data` further down creates it root-owned at run time instead,
+# and the unprivileged process then cannot open its own database:
+# `sqlite3.OperationalError: unable to open database file`. The media
+# subdirectory is made now for the same reason.
+RUN useradd --create-home stride \
+ && mkdir -p /data/media \
+ && chown -R stride:stride /data
 USER stride
 WORKDIR /app
 COPY --from=builder --chown=stride /app /app
-ENV PATH="/app/apps/api/.venv/bin:$PATH" \
+# /app/.venv, not /app/apps/api/.venv: `uv sync --directory apps/api` resolves
+# the workspace root from the pyproject.toml copied to /app and creates the
+# environment there. The old path did not exist, so `stride` was never on
+# PATH and this image could not start at all -- `sh: stride: not found`,
+# invisible for as long as nothing actually ran the container.
+ENV PATH="/app/.venv/bin:$PATH" \
     STRIDE_ENV=production \
     STRIDE_DB=/data/stride.db \
     STRIDE_CHAOS=0
 VOLUME /data
 EXPOSE 8490
+# Reads the same PORT the entrypoint binds. Probing a fixed 8490 marked the
+# container unhealthy on any platform that assigns a different one.
 HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
-  CMD python -c "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8490/healthz')"
-CMD ["stride", "serve", "--host", "0.0.0.0", "--port", "8490"]
+  CMD python -c "import os,urllib.request;urllib.request.urlopen('http://127.0.0.1:'+os.environ.get('PORT','8490')+'/healthz')"
+# Shell form so ${PORT} expands: managed platforms assign a port and expect
+# the process to bind it. Falls back to 8490 for compose and k8s, which do not.
+# `exec`, so uvicorn replaces the shell and becomes PID 1. Without it `sh`
+# holds PID 1, does not forward SIGTERM, and every redeploy drops whatever
+# requests were in flight instead of shutting down gracefully.
+CMD ["sh", "-c", "exec stride serve --host 0.0.0.0 --port ${PORT:-8490}"]

@@ -1,0 +1,67 @@
+# Stride — Render blueprint for the public demo.
+#
+#   https://render.com/docs/blueprint-spec
+#
+# ONE free service, deliberately. The two-container build (Dockerfile.api behind
+# Dockerfile.web's nginx) is the right shape for a real deployment and is still
+# there, but on a managed platform it costs two paid instances, a private
+# network between them, and an upstream address wired by hand. Serving the
+# client from the API process costs one free instance and nothing to configure.
+#
+# What it deliberately does NOT deploy: an open front door. `STRIDE_ALLOW_SIGNUP`
+# is `0`, because nothing in this system sends email -- `email_outbox` records
+# what a person is owed and nothing drains it -- so a stranger who registered
+# would be stranded at an address they could never verify, having accepted terms
+# that still render a "pending legal review" banner. With signup closed the
+# deployment collects no personal data at all.
+#
+# Read docs/deploy.md before the first apply.
+
+services:
+  - type: web
+    name: stride-demo
+    runtime: docker
+    dockerfilePath: ./infra/docker/Dockerfile.demo
+    dockerContext: .
+    # Free: the instance sleeps after inactivity and cold-starts in roughly a
+    # minute. For a link you are sending to someone specific, move it to a paid
+    # instance so the first visitor is not staring at a blank page -- but that
+    # is a decision to take when it matters, not a precondition for deploying.
+    plan: free
+    region: frankfurt      # EU residency: the plan is a Spanish company
+    healthCheckPath: /readyz
+    autoDeploy: true
+    envVars:
+      - key: STRIDE_ENV
+        value: production
+      # The app refuses to boot in production on the development secret.
+      - key: STRIDE_SECRET
+        generateValue: true
+      # The line that makes the link safe to share.
+      - key: STRIDE_ALLOW_SIGNUP
+        value: "0"
+      - key: STRIDE_CHAOS
+        value: "0"
+      # SQLite inside the container, seeded on first boot. No managed database,
+      # so nothing here needs a paid add-on. The trade is that the demo resets
+      # to seed state whenever Render restarts the instance -- which for a
+      # demonstration is closer to a feature than a fault.
+      - key: STRIDE_DB
+        value: /home/stride/data/stride.db
+      - key: STRIDE_MEDIA_DIR
+        value: /home/stride/media
+      # Set by hand, once, to this service's own https:// URL. Render assigns it
+      # on first deploy, and `fromService ... property: host` yields a bare
+      # hostname -- which never matches the browser's Origin header and leaves
+      # every generated link without a scheme.
+      - key: STRIDE_CORS_ORIGINS
+        sync: false
+      - key: STRIDE_PUBLIC_URL
+        sync: false
+      # Left unset on purpose. Render terminates TLS at its edge, so trusting
+      # `*` here would let any caller set their own `X-Forwarded-For` and choose
+      # their rate-limit bucket, walking past the login throttle on a service
+      # that is publicly reachable. Unset means the limiter keys on the edge
+      # address: one shared bucket, stricter than ideal and not spoofable, which
+      # is the right side to err on for a demo whose only accounts are seeded.
+      # - key: STRIDE_FORWARDED_ALLOW_IPS

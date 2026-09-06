@@ -168,7 +168,24 @@ def _club_slug(name: str, conn: sqlite3.Connection) -> str:
     return slug
 
 
-@router.post("/register", status_code=201)
+def signup_must_be_open() -> None:
+    """Refuse a closed registration before anything looks at the body.
+
+    As a check inside the handler this was reachable only by requests that had
+    already passed `RegisterIn` validation, so a malformed body answered 422 --
+    "your display name is too short" -- on a deployment that does not accept
+    registrations at all. The gate has to be the first thing that runs or it is
+    not really a gate.
+
+    403 rather than 404: the route exists and the refusal is a stated policy,
+    not a secret. `GET /api/meta` says the same thing before the form is ever
+    drawn, so a client that reads it never arrives here.
+    """
+    if not settings.allow_signup:
+        raise HTTPException(403, "signup_closed")
+
+
+@router.post("/register", status_code=201, dependencies=[Depends(signup_must_be_open)])
 def register(body: RegisterIn, response: Response, conn: sqlite3.Connection = Depends(get_db)):
     if body.role not in ("athlete", "sponsor", "fan", "club"):
         raise HTTPException(422, "invalid_role")

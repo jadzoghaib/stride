@@ -7,6 +7,12 @@ COPY apps/web/ .
 RUN npm run build
 
 FROM nginx:1.27-alpine
-COPY infra/docker/nginx.conf /etc/nginx/conf.d/default.conf
+# The nginx image renders /etc/nginx/templates/*.template through envsubst at
+# start-up. NGINX_ENVSUBST_FILTER keeps it to STRIDE_* names so nginx's own
+# $host / $uri / $request_id are not substituted into emptiness.
+COPY infra/docker/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=builder /app/dist /usr/share/nginx/html
+ENV NGINX_ENVSUBST_FILTER='^(STRIDE_|PORT$)' \
+    STRIDE_API_UPSTREAM='http://api:8490' \
+    PORT=80
 EXPOSE 80
