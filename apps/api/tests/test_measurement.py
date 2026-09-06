@@ -164,12 +164,16 @@ def test_variance_compares_one_post_against_a_one_post_projection(sponsor, athle
     """
     deal_id = _accepted_deal(sponsor, athlete, "per post")
     posts = db.execute("""
-        SELECT p.id FROM posts p
+        SELECT DISTINCT p.id FROM posts p
         JOIN platform_accounts pa ON pa.id = p.account_id
         JOIN athlete_profiles a ON a.creatorlens_creator_id = pa.creator_id
         JOIN post_metrics m ON m.post_id = p.id
         WHERE a.slug = 'kaia-mercer' AND m.reach > 0 LIMIT 2""").fetchall()
-    assert len(posts) == 2
+    # DISTINCT, and counted as a set: a post may carry more than one snapshot
+    # (`post_metrics` has a `sync_run_id` so that it can), and without it LIMIT 2
+    # can return one post twice -- the second attach 409s and the test measures
+    # one post while asserting two.
+    assert len({r["id"] for r in posts}) == 2, "two distinct posts, not one twice"
 
     # both attached before completion -- a completed deal refuses further
     # deliverables, which is why this reads the panel while the deal is still
@@ -199,14 +203,104 @@ def test_variance_compares_one_post_against_a_one_post_projection(sponsor, athle
     summed = round(100 * (two["delivered"]["reach"] - projected) / projected, 1)
     assert two["variance_pct"] != summed
 
-    # the invariant that makes the per-post basis the right one: attaching a
+    # The invariant that makes the per-post basis the right one: attaching a
     # post moves the mean *toward that post*, so it can only improve the verdict
-    # by being better than what came before. Summing improved it unconditionally
-    second = two["delivered"]["reach"] - one["delivered"]["reach"]
-    if second > one["delivered"]["reach"]:
-        assert two["variance_pct"] > one["variance_pct"]
+    # by being better than what came before. Summing improved it unconditionally.
+    #
+    # Compared with >= and <=, not > and <. `variance_pct` is rounded to one
+    # decimal, and the unrounded move is 100*(second - first)/(2*projected) --
+    # positive whenever the second post beats the first, but able to land well
+    # under 0.05 and round away. Rounding is monotonic, so the direction still
+    # holds; only the strictness does not, and asserting it would have been a
+    # flake waiting for a different seed.
+    first = one["delivered"]["reach"]
+    second = two["delivered"]["reach"] - first
+    if second > first:
+        assert two["variance_pct"] >= one["variance_pct"]
     else:
-        assert two["variance_pct"] <= one["variance_pct"] + 0.05
+        assert two["variance_pct"] <= one["variance_pct"]
+
+
+def test_an_unmeasured_attachment_is_excluded_from_every_figure(sponsor, athlete, db):
+    """A post attached but not yet measured counts as an attachment and as
+    nothing else.
+
+    `delivered.posts` counts attachments; reach, engagements and `variance_pct`
+    are all computed over the posts that actually have metrics. The sponsor
+    panel divides by the measured count for exactly this reason -- dividing by
+    the attachment count would drift from the variance printed beside it, which
+    is the disagreement this whole area was fixed for once already.
+    """
+    deal_id = _accepted_deal(sponsor, athlete, "unmeasured")
+    posts = db.execute("""
+        SELECT DISTINCT p.id FROM posts p
+        JOIN platform_accounts pa ON pa.id = p.account_id
+        JOIN athlete_profiles a ON a.creatorlens_creator_id = pa.creator_id
+        JOIN post_metrics m ON m.post_id = p.id
+        WHERE a.slug = 'kaia-mercer' AND m.reach > 0 LIMIT 2""").fetchall()
+    # DISTINCT, and counted as a set: a post may carry more than one snapshot
+    # (`post_metrics` has a `sync_run_id` so that it can), and without it LIMIT 2
+    # can return one post twice -- the second attach 409s and the test measures
+    # one post while asserting two.
+    assert len({r["id"] for r in posts}) == 2, "two distinct posts, not one twice"
+
+    for post in posts:
+        athlete.post(f"/api/athlete/deals/{deal_id}/deliverables", json={"post_id": post["id"]})
+    both = sponsor.get(f"/api/deals/{deal_id}/performance").json()
+
+    # `db` is session-scoped, so anything removed here is removed for every test
+    # that runs afterwards -- and several of them select posts on `m.reach > 0`
+    # and assert how many came back. Put the snapshots back whatever happens.
+    # `.fetchall()`, not iteration: SQLite's cursor is iterable and the Postgres
+    # shim's `_Cursor` is not, which is a difference only the Postgres job sees
+    # Ordered, because the restore regenerates ids and the API breaks a
+    # `captured_at` tie with `id DESC`. Reinserting in a different relative
+    # order would silently change which snapshot counts as the latest.
+    snapshots = [dict(r) for r in db.execute(
+        "SELECT * FROM post_metrics WHERE post_id = ?"
+        " ORDER BY captured_at ASC, id ASC", (posts[1]["id"],)).fetchall()]
+    assert snapshots, "nothing to remove means nothing is being tested"
+    db.execute("DELETE FROM post_metrics WHERE post_id = ?", (posts[1]["id"],))
+    db.commit()
+    try:
+        one_measured = sponsor.get(f"/api/deals/{deal_id}/performance").json()
+
+        # still attached, and still counted as an attachment
+        assert one_measured["delivered"]["posts"] == 2
+        assert len(one_measured["deliverables"]) == 2
+        # but it contributes nothing, and says so with a null rather than a zero
+        unmeasured = [d for d in one_measured["deliverables"] if d["reach"] is None]
+        assert len(unmeasured) == 1
+        assert unmeasured[0]["post_id"] == posts[1]["id"]
+
+        # every figure is over the one post that has metrics
+        assert one_measured["delivered"]["reach"] < both["delivered"]["reach"]
+        projected = one_measured["projected"]["reach"]
+        assert one_measured["variance_pct"] == round(
+            100 * (one_measured["delivered"]["reach"] / 1 - projected) / projected, 1)
+
+        # the count the panel divides by is recoverable from the payload alone --
+        # `delivered.posts` is 2 and would give the wrong mean
+        measured = len([d for d in one_measured["deliverables"] if d["reach"] is not None])
+        assert measured == 1 and measured != one_measured["delivered"]["posts"]
+    finally:
+        # Column names read from the rows themselves so this works on either
+        # backend -- minus `id`, which Postgres declares GENERATED ALWAYS and
+        # refuses to be told (schema_pg.sql). The new ids are immaterial:
+        # nothing looks a metric up by id. Same shape as the restore in
+        # `test_an_attached_post_with_no_metrics_is_unmeasured_not_zero`, which
+        # covers the all-unmeasured case this one deliberately does not: here
+        # some posts are measured and some are not, which is the only state in
+        # which `delivered.posts` and the measured count disagree.
+        for snap in snapshots:
+            keys = [k for k in snap if k != "id"]
+            db.execute(f"INSERT INTO post_metrics ({', '.join(keys)}) VALUES"
+                       f" ({', '.join('?' for _ in keys)})", tuple(snap[k] for k in keys))
+        db.commit()
+
+    # and the shared database is as it was found
+    assert sponsor.get(f"/api/deals/{deal_id}/performance").json()[
+        "delivered"]["reach"] == both["delivered"]["reach"]
 
 
 def test_an_athlete_cannot_attach_someone_elses_post(sponsor, athlete, db):
@@ -650,7 +744,8 @@ def test_an_attached_post_with_no_metrics_is_unmeasured_not_zero(sponsor, athlet
     assert athlete.post(f"/api/athlete/deals/{deal_id}/deliverables",
                         json={"post_id": post_id}).status_code == 201
 
-    saved = db.execute("SELECT * FROM post_metrics WHERE post_id = ?", (post_id,)).fetchall()
+    saved = db.execute("SELECT * FROM post_metrics WHERE post_id = ?"
+                       " ORDER BY captured_at ASC, id ASC", (post_id,)).fetchall()
     assert saved, "this test needs a post that starts out measured"
     deleted = False
     try:
