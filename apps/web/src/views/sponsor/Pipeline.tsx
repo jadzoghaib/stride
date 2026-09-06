@@ -201,18 +201,32 @@ function Performance({ dealId }: { dealId: number }) {
   if (!perf) return <p className="meta py-2">Loading result…</p>
 
   const { delivered, projected } = perf
+  // Per post on both sides, because `projected.reach` is the expected reach of
+  // ONE post (see `_projected_reach` in the API) while `delivered.reach` is the
+  // sum across every attached post. Dividing one by the other put "114% of the
+  // reach projected" directly beneath the API's own "-42.9%", about the same
+  // deal, and left a sponsor no way to tell which number to believe. The API
+  // had already been fixed for this; the meter had not been fixed with it.
+  //
   // both sides have to exist: `100 * null` is 0, which would draw a full-width
   // "0% of projection" meter for a deal that simply has not been posted yet
-  const hit = projected.reach && delivered.reach !== null
-    ? (100 * delivered.reach) / projected.reach
+  const perPost = delivered.reach !== null && delivered.posts > 0
+    ? delivered.reach / delivered.posts
+    : null
+  const hit = projected.reach && perPost !== null
+    ? (100 * perPost) / projected.reach
     : null
 
   return (
     <div className="py-3">
       <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2.5">
-        <KV label="Delivered reach" value={fmtNum(delivered.reach)} />
+        {/* The count is part of the label, not decoration: "356K" over two
+            posts and "312K" for one are not comparable, and every previous
+            reading of this panel that went wrong went wrong right here. */}
+        <KV label={delivered.posts === 1 ? 'Delivered reach' : `Delivered reach · ${delivered.posts} posts`}
+            value={fmtNum(delivered.reach)} />
         <SimulatedChip what="delivery" />
-        <KV label="Projected at offer" value={fmtNum(projected.reach)} />
+        <KV label="Projected per post" value={fmtNum(projected.reach)} />
         <KV label="Engagements" value={fmtNum(delivered.engagements)} />
         {/* None, not zero: an unmeasured campaign must not read as a free one */}
         <KV label="Cost / 1k reach" value={perf.cost_per_1k_reach === null ? '—' : fmtMoney(perf.cost_per_1k_reach)} />
@@ -227,7 +241,8 @@ function Performance({ dealId }: { dealId: number }) {
         <div className="mt-3 max-w-md">
           <Meter value={hit} height={6} muted={hit < 100} />
           <span className="meta mt-1 block">
-            {fmtPct(hit / 100, 0)} of the reach projected when the offer was sent
+            {fmtPct(hit / 100, 0)} of the per-post reach projected when the offer
+            was sent{delivered.posts > 1 && `, averaged over ${delivered.posts} posts`}
           </span>
         </div>
       )}

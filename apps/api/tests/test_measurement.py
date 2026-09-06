@@ -152,6 +152,63 @@ def test_deliverables_and_completion_produce_a_measurement(sponsor, athlete, db)
     assert perf["deliverables"][0]["permalink"]
 
 
+def test_variance_compares_one_post_against_a_one_post_projection(sponsor, athlete, db):
+    """`projected_reach` is the expected reach of ONE post, so delivery has to
+    be averaged over the attached posts before the two are compared.
+
+    Attaching a second ordinary post must not read as a triumph. Before this
+    was pinned, the API had the convention right and the sponsor-facing meter
+    did not -- it divided the two-post *sum* by the one-post projection, so a
+    single panel showed "-42.9%" and "114% of the reach projected" about the
+    same deal, with nothing on screen to say which was which.
+    """
+    deal_id = _accepted_deal(sponsor, athlete, "per post")
+    posts = db.execute("""
+        SELECT p.id FROM posts p
+        JOIN platform_accounts pa ON pa.id = p.account_id
+        JOIN athlete_profiles a ON a.creatorlens_creator_id = pa.creator_id
+        JOIN post_metrics m ON m.post_id = p.id
+        WHERE a.slug = 'kaia-mercer' AND m.reach > 0 LIMIT 2""").fetchall()
+    assert len(posts) == 2
+
+    # both attached before completion -- a completed deal refuses further
+    # deliverables, which is why this reads the panel while the deal is still
+    # accepted, exactly as the sponsor's "delivery status" view does
+    assert athlete.post(f"/api/athlete/deals/{deal_id}/deliverables",
+                        json={"post_id": posts[0]["id"]}).status_code == 201
+    one = sponsor.get(f"/api/deals/{deal_id}/performance").json()
+
+    assert athlete.post(f"/api/athlete/deals/{deal_id}/deliverables",
+                        json={"post_id": posts[1]["id"]}).status_code == 201
+    two = sponsor.get(f"/api/deals/{deal_id}/performance").json()
+
+    assert one["delivered"]["posts"] == 1 and two["delivered"]["posts"] == 2
+    # the sum grows with the second post -- that part is a total
+    assert two["delivered"]["reach"] > one["delivered"]["reach"]
+    # the projection does not: it was captured once, at offer time, for one post
+    assert two["projected"]["reach"] == one["projected"]["reach"]
+
+    # and the variance is the mean per post against that projection, so the
+    # arithmetic is reproducible from the two numbers beside it
+    projected = two["projected"]["reach"]
+    expected = round(100 * (two["delivered"]["reach"] / 2 - projected) / projected, 1)
+    assert two["variance_pct"] == expected
+
+    # and it is emphatically not the figure the summing convention produced --
+    # that is the regression this test exists for
+    summed = round(100 * (two["delivered"]["reach"] - projected) / projected, 1)
+    assert two["variance_pct"] != summed
+
+    # the invariant that makes the per-post basis the right one: attaching a
+    # post moves the mean *toward that post*, so it can only improve the verdict
+    # by being better than what came before. Summing improved it unconditionally
+    second = two["delivered"]["reach"] - one["delivered"]["reach"]
+    if second > one["delivered"]["reach"]:
+        assert two["variance_pct"] > one["variance_pct"]
+    else:
+        assert two["variance_pct"] <= one["variance_pct"] + 0.05
+
+
 def test_an_athlete_cannot_attach_someone_elses_post(sponsor, athlete, db):
     """The attribution boundary. Without it an athlete could claim another
     athlete's reach, which would poison the only dataset sponsors are asked to
