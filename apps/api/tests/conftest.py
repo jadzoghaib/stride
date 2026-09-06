@@ -231,6 +231,16 @@ def _restore(db, tables, before, after):
     try:
         _restore_phases(db, tables, before, after)
     except Exception as exc:      # noqa: BLE001 -- re-raised immediately
+        # Roll back before raising, or this failure takes the rest of the run
+        # with it. Postgres aborts the whole transaction on a failed statement
+        # -- every later query on this session-scoped connection then answers
+        # `InFailedSqlTransaction` -- so a restore that gives up has to hand the
+        # connection back usable. SQLite does not need this and does not mind
+        # it.
+        try:
+            db.rollback()
+        except Exception:         # noqa: BLE001 -- nothing useful to do here
+            pass
         raise RuntimeError(
             "preserved() could not restore the database. This is a limitation of"
             " the helper, not of the test that hit it -- see its docstring. The"

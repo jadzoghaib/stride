@@ -171,9 +171,10 @@ def test_the_documented_gap_explains_itself(client, db):
     else:
         raise AssertionError("the gap closed — update the docstring and delete this test")
 
-    # and the scope is left as the restore found it, however it ended: the
-    # additions came off before the failure, so nothing test-made survives
-    _repair_after_the_gap(db, message)
+    # The rollback means the scope's own writes are still there, so this test
+    # cleans up after itself -- and the connection is usable enough to do it,
+    # which is the property that matters most here.
+    _repair_after_the_gap(db, message, pair)
 
 
 def _a_pair_with_no_thread(db) -> tuple[int, int]:
@@ -189,12 +190,16 @@ def _a_pair_with_no_thread(db) -> tuple[int, int]:
     return pair
 
 
-def _repair_after_the_gap(db, message) -> None:
-    """Undo by hand what the aborted restore could not."""
+def _repair_after_the_gap(db, message, pair) -> None:
+    """Undo by hand what the aborted restore could not.
+
+    Order matters here for the same reason it matters in the helper: the
+    message has to stop pointing at the added conversation before that
+    conversation can go.
+    """
     db.execute("UPDATE messages SET conversation_id = ? WHERE id = ?",
                (message["conversation_id"], message["id"]))
-    db.execute("DELETE FROM conversations WHERE id NOT IN"
-               " (SELECT DISTINCT conversation_id FROM messages)")
+    db.execute("DELETE FROM conversations WHERE user_a = ? AND user_b = ?", pair)
     db.commit()
 
 
