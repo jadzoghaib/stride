@@ -454,17 +454,24 @@ captured **at offer time**, so variance is a real comparison rather than a
 number chosen after the fact. A deal marked complete with nothing attached
 reads as unmeasured, never as zero.
 
-> [!example] 📸 ==SCREENSHOT — the deal, and what it delivered==
-> The only step in this walk-through without a picture, and it is the one that
-> carries the take rate. Capture a completed deal with its deliverables
-> attached, showing **projected reach at offer time against measured reach**,
-> the variance between them, and cost per 1,000.
-> **Where** · the sponsor account, a deal in `completed` state with at least
-> one measured deliverable.
-> **Must show** · that the comparison is against a number captured *before* the
-> work, not chosen after it. That is the whole credibility of the measurement
-> claim, and it is currently the one claim in §4.1 the reader has to take on
-> trust.
+![A completed €6,000 event appearance: delivered reach across two posts against the per-post projection captured at offer time, the variance, cost per 1,000, and the two posts the figures decompose into.](attachments/product-deal-delivery.jpg)
+
+**This is the least flattering screenshot in the section, and it is here on
+purpose.** A €6,000 deal landed at **57% of the reach projected when the offer
+was sent**, and the product says so to the sponsor who paid for it, in the same
+type size as the good news. The two posts underneath are the arithmetic: every
+headline figure opens to the rows behind it, so nothing has to be taken on
+trust.
+
+Two details in that panel are the whole design argument:
+
+- **The comparison is per post, and it says so.** The projection is the
+  athlete's expected reach for *one* post, so delivery is averaged across what
+  was attached. Otherwise an athlete could improve their own score by attaching
+  more posts, which is a metric that measures effort rather than result.
+- **"Simulated delivery"** sits beside the number rather than in a footnote,
+  because platform connectors are mocked in this build and a measurement claim
+  that hides its provenance is worse than no claim.
 
 ### The audience side — free to follow, paid to see the rest
 
@@ -1311,14 +1318,13 @@ with them.
 | **G11** | §4.4 Infrastructure | Stacked COGS — it is a payments bill | `g11-cogs-composition.csv` |
 | **G12** | §7 Risk Register | 5×5 probability × impact map | The §7 table itself |
 
-**Seven product screenshots are already in place**, all seven in §4.1 and all
-seven taken from the running application rather than mocked. Four pictures are
-briefed and not yet captured — one of them a screenshot, and it is the one that
-matters most:
+**Eight product screenshots are in place**, all eight in §4.1 and all eight
+taken from the running application rather than mocked — every step of the
+walk-through now has a picture. Three photographs are briefed and not yet
+taken:
 
 | Slot | Section | Picture | Note |
 |---|---|---|---|
-| **Screenshot** | §4.1 The offer and deliverables | A completed deal: projected reach at offer time against measured reach | **The only step in the walk-through without a picture, and the one carrying the take rate.** Take it from the sponsor account |
 | **P1** | §1, opening | Trail runner, small in a large landscape | Stock is acceptable |
 | **P2** | §2.1 The athlete | Ordinary competitor at an ordinary event | **Needs a signed release if named** |
 | **P3** | §5.2 Race-day presence | Race expo — density, not personality | Crowd shot, avoid other brands' logos |

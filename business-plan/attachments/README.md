@@ -8,7 +8,7 @@ Obsidian resolves these relative to the note, so the folder can move with it.
 
 ## Product screenshots — in place
 
-All seven are §4.1 of `../stride-business-plan-draft.md`, captured from the
+All eight are §4.1 of `../stride-business-plan-draft.md`, captured from the
 running application rather than mocked. Re-take them after any visual change
 worth showing; the alt text in the plan says what each one has to demonstrate.
 
@@ -21,6 +21,7 @@ worth showing; the alt text in the plan says what each one has to demonstrate.
 | `product-athlete-page.jpg` | An athlete's public page: membership card, follow and subscribe as separate actions |
 | `product-creator-feed.jpg` | A wall mixing own posts with platform activity, above a locked post showing only its title |
 | `product-directory.jpg` | The public athlete directory, sortable on the measurement |
+| `product-deal-delivery.jpg` | A completed deal measured against the projection captured at offer time. Taken as `sponsor3@demo.stride` (Solstice Hydration), the only demo org with a completed deal carrying two measured deliverables |
 
 ## Photographs — briefed, not taken
 
