@@ -143,9 +143,50 @@ def test_a_thread_you_are_not_in_is_a_404(athlete, sponsor, fan):
     assert fan.get(f"/api/inbox/{thread_id}").status_code == 404
 
 
+def test_the_newest_message_sorts_the_inbox(athlete, sponsor, db):
+    """Ordering is on the newest message, not on a second-resolution clock.
+
+    `last_message_at` is `now_iso()`, so a thread touched in the same second as
+    another ties -- and the seed opens this athlete's two threads inside one
+    tick. SQLite and Postgres broke that tie in opposite directions, which made
+    every `inbox()[0]` assertion below a coin flip that only looked stable.
+    """
+    seeded = athlete.get("/api/inbox").json()
+    assert len(seeded) > 1, "needs at least two threads for order to mean anything"
+
+    # A thread this athlete has never had, so it takes the highest id -- which
+    # is what makes this test discriminating rather than lucky. Under the old
+    # ordering SQLite happened to return the *lowest* id first on a tie, so a
+    # test asserting the seeded thread came first passed here and failed on
+    # Postgres. Asserting that the NEWEST thread wins fails on both.
+    other = row(db, "SELECT id FROM users WHERE email = 'sponsor3@demo.stride'")["id"]
+    assert athlete.post("/api/messages",
+                        json={"to_user": other, "body": "Newest"}).status_code == 201
+    fresh = [t for t in athlete.get("/api/inbox").json()
+             if t["id"] not in {s["id"] for s in seeded}]
+    assert len(fresh) == 1, "the message opened exactly one new thread"
+
+    # Collapse the clock. Every thread now carries one identical
+    # `last_message_at`, so ordering on it is a total tie and the executor may
+    # return any order it likes -- exactly the state the seed produces by
+    # opening this athlete's threads inside one second. Only the newest message
+    # can break the tie, and that is the point of the fix.
+    db.execute("UPDATE conversations SET last_message_at = '2026-01-01T00:00:00Z'")
+    db.commit()
+
+    after = athlete.get("/api/inbox").json()
+    assert after[0]["id"] == fresh[0]["id"]
+    assert after[0]["last_message"] == "Newest"
+
+    # and it is stable: the same request twice is the same order
+    assert [t["id"] for t in after] == [t["id"] for t in athlete.get("/api/inbox").json()]
+
+
 def test_reading_a_thread_clears_its_unread_count(athlete, sponsor):
     sponsor.post("/api/messages", json={"to_athlete": "kaia-mercer", "body": "Unread"})
+    # the sponsor's thread is now the newest, so it is first on both backends
     thread = athlete.get("/api/inbox").json()[0]
+    assert thread["with"]["role"] == "sponsor"
     assert thread["unread"] == 1
     athlete.get(f"/api/inbox/{thread['id']}")
     assert athlete.get("/api/inbox").json()[0]["unread"] == 0
