@@ -26,18 +26,14 @@ from __future__ import annotations
 
 import pytest
 
-from conftest import MESSAGING_TABLES, preserved
 from stride_api.db import row
 
 
-@pytest.fixture(autouse=True)
-def clean_slate(db):
-    """Same isolation the rest of the messaging tests use, and for the sharper
-    reason here: `may_open` is only consulted when no thread exists, so a
-    conversation left behind by an earlier case turns a refusal into a 201 and
-    the matrix quietly stops testing anything."""
-    with preserved(db, MESSAGING_TABLES):
-        yield
+#: Threads accumulate and are counted in assertions — and `may_open` is only
+#: consulted when no thread exists, so one conversation left behind by an
+#: earlier test turns a refusal into a 201 and stops these tests testing
+#: anything. The fixture itself lives in conftest.
+pytestmark = pytest.mark.usefixtures("clean_slate")
 
 def _user_id(db, email: str) -> int:
     return row(db, "SELECT id FROM users WHERE email = ?", (email,))["id"]

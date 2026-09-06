@@ -3,11 +3,11 @@
 **Who may open a conversation** is the whole design, because an open inbox on a
 marketplace is a spam surface pointed at the people with the most followers:
 
-    athlete    anyone
-    sponsor    athletes, and clubs they currently back
-    fan        athletes they subscribe to
-    club       athletes on their roster (invited counts), and sponsors backing
-               one of their packages
+    athlete    clubs, sponsors, other athletes -- and fans who subscribe to
+               them, which is the only way into the audience side
+    club       athletes, sponsors, other clubs
+    sponsor    athletes, clubs, other sponsors
+    fan        athletes they subscribe to, and nobody else
 
 Two things sit on top of that. First, **a conversation that exists can always be
 answered** -- otherwise a sponsor could open a thread an athlete cannot reply

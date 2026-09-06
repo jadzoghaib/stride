@@ -9,15 +9,14 @@ from __future__ import annotations
 
 import pytest
 
-from conftest import MESSAGING_TABLES, preserved
 from stride_api.db import row
 
 
-@pytest.fixture(autouse=True)
-def clean_slate(db):
-    """Threads and notifications accumulate, and both are counted in assertions."""
-    with preserved(db, MESSAGING_TABLES):
-        yield
+#: Threads accumulate and are counted in assertions — and `may_open` is only
+#: consulted when no thread exists, so one conversation left behind by an
+#: earlier test turns a refusal into a 201 and stops these tests testing
+#: anything. The fixture itself lives in conftest.
+pytestmark = pytest.mark.usefixtures("clean_slate")
 
 
 def _athlete_id(db, slug="kaia-mercer"):

@@ -162,27 +162,77 @@ MESSAGING_TABLES = ("messages", "conversations", "notifications", "subscriptions
 
 @contextmanager
 def preserved(db, tables):
-    """Put `tables` back exactly as they were found.
+    """Put `tables` back exactly as they were found — all three ways.
 
-    `db` is session-scoped, so anything inserted here outlives the test that
-    inserted it. Lives in conftest rather than in one test module because two
-    files need it and a copy in each is a copy that drifts.
+    `db` is session-scoped, so anything a test writes outlives it. There are
+    three ways to leave a mark and the original version of this helper undid
+    only the first:
+
+    1. rows **added** — deleted here, as before;
+    2. rows **changed** in place — several tests do this
+       (`UPDATE conversations SET last_message_at = ...` to force an ordering
+       tie, `UPDATE deals SET status = 'withdrawn'`), and the change used to
+       survive for the rest of the session, quietly reshaping the state every
+       later test ran against;
+    3. rows **deleted** — a test that unsubscribes the seeded fan used to leave
+       it unsubscribed for good.
+
+    The snapshot always captured whole rows; only the ids were ever used, which
+    is why 2 and 3 went unrestored. Re-inserting a deleted row needs its
+    original id back, and every table here declares `id` as
+    `GENERATED ALWAYS AS IDENTITY` on Postgres — hence the override, which is
+    Postgres-only syntax and empty on SQLite.
+
+    Lives in conftest rather than in a test module because more than one file
+    needs it, and a copy in each is a copy that drifts.
     """
     def snapshot(table):
         return {r["id"]: dict(r) for r in rows(db, f"SELECT * FROM {table}")}
-
-    def restore(table, saved):
-        if saved:
-            keep = tuple(saved)
-            db.execute(f"DELETE FROM {table} WHERE id NOT IN"
-                       f" ({', '.join('?' for _ in keep)})", keep)
-        else:
-            db.execute(f"DELETE FROM {table}")
 
     before = {t: snapshot(t) for t in tables}
     try:
         yield
     finally:
-        for table in tables:      # messages before conversations: the child first
-            restore(table, before[table])
+        after = {t: snapshot(t) for t in tables}
+
+        # Additions first, child before parent, so a foreign key never blocks
+        # the delete. `tables` is ordered for exactly this.
+        for table in tables:
+            added = [i for i in after[table] if i not in before[table]]
+            if added:
+                db.execute(f"DELETE FROM {table} WHERE id IN"
+                           f" ({', '.join('?' for _ in added)})", added)
+
+        # Then changes and deletions, parent before child, so a re-inserted row
+        # never references one that is not back yet.
+        override = " OVERRIDING SYSTEM VALUE" if ON_POSTGRES else ""
+        for table in reversed(tables):
+            for row_id, original in before[table].items():
+                current = after[table].get(row_id)
+                if current == original:
+                    continue
+                if current is None:
+                    cols = list(original)
+                    db.execute(
+                        f"INSERT INTO {table} ({', '.join(cols)}){override}"
+                        f" VALUES ({', '.join('?' for _ in cols)})",
+                        [original[c] for c in cols])
+                else:
+                    cols = [c for c in original if c != "id"]
+                    db.execute(
+                        f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in cols)}"
+                        f" WHERE id = ?",
+                        [original[c] for c in cols] + [row_id])
         db.commit()
+
+
+@pytest.fixture
+def clean_slate(db):
+    """Isolation for the messaging tests, defined once.
+
+    Not autouse: in conftest that would apply it to every file in the suite.
+    The messaging modules opt in with a module-level
+    `pytestmark = pytest.mark.usefixtures("clean_slate")`.
+    """
+    with preserved(db, MESSAGING_TABLES):
+        yield
