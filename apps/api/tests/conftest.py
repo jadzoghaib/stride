@@ -9,6 +9,8 @@ Set STRIDE_TEST_DATABASE_URL to a Postgres DSN to run the same suite on Postgres
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 import os
 import tempfile
 
@@ -22,6 +24,7 @@ os.environ.setdefault("STRIDE_DB", os.path.join(tempfile.mkdtemp(prefix="stride-
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
+from stride_api.db import rows  # noqa: E402
 from stride_api.main import app  # noqa: E402
 
 PASSWORD = "stride123"
@@ -145,3 +148,184 @@ def _fresh_api_rate_limit():
     from stride_api.security import buckets
     buckets._state.clear()
     yield
+
+
+# ── shared state isolation ─────────────────────────────────────────────────
+
+#: What the messaging tests write to and then count. Threads are the dangerous
+#: one: `may_open` is only consulted when no conversation exists, so a thread
+#: left behind by an earlier test silently grants reply rights to a pair the
+#: rule under test would have refused.
+MESSAGING_TABLES = ("messages", "conversations", "notifications", "subscriptions",
+                    "deals", "club_members", "package_commitments")
+
+
+@contextmanager
+def preserved(db, tables):
+    """Put `tables` back exactly as they were found — all three ways.
+
+    `db` is session-scoped, so anything a test writes outlives it. There are
+    three ways to leave a mark and the original version of this helper undid
+    only the first:
+
+    1. rows **added** — deleted here, as before;
+    2. rows **changed** in place — several tests do this
+       (`UPDATE conversations SET last_message_at = ...` to force an ordering
+       tie, `UPDATE deals SET status = 'withdrawn'`), and the change used to
+       survive for the rest of the session, quietly reshaping the state every
+       later test ran against;
+    3. rows **deleted** — a test that unsubscribes the seeded fan used to leave
+       it unsubscribed for good.
+
+    The snapshot always captured whole rows; only the ids were ever used, which
+    is why 2 and 3 went unrestored. Re-inserting a deleted row needs its
+    original id back, and every table here declares `id` as
+    `GENERATED ALWAYS AS IDENTITY` on Postgres — hence the override, which is
+    Postgres-only syntax and empty on SQLite.
+
+    **`tables` must be ordered child-before-parent.** Phase 1 walks it
+    reversed to insert parents first; phase 3 walks it forwards to delete
+    children first. Hand it the wrong order and the restore raises on a foreign
+    key instead of restoring. `MESSAGING_TABLES` is ordered for this.
+
+    **One hazard this cannot order its way out of.** The three phases have
+    circular requirements: reverting a change needs its original foreign-key
+    target back (so deletions restore first), deleting an addition needs
+    nothing pointing at it (so changes revert first), and re-inserting a
+    deleted row needs its unique key free (so additions delete first). No
+    single order satisfies all three, so this one favours the case the suite
+    actually exercises -- a changed row pointing at an added row, which
+    `test_it_survives_a_changed_row_pointing_at_an_added_one` covers.
+
+    **One hazard it cannot order its way out of.** The phases have circular
+    requirements -- reverting a change needs its original foreign-key target
+    back, deleting an addition needs nothing pointing at it, and re-inserting a
+    deleted row needs its unique key free -- and no order satisfies all three.
+    The order chosen covers both reachable cases: delete-then-re-add on the same
+    unique key, and an added parent with an added child. The gap is a *changed*
+    pre-existing row pointing at an added row; nothing here does that, and if
+    anything ever does, the restore raises the explanatory error below instead
+    of a bare IntegrityError from inside a fixture.
+
+    Lives in conftest rather than in a test module because more than one file
+    needs it, and a copy in each is a copy that drifts.
+    """
+    def snapshot(table):
+        return {r["id"]: dict(r) for r in rows(db, f"SELECT * FROM {table}")}
+
+    before = {t: snapshot(t) for t in tables}
+    try:
+        yield
+    finally:
+        _restore(db, tables, before, {t: snapshot(t) for t in tables})
+
+
+def _restore(db, tables, before, after):
+    """Put the tables back, or explain why it could not.
+
+    A fixture that dies with a bare IntegrityError sends the next person
+    reading it into the wrong file. Anything raised here is a limitation of
+    this helper rather than a fault in the test that tripped it, and the
+    message says so.
+    """
+    try:
+        _restore_phases(db, tables, before, after)
+    except Exception as exc:      # noqa: BLE001 -- re-raised immediately
+        # Roll back before raising, or this failure takes the rest of the run
+        # with it. Postgres aborts the whole transaction on a failed statement
+        # -- every later query on this session-scoped connection then answers
+        # `InFailedSqlTransaction` -- so a restore that gives up has to hand the
+        # connection back usable. SQLite does not need this and does not mind
+        # it.
+        try:
+            db.rollback()
+        except Exception:         # noqa: BLE001 -- nothing useful to do here
+            pass
+        raise RuntimeError(
+            "preserved() could not restore the database. This is a limitation of"
+            " the helper, not of the test that hit it -- see its docstring. The"
+            " usual cause is a scope that deleted a uniquely-keyed row and added"
+            " another with the same key, which the phase order cannot undo."
+            f" Original error: {exc!r}") from exc
+
+
+def _restore_phases(db, tables, before, after):
+
+    # Three phases, and the order between them is the whole correctness
+    # argument. Foreign keys are enforced on both backends -- SQLite gets
+    # `PRAGMA foreign_keys = ON` in db.py -- so a restore that runs them in
+    # the wrong order raises instead of restoring, and leaves the database
+    # worse than it found it.
+    #
+    # Deleting additions last is the part that is easy to get backwards. A
+    # test can point a *pre-existing* row at a row it added
+    # (`UPDATE messages SET conversation_id = <a new conversation>`); delete
+    # the added parent first and that still-modified child blocks it.
+    override = " OVERRIDING SYSTEM VALUE" if ON_POSTGRES else ""
+
+    # Three phases whose requirements are circular, so the order is a choice
+    # rather than a deduction:
+    #
+    #   * reverting a change needs its original foreign-key target present
+    #       -> insertions before reverts
+    #   * deleting an addition needs nothing still pointing at it
+    #       -> reverts before deletions
+    #   * re-inserting a deleted row needs its unique key free
+    #       -> deletions before insertions
+    #
+    # No order satisfies all three. This one takes the first and third, so both
+    # hazards that are actually reachable here are covered: a delete-then-re-add
+    # on the same unique key (`subscriptions` is unique on
+    # `(user_id, athlete_id)`, and unsubscribe-then-resubscribe is ordinary),
+    # and a test that adds a parent plus a child pointing at it. The gap is a
+    # *changed* pre-existing row pointing at an added row, which nothing in this
+    # suite does and which raises the explanatory error in `_restore` rather
+    # than a bare IntegrityError.
+    override = " OVERRIDING SYSTEM VALUE" if ON_POSTGRES else ""
+
+    # 1 · Everything the scope added, child before parent so a foreign key
+    #     between two added rows never blocks the delete. This also frees any
+    #     unique key phase 2 is about to reuse.
+    for table in tables:
+        added = [i for i in after[table] if i not in before[table]]
+        if added:
+            db.execute(f"DELETE FROM {table} WHERE id IN"
+                       f" ({', '.join('?' for _ in added)})", added)
+
+    # 2 · Rows the scope deleted, parent before child, so a restored row never
+    #     references one that is not back yet.
+    for table in reversed(tables):
+        for row_id, original in before[table].items():
+            if row_id in after[table]:
+                continue
+            cols = list(original)
+            db.execute(
+                f"INSERT INTO {table} ({', '.join(cols)}){override}"
+                f" VALUES ({', '.join('?' for _ in cols)})",
+                [original[c] for c in cols])
+
+    # 3 · Rows the scope changed in place. Every foreign key they originally
+    #     held resolves again, because of phase 2.
+    for table in reversed(tables):
+        for row_id, original in before[table].items():
+            current = after[table].get(row_id)
+            if current is None or current == original:
+                continue
+            cols = [c for c in original if c != "id"]
+            db.execute(
+                f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in cols)}"
+                f" WHERE id = ?",
+                [original[c] for c in cols] + [row_id])
+    db.commit()
+
+
+@pytest.fixture
+def clean_slate(db):
+    """Isolation for the messaging tests, defined once.
+
+    Not autouse: in conftest that would apply it to every file in the suite.
+    The messaging modules opt in with a module-level
+    `pytestmark = pytest.mark.usefixtures("clean_slate")`.
+    """
+    with preserved(db, MESSAGING_TABLES):
+        yield

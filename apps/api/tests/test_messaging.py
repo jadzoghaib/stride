@@ -9,30 +9,14 @@ from __future__ import annotations
 
 import pytest
 
-from stride_api.db import row, rows
+from stride_api.db import row
 
 
-@pytest.fixture(autouse=True)
-def clean_slate(db):
-    """Threads and notifications accumulate, and both are counted in assertions."""
-    def snapshot(table):
-        return {r["id"]: dict(r) for r in rows(db, f"SELECT * FROM {table}")}
-
-    def restore(table, saved):
-        if saved:
-            keep = tuple(saved)
-            db.execute(f"DELETE FROM {table} WHERE id NOT IN"
-                       f" ({', '.join('?' for _ in keep)})", keep)
-        else:
-            db.execute(f"DELETE FROM {table}")
-
-    tables = ("messages", "conversations", "notifications", "subscriptions", "deals",
-              "club_members", "package_commitments")
-    before = {t: snapshot(t) for t in tables}
-    yield
-    for table in tables:          # messages before conversations: the child first
-        restore(table, before[table])
-    db.commit()
+#: Threads accumulate and are counted in assertions — and `may_open` is only
+#: consulted when no thread exists, so one conversation left behind by an
+#: earlier test turns a refusal into a 201 and stops these tests testing
+#: anything. The fixture itself lives in conftest.
+pytestmark = pytest.mark.usefixtures("clean_slate")
 
 
 def _athlete_id(db, slug="kaia-mercer"):
@@ -41,11 +25,18 @@ def _athlete_id(db, slug="kaia-mercer"):
 
 # ── the rule ────────────────────────────────────────────────────────────────
 
-def test_an_athlete_may_message_anyone(athlete, db):
+def test_an_athlete_may_message_anyone_in_the_working_network(athlete, db):
+    """Anyone who transacts — not anyone at all.
+
+    A fan used to be in this list, which made the test's name true and the
+    product's promise false: an athlete could open a thread with any fan alive,
+    including another athlete's subscribers. The audience side is covered by
+    `test_an_athlete_may_write_to_their_own_audience_and_only_theirs`, where the
+    subscription that authorises it is actually created.
+    """
     sponsor_user = row(db, "SELECT id FROM users WHERE email = 'sponsor@demo.stride'")["id"]
-    fan_user = row(db, "SELECT id FROM users WHERE email = 'fan@demo.stride'")["id"]
     for target in ({"to_club": "meridian-fc"}, {"to_club": "ironline-combat"},
-                   {"to_user": sponsor_user}, {"to_user": fan_user}):
+                   {"to_user": sponsor_user}):
         res = athlete.post("/api/messages", json={"body": "Hello", **target})
         assert res.status_code == 201, (target, res.text)
 
@@ -349,7 +340,20 @@ def test_nobody_cold_opens_a_thread_with_a_fan(clubu, sponsor, db):
             f"a fan was cold-opened: {refused.status_code}"
 
 
-def test_an_athlete_may_still_write_to_their_own_audience(athlete, db):
+def test_an_athlete_may_write_to_their_own_audience_and_only_theirs(athlete, fan, db):
+    """The name of this test used to be the only thing enforcing "their own".
+
+    It messaged a fan without ever establishing a subscription, so what it
+    actually asserted was that an athlete may write to *any* fan -- including
+    another athlete's subscribers, and people who subscribe to nobody. The
+    subscription is created here, and the unsubscribed case is asserted too.
+    """
     fan_user = row(db, "SELECT id FROM users WHERE email = 'fan@demo.stride'")["id"]
+    kaia = _athlete_id(db)
+
+    refused = athlete.post("/api/messages", json={"to_user": fan_user, "body": "Hello?"})
+    assert refused.status_code == 403, "not an audience until somebody subscribes"
+
+    fan.post(f"/api/subscriptions/athlete/{kaia}")
     assert athlete.post("/api/messages", json={
         "to_user": fan_user, "body": "Thanks for subscribing."}).status_code == 201
