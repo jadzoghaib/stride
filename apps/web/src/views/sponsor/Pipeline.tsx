@@ -203,27 +203,35 @@ function Performance({ dealId }: { dealId: number }) {
   const { delivered, projected } = perf
   // Per post on both sides, because `projected.reach` is the expected reach of
   // ONE post (see `_projected_reach` in the API) while `delivered.reach` is the
-  // sum across every attached post. Dividing one by the other put "114% of the
+  // sum across the attached posts. Dividing one by the other put "114% of the
   // reach projected" directly beneath the API's own "-42.9%", about the same
-  // deal, and left a sponsor no way to tell which number to believe. The API
-  // had already been fixed for this; the meter had not been fixed with it.
+  // deal, and left a sponsor no way to tell which number to believe.
   //
+  // Divided by the *measured* posts, not every attached one. `delivered.posts`
+  // counts attachments; the API sums reach over, and divides by, only those
+  // with metrics captured. A post attached but not yet measured would pull the
+  // two apart again -- the same disagreement, one case narrower.
+  const measured = perf.deliverables.filter((d) => d.reach !== null).length
   // both sides have to exist: `100 * null` is 0, which would draw a full-width
   // "0% of projection" meter for a deal that simply has not been posted yet
-  const perPost = delivered.reach !== null && delivered.posts > 0
-    ? delivered.reach / delivered.posts
+  const perPost = delivered.reach !== null && measured > 0
+    ? delivered.reach / measured
     : null
   const hit = projected.reach && perPost !== null
     ? (100 * perPost) / projected.reach
     : null
+  const pending = delivered.posts - measured
 
   return (
     <div className="py-3">
       <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2.5">
         {/* The count is part of the label, not decoration: "356K" over two
             posts and "312K" for one are not comparable, and every previous
-            reading of this panel that went wrong went wrong right here. */}
-        <KV label={delivered.posts === 1 ? 'Delivered reach' : `Delivered reach · ${delivered.posts} posts`}
+            reading of this panel that went wrong went wrong right here. It
+            counts the *measured* posts, because that is what the figure sums —
+            an attachment still waiting on metrics is named separately rather
+            than folded into a number it did not contribute to. */}
+        <KV label={measured === 1 ? 'Delivered reach' : `Delivered reach · ${measured} posts`}
             value={fmtNum(delivered.reach)} />
         <SimulatedChip what="delivery" />
         <KV label="Projected per post" value={fmtNum(projected.reach)} />
@@ -235,6 +243,11 @@ function Performance({ dealId }: { dealId: number }) {
           <span className="cap">vs projection</span>
           <Delta value={perf.variance_pct} />
         </div>
+        {pending > 0 && (
+          <span className="meta">
+            {pending} more attached, not yet measured — excluded from every figure here
+          </span>
+        )}
       </div>
 
       {hit !== null && (
@@ -242,7 +255,7 @@ function Performance({ dealId }: { dealId: number }) {
           <Meter value={hit} height={6} muted={hit < 100} />
           <span className="meta mt-1 block">
             {fmtPct(hit / 100, 0)} of the per-post reach projected when the offer
-            was sent{delivered.posts > 1 && `, averaged over ${delivered.posts} posts`}
+            was sent{measured > 1 && `, averaged over ${measured} posts`}
           </span>
         </div>
       )}

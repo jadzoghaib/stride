@@ -199,14 +199,70 @@ def test_variance_compares_one_post_against_a_one_post_projection(sponsor, athle
     summed = round(100 * (two["delivered"]["reach"] - projected) / projected, 1)
     assert two["variance_pct"] != summed
 
-    # the invariant that makes the per-post basis the right one: attaching a
+    # The invariant that makes the per-post basis the right one: attaching a
     # post moves the mean *toward that post*, so it can only improve the verdict
-    # by being better than what came before. Summing improved it unconditionally
-    second = two["delivered"]["reach"] - one["delivered"]["reach"]
-    if second > one["delivered"]["reach"]:
-        assert two["variance_pct"] > one["variance_pct"]
+    # by being better than what came before. Summing improved it unconditionally.
+    #
+    # Compared with >= and <=, not > and <. `variance_pct` is rounded to one
+    # decimal, and the unrounded move is 100*(second - first)/(2*projected) --
+    # positive whenever the second post beats the first, but able to land well
+    # under 0.05 and round away. Rounding is monotonic, so the direction still
+    # holds; only the strictness does not, and asserting it would have been a
+    # flake waiting for a different seed.
+    first = one["delivered"]["reach"]
+    second = two["delivered"]["reach"] - first
+    if second > first:
+        assert two["variance_pct"] >= one["variance_pct"]
     else:
-        assert two["variance_pct"] <= one["variance_pct"] + 0.05
+        assert two["variance_pct"] <= one["variance_pct"]
+
+
+def test_an_unmeasured_attachment_is_excluded_from_every_figure(sponsor, athlete, db):
+    """A post attached but not yet measured counts as an attachment and as
+    nothing else.
+
+    `delivered.posts` counts attachments; reach, engagements and `variance_pct`
+    are all computed over the posts that actually have metrics. The sponsor
+    panel divides by the measured count for exactly this reason -- dividing by
+    the attachment count would drift from the variance printed beside it, which
+    is the disagreement this whole area was fixed for once already.
+    """
+    deal_id = _accepted_deal(sponsor, athlete, "unmeasured")
+    posts = db.execute("""
+        SELECT p.id FROM posts p
+        JOIN platform_accounts pa ON pa.id = p.account_id
+        JOIN athlete_profiles a ON a.creatorlens_creator_id = pa.creator_id
+        JOIN post_metrics m ON m.post_id = p.id
+        WHERE a.slug = 'kaia-mercer' AND m.reach > 0 LIMIT 2""").fetchall()
+    assert len(posts) == 2
+
+    for post in posts:
+        athlete.post(f"/api/athlete/deals/{deal_id}/deliverables", json={"post_id": post["id"]})
+    both = sponsor.get(f"/api/deals/{deal_id}/performance").json()
+
+    # now the second one has never been synced
+    db.execute("DELETE FROM post_metrics WHERE post_id = ?", (posts[1]["id"],))
+    db.commit()
+    one_measured = sponsor.get(f"/api/deals/{deal_id}/performance").json()
+
+    # still attached, and still counted as an attachment
+    assert one_measured["delivered"]["posts"] == 2
+    assert len(one_measured["deliverables"]) == 2
+    # but it contributes nothing, and says so with a null rather than a zero
+    unmeasured = [d for d in one_measured["deliverables"] if d["reach"] is None]
+    assert len(unmeasured) == 1
+    assert unmeasured[0]["post_id"] == posts[1]["id"]
+
+    # every figure is over the one post that has metrics
+    assert one_measured["delivered"]["reach"] < both["delivered"]["reach"]
+    projected = one_measured["projected"]["reach"]
+    assert one_measured["variance_pct"] == round(
+        100 * (one_measured["delivered"]["reach"] / 1 - projected) / projected, 1)
+
+    # the count the panel divides by is recoverable from the payload alone --
+    # `delivered.posts` is 2 and would give the wrong mean
+    measured = len([d for d in one_measured["deliverables"] if d["reach"] is not None])
+    assert measured == 1 and measured != one_measured["delivered"]["posts"]
 
 
 def test_an_athlete_cannot_attach_someone_elses_post(sponsor, athlete, db):

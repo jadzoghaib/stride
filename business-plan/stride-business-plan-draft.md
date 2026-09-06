@@ -1375,5 +1375,5 @@ prose is a draft for review.*
 
 *v0.2 · §4.1 rewritten as a walk through the product with real screenshots; §4.2,
 §4.3 and §4.3.5 brought in line with what has since shipped; twelve graph slots
-and four picture slots marked; §8 Legal & Regulatory added; R11 added to the
-risk register.*
+and three photograph slots marked, and the eighth product screenshot taken; §8
+Legal & Regulatory added; R11 added to the risk register.*
