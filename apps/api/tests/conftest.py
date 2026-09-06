@@ -195,34 +195,53 @@ def preserved(db, tables):
     finally:
         after = {t: snapshot(t) for t in tables}
 
-        # Additions first, child before parent, so a foreign key never blocks
-        # the delete. `tables` is ordered for exactly this.
+        # Three phases, and the order between them is the whole correctness
+        # argument. Foreign keys are enforced on both backends -- SQLite gets
+        # `PRAGMA foreign_keys = ON` in db.py -- so a restore that runs them in
+        # the wrong order raises instead of restoring, and leaves the database
+        # worse than it found it.
+        #
+        # Deleting additions last is the part that is easy to get backwards. A
+        # test can point a *pre-existing* row at a row it added
+        # (`UPDATE messages SET conversation_id = <a new conversation>`); delete
+        # the added parent first and that still-modified child blocks it.
+        override = " OVERRIDING SYSTEM VALUE" if ON_POSTGRES else ""
+
+        # 1 · Put deleted rows back, parent before child. Their original values
+        #     reference rows that existed at snapshot time, which are either
+        #     still here or restored earlier in this same pass.
+        for table in reversed(tables):
+            for row_id, original in before[table].items():
+                if row_id in after[table]:
+                    continue
+                cols = list(original)
+                db.execute(
+                    f"INSERT INTO {table} ({', '.join(cols)}){override}"
+                    f" VALUES ({', '.join('?' for _ in cols)})",
+                    [original[c] for c in cols])
+
+        # 2 · Revert rows that were changed in place. Every foreign key they
+        #     originally held now resolves again, because of phase 1.
+        for table in reversed(tables):
+            for row_id, original in before[table].items():
+                current = after[table].get(row_id)
+                if current is None or current == original:
+                    continue
+                cols = [c for c in original if c != "id"]
+                db.execute(
+                    f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in cols)}"
+                    f" WHERE id = ?",
+                    [original[c] for c in cols] + [row_id])
+
+        # 3 · Only now delete what was added, child before parent. Nothing that
+        #     survives still points at these: every pre-existing reference was
+        #     reverted in phase 2, and references between added rows are handled
+        #     by the child-first order of `tables`.
         for table in tables:
             added = [i for i in after[table] if i not in before[table]]
             if added:
                 db.execute(f"DELETE FROM {table} WHERE id IN"
                            f" ({', '.join('?' for _ in added)})", added)
-
-        # Then changes and deletions, parent before child, so a re-inserted row
-        # never references one that is not back yet.
-        override = " OVERRIDING SYSTEM VALUE" if ON_POSTGRES else ""
-        for table in reversed(tables):
-            for row_id, original in before[table].items():
-                current = after[table].get(row_id)
-                if current == original:
-                    continue
-                if current is None:
-                    cols = list(original)
-                    db.execute(
-                        f"INSERT INTO {table} ({', '.join(cols)}){override}"
-                        f" VALUES ({', '.join('?' for _ in cols)})",
-                        [original[c] for c in cols])
-                else:
-                    cols = [c for c in original if c != "id"]
-                    db.execute(
-                        f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in cols)}"
-                        f" WHERE id = ?",
-                        [original[c] for c in cols] + [row_id])
         db.commit()
 
 

@@ -79,19 +79,75 @@ def test_it_puts_back_rows_that_were_deleted(client, db):
 
 
 def test_it_restores_all_three_kinds_of_change_together(client, db):
-    """The realistic case: one test that adds, edits and deletes."""
-    before = _notifications(db)
-    victim = next(iter(before))
+    """The realistic case: one test that adds, edits and deletes.
 
-    with preserved(db, ("notifications",)):
+    The three rows are named up front and are deliberately distinct. The first
+    version of this test deleted with `ORDER BY id DESC LIMIT 1`, which selects
+    the row the INSERT had just created -- so the add and the delete cancelled
+    out and the assertion passed on the UPDATE path alone, exercising neither of
+    the paths it claimed to cover.
+    """
+    with preserved(db, ("notifications",)):          # outer: cleans up the setup
+        for tag in ("to edit", "to delete"):
+            db.execute("INSERT INTO notifications (user_id, kind, title, body, link,"
+                       " created_at) VALUES (1, 'test', ?, '', '', '2026-01-01T00:00:00Z')",
+                       (tag,))
+        db.commit()
+        _run_the_combined_case(db)
+
+
+def _run_the_combined_case(db):
+    before = _notifications(db)
+    seeded = list(before)
+    assert len(seeded) >= 2, "the setup above guarantees these"
+    edited, deleted = seeded[-2], seeded[-1]
+
+    with preserved(db, ("notifications",)):          # inner: the thing under test
         db.execute("INSERT INTO notifications (user_id, kind, title, body, link, created_at)"
                    " VALUES (1, 'test', 'Added', '', '', '2026-01-01T00:00:00Z')")
-        db.execute("UPDATE notifications SET title = 'Edited' WHERE id = ?", (victim,))
-        db.execute("DELETE FROM notifications WHERE id != ? AND id IN"
-                   " (SELECT id FROM notifications ORDER BY id DESC LIMIT 1)", (victim,))
+        db.execute("UPDATE notifications SET title = 'Edited' WHERE id = ?", (edited,))
+        db.execute("DELETE FROM notifications WHERE id = ?", (deleted,))
         db.commit()
 
+        # all three states really are in play at once
+        mid = _notifications(db)
+        assert len(mid) == len(before)                       # one added, one gone
+        assert deleted not in mid
+        assert mid[edited]["title"] == "Edited"
+        assert any(i not in before for i in mid)
+
     assert _notifications(db) == before
+
+
+def test_it_survives_a_changed_row_pointing_at_an_added_one(client, db):
+    """The ordering case, and the reason the phases run add-last.
+
+    A test may point a *pre-existing* row at a row it just created. Deleting
+    additions before reverting changes then tries to remove a parent the
+    still-modified child references, and the foreign key stops it — so the
+    restore raises instead of restoring, leaving the database worse than it
+    found it. Foreign keys are enforced on both backends (`PRAGMA
+    foreign_keys = ON` in db.py, and Postgres needs no asking).
+    """
+    message = row(db, "SELECT * FROM messages ORDER BY id LIMIT 1")
+    assert message is not None, "the seed should carry messages"
+    before_msgs = {r["id"]: dict(r) for r in rows(db, "SELECT * FROM messages")}
+    before_convs = {r["id"]: dict(r) for r in rows(db, "SELECT * FROM conversations")}
+
+    with preserved(db, ("messages", "conversations")):
+        db.execute("INSERT INTO conversations (user_a, user_b, created_at, last_message_at)"
+                   " VALUES (1, 2, '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')")
+        db.commit()
+        new_conv = row(db, "SELECT id FROM conversations ORDER BY id DESC LIMIT 1")["id"]
+        assert new_conv not in before_convs
+
+        # the pre-existing message now hangs off the conversation this test made
+        db.execute("UPDATE messages SET conversation_id = ? WHERE id = ?",
+                   (new_conv, message["id"]))
+        db.commit()
+
+    assert {r["id"]: dict(r) for r in rows(db, "SELECT * FROM messages")} == before_msgs
+    assert {r["id"]: dict(r) for r in rows(db, "SELECT * FROM conversations")} == before_convs
 
 
 def test_it_restores_even_when_the_test_fails(client, db):
