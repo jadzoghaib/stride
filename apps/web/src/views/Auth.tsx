@@ -80,10 +80,6 @@ export default function Auth() {
     if (signupOpen === true && params.get('mode') === 'register') setMode('register')
   }, [signupOpen, params])
   const [accepted, setAccepted] = useState(false)
-  // ?mode=register in a link, on a deployment that has closed it
-  useEffect(() => {
-    if (signupOpen === false && mode === 'register') setMode('login')
-  }, [signupOpen, mode])
   // the landing deep-links a role in; anything else falls back to the first tile
   const [role, setRole] = useState(
     ROLES.some((r) => r.key === params.get('role')) ? (params.get('role') as string) : 'athlete',

@@ -140,7 +140,11 @@ if _web_dist and Path(_web_dist).is_dir():
         somewhere far from the cause. API paths that reach here are genuinely
         missing and say so.
         """
-        if spa_path.startswith(("api/", "healthz", "readyz", "metrics")):
+        # The bare word too, not just the prefix: `GET /api` does not start
+        # with "api/", so it fell through and answered the HTML shell with a
+        # 200 -- the exact confusion this guard exists to prevent.
+        reserved = ("api", "healthz", "readyz", "metrics")
+        if spa_path in reserved or spa_path.startswith(tuple(f"{r}/" for r in reserved)):
             raise HTTPException(404, "not_found")
         # A real file (favicon, manifest, an image) is served as itself; anything
         # else is a route the client router owns.

@@ -99,24 +99,32 @@ Then open the link and sign in as `sponsor@demo.stride` / `stride123`.
 
 ## The demo accounts
 
-The sign-in page lists five — one per role — and the seed creates **ten**, all
-with the password `stride123`:
+The sign-in page lists five — one per role — and the seed creates **fourteen**,
+all with the password `stride123`:
 
 | Listed on the page | Also seeded, same password |
 |---|---|
 | `athlete@demo.stride` | `athlete2@demo.stride` |
 | `club@demo.stride` | `club2@demo.stride`, `club3@demo.stride` |
 | `sponsor@demo.stride` | `sponsor2@demo.stride`, `sponsor3@demo.stride` |
-| `fan@demo.stride` | |
+| `fan@demo.stride` | `fan2@` … `fan5@demo.stride` |
 | `admin@demo.stride` | |
 
-The unlisted five exist because the audits need accounts in particular states —
-an athlete and a club still sitting in the review queue, a second and third
-sponsor org with their own campaigns. **All ten are usable on the deployment**,
-including `admin@`, which reaches the moderation queue and the admin views.
-Every one of them is seeded data with no personal information in it, which is
-why this is a note rather than a problem — but say "ten accounts, all public"
-rather than "five" if anyone asks.
+The nine unlisted ones split two ways. `athlete2`, `club2`, `club3`, `sponsor2`
+and `sponsor3` exist because the audits need accounts in particular states — an
+athlete and a club still sitting in the review queue, second and third sponsor
+orgs with their own campaigns. `fan2` through `fan5` are filler, created in a
+loop so subscriber counts are not all 1.
+
+**All fourteen are usable on the deployment**, `admin@` included, which reaches
+the moderation queue and the admin views. Every one is seeded data with no
+personal information in it, which is why this is a note rather than a problem —
+but say "fourteen accounts, all public" rather than "five" if anyone asks.
+
+(The count was wrong here twice: five, then ten. `fan{i}@demo.stride` is built
+in an f-string, so grepping for the literal address finds one match and misses
+four accounts. Counting from the database is the only honest way to do it:
+`SELECT email FROM users WHERE email LIKE '%@demo.stride'`.)
 
 ---
 
