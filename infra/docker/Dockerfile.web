@@ -12,7 +12,7 @@ FROM nginx:1.27-alpine
 # $host / $uri / $request_id are not substituted into emptiness.
 COPY infra/docker/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=builder /app/dist /usr/share/nginx/html
-ENV NGINX_ENVSUBST_FILTER='^STRIDE_' \
+ENV NGINX_ENVSUBST_FILTER='^(STRIDE_|PORT$)' \
     STRIDE_API_UPSTREAM='http://api:8490' \
-    STRIDE_WEB_PORT=80
+    PORT=80
 EXPOSE 80

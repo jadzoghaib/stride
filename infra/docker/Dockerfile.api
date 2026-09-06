@@ -29,8 +29,13 @@ ENV PATH="/app/.venv/bin:$PATH" \
     STRIDE_CHAOS=0
 VOLUME /data
 EXPOSE 8490
+# Reads the same PORT the entrypoint binds. Probing a fixed 8490 marked the
+# container unhealthy on any platform that assigns a different one.
 HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
-  CMD python -c "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8490/healthz')"
+  CMD python -c "import os,urllib.request;urllib.request.urlopen('http://127.0.0.1:'+os.environ.get('PORT','8490')+'/healthz')"
 # Shell form so ${PORT} expands: managed platforms assign a port and expect
 # the process to bind it. Falls back to 8490 for compose and k8s, which do not.
-CMD ["sh", "-c", "stride serve --host 0.0.0.0 --port ${PORT:-8490}"]
+# `exec`, so uvicorn replaces the shell and becomes PID 1. Without it `sh`
+# holds PID 1, does not forward SIGTERM, and every redeploy drops whatever
+# requests were in flight instead of shutting down gracefully.
+CMD ["sh", "-c", "exec stride serve --host 0.0.0.0 --port ${PORT:-8490}"]

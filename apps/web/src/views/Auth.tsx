@@ -69,9 +69,16 @@ export default function Auth() {
       .catch(() => setSignupOpen(true))
   }, [])
   const [params] = useSearchParams()
+  // `?mode=register` is honoured only once the deployment has said it accepts
+  // registrations. Starting in that mode and correcting it when the answer
+  // arrives shows the form first and withdraws it a moment later, which is a
+  // worse answer than a brief sign-in form that never changes.
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(
-    params.get('mode') === 'register' ? 'register' : params.get('mode') === 'forgot' ? 'forgot' : 'login',
+    params.get('mode') === 'forgot' ? 'forgot' : 'login',
   )
+  useEffect(() => {
+    if (signupOpen === true && params.get('mode') === 'register') setMode('register')
+  }, [signupOpen, params])
   const [accepted, setAccepted] = useState(false)
   // ?mode=register in a link, on a deployment that has closed it
   useEffect(() => {
@@ -289,7 +296,11 @@ export default function Auth() {
         <ThemeToggle />
       </header>
       <div className="mx-auto max-w-md px-7 py-10">
-        {signupOpen !== false && (
+        {/* `=== true`, not `!== false`: while the answer is still `null` the
+            tab must not be drawn, or a closed deployment flashes a
+            "Create account" form for as long as the request takes and then
+            takes it away again. */}
+        {signupOpen === true && (
         <div className="flex gap-1 rounded-card border border-line bg-panel p-1">
           {(['login', 'register'] as const).map((m) => (
             <button

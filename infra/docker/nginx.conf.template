@@ -1,15 +1,20 @@
 # Stride web — rendered at container start by the nginx image's envsubst step.
 #
-# `${STRIDE_API_UPSTREAM}` is the only substituted value: NGINX_ENVSUBST_FILTER
-# in Dockerfile.web restricts substitution to STRIDE_* names, so nginx's own
-# `$host`, `$uri` and `$request_id` survive untouched. Without that filter
-# envsubst eats them and the proxy headers arrive empty.
+# Two values are substituted, and NGINX_ENVSUBST_FILTER in Dockerfile.web
+# restricts it to those names so nginx's own `$host`, `$uri` and `$request_id`
+# survive untouched. Without that filter envsubst eats them and the proxy
+# headers arrive empty.
+#
+# `${PORT}` rather than a port of our choosing: a managed platform assigns one
+# and routes public traffic to it -- Render's is 10000 -- so a container that
+# binds 80 is simply never reached, and the health check on `/` fails with it.
+# The image defaults PORT to 80 for compose and k8s, which assign nothing.
 #
 # Compose sets it to the service name; a hosted deployment sets it to whatever
 # internal address the platform gives the API. Nothing about the host is
 # compiled in.
 server {
-    listen ${STRIDE_WEB_PORT};
+    listen ${PORT};
     server_name _;
     root /usr/share/nginx/html;
     index index.html;

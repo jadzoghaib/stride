@@ -30,7 +30,24 @@ def signup_closed():
         settings.allow_signup = original
 
 
-def test_meta_is_public_and_says_signup_is_open(client):
+@pytest.fixture
+def signup_open():
+    """Open it, for the same reason the fixture above closes it.
+
+    `Settings` reads `STRIDE_ALLOW_SIGNUP` once at import, so a suite run in the
+    deployed environment -- where it is `0` -- would fail every test that
+    assumed the default was open. Asserting a default is asserting something
+    about the machine rather than about the code.
+    """
+    original = settings.allow_signup
+    settings.allow_signup = True
+    try:
+        yield
+    finally:
+        settings.allow_signup = original
+
+
+def test_meta_is_public_and_says_signup_is_open(client, signup_open):
     r = client.get("/api/meta")
     assert r.status_code == 200, "no auth: the client reads this before anyone signs in"
     assert r.json()["signup_open"] is True
@@ -55,6 +72,19 @@ def test_registration_is_refused_when_closed(client, signup_closed):
     assert r.json()["detail"] == "signup_closed"
 
 
+def test_a_malformed_registration_is_still_refused_as_closed(client, signup_closed):
+    """The gate runs before validation, so the answer is about the policy.
+
+    Held inside the handler it sat behind `RegisterIn`, and a body that failed
+    validation got 422 -- a complaint about the display name -- from a
+    deployment that does not accept registrations at all. Two different reasons
+    to say no, and the wrong one was winning.
+    """
+    r = client.post("/api/auth/register", json={"display_name": "x"})  # nothing valid here
+    assert r.status_code == 403
+    assert r.json()["detail"] == "signup_closed"
+
+
 def test_no_account_is_created_when_signup_is_closed(client, db, signup_closed):
     before = db.execute("SELECT COUNT(*) AS n FROM users").fetchone()["n"]
     client.post("/api/auth/register", json={
@@ -75,16 +105,23 @@ def test_nothing_is_owed_an_email_when_signup_is_closed(client, db, signup_close
 
 
 def test_the_seeded_demo_accounts_still_sign_in(client, signup_closed):
-    """Closing the door must not lock out the five accounts the demo runs on."""
-    r = client.post("/api/auth/login",
-                    json={"email": "sponsor@demo.stride", "password": "stride123"})
-    assert r.status_code == 200
-    assert r.json()["role"] == "sponsor"
+    """Closing the door must not lock out the accounts the demo runs on."""
+    try:
+        r = client.post("/api/auth/login",
+                        json={"email": "sponsor@demo.stride", "password": "stride123"})
+        assert r.status_code == 200
+        assert r.json()["role"] == "sponsor"
+    finally:
+        # `client` is session-scoped: a successful login leaves it holding a
+        # sponsor session. Cleared here rather than relying on the next test in
+        # the file to do it, which is a dependency on declaration order that
+        # nothing enforces and a reorder would silently break.
+        client.cookies.clear()
 
 
-def test_registration_still_works_when_open(client):
-    """The default is open, so dev and every other test in this suite are
-    unaffected — the gate only closes where a deployment says so."""
+def test_registration_still_works_when_open(client, signup_open):
+    """Open is the default, so dev and the rest of this suite are unaffected —
+    the gate only closes where a deployment says so."""
     assert settings.allow_signup is True
     try:
         r = client.post("/api/auth/register", json={
