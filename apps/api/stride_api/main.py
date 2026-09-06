@@ -14,7 +14,7 @@ from .chaos import ChaosMiddleware, chaos
 from .config import settings
 from .db import connect, init_db
 from .observability import RequestContextMiddleware, configure_logging, metrics
-from .routers import (account, admin, safety, admission, athletes, auth, clubs, content, discover, media,
+from .routers import (account, admin, safety, admission, athletes, auth, clubs, content, discover, media, meta,
                       messaging, sponsors)
 from .security import BodySizeLimitMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
 from .seed import is_seeded, seed
@@ -52,6 +52,7 @@ app.add_middleware(
 # `forwarded_allow_ips` in config.py for why that default matters.
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=settings.forwarded_allow_ips)
 
+app.include_router(meta.router)
 app.include_router(auth.router)
 app.include_router(account.router)
 app.include_router(safety.router)

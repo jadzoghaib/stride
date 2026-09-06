@@ -170,6 +170,11 @@ def _club_slug(name: str, conn: sqlite3.Connection) -> str:
 
 @router.post("/register", status_code=201)
 def register(body: RegisterIn, response: Response, conn: sqlite3.Connection = Depends(get_db)):
+    if not settings.allow_signup:
+        # 403 rather than 404: the route exists and the refusal is a policy, not
+        # a secret. `GET /api/meta` says the same thing before the form is drawn,
+        # so a client that reads it never reaches this.
+        raise HTTPException(403, "signup_closed")
     if body.role not in ("athlete", "sponsor", "fan", "club"):
         raise HTTPException(422, "invalid_role")
     if row(conn, "SELECT id FROM users WHERE email = ?", (body.email,)):

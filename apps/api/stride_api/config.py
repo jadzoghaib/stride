@@ -85,6 +85,15 @@ class Settings:
         # change; the acceptance recorded on each account says which text they
         # agreed to.
         self.legal_policy_version = os.environ.get("STRIDE_LEGAL_POLICY_VERSION", "2026-08-17")
+
+        # Open by default, so dev and the test suite are unchanged; closed only
+        # where a deployment says so. A public demo has to close it: nothing in
+        # this system sends email (see the `email_outbox` comment in db.py), so
+        # a real registration would strand the person at an unverifiable
+        # address -- and the terms they would be accepting are still drafts
+        # pending review. Closing it means the deployment collects no personal
+        # data at all, which is a much easier thing to be honest about.
+        self.allow_signup = os.environ.get("STRIDE_ALLOW_SIGNUP", "1") == "1"
         self.chaos_enabled = os.environ.get(
             "STRIDE_CHAOS", "1" if self.env in ("dev", "test") else "0") == "1"
 

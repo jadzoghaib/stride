@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ThemeToggle, Wordmark } from '../components/Shell'
 import { api, errorText } from '../lib/api'
@@ -51,11 +51,32 @@ function GateField({ label, name, value, onChange, hint, type = 'text', placehol
 }
 
 export default function Auth() {
+  /** What this deployment allows, asked once and before anything is drawn.
+   *
+   *  The public demo runs with registration closed, because nothing in the
+   *  system sends email: a stranger who registered would be stranded at an
+   *  address they could never verify. Rather than let them find that out by
+   *  filling in a form and being refused, the page does not offer the form.
+   *
+   *  `null` while unknown, and the tab strip renders nothing rather than
+   *  flickering a "Create account" tab that is about to disappear. */
+  const [signupOpen, setSignupOpen] = useState<boolean | null>(null)
+  useEffect(() => {
+    api.get<{ signup_open: boolean }>('/api/meta')
+      // an unreachable meta endpoint must not lock the door: fall back to open,
+      // which is the historical behaviour and fails toward the honest 403
+      .then((m) => setSignupOpen(m.signup_open))
+      .catch(() => setSignupOpen(true))
+  }, [])
   const [params] = useSearchParams()
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(
     params.get('mode') === 'register' ? 'register' : params.get('mode') === 'forgot' ? 'forgot' : 'login',
   )
   const [accepted, setAccepted] = useState(false)
+  // ?mode=register in a link, on a deployment that has closed it
+  useEffect(() => {
+    if (signupOpen === false && mode === 'register') setMode('login')
+  }, [signupOpen, mode])
   // the landing deep-links a role in; anything else falls back to the first tile
   const [role, setRole] = useState(
     ROLES.some((r) => r.key === params.get('role')) ? (params.get('role') as string) : 'athlete',
@@ -268,6 +289,7 @@ export default function Auth() {
         <ThemeToggle />
       </header>
       <div className="mx-auto max-w-md px-7 py-10">
+        {signupOpen !== false && (
         <div className="flex gap-1 rounded-card border border-line bg-panel p-1">
           {(['login', 'register'] as const).map((m) => (
             <button
@@ -282,6 +304,18 @@ export default function Auth() {
             </button>
           ))}
         </div>
+        )}
+
+        {signupOpen === false && (
+          <div className="panel p-4">
+            <div className="cap">Demonstration</div>
+            <p className="mt-1.5 text-small text-ink-2">
+              New accounts are closed on this deployment, and no personal data is
+              collected. Sign in with one of the demo accounts below — every role
+              runs the whole product on simulated data.
+            </p>
+          </div>
+        )}
 
         <form onSubmit={submit} className="panel mt-4 space-y-4 p-6">
           {mode === 'register' && (
