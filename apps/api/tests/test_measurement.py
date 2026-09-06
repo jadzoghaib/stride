@@ -164,12 +164,16 @@ def test_variance_compares_one_post_against_a_one_post_projection(sponsor, athle
     """
     deal_id = _accepted_deal(sponsor, athlete, "per post")
     posts = db.execute("""
-        SELECT p.id FROM posts p
+        SELECT DISTINCT p.id FROM posts p
         JOIN platform_accounts pa ON pa.id = p.account_id
         JOIN athlete_profiles a ON a.creatorlens_creator_id = pa.creator_id
         JOIN post_metrics m ON m.post_id = p.id
         WHERE a.slug = 'kaia-mercer' AND m.reach > 0 LIMIT 2""").fetchall()
-    assert len(posts) == 2
+    # DISTINCT, and counted as a set: a post may carry more than one snapshot
+    # (`post_metrics` has a `sync_run_id` so that it can), and without it LIMIT 2
+    # can return one post twice -- the second attach 409s and the test measures
+    # one post while asserting two.
+    assert len({r["id"] for r in posts}) == 2, "two distinct posts, not one twice"
 
     # both attached before completion -- a completed deal refuses further
     # deliverables, which is why this reads the panel while the deal is still
@@ -229,40 +233,59 @@ def test_an_unmeasured_attachment_is_excluded_from_every_figure(sponsor, athlete
     """
     deal_id = _accepted_deal(sponsor, athlete, "unmeasured")
     posts = db.execute("""
-        SELECT p.id FROM posts p
+        SELECT DISTINCT p.id FROM posts p
         JOIN platform_accounts pa ON pa.id = p.account_id
         JOIN athlete_profiles a ON a.creatorlens_creator_id = pa.creator_id
         JOIN post_metrics m ON m.post_id = p.id
         WHERE a.slug = 'kaia-mercer' AND m.reach > 0 LIMIT 2""").fetchall()
-    assert len(posts) == 2
+    # DISTINCT, and counted as a set: a post may carry more than one snapshot
+    # (`post_metrics` has a `sync_run_id` so that it can), and without it LIMIT 2
+    # can return one post twice -- the second attach 409s and the test measures
+    # one post while asserting two.
+    assert len({r["id"] for r in posts}) == 2, "two distinct posts, not one twice"
 
     for post in posts:
         athlete.post(f"/api/athlete/deals/{deal_id}/deliverables", json={"post_id": post["id"]})
     both = sponsor.get(f"/api/deals/{deal_id}/performance").json()
 
-    # now the second one has never been synced
+    # `db` is session-scoped, so anything removed here is removed for every test
+    # that runs afterwards -- and several of them select posts on `m.reach > 0`
+    # and assert how many came back. Put the snapshots back whatever happens.
+    snapshots = [dict(r) for r in db.execute(
+        "SELECT * FROM post_metrics WHERE post_id = ?", (posts[1]["id"],))]
+    assert snapshots, "nothing to remove means nothing is being tested"
     db.execute("DELETE FROM post_metrics WHERE post_id = ?", (posts[1]["id"],))
     db.commit()
-    one_measured = sponsor.get(f"/api/deals/{deal_id}/performance").json()
+    try:
+        one_measured = sponsor.get(f"/api/deals/{deal_id}/performance").json()
 
-    # still attached, and still counted as an attachment
-    assert one_measured["delivered"]["posts"] == 2
-    assert len(one_measured["deliverables"]) == 2
-    # but it contributes nothing, and says so with a null rather than a zero
-    unmeasured = [d for d in one_measured["deliverables"] if d["reach"] is None]
-    assert len(unmeasured) == 1
-    assert unmeasured[0]["post_id"] == posts[1]["id"]
+        # still attached, and still counted as an attachment
+        assert one_measured["delivered"]["posts"] == 2
+        assert len(one_measured["deliverables"]) == 2
+        # but it contributes nothing, and says so with a null rather than a zero
+        unmeasured = [d for d in one_measured["deliverables"] if d["reach"] is None]
+        assert len(unmeasured) == 1
+        assert unmeasured[0]["post_id"] == posts[1]["id"]
 
-    # every figure is over the one post that has metrics
-    assert one_measured["delivered"]["reach"] < both["delivered"]["reach"]
-    projected = one_measured["projected"]["reach"]
-    assert one_measured["variance_pct"] == round(
-        100 * (one_measured["delivered"]["reach"] / 1 - projected) / projected, 1)
+        # every figure is over the one post that has metrics
+        assert one_measured["delivered"]["reach"] < both["delivered"]["reach"]
+        projected = one_measured["projected"]["reach"]
+        assert one_measured["variance_pct"] == round(
+            100 * (one_measured["delivered"]["reach"] / 1 - projected) / projected, 1)
 
-    # the count the panel divides by is recoverable from the payload alone --
-    # `delivered.posts` is 2 and would give the wrong mean
-    measured = len([d for d in one_measured["deliverables"] if d["reach"] is not None])
-    assert measured == 1 and measured != one_measured["delivered"]["posts"]
+        # the count the panel divides by is recoverable from the payload alone --
+        # `delivered.posts` is 2 and would give the wrong mean
+        measured = len([d for d in one_measured["deliverables"] if d["reach"] is not None])
+        assert measured == 1 and measured != one_measured["delivered"]["posts"]
+    finally:
+        for snap in snapshots:
+            db.execute(f"INSERT INTO post_metrics ({', '.join(snap)})"
+                       f" VALUES ({', '.join('?' * len(snap))})", list(snap.values()))
+        db.commit()
+
+    # and the shared database is as it was found
+    assert sponsor.get(f"/api/deals/{deal_id}/performance").json()[
+        "delivered"]["reach"] == both["delivered"]["reach"]
 
 
 def test_an_athlete_cannot_attach_someone_elses_post(sponsor, athlete, db):
