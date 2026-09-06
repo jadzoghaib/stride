@@ -9,6 +9,8 @@ Set STRIDE_TEST_DATABASE_URL to a Postgres DSN to run the same suite on Postgres
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 import os
 import tempfile
 
@@ -22,6 +24,7 @@ os.environ.setdefault("STRIDE_DB", os.path.join(tempfile.mkdtemp(prefix="stride-
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
+from stride_api.db import rows  # noqa: E402
 from stride_api.main import app  # noqa: E402
 
 PASSWORD = "stride123"
@@ -145,3 +148,41 @@ def _fresh_api_rate_limit():
     from stride_api.security import buckets
     buckets._state.clear()
     yield
+
+
+# ── shared state isolation ─────────────────────────────────────────────────
+
+#: What the messaging tests write to and then count. Threads are the dangerous
+#: one: `may_open` is only consulted when no conversation exists, so a thread
+#: left behind by an earlier test silently grants reply rights to a pair the
+#: rule under test would have refused.
+MESSAGING_TABLES = ("messages", "conversations", "notifications", "subscriptions",
+                    "deals", "club_members", "package_commitments")
+
+
+@contextmanager
+def preserved(db, tables):
+    """Put `tables` back exactly as they were found.
+
+    `db` is session-scoped, so anything inserted here outlives the test that
+    inserted it. Lives in conftest rather than in one test module because two
+    files need it and a copy in each is a copy that drifts.
+    """
+    def snapshot(table):
+        return {r["id"]: dict(r) for r in rows(db, f"SELECT * FROM {table}")}
+
+    def restore(table, saved):
+        if saved:
+            keep = tuple(saved)
+            db.execute(f"DELETE FROM {table} WHERE id NOT IN"
+                       f" ({', '.join('?' for _ in keep)})", keep)
+        else:
+            db.execute(f"DELETE FROM {table}")
+
+    before = {t: snapshot(t) for t in tables}
+    try:
+        yield
+    finally:
+        for table in tables:      # messages before conversations: the child first
+            restore(table, before[table])
+        db.commit()

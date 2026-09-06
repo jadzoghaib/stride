@@ -57,6 +57,13 @@ def may_open(conn, sender: dict, recipient: dict) -> bool:
     the professional side is small, accountable and has a reason to talk, while
     an audience is large, anonymous and has not asked to be contacted.
 
+    **"Nobody" includes an athlete.** An athlete may write to a fan who
+    subscribes to *them* -- their own audience, which is what the subscription
+    paid for -- and to no other fan. This used to be an unconditional yes for
+    any athlete-initiated thread, which let one athlete open with another
+    athlete's subscribers, and with people who subscribe to nobody. The rule now
+    matches what the paragraph above always claimed.
+
     Reply rights are a separate question and live in `may_reply` — an existing
     thread keeps working even when the relationship behind it ends.
     """
@@ -73,15 +80,23 @@ def may_open(conn, sender: dict, recipient: dict) -> bool:
     recipient_athlete = row(conn, "SELECT id FROM athlete_profiles WHERE user_id = ?",
                             (recipient["id"],))
 
-    # An athlete may still answer their own audience; a club or a sponsor has no
-    # business opening a thread with somebody else's.
+    def subscribes(fan_user_id: int, athlete_profile_id: int) -> bool:
+        return row(conn, "SELECT id FROM subscriptions WHERE user_id = ? AND athlete_id = ?",
+                   (fan_user_id, athlete_profile_id)) is not None
+
+    # Reaching here means the recipient is outside the working network -- a fan,
+    # or an admin nobody opens with. Both remaining rules are the same rule seen
+    # from each end: the subscription is what authorises the thread, and either
+    # party may be the one to start it.
     if sender["role"] == "athlete":
-        return True
+        sender_athlete = row(conn, "SELECT id FROM athlete_profiles WHERE user_id = ?",
+                             (sender["id"],))
+        return (recipient["role"] == "fan" and sender_athlete is not None
+                and subscribes(recipient["id"], sender_athlete["id"]))
 
     if sender["role"] == "fan":
-        return recipient_athlete is not None and row(
-            conn, "SELECT id FROM subscriptions WHERE user_id = ? AND athlete_id = ?",
-            (sender["id"], recipient_athlete["id"])) is not None
+        return recipient_athlete is not None and subscribes(sender["id"],
+                                                            recipient_athlete["id"])
 
     return False
 
