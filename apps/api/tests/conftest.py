@@ -197,13 +197,15 @@ def preserved(db, tables):
     actually exercises -- a changed row pointing at an added row, which
     `test_it_survives_a_changed_row_pointing_at_an_added_one` covers.
 
-    Delete-then-re-add of a uniquely-keyed row is handled: phase 1 clears a
-    table's added rows before inserting into that table, so the replacement is
-    not still holding the key. What remains unhandled is only the three-way
-    combination -- a table that both needs a row put back *and* holds an added
-    row that some changed row elsewhere still points at. Nothing here does
-    that, and if anything ever does it raises the explanatory error below
-    rather than a bare IntegrityError from inside a fixture.
+    **One hazard it cannot order its way out of.** The phases have circular
+    requirements -- reverting a change needs its original foreign-key target
+    back, deleting an addition needs nothing pointing at it, and re-inserting a
+    deleted row needs its unique key free -- and no order satisfies all three.
+    The order chosen covers both reachable cases: delete-then-re-add on the same
+    unique key, and an added parent with an added child. The gap is a *changed*
+    pre-existing row pointing at an added row; nothing here does that, and if
+    anything ever does, the restore raises the explanatory error below instead
+    of a bare IntegrityError from inside a fixture.
 
     Lives in conftest rather than in a test module because more than one file
     needs it, and a copy in each is a copy that drifts.
@@ -251,36 +253,49 @@ def _restore_phases(db, tables, before, after):
     # the added parent first and that still-modified child blocks it.
     override = " OVERRIDING SYSTEM VALUE" if ON_POSTGRES else ""
 
-    # 1 · Put deleted rows back, parent before child. Their original values
-    #     reference rows that existed at snapshot time, which are either
-    #     still here or restored earlier in this same pass.
+    # Three phases whose requirements are circular, so the order is a choice
+    # rather than a deduction:
     #
-    #     Where a table needs a row put back, that table's *added* rows are
-    #     cleared first, because a test that deletes a uniquely-keyed row and
-    #     adds another with the same key would otherwise have the replacement
-    #     still sitting on the key -- `subscriptions` is unique on
-    #     `(user_id, athlete_id)` and unsubscribe-then-resubscribe is an
-    #     ordinary thing for a test to do. Only tables being inserted into are
-    #     touched, so the additions phase 3 defers on behalf of a changed row
-    #     pointing at them are left exactly where they are.
-    for table in reversed(tables):
-        missing = [i for i in before[table] if i not in after[table]]
-        if not missing:
-            continue
+    #   * reverting a change needs its original foreign-key target present
+    #       -> insertions before reverts
+    #   * deleting an addition needs nothing still pointing at it
+    #       -> reverts before deletions
+    #   * re-inserting a deleted row needs its unique key free
+    #       -> deletions before insertions
+    #
+    # No order satisfies all three. This one takes the first and third, so both
+    # hazards that are actually reachable here are covered: a delete-then-re-add
+    # on the same unique key (`subscriptions` is unique on
+    # `(user_id, athlete_id)`, and unsubscribe-then-resubscribe is ordinary),
+    # and a test that adds a parent plus a child pointing at it. The gap is a
+    # *changed* pre-existing row pointing at an added row, which nothing in this
+    # suite does and which raises the explanatory error in `_restore` rather
+    # than a bare IntegrityError.
+    override = " OVERRIDING SYSTEM VALUE" if ON_POSTGRES else ""
+
+    # 1 · Everything the scope added, child before parent so a foreign key
+    #     between two added rows never blocks the delete. This also frees any
+    #     unique key phase 2 is about to reuse.
+    for table in tables:
         added = [i for i in after[table] if i not in before[table]]
         if added:
             db.execute(f"DELETE FROM {table} WHERE id IN"
                        f" ({', '.join('?' for _ in added)})", added)
-        for row_id in missing:
-            original = before[table][row_id]
+
+    # 2 · Rows the scope deleted, parent before child, so a restored row never
+    #     references one that is not back yet.
+    for table in reversed(tables):
+        for row_id, original in before[table].items():
+            if row_id in after[table]:
+                continue
             cols = list(original)
             db.execute(
                 f"INSERT INTO {table} ({', '.join(cols)}){override}"
                 f" VALUES ({', '.join('?' for _ in cols)})",
                 [original[c] for c in cols])
 
-    # 2 · Revert rows that were changed in place. Every foreign key they
-    #     originally held now resolves again, because of phase 1.
+    # 3 · Rows the scope changed in place. Every foreign key they originally
+    #     held resolves again, because of phase 2.
     for table in reversed(tables):
         for row_id, original in before[table].items():
             current = after[table].get(row_id)
@@ -291,16 +306,6 @@ def _restore_phases(db, tables, before, after):
                 f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in cols)}"
                 f" WHERE id = ?",
                 [original[c] for c in cols] + [row_id])
-
-    # 3 · Only now delete what was added, child before parent. Nothing that
-    #     survives still points at these: every pre-existing reference was
-    #     reverted in phase 2, and references between added rows are handled
-    #     by the child-first order of `tables`.
-    for table in tables:
-        added = [i for i in after[table] if i not in before[table]]
-        if added:
-            db.execute(f"DELETE FROM {table} WHERE id IN"
-                       f" ({', '.join('?' for _ in added)})", added)
     db.commit()
 
 

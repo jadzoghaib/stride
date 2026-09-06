@@ -119,46 +119,83 @@ def _run_the_combined_case(db):
     assert _notifications(db) == before
 
 
-def test_it_survives_a_changed_row_pointing_at_an_added_one(client, db):
-    """The ordering case, and the reason the phases run add-last.
+def test_it_covers_an_added_parent_with_an_added_child(client, db):
+    """The case a previous ordering broke, so it is pinned.
 
-    A test may point a *pre-existing* row at a row it just created. Deleting
-    additions before reverting changes then tries to remove a parent the
-    still-modified child references, and the foreign key stops it — so the
-    restore raises instead of restoring, leaving the database worse than it
-    found it. Foreign keys are enforced on both backends (`PRAGMA
-    foreign_keys = ON` in db.py, and Postgres needs no asking).
+    A test that adds a conversation and a message inside it is entirely
+    ordinary. Deleting the parent before the child trips
+    `messages.conversation_id`, so additions come off child-first.
     """
-    message = row(db, "SELECT * FROM messages ORDER BY id LIMIT 1")
-    assert message is not None, "the seed should carry messages"
     before_msgs = {r["id"]: dict(r) for r in rows(db, "SELECT * FROM messages")}
     before_convs = {r["id"]: dict(r) for r in rows(db, "SELECT * FROM conversations")}
-
-    # Ids looked up, not hardcoded: `conversations` is unique on
-    # `(user_a, user_b)` and the schema requires `user_a < user_b`, so a pair
-    # guessed from seed insertion order could collide with a seeded thread or
-    # silently point somewhere else after a reseed. These two demo accounts
-    # have no thread between them.
-    pair = sorted(row(db, "SELECT id FROM users WHERE email = ?", (email,))["id"]
-                  for email in ("fan2@demo.stride", "fan3@demo.stride"))
-    assert row(db, "SELECT id FROM conversations WHERE user_a = ? AND user_b = ?",
-               tuple(pair)) is None, "these two should not already have a thread"
+    pair = _a_pair_with_no_thread(db)
 
     with preserved(db, ("messages", "conversations")):
         db.execute("INSERT INTO conversations (user_a, user_b, created_at, last_message_at)"
-                   " VALUES (?, ?, '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')",
-                   tuple(pair))
+                   " VALUES (?, ?, '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')", pair)
         db.commit()
-        new_conv = row(db, "SELECT id FROM conversations ORDER BY id DESC LIMIT 1")["id"]
-        assert new_conv not in before_convs
-
-        # the pre-existing message now hangs off the conversation this test made
-        db.execute("UPDATE messages SET conversation_id = ? WHERE id = ?",
-                   (new_conv, message["id"]))
+        conv = row(db, "SELECT id FROM conversations WHERE user_a = ? AND user_b = ?", pair)["id"]
+        db.execute("INSERT INTO messages (conversation_id, sender_id, body, created_at)"
+                   " VALUES (?, ?, 'inside', '2026-01-01T00:00:00Z')", (conv, pair[0]))
         db.commit()
 
     assert {r["id"]: dict(r) for r in rows(db, "SELECT * FROM messages")} == before_msgs
     assert {r["id"]: dict(r) for r in rows(db, "SELECT * FROM conversations")} == before_convs
+
+
+def test_the_documented_gap_explains_itself(client, db):
+    """A changed pre-existing row pointing at an added row is the one shape the
+    phase order cannot serve, because the three requirements are circular.
+
+    Nothing in this suite does it. What matters is that if anything ever does,
+    the failure names the helper rather than surfacing as a bare IntegrityError
+    from inside a fixture, which would send the reader into the wrong file.
+    """
+    message = row(db, "SELECT * FROM messages ORDER BY id LIMIT 1")
+    assert message is not None, "the seed should carry messages"
+    pair = _a_pair_with_no_thread(db)
+
+    try:
+        with preserved(db, ("messages", "conversations")):
+            db.execute("INSERT INTO conversations (user_a, user_b, created_at, last_message_at)"
+                       " VALUES (?, ?, '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')", pair)
+            db.commit()
+            conv = row(db, "SELECT id FROM conversations WHERE user_a = ? AND user_b = ?",
+                       pair)["id"]
+            # a row that existed before this scope, pointed at one that did not
+            db.execute("UPDATE messages SET conversation_id = ? WHERE id = ?",
+                       (conv, message["id"]))
+            db.commit()
+    except RuntimeError as exc:
+        assert "limitation of the helper" in str(exc)
+    else:
+        raise AssertionError("the gap closed — update the docstring and delete this test")
+
+    # and the scope is left as the restore found it, however it ended: the
+    # additions came off before the failure, so nothing test-made survives
+    _repair_after_the_gap(db, message)
+
+
+def _a_pair_with_no_thread(db) -> tuple[int, int]:
+    """Two demo users with no conversation between them, lowest id first.
+
+    `conversations` requires `user_a < user_b` and is unique on the pair, so
+    ids guessed from seed insertion order could collide with a seeded thread.
+    """
+    pair = tuple(sorted(row(db, "SELECT id FROM users WHERE email = ?", (email,))["id"]
+                        for email in ("fan2@demo.stride", "fan3@demo.stride")))
+    assert row(db, "SELECT id FROM conversations WHERE user_a = ? AND user_b = ?",
+               pair) is None, "these two should not already have a thread"
+    return pair
+
+
+def _repair_after_the_gap(db, message) -> None:
+    """Undo by hand what the aborted restore could not."""
+    db.execute("UPDATE messages SET conversation_id = ? WHERE id = ?",
+               (message["conversation_id"], message["id"]))
+    db.execute("DELETE FROM conversations WHERE id NOT IN"
+               " (SELECT DISTINCT conversation_id FROM messages)")
+    db.commit()
 
 
 def test_it_survives_a_deleted_row_being_replaced_on_the_same_unique_key(client, db):
