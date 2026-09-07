@@ -94,6 +94,12 @@ class Settings:
         # pending review. Closing it means the deployment collects no personal
         # data at all, which is a much easier thing to be honest about.
         self.allow_signup = os.environ.get("STRIDE_ALLOW_SIGNUP", "1") == "1"
+
+        # Whether the seeded demo accounts are advertised on the sign-in page.
+        # Independent of `allow_signup`: this build seeds them either way, and a
+        # deployment can sensibly both accept registrations and tell visitors
+        # there is a quicker way in.
+        self.demo_accounts = os.environ.get("STRIDE_DEMO_ACCOUNTS", "1") == "1"
         self.chaos_enabled = os.environ.get(
             "STRIDE_CHAOS", "1" if self.env in ("dev", "test") else "0") == "1"
 

@@ -57,9 +57,20 @@ def test_meta_is_public_and_says_signup_is_open(client, signup_open):
 def test_meta_reports_a_closed_signup(client, signup_closed):
     body = client.get("/api/meta").json()
     assert body["signup_open"] is False
-    # and it tells the client to offer the demo accounts instead, so the sign-in
-    # page has something to say rather than a missing tab and no explanation
     assert body["demo_accounts"] is True
+
+
+def test_the_demo_accounts_flag_is_independent_of_signup(client, signup_open):
+    """Two different facts, and they came apart the moment signup was opened.
+
+    Derived from `not allow_signup`, this reported "no demo accounts" on a
+    deployment that both accepts registrations and goes on listing the seeded
+    credentials on its sign-in page — a field that contradicted the screen
+    beside it.
+    """
+    body = client.get("/api/meta").json()
+    assert body["signup_open"] is True
+    assert body["demo_accounts"] is True, "still seeded, still listed, still true"
 
 
 def test_registration_is_refused_when_closed(client, signup_closed):
