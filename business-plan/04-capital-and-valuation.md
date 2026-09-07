@@ -54,7 +54,7 @@ fact you can demonstrate, not a milestone you can assert.
 | **Seed** | €2.0M | €10M | €80k MRR · fan churn < 8%/mo · CAC payback < 9mo · 2nd market opened · 30+ paying sponsors | Team to 24, second and third market, moderation infrastructure |
 | **Series A** | €8.0M | €40M | €300k MRR · net revenue retention > 110% · sponsorship take > 25% of revenue · unit economics stable across 3 markets | EU-wide, sales org, managed services |
 
-**The plan needs €799k. The rounds above raise €2.4M before Series A.** The
+**The plan needs €824k. The rounds above raise €2.4M before Series A.** The
 difference is deliberate: raising only what the model needs leaves no room for
 the assumption that turns out wrong, and a company that runs out of cash in Y3
 at the trough dies with a working product. Raise the buffer; do not spend it
@@ -106,10 +106,10 @@ Two methods, because they answer different questions and disagree for a reason.
 <!-- MODEL:valuation -->
 | Valuation (DCF) | Value |
 |---|---|
-| PV of explicit FCF, Y1–Y10 | €10.08M |
-| Terminal value (g=3%) | €92.89M |
-| PV of terminal value | €9.97M |
-| **Enterprise value (WACC 25%)** | **€20.05M** |
+| PV of explicit FCF, Y1–Y10 | €9.52M |
+| Terminal value (g=3%) | €88.06M |
+| PV of terminal value | €9.45M |
+| **Enterprise value (WACC 25%)** | **€18.97M** |
 <!-- /MODEL:valuation -->
 
 ### Exit multiple
@@ -121,12 +121,12 @@ Two methods, because they answer different questions and disagree for a reason.
 | Marketplace comparables | 4.0x revenue | €211.74M | €22.74M |
 | Blended marketplace + SaaS | 6.5x revenue | €344.08M | €36.94M |
 | High-growth SaaS mix | 9.0x revenue | €476.41M | €51.15M |
-| EBITDA multiple | 14x EBITDA | €353.49M | €37.96M |
+| EBITDA multiple | 14x EBITDA | €330.23M | €35.46M |
 <!-- /MODEL:multiples -->
 
 ### Why they disagree, and which to believe
 
-The DCF says €20.1M; the blended exit multiple says €344.1M. **This is not an
+The DCF says €19.0M; the blended exit multiple says €344.1M. **This is not an
 error in either — it is the standard failure of perpetuity-growth DCF applied to
 a company that has not finished growing.**
 
@@ -139,18 +139,18 @@ single assumption carries half the answer.
 **For a venture-stage company, the exit-multiple method discounted back is the
 more informative number.** The DCF is worth presenting precisely because it is
 the conservative floor: *even if growth stops dead after Y10*, the business is
-worth €20.1M today.
+worth €19.0M today.
 
 <!-- MODEL:sensitivity -->
 | Enterprise value | WACC 20% | WACC 25% | WACC 30% |
 |---|---|---|---|
-| Terminal growth 2% | €32.26M | €19.53M | €12.56M |
-| Terminal growth 3% | €33.52M | **€20.05M** | €12.80M |
-| Terminal growth 4% | €34.93M | €20.63M | €13.07M |
+| Terminal growth 2% | €30.54M | €18.47M | €11.87M |
+| Terminal growth 3% | €31.73M | **€18.97M** | €12.10M |
+| Terminal growth 4% | €33.07M | €19.52M | €12.35M |
 <!-- /MODEL:sensitivity -->
 
 **Defensible headline: €25–56M enterprise value at Y10 discounted to today**,
-with a €20.1M floor under a no-growth-after-Y10 assumption.
+with a €19.0M floor under a no-growth-after-Y10 assumption.
 
 ---
 

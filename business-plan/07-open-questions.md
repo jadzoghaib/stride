@@ -100,7 +100,7 @@ sustainability. **Worth deciding deliberately rather than by default.**
 ### D3 — Which valuation do we present?
 
 **Recommendation: lead with the exit multiple discounted back (€25–56M), present
-the DCF (€20.1M) as the conservative floor**, and explain why they differ. An
+the DCF (€19.0M) as the conservative floor**, and explain why they differ. An
 examiner who spots a perpetuity-growth DCF applied to a company still growing
 22% in the terminal year will discount everything else.
 

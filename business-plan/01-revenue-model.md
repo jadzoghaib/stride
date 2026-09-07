@@ -85,7 +85,7 @@ raising the take rate by a point, without asking athletes for anything.
 SaaS matters disproportionately: it is **100% margin** (no GMV, no payment
 rail), and it converts the analytics engine into revenue that does not depend on
 a deal closing. By Y7 it is €3.36M of the €24.13M — 14% of revenue at close to
-100% gross margin, which is roughly 19% of gross profit.
+100% gross margin, which is roughly 20% of gross profit.
 
 ---
 
@@ -211,12 +211,12 @@ rather than one:
 
 | Take | Y7 revenue | Y7 EBITDA | Against |
 |---|---|---|---|
-| 20% | €27.93M | €12.07M | OnlyFans' rate, derived from filed accounts |
-| **15%** | **€24.13M** | **€8.58M** | **our proposal** |
-| 10% | €20.34M | €5.09M | Patreon's published, all-in rate |
+| 20% | €27.93M | €11.28M | OnlyFans' rate, derived from filed accounts |
+| **15%** | **€24.13M** | **€7.79M** | **our proposal** |
+| 10% | €20.34M | €4.30M | Patreon's published, all-in rate |
 
 Read the bottom row before the top one. **Matching Patreon costs €3.80M of Y7
-revenue and €3.49M of EBITDA — EBITDA falls 41%, from €8.58M to €5.09M.** The
+revenue and €3.49M of EBITDA — EBITDA falls 45%, from €7.79M to €4.30M.** The
 same five points that look like upside going up are what a price war costs
 going down, and the downside lands harder because the cost base does not shrink
 with the take.

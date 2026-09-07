@@ -13,10 +13,10 @@ most of the cost, and it lands on our commission, not on the athlete's share.
 <!-- MODEL:unit_economics -->
 | Fan pays (monthly) | Our take (15%) | Payment cost | We keep | % of take retained |
 |---|---|---|---|---|
-| €4.99 | €0.75 | €0.34 | €0.40 | 54% |
-| €9.99 | €1.50 | €0.44 | €1.06 | 71% |
-| €24.99 | €3.75 | €0.72 | €3.02 | 81% |
-| €89.00 (annual) | €13.35 | €1.94 | €11.41 | 85% |
+| €4.99 | €0.62 | €0.34 | €0.27 | 44% |
+| €9.99 | €1.24 | €0.44 | €0.80 | 64% |
+| €24.99 | €3.10 | €0.72 | €2.37 | 77% |
+| €89.00 (annual) | €11.03 | €1.94 | €9.09 | 82% |
 <!-- /MODEL:unit_economics -->
 
 **Read that first row again.** At a €4.99 tier, nearly half our commission goes to the
@@ -225,18 +225,18 @@ roster.
 <!-- MODEL:costs_y7 -->
 | Line | Y7 amount | % of revenue |
 |---|---|---|
-| Payment processing | €5.30M | 22.0% |
+| Payment processing | €6.04M | 25.0% |
 | People | €3.50M | 14.5% |
 | Marketing / CAC | €3.42M | 14.2% |
 | Other opex | €1.93M | 8.0% |
-| Payouts | €506k | 2.1% |
+| Payouts | €561k | 2.3% |
 | Infrastructure | €419k | 1.7% |
 | Legal & compliance | €270k | 1.1% |
 | Moderation | €165k | 0.7% |
 | Athlete verification | €43k | 0.2% |
-| **EBITDA** | **€8.58M** | **35.6%** |
+| **EBITDA** | **€7.79M** | **32.3%** |
 <!-- /MODEL:costs_y7 -->
 
-Infrastructure is under 2% of revenue. **Payments are thirteen times larger.** Any
+Infrastructure is under 2% of revenue. **Payments are fourteen times larger.** Any
 optimisation effort belongs there — tier pricing, annual billing, processor
 negotiation — not in the AWS bill.

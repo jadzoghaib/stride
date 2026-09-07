@@ -59,7 +59,7 @@ python business-plan/model.py
 | EBITDA | −€91k | −€274k | €1.72M | €9.99M | €28.21M |
 | Headcount | 1.5 | 7 | 24 | 50 | 80 |
 
-**Capital required to fund it: €799k** (peak burn €571k plus a 40% buffer)**.** EBITDA turns positive in **Y5**.
+**Capital required to fund it: €824k** (peak burn €589k plus a 40% buffer)**.** EBITDA turns positive in **Y5**.
 
 **Ten years, not seven** — at Y7 the business is still compounding above 50%, so
 a terminal value placed there does most of the valuation work and does it badly.

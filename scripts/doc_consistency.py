@@ -306,6 +306,30 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("01-revenue-model.md", "the share of EBITDA a price war costs",
      r"EBITDA falls (\d+)%", 100 * (Y7["ebitda"] - TAKE_10["ebitda"]) / Y7["ebitda"], 0.6),
 
+    # --- the two headline tables, cell by cell -----------------------------
+    # Generated from ROWS so adding a year cannot leave a stale column behind,
+    # and so no row of either table is left unwatched while its neighbour moves.
+    *[("stride-business-plan-draft.md", f"seven-year table, Y{y['year']} EBITDA",
+       r"\| EBITDA \|" + r" €-?[\d.]+M \|" * (y["year"] - 1) + r" €(-?[\d.]+)M",
+       y["ebitda"] / 1e6, 0.02) for y in ROWS[:7]],
+    # Paying-fan counts are deliberately not pinned here: they are targets the
+    # model solves toward rather than anything a pricing assumption can move,
+    # and the row label appears in two tables with different column counts, so
+    # a regex for one matches the other. EBITDA is the row that drifted.
+
+    ("stride-business-plan-draft.md", "summary table, Y3 net revenue",
+     r"\| Net revenue \| €([\d.]+)M \| €[\d.]+M \|", ROWS[2]["revenue"] / 1e6, 0.02),
+    ("stride-business-plan-draft.md", "summary table, Y7 net revenue",
+     r"\| Net revenue \| €[\d.]+M \| €([\d.]+)M \|", ROWS[6]["revenue"] / 1e6, 0.02),
+    ("stride-business-plan-draft.md", "summary table, Y3 EBITDA",
+     r"\| EBITDA \| €(-?\d+)k \| €[\d.]+M \|", ROWS[2]["ebitda"] / 1e3, 2.0),
+    ("stride-business-plan-draft.md", "summary table, Y7 EBITDA",
+     r"\| EBITDA \| €-?\d+k \| €([\d.]+)M \|", ROWS[6]["ebitda"] / 1e6, 0.02),
+    ("stride-business-plan-draft.md", "summary table, Y3 gross margin",
+     r"\| Gross margin \| (\d+)% \|", 100 * ROWS[2]["gross"] / ROWS[2]["revenue"], 0.6),
+    ("stride-business-plan-draft.md", "summary table, Y7 gross margin",
+     r"\| Gross margin \| \d+% \| (\d+)% \|", 100 * ROWS[6]["gross"] / ROWS[6]["revenue"], 0.6),
+
     ("11-admission-and-matching.md", "Y10 blended admission rate",
      r"admission rate climbs from 20% to (\d+)%", Y10["admit_rate"] * 100, 0.6),
 

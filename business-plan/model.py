@@ -366,10 +366,22 @@ def build() -> list[dict]:
         revenue = rev_fan + rev_sponsorship + rev_saas
 
         # --- cost of sales ---------------------------------------------
-        fan_txns = fan_gmv / A.avg_fan_txn_eur
+        #
+        # On the GROSS fan value, not the taxable base. `fan_gmv` is net of VAT
+        # because that is what the take applies to, but the payment processor
+        # debits the card for the whole price including VAT and charges its
+        # percentage on that. Netting it here understated payments -- the
+        # dominant COGS line -- by the VAT on its own fee base.
+        #
+        # `avg_fan_txn_eur` is a price a fan pays, so the transaction count
+        # divides the gross too. Dividing net by gross undercounted the
+        # transactions the fixed fee is charged per.
+        fan_gross = fan_gmv * (1 + A.vat_rate_fan)
+        processed = fan_gross + sponsorship_gmv
+        fan_txns = fan_gross / A.avg_fan_txn_eur
         deal_txns = sponsorship_gmv / A.avg_deal_txn_eur
-        psp = (gmv * A.psp_pct) + (fan_txns + deal_txns) * A.psp_fixed_eur
-        payouts = (gmv * A.payout_pct) + (fan_txns / 30 + deal_txns) * A.payout_fixed_eur
+        psp = (processed * A.psp_pct) + (fan_txns + deal_txns) * A.psp_fixed_eur
+        payouts = (processed * A.payout_pct) + (fan_txns / 30 + deal_txns) * A.payout_fixed_eur
 
         egress_gb = paying_fans * A.gb_per_fan_month * 12
         infra = A.aws_base_month[i_] * 12 + egress_gb * A.egress_eur_per_gb
@@ -423,7 +435,10 @@ def build() -> list[dict]:
 
         # --- working capital, capex and amortisation ----------------------
         receivables = (rev_sponsorship + rev_saas) * A.ar_days / 365
-        payout_float = gmv * A.float_days / 365
+        # Gross for the same reason as the fees: the cash held before it is
+        # paid out is what the fans were charged, VAT included, and the VAT
+        # is held too until it is remitted.
+        payout_float = processed * A.float_days / 365
         payables = opex * A.ap_days / 365
         nwc = receivables - payout_float - payables
         change_in_nwc = nwc - prev_nwc
@@ -719,7 +734,12 @@ def unit_economics() -> str:
     # annual billing.
     tiers.append((market_model.SEASON_PASS_EUR, " (annual)"))
     for price, period in tiers:
-        take = price * A.take_fan
+        # The displayed price is VAT-inclusive, so the take is charged on the
+        # base and the processor's fee on the price. Taking 15% of the shelf
+        # price here overstated every row by the VAT, and this table is the
+        # argument for a price floor -- the one place the arithmetic has to be
+        # exactly right.
+        take = (price / (1 + A.vat_rate_fan)) * A.take_fan
         psp = price * A.psp_pct + A.psp_fixed_eur
         net = take - psp
         rows.append([

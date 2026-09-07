@@ -270,7 +270,7 @@ python scripts/links.py --api http://127.0.0.1:8490   # every link and API call 
 python scripts/failure_drill.py                       # latency -> errors -> db down -> recovery
 python scripts/admission_stress.py                    # the admission bar under a funnel sweep
 python scripts/doc_consistency.py                     # every figure in prose still matches model.py
-python scripts/verify_workbook.py                     # 1,973 formulas, no dangling refs, no cycles
+python scripts/verify_workbook.py                     # 1,992 formulas, no dangling refs, no cycles
 ```
 
 `journey.py` and `permissions.py` write to the demo database and restore it afterwards, so

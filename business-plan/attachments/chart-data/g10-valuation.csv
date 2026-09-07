@@ -1,6 +1,6 @@
 method,value_eur_m,basis
-DCF,20.1,"WACC 25%, terminal growth 3%"
+DCF,19.0,"WACC 25%, terminal growth 3%"
 4.0x revenue,211.7,Y10 revenue
 6.5x revenue,344.1,Y10 revenue
 9.0x revenue,476.4,Y10 revenue
-14x EBITDA,353.5,Y10 EBITDA
+14x EBITDA,330.2,Y10 EBITDA

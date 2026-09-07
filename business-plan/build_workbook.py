@@ -387,6 +387,9 @@ def build() -> pathlib.Path:
         note="Our pricing decision. OnlyFans/Fansly/Fanfix 20%, Passes 10% + $29/mo")
     put("Take rate — sponsorship", "%", [A.take_sponsorship] * N, PCT, "take_sp", const=True,
         note="Agents take 10-20% of an endorsement")
+    put("VAT on fan subscriptions", "%", [A.vat_rate_fan] * N, PCT, "vat_fan", const=True,
+        note="Spain's rate. Fan prices are displayed VAT-inclusive, so the take "
+             "applies to price/(1+VAT) while the processor charges on the price")
     put("PPV & tips as multiple of subs", "x", [A.ppv_tips_multiple] * N, '0.00', "ppv_mult", const=True)
     put("PSP percentage fee", "%", [A.psp_pct] * N, '0.00%', "psp_pct", hard=True, const=True,
         note="Stripe published pricing")
@@ -589,18 +592,28 @@ def build() -> pathlib.Path:
         R[label] = r
         r = row(v, r, label, kw.pop("unit", ""), formula=formula, fmt=fmt, **kw)
 
-    r = section(v, r, "FAN GMV — what fans pay athletes")
-    vrow("Niche subscription GMV", unit="avg fans x ARPU x 12",
+    r = section(v, r, "FAN GMV — what fans pay athletes, net of VAT")
+    # ARPU is the price a fan sees, which in the EU is displayed VAT-inclusive.
+    # Dividing by (1+VAT) here makes every row below the taxable base, which is
+    # what the take applies to. The gross is reconstructed further down for the
+    # payment fees, which are charged on what the card is actually debited.
+    vrow("Niche subscription GMV", unit="avg fans x ARPU x 12, ex-VAT",
          formula=(f"=Drivers!{{c}}{D['Niche average fans during year']}"
-                  f"*Assumptions!{{c}}{A_ROW['niche_arpu']}*12"))
-    vrow("Popular subscription GMV",
+                  f"*Assumptions!{{c}}{A_ROW['niche_arpu']}*12"
+                  f"/(1+Assumptions!{{c}}{A_ROW['vat_fan']})"))
+    vrow("Popular subscription GMV", unit="ex-VAT",
          formula=(f"=Drivers!{{c}}{D['Popular average fans during year']}"
-                  f"*Assumptions!{{c}}{A_ROW['popular_arpu']}*12"))
+                  f"*Assumptions!{{c}}{A_ROW['popular_arpu']}*12"
+                  f"/(1+Assumptions!{{c}}{A_ROW['vat_fan']})"))
     vrow("Subscription GMV", formula=f"={{c}}{r-2}+{{c}}{r-1}", bold=True)
     vrow("PPV and tips GMV", unit="x multiple",
          formula=f"={{c}}{R['Subscription GMV']}*Assumptions!{{c}}{A_ROW['ppv_mult']}")
-    vrow("Total fan GMV", formula=f"={{c}}{R['Subscription GMV']}+{{c}}{R['PPV and tips GMV']}",
+    vrow("Total fan GMV", unit="ex-VAT, the take base",
+         formula=f"={{c}}{R['Subscription GMV']}+{{c}}{R['PPV and tips GMV']}",
          bold=True, band=True)
+    vrow("Fan GMV including VAT", unit="what cards are charged",
+         formula=(f"={{c}}{R['Total fan GMV']}"
+                  f"*(1+Assumptions!{{c}}{A_ROW['vat_fan']})"))
     r += 1
 
     r = section(v, r, "SPONSORSHIP GMV — what sponsors pay athletes and clubs")
@@ -636,16 +649,27 @@ def build() -> pathlib.Path:
         r = row(co, r, label, kw.pop("unit", ""), formula=formula, fmt=fmt, **kw)
 
     r = section(co, r, "COST OF SALES")
-    crow("Fan transactions", unit="fan GMV / avg ticket", fmt=NUM,
-         formula=f"=Revenue!{{c}}{R['Total fan GMV']}/Assumptions!{{c}}{A_ROW['fan_txn']}")
+    # Gross on both sides of the division: the average ticket is a price a fan
+    # pays, so counting transactions off the ex-VAT base would undercount them.
+    crow("Fan transactions", unit="fan GMV incl VAT / avg ticket", fmt=NUM,
+         formula=(f"=Revenue!{{c}}{R['Fan GMV including VAT']}"
+                  f"/Assumptions!{{c}}{A_ROW['fan_txn']}"))
     crow("Deal transactions", unit="count", fmt=NUM,
          formula=f"=Revenue!{{c}}{R['Total sponsorship GMV']}/Assumptions!{{c}}{A_ROW['deal_txn']}")
-    crow("Payment processing", unit="% of GMV + fixed",
-         formula=(f"=Revenue!{{c}}{R['TOTAL GMV']}*Assumptions!{{c}}{A_ROW['psp_pct']}"
+    # On the processed amount, not TOTAL GMV: the processor's percentage is
+    # charged on the VAT-inclusive sum it moves, which is the gross fan value
+    # plus sponsorship. Using the ex-VAT total understated the dominant COGS
+    # line by the VAT on its own fee base.
+    crow("Payment processing", unit="% of processed + fixed",
+         formula=(f"=(Revenue!{{c}}{R['Fan GMV including VAT']}"
+                  f"+Revenue!{{c}}{R['Total sponsorship GMV']})"
+                  f"*Assumptions!{{c}}{A_ROW['psp_pct']}"
                   f"+({{c}}{C['Fan transactions']}+{{c}}{C['Deal transactions']})"
                   f"*Assumptions!{{c}}{A_ROW['psp_fix']}"))
     crow("Payouts to athletes", unit="% + fixed",
-         formula=(f"=Revenue!{{c}}{R['TOTAL GMV']}*Assumptions!{{c}}{A_ROW['payout_pct']}"
+         formula=(f"=(Revenue!{{c}}{R['Fan GMV including VAT']}"
+                  f"+Revenue!{{c}}{R['Total sponsorship GMV']})"
+                  f"*Assumptions!{{c}}{A_ROW['payout_pct']}"
                   f"+({{c}}{C['Fan transactions']}/30+{{c}}{C['Deal transactions']})"
                   f"*Assumptions!{{c}}{A_ROW['payout_fix']}"))
     crow("Media egress GB", unit="GB/yr", fmt=NUM,
