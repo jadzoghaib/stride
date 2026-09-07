@@ -171,12 +171,15 @@ Honest list, so nothing is a surprise when someone asks.
 
 - **No email.** Verification, password reset and change-of-address record a row
   and send nothing. **With signup open this is visible to real users**, so the
-  interface no longer pretends otherwise: `STRIDE_EMAIL_DELIVERY` is off, the
-  sign-in page says "No password recovery on this deployment" instead of
-  offering a link, and a new account is told to sign in rather than to check an
-  inbox. The mechanism still works underneath — a reset token is issued and
+  interface no longer pretends otherwise: `STRIDE_EMAIL_DELIVERY` is off and the
+  sign-in page says "No password recovery on this deployment" in place of the
+  link. The mechanism still works underneath — a reset token is issued and
   recorded — so an admin reading `/api/admin/outbox` can recover somebody by
   hand. Attaching a provider is what makes it self-service.
+
+  Registration itself never made a promise to break: a local account is signed
+  in immediately and told nothing about an inbox. The "check your inbox" notice
+  belongs to Supabase-backed deployments, where Supabase sends that mail itself.
 - **Everyone shares one rate-limit bucket.** `STRIDE_FORWARDED_ALLOW_IPS` is
   unset on purpose, so nobody can pick their own bucket by spoofing a header —
   but that means the limiter sees Render's edge address for every visitor.

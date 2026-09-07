@@ -125,6 +125,10 @@ export default function Auth() {
     setNotice('')
     try {
       if (mode === 'forgot') {
+        // Not while the answer is still unknown: a fast submit on a direct
+        // ?mode=forgot load would otherwise queue a reset before the redirect
+        // fires, and pick its notice from a null.
+        if (emailWorks === null) return
         // Always the same answer, whatever the address: the server will not say
         // whether an account exists, and neither will this screen.
         await api.post('/api/auth/forgot', { email: form.email })
@@ -138,10 +142,13 @@ export default function Auth() {
           ? await api.post<Me & { needs_email_confirmation?: boolean }>('/api/auth/login', { email: form.email, password: form.password })
           : await api.post<Me & { needs_email_confirmation?: boolean }>('/api/auth/register',
               { ...form, role, accept_terms: accepted, policy_version: POLICY_VERSION })
+      // `needs_email_confirmation` comes back only where Supabase is the
+      // credential authority, and Supabase sends that mail itself — nothing to
+      // do with this system's own outbox or `email_delivery`. Conditioning the
+      // copy on that flag told a Supabase user no email was coming while one
+      // was, and sent them to a sign-in that cannot work until they confirm.
       if (me.needs_email_confirmation) {
-        setNotice(emailWorks
-          ? 'Account created. Check your inbox for the confirmation email, then sign in.'
-          : 'Account created — sign in below. No confirmation email is sent on this deployment, and your address stays unverified, which limits nothing.')
+        setNotice('Account created. Check your inbox for the confirmation email, then sign in.')
         setMode('login')
         return
       }
@@ -478,7 +485,9 @@ export default function Auth() {
           {error && <div className="rounded border border-critical/40 bg-critical/10 px-3 py-2 text-sm text-critical">{error}</div>}
           {notice && <div className="rounded border border-ok/40 bg-ok/10 px-3 py-2 text-sm text-ok">{notice}</div>}
 
-          <button className="btn-go w-full" disabled={busy || (mode === 'register' && !accepted)}>
+          <button className="btn-go w-full"
+                  disabled={busy || (mode === 'register' && !accepted)
+                            || (mode === 'forgot' && emailWorks === null)}>
             {busy ? 'Working…' : mode === 'login' ? 'Sign in' : mode === 'forgot' ? 'Send reset link' : 'Create account'}
           </button>
         </form>

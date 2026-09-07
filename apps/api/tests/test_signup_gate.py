@@ -85,12 +85,15 @@ def test_meta_reports_whether_mail_is_actually_delivered(client):
     never sent, and "a reset link is on its way" was simply untrue. Off by
     default because it is off in fact.
     """
-    body = client.get("/api/meta").json()
-    assert body["email_delivery"] is False
-
     original = settings.email_delivery
-    settings.email_delivery = True
     try:
+        # Both states set explicitly. Asserting the default would be asserting
+        # something about the machine -- a deployment with a provider attached
+        # sets this to "1" -- which is the dependence the fixtures above exist
+        # to remove.
+        settings.email_delivery = False
+        assert client.get("/api/meta").json()["email_delivery"] is False
+        settings.email_delivery = True
         assert client.get("/api/meta").json()["email_delivery"] is True
     finally:
         settings.email_delivery = original
