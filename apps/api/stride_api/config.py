@@ -95,6 +95,16 @@ class Settings:
         # data at all, which is a much easier thing to be honest about.
         self.allow_signup = os.environ.get("STRIDE_ALLOW_SIGNUP", "1") == "1"
 
+        # Whether anything actually delivers the mail this system queues.
+        #
+        # Off by default because it is off in fact: `email_outbox` records what
+        # a person is owed and no provider drains it (see the schema comment on
+        # that table). It exists so the interface can stop describing a
+        # delivery that does not happen -- verification, password reset and
+        # change-of-address all queue a row and stop there. Turn it on in the
+        # same change that attaches a provider, not before.
+        self.email_delivery = os.environ.get("STRIDE_EMAIL_DELIVERY", "0") == "1"
+
         # Whether the seeded demo accounts are advertised on the sign-in page.
         # Independent of `allow_signup`: this build seeds them either way, and a
         # deployment can sensibly both accept registrations and tell visitors

@@ -26,5 +26,9 @@ def meta() -> dict:
         # on listing them. Tied to the signup flag it would now report `false`
         # about credentials the page is still showing.
         "demo_accounts": settings.demo_accounts,
+        # Whether mail is actually delivered. The client uses it to decide
+        # whether to offer self-service password reset and whether to tell a new
+        # account to go and check an inbox.
+        "email_delivery": settings.email_delivery,
         "policy_version": settings.legal_policy_version,
     }

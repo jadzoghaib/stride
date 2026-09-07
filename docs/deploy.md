@@ -154,6 +154,7 @@ four accounts. Counting from the database is the only honest way to do it:
 | `STRIDE_SECRET` | generated | Signs sessions. Never commit one |
 | `STRIDE_ALLOW_SIGNUP` | `1` | Open. `0` closes it and collects nothing |
 | `STRIDE_DEMO_ACCOUNTS` | `1` | Whether the sign-in page lists the seeded accounts. Read by the client from `/api/meta`; independent of the row above |
+| `STRIDE_EMAIL_DELIVERY` | **unset (`0`)** | Whether anything delivers the mail this system queues. Off in fact — turn it on in the same change that attaches a provider |
 | `STRIDE_DB` | `/home/stride/data/stride.db` | The runtime user's own home — a mounted disk would be root-owned |
 | `STRIDE_MEDIA_DIR` | `/home/stride/media` | Same reason |
 | `STRIDE_WEB_DIST` | `/app/web` | Set in the image; where the built client lives |
@@ -169,8 +170,13 @@ four accounts. Counting from the database is the only honest way to do it:
 Honest list, so nothing is a surprise when someone asks.
 
 - **No email.** Verification, password reset and change-of-address record a row
-  and send nothing. **With signup open this is visible to real users**: no
-  address is ever confirmed, and a forgotten password cannot be recovered.
+  and send nothing. **With signup open this is visible to real users**, so the
+  interface no longer pretends otherwise: `STRIDE_EMAIL_DELIVERY` is off, the
+  sign-in page says "No password recovery on this deployment" instead of
+  offering a link, and a new account is told to sign in rather than to check an
+  inbox. The mechanism still works underneath — a reset token is issued and
+  recorded — so an admin reading `/api/admin/outbox` can recover somebody by
+  hand. Attaching a provider is what makes it self-service.
 - **Everyone shares one rate-limit bucket.** `STRIDE_FORWARDED_ALLOW_IPS` is
   unset on purpose, so nobody can pick their own bucket by spoofing a header —
   but that means the limiter sees Render's edge address for every visitor.
