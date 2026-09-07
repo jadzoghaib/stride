@@ -128,7 +128,7 @@ other.
 | **Total net revenue** | €25k | €134k | €535k | €1.50M | €3.43M | €6.53M | €10.70M | €15.39M | €19.92M | €25.38M |
 <!-- /MODEL:revenue -->
 
-Growth: Y2 +516%, Y3 +321%, Y4 +210%, Y5 +139%, Y6 +83%, Y7 +60%. A decelerating
+Growth: Y2 +442%, Y3 +298%, Y4 +181%, Y5 +128%, Y6 +90%, Y7 +64%. A decelerating
 curve that stays above 50% through Y7 is what a Series B buyer wants to see.
 
 ---
@@ -202,7 +202,7 @@ parent (~85% at a 20% take on far larger tickets).
 | First EBITDA-positive year | Y5 |
 <!-- /MODEL:funding -->
 
-**€655k is a small number for a plan that reaches €24.1M of revenue by Y7,
+**€655k is a small number for a plan that reaches €10.7M of revenue by Y7,
 and that should be interrogated rather than celebrated.** It is small because
 the model hires behind revenue rather than ahead of it, and because fan
 acquisition is free. A growth-optimised version — hiring 12 months earlier,
@@ -219,7 +219,7 @@ be wrong are **fans per athlete** and **share of athletes who monetise**.
 
 | Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Capital need |
 |---|---|---|---|---|
-| **Conservative** | Fans/athlete −30%, monetise rate −25% | ~€15M | ~€3.4M | ~€0.9M |
+| **Conservative** | Fans/athlete −30%, monetise rate −25% | ~€8.4M | ~€1.9M | ~€1.26M |
 | **Base** | As modelled | €10.70M | €3.11M | €655k |
 | **Growth-optimised** | Hire 12mo ahead, 3 markets from Y2 | ~€39M | ~€9M | €3–5M |
 

@@ -126,12 +126,12 @@ Two methods, because they answer different questions and disagree for a reason.
 
 ### Why they disagree, and which to believe
 
-The DCF says €8.4M; the blended exit multiple says €344.1M. **This is not an
+The DCF says €8.4M; the blended exit multiple says €165.0M. **This is not an
 error in either — it is the standard failure of perpetuity-growth DCF applied to
 a company that has not finished growing.**
 
 The DCF's terminal value assumes growth collapses to 3% the day after Y10, from
-a year that still grew 22%. For a marketplace that has just reached €58M revenue
+a year that still grew 22%. For a marketplace that has just reached €25M revenue
 at a 74% gross margin with a network effect, that is not a neutral assumption —
 it is a pessimistic one. The terminal value is 53% of the DCF's total, so that
 single assumption carries half the answer.
@@ -149,8 +149,9 @@ worth €8.4M today.
 | Terminal growth 4% | €14.85M | €8.62M | €5.36M |
 <!-- /MODEL:sensitivity -->
 
-**Defensible headline: €25–56M enterprise value at Y10 discounted to today**,
-with a €8.4M floor under a no-growth-after-Y10 assumption.
+**Defensible headline: €11–25M enterprise value, the Y10 exit multiples
+discounted to today at the same 25% WACC**, with an €8.4M floor under a
+no-growth-after-Y10 assumption.
 
 ---
 

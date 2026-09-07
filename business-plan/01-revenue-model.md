@@ -272,10 +272,10 @@ rather than cited.*
 
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| Fan take | €25k (87%) | €692k (67%) | €4.77M (57%) | €13.78M (52%) |
-| Sponsorship take | €3k (9%) | €166k (16%) | €2.48M (29%) | €9.38M (35%) |
-| Sponsor SaaS | €1k (4%) | €180k (17%) | €1.15M (14%) | €3.36M (13%) |
-| **Total** | **€29k** | **€1.04M** | **€8.40M** | **€26.52M** |
+| Fan take | €21k (84%) | €318k (60%) | €1.69M (49%) | €4.81M (45%) |
+| Sponsorship take | €3k (11%) | €89k (17%) | €1.04M (30%) | €3.97M (37%) |
+| Sponsor SaaS | €1k (5%) | €124k (23%) | €0.69M (20%) | €1.92M (18%) |
+| **Total** | **€25k** | **€0.53M** | **€3.43M** | **€10.70M** |
 
 The mix shifts deliberately. Fans fund the early years because they can be
 acquired at near-zero cost — **athletes bring their own audience**. Sponsorship

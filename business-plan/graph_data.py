@@ -121,8 +121,14 @@ def main() -> None:
     write("g8-cash-and-capital.csv",
           ["year", "fcf_eur_m", "cumulative_cash_before_raises_eur_m", "raise_eur_m", "stage"],
           [[r["year"], eur_m(r["fcf"]), eur_m(c),
-            {1: 0.400, 3: 2.000, 5: 8.000}.get(r["year"], ""),
-            {1: "Pre-seed", 3: "Seed", 5: "Series A"}.get(r["year"], "")]
+            # The pre-seed is EUR 600k, and G8 exists to show it clearing the
+            # trough. Left at 0.400 the chart drew the company running out of
+            # cash in Y3 -- the opposite of the section it illustrates.
+            {1: 0.600, 4: 2.000, 6: 8.000}.get(r["year"], ""),
+            # Placed where the gate is actually met rather than on the old
+            # schedule: the seed needs EUR 80k MRR, which the slower ramp
+            # reaches in Y4, and Series A needs EUR 300k MRR, reached in Y6.
+            {1: "Pre-seed", 4: "Seed (optional)", 6: "Series A"}.get(r["year"], "")]
            for r, c in zip(ten, cash)])
 
     # G9 -- the take-rate corridor. Both ends are real competitor rates, so this
