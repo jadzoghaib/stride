@@ -69,11 +69,11 @@ Three things in it are worth two minutes of a technical diligence call:
 <!-- MODEL:summary -->
 |  | Y3 | Y7 |
 |---|---|---|
-| Net revenue | €919k | €24.13M |
-| EBITDA | €-384k | €7.79M |
-| Active athletes | 5,500 | 52,000 |
-| Paying fans | 46,333 | 759,408 |
-| Gross margin | 65% | 70% |
+| Net revenue | €535k | €10.70M |
+| EBITDA | €-229k | €3.11M |
+| Active athletes | 3,000 | 22,000 |
+| Paying fans | 25,288 | 321,288 |
+| Gross margin | 64% | 70% |
 <!-- /MODEL:summary -->
 
 EBITDA turns positive in **Y5**. Take rates are published and fixed: **15% on
@@ -94,8 +94,8 @@ Being wrong about it does not dent the revenue line, and we would rather explain
 that than have it found. This is a **target-driven model**: fan counts per
 athlete are the plan, and the model solves backwards for the acquisition needed
 to hit them. Churn therefore changes the *burden*, not the destination — at
-benchmark churn, holding the same Y10 fan base needs **1.65M gross adds a year
-instead of 1.32M**, a quarter more acquisition, every year, forever.
+benchmark churn, holding the same Y10 fan base needs **0.79M gross adds a year
+instead of 0.64M**, a quarter more acquisition, every year, forever.
 
 **The model understates this risk by construction**, because it does not charge
 for fan acquisition. Treat the 45% as what it is: an operating assumption that
@@ -114,7 +114,7 @@ anchor athlete public, payments processing real money, and **fan churn measured
 for three months.** Use of funds: three hires, Spain go-to-market, the club
 channel.
 
-The plan needs €824k. The staged rounds raise €2.4M before Series A, and the
+The plan needs €655k. The staged rounds raise €2.4M before Series A, and the
 difference is deliberate — raising only what the model needs leaves no room for
 the assumption that turns out wrong, and a company that runs out of cash in Y3
 at the trough dies with a working product.
@@ -124,7 +124,7 @@ at the trough dies with a working product.
 Each of these was the right call, and each closed something off. We would rather
 say so than be asked.
 
-- **15% flat, no athlete fee** forfeits €3.8M of Y7 revenue against a 20% take.
+- **15% flat, no athlete fee** forfeits €1.6M of Y7 revenue against a 20% take.
   Bought: a pricing argument that survives contact with the exact athlete we
   target — we beat the nearest comparable for anyone under €1,380/month, which
   is the whole long tail.

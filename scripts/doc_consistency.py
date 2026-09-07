@@ -347,8 +347,9 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      100 * (NO_VAT_Y7["ebitda"] - Y7["ebitda"]) / NO_VAT_Y7["ebitda"], 0.6),
 ]
 
-WORDS = {"ten": 10, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15,
-         "sixteen": 16, "twenty": 20}
+WORDS = {"five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+         "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14,
+         "fifteen": 15, "sixteen": 16, "twenty": 20}
 
 
 def check_duplicated_sport_table() -> list[str]:
