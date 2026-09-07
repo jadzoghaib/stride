@@ -165,6 +165,30 @@ def test_the_recovery_endpoints_share_the_strict_auth_bucket(client):
     assert codes[-1] == 429
 
 
+def test_registration_cannot_starve_the_sign_in_bucket(client):
+    """Draining registration must leave people able to sign in.
+
+    Both limiters key on the client address, and behind a proxy whose forwarded
+    header we deliberately do not trust — so nobody can choose their own bucket
+    — every visitor presents the same address and shares one. That was a fair
+    trade while registration was closed and only sign-in spent tokens. With
+    registration open and sharing the bucket, one visitor retrying a form could
+    spend all twenty and lock every visitor out of signing in for minutes.
+
+    So registration has its own. The worst case is now that registration is
+    briefly unavailable while sign-in keeps working.
+    """
+    codes = [client.post("/api/auth/register", json={"email": "x"}).status_code
+             for _ in range(25)]
+    assert 429 in codes, "registration is limited"
+
+    # 401 rather than 429 is the whole proof, end to end: a drained sign-in
+    # bucket would be refused by the middleware before any password was read.
+    refused = client.post("/api/auth/login",
+                          json={"email": "athlete@demo.stride", "password": "wrong"})
+    assert refused.status_code == 401, f"sign-in should answer, not throttle: {refused.status_code}"
+
+
 # ── change password ──────────────────────────────────────────────────────────
 
 def test_changing_the_password_needs_the_current_one_and_keeps_this_session(db):

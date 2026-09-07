@@ -20,8 +20,11 @@ def meta() -> dict:
     """Public deployment facts. No auth, no personal data, safe to cache briefly."""
     return {
         "signup_open": settings.allow_signup,
-        # The client shows the demo credentials only where they are the intended
-        # way in; on a deployment with open registration they would be noise.
-        "demo_accounts": not settings.allow_signup,
+        # Whether this deployment ships the seeded demo accounts, which is a
+        # different question from whether registration is open -- and became a
+        # visibly different one when signup opened while the sign-in page went
+        # on listing them. Tied to the signup flag it would now report `false`
+        # about credentials the page is still showing.
+        "demo_accounts": settings.demo_accounts,
         "policy_version": settings.legal_policy_version,
     }

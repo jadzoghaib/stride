@@ -35,16 +35,20 @@ def signup_open():
     """Open it, for the same reason the fixture above closes it.
 
     `Settings` reads `STRIDE_ALLOW_SIGNUP` once at import, so a suite run in the
-    deployed environment -- where it is `0` -- would fail every test that
-    assumed the default was open. Asserting a default is asserting something
-    about the machine rather than about the code.
+    deployed environment -- where it is now `1`, and was `0` before that -- would
+    otherwise fail every test that assumed a particular default. Asserting a
+    default is asserting something about the machine rather than about the code.
+
+    `demo_accounts` is pinned alongside it for the same reason: it has its own
+    variable now, and a test that asserts the two are independent must set both
+    rather than inherit either.
     """
-    original = settings.allow_signup
-    settings.allow_signup = True
+    originals = settings.allow_signup, settings.demo_accounts
+    settings.allow_signup, settings.demo_accounts = True, True
     try:
         yield
     finally:
-        settings.allow_signup = original
+        settings.allow_signup, settings.demo_accounts = originals
 
 
 def test_meta_is_public_and_says_signup_is_open(client, signup_open):
@@ -57,9 +61,20 @@ def test_meta_is_public_and_says_signup_is_open(client, signup_open):
 def test_meta_reports_a_closed_signup(client, signup_closed):
     body = client.get("/api/meta").json()
     assert body["signup_open"] is False
-    # and it tells the client to offer the demo accounts instead, so the sign-in
-    # page has something to say rather than a missing tab and no explanation
     assert body["demo_accounts"] is True
+
+
+def test_the_demo_accounts_flag_is_independent_of_signup(client, signup_open):
+    """Two different facts, and they came apart the moment signup was opened.
+
+    Derived from `not allow_signup`, this reported "no demo accounts" on a
+    deployment that both accepts registrations and goes on listing the seeded
+    credentials on its sign-in page — a field that contradicted the screen
+    beside it.
+    """
+    body = client.get("/api/meta").json()
+    assert body["signup_open"] is True
+    assert body["demo_accounts"] is True, "still seeded, still listed, still true"
 
 
 def test_registration_is_refused_when_closed(client, signup_closed):

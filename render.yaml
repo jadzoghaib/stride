@@ -8,12 +8,11 @@
 # network between them, and an upstream address wired by hand. Serving the
 # client from the API process costs one free instance and nothing to configure.
 #
-# What it deliberately does NOT deploy: an open front door. `STRIDE_ALLOW_SIGNUP`
-# is `0`, because nothing in this system sends email -- `email_outbox` records
-# what a person is owed and nothing drains it -- so a stranger who registered
-# would be stranded at an address they could never verify, having accepted terms
-# that still render a "pending legal review" banner. With signup closed the
-# deployment collects no personal data at all.
+# Registration is OPEN here. That is a deliberate choice with costs attached --
+# no email provider means no verification and no password reset, and the terms
+# people accept are still drafts. The env block below states both, and
+# docs/deploy.md carries the full account of what is owed before this is a real
+# front door rather than a demo with real accounts on it.
 #
 # Read docs/deploy.md before the first apply.
 
@@ -37,9 +36,21 @@ services:
       # The app refuses to boot in production on the development secret.
       - key: STRIDE_SECRET
         generateValue: true
-      # The line that makes the link safe to share.
+      # Open, deliberately, so visitors can make their own account instead of
+      # sharing five seeded ones. Two things follow from it and are not
+      # hypothetical:
+      #
+      #   * Nothing sends email. A registrant can sign in and use everything --
+      #     `email_verified` gates no route -- but can never verify their
+      #     address and can never reset a forgotten password. The only recovery
+      #     is a new account.
+      #   * Real personal data now lands here under terms that still render a
+      #     "pending legal review" banner, and a privacy policy whose controller
+      #     identity is a placeholder. See docs/deploy.md.
+      #
+      # Set back to "0" to return to demo-accounts-only, which collects nothing.
       - key: STRIDE_ALLOW_SIGNUP
-        value: "0"
+        value: "1"
       - key: STRIDE_CHAOS
         value: "0"
       # SQLite inside the container, seeded on first boot. No managed database,

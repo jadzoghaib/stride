@@ -1,24 +1,35 @@
 # Deploying the Stride demo
 
-A public, shareable link to the working product, **collecting no personal data
-from anyone who opens it**, on a free instance.
+A public, shareable link to the working product, on a free instance.
 
-That first clause is the design rather than a side effect. Registration is
-closed, so the only way in is the seeded demo accounts and the deployment never
-holds a real person's email or password. Two facts make that the right call:
+**Registration is open**, so visitors can make their own account rather than
+share seeded credentials. That is a choice with two costs, and neither is
+hypothetical:
 
 - **Nothing in this system sends email.** `email_outbox` records what a person
   is owed and the schema comment says `sent_at` stays NULL *"forever until a
-  provider is attached"*. A stranger who registered could never verify their
-  address or reset their password.
-- **The terms and privacy policy are drafts.** Every legal page renders a
-  status line saying so, and the privacy policy itself states that the
-  registered entity and representative *"will replace this paragraph before
-  public launch"*.
+  provider is attached"*. Someone who registers **can sign in and use
+  everything** — `email_verified` gates no route, it is only a badge in
+  Settings — but can never confirm their address and **can never reset a
+  forgotten password**. The only recovery is a second account.
+- **The terms and privacy policy are drafts.** Every legal page renders a status
+  line saying so, and the privacy policy still states that the registered entity
+  and representative *"will replace this paragraph before public launch"*. Real
+  personal data now arrives under those terms.
 
-Closing signup means neither has to be solved before you can send a link. Both
-must be solved before real users — a different project, and §8.5 of the business
-plan lists what goes to counsel first.
+The product does honour all six GDPR rights, including one-click export and an
+erasure that anonymises the person, so anyone who registers can get their data
+back or have it removed. What is missing is the controller identity in front of
+them, which is a paragraph rather than a project.
+
+> [!important] To close it again
+> Set `STRIDE_ALLOW_SIGNUP` to `0` in [`render.yaml`](../render.yaml) and let it
+> redeploy. Registration then returns 403, the sign-in page stops offering the
+> form, and the deployment collects nothing. That is the right setting for a
+> link sent to people you do not know.
+
+§8.5 of the business plan lists what goes to counsel before this is a real front
+door rather than a demo that happens to accept accounts.
 
 ---
 
@@ -79,19 +90,26 @@ Then redeploy.
 URL=https://stride-demo-xxxx.onrender.com
 
 curl -s $URL/readyz                       # {"status":"ready"}
-curl -s $URL/api/meta                     # "signup_open":false
+curl -s $URL/api/meta                     # signup_open + demo_accounts
+```
 
+`signup_open` tells you which deployment you have. **`true` means real people
+can create accounts on it** — check that is what you intended before sharing the
+link widely, because it is the difference between a demo that collects nothing
+and one holding strangers' email addresses under draft terms.
+
+To confirm a *closed* deployment really is closed:
+
+```bash
 curl -s -o /dev/null -w '%{http_code}\n' \
      -X POST $URL/api/auth/register \
      -H 'Content-Type: application/json' -d '{}'
-                                          # 403
+                                          # 403 when closed
 ```
 
-**The third is the one that matters.** If it returns anything but 403 the front
-door is open — do not share the link until `STRIDE_ALLOW_SIGNUP=0` is set. An
-empty body is deliberate: the gate runs ahead of request validation, so a
-malformed request is still answered with the policy rather than a complaint
-about a missing field.
+The empty body is deliberate: the gate runs ahead of request validation, so a
+malformed request is answered with the policy rather than a complaint about a
+missing field.
 
 Then open the link and sign in as `sponsor@demo.stride` / `stride123`.
 
@@ -134,7 +152,8 @@ four accounts. Counting from the database is the only honest way to do it:
 |---|---|---|
 | `STRIDE_ENV` | `production` | Secure cookies; the app refuses to boot on the dev secret |
 | `STRIDE_SECRET` | generated | Signs sessions. Never commit one |
-| `STRIDE_ALLOW_SIGNUP` | `0` | **The line that makes the link safe to share** |
+| `STRIDE_ALLOW_SIGNUP` | `1` | Open. `0` closes it and collects nothing |
+| `STRIDE_DEMO_ACCOUNTS` | `1` | Whether the sign-in page lists the seeded accounts. Read by the client from `/api/meta`; independent of the row above |
 | `STRIDE_DB` | `/home/stride/data/stride.db` | The runtime user's own home — a mounted disk would be root-owned |
 | `STRIDE_MEDIA_DIR` | `/home/stride/media` | Same reason |
 | `STRIDE_WEB_DIST` | `/app/web` | Set in the image; where the built client lives |
@@ -150,7 +169,15 @@ four accounts. Counting from the database is the only honest way to do it:
 Honest list, so nothing is a surprise when someone asks.
 
 - **No email.** Verification, password reset and change-of-address record a row
-  and send nothing. Invisible while signup is closed.
+  and send nothing. **With signup open this is visible to real users**: no
+  address is ever confirmed, and a forgotten password cannot be recovered.
+- **Everyone shares one rate-limit bucket.** `STRIDE_FORWARDED_ALLOW_IPS` is
+  unset on purpose, so nobody can pick their own bucket by spoofing a header —
+  but that means the limiter sees Render's edge address for every visitor.
+  Registration has its own bucket so it cannot starve sign-in, and sign-in
+  cannot starve registration; within each, visitors share. Per-visitor limits
+  need a proxy configuration that can be trusted, which is a real-users problem
+  rather than a demo one.
 - **The instance sleeps.** On the free plan it spins down after inactivity and
   cold-starts in roughly a minute. Move to a paid instance before sending the
   link to someone whose time you care about.
