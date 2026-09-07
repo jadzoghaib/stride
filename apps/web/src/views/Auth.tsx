@@ -64,7 +64,11 @@ export default function Auth() {
   //: Whether to advertise the seeded demo credentials. A separate question from
   //  whether registration is open — a deployment can sensibly do both — and it
   //  has to be *read* here, or the setting is a payload nobody acts on.
-  const [showDemo, setShowDemo] = useState(true)
+  //
+  //  `null` until the answer arrives, for the same reason `signupOpen` is:
+  //  starting at `true` flashes a list of credentials on a deployment that has
+  //  turned them off, then withdraws it.
+  const [showDemo, setShowDemo] = useState<boolean | null>(null)
   useEffect(() => {
     api.get<{ signup_open: boolean; demo_accounts: boolean }>('/api/meta')
       // an unreachable meta endpoint must not lock the door: fall back to open,
@@ -322,8 +326,12 @@ export default function Auth() {
             <div className="cap">Demonstration</div>
             <p className="mt-1.5 text-small text-ink-2">
               New accounts are closed on this deployment, and no personal data is
-              collected. Sign in with one of the demo accounts below — every role
-              runs the whole product on simulated data.
+              collected.{' '}
+              {/* Only promises the list where the list is actually rendered:
+                  a deployment can close signup *and* hide the credentials. */}
+              {showDemo === true
+                ? 'Sign in with one of the demo accounts below — every role runs the whole product on simulated data.'
+                : 'Sign in with an account you have been given — every role runs the whole product on simulated data.'}
             </p>
           </div>
         )}
@@ -452,7 +460,7 @@ export default function Auth() {
           </button>
         </form>
 
-        {showDemo && (
+        {showDemo === true && (
         <div className="panel mt-4 p-4">
           <div className="cap">Demo accounts</div>
           <div className="mt-2 space-y-1 text-xs text-ink-2">

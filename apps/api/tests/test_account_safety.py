@@ -178,14 +178,12 @@ def test_registration_cannot_starve_the_sign_in_bucket(client):
     So registration has its own. The worst case is now that registration is
     briefly unavailable while sign-in keeps working.
     """
-    from stride_api.security import buckets
-
     codes = [client.post("/api/auth/register", json={"email": "x"}).status_code
              for _ in range(25)]
     assert 429 in codes, "registration is limited"
 
-    # the sign-in bucket is untouched, and a real credential check still runs
-    assert buckets.allow("auth:testclient", 20, 0.1), "sign-in still has tokens"
+    # 401 rather than 429 is the whole proof, end to end: a drained sign-in
+    # bucket would be refused by the middleware before any password was read.
     refused = client.post("/api/auth/login",
                           json={"email": "athlete@demo.stride", "password": "wrong"})
     assert refused.status_code == 401, f"sign-in should answer, not throttle: {refused.status_code}"
