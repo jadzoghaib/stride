@@ -291,7 +291,7 @@ Federation licence data remains the highest-value research task in the plan: it
 replaces the softest input in this funnel rather than arguing about it.
 
 > [!example] 📊 ==GRAPH G3 — the funnel, on a log axis==
-> **Chart** · Horizontal bars, **logarithmic** — 520M to 52,000 is four orders
+> **Chart** · Horizontal bars, **logarithmic** — 520M to 22,000 is four orders
 > of magnitude and a linear axis renders the last four bars as nothing. Colour
 > the two `[estimate]` steps differently from the sourced one and put the basis
 > on each bar.
@@ -740,13 +740,12 @@ Content delivery is the cost that kills naive versions of this business.
 | **Zero-egress CDN architecture** | **€0.008** | **€344k** |
 
 At **1.8 GB per fan per month**, the egress *rate* differs by **9.4×**. Total
-infrastructure differs by **3.6×** — compute and storage are unaffected — which
-is **€1.1M a year at Y7** and **€7.8M cumulative across the plan**.
+infrastructure differs by **2.4×** — compute and storage are unaffected — which
+is **€465k a year at Y7** and **€3.5M cumulative across the plan**.
 
-In margin terms it is **4.1 points of gross margin at Y7** (72.8% → 68.6%). Not
+In margin terms it is **4.3 points of gross margin at Y7** (69.9% → 65.6%). Not
 existential, and we would rather size it correctly than call it existential: it
-is a design-time architecture decision worth roughly one engineer-decade of
-salary, taken once, at the start.
+is a design-time architecture decision worth €3.5M, taken once, at the start.
 
 **Infrastructure trajectory:**
 
@@ -1121,7 +1120,7 @@ already being referred to in conversation.
 
 | # | Risk | P | I | Score | Mitigation |
 |---|---|---|---|---|---|
-| **R1** | **Fans do not pay for niche athletes** — the thesis fails | 3 | 5 | **15** | P1 is built specifically to test this for €80k, not €2.4M. Pre-seed gate requires 3 months of real churn data. If false, the sponsorship marketplace remains a smaller, viable business |
+| **R1** | **Fans do not pay for niche athletes** — the thesis fails | 3 | 5 | **15** | P1 is built specifically to test this for €80k, not €2.6M. Pre-seed gate requires 3 months of real churn data. If false, the sponsorship marketplace remains a smaller, viable business |
 | **R2** | **Churn is at benchmark, not 45% better** | 3 | 4 | **12** | See below — the model understates this. Mitigation is measurement, early, on one athlete |
 | **R3** | **Athlete acquisition is slower than modelled** | 3 | 4 | **12** | Club and federation channels are multiplicative (1 conversation = 20–40 athletes). Anchor-athlete referral loop. CAC has room: niche CAC is €16 against €40 popular |
 | **R11** | **VAT rate mix runs above the modelled 21%** — B2C digital services are taxed where the customer is, and the plan sells into markets charging 20% to 25% | 3 | 2 | **6** | Re-scored down, because the *principle* is no longer a risk: the model now carries Spanish VAT on fan prices, so the deemed-supplier exposure is priced in rather than pending. What remains is mix — every point of blended rate above 21% costs roughly a point of fan revenue, and the Nordic markets are the expensive end. See [[#8 · Legal & Regulatory]] **L1** |
@@ -1318,7 +1317,7 @@ Ordered by how much the plan would change if the answer surprised us.
 - **Financial model:** `business-plan/model.py`. Ten-year projection, real
   working capital, capex, amortisation, loss carry-forward, Spanish Startup Law
   tax step (15% for four profitable years, then 25%).
-- **Consistency:** an automated guard checks **76 prose claims across 9
+- **Consistency:** an automated guard checks **130 prose claims across 9
   documents** against the model, plus the evidence chain from published
   comparables → derived assumptions. The build fails if any figure drifts —
   including this sentence, whose two numbers are themselves pinned to the
@@ -1360,7 +1359,7 @@ with them.
 |---|---|---|---|
 | **G1** | §1 Executive Summary | Revenue columns + EBITDA line, crossing zero in Y4 | `g1-revenue-ebitda.csv` |
 | **G2** | §2.3 The rank arbitrage | Rank vs. income scatter, two sports | **Illustrative** — no data exists; see §9.1 |
-| **G3** | §3.3 Market sizing | Funnel, log axis, 520M → 52,000 | `g3-market-funnel.csv` |
+| **G3** | §3.3 Market sizing | Funnel, log axis, 520M → 22,000 | `g3-market-funnel.csv` |
 | **G4** | §3.4 The sport index | 714-pair scatter, Spain lit up | `g4-sport-index.csv` |
 | **G5** | §3.5 Competitive landscape | 2×2, the empty corner | `g5-competitive-map.csv` *(editorial placements)* |
 | **G6** | §6.2 The seven-year shape | 100% stacked area, revenue mix | `g6-revenue-mix.csv` |

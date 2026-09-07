@@ -35,10 +35,11 @@ return more than €201,600 compounded at 7%, plus a premium for the risk of tot
 loss. At a 70% failure probability, the surviving case must return roughly
 **€1.5–2M to the founder** for the decision to have been rational ex ante.
 
-The model delivers that: at the base case, a founder retaining ~45% after two
-rounds owns ~€16M of a €36.2M enterprise value at Y7. **The venture clears its
-own hurdle by roughly 7×, which is the honest justification for doing it at
-all.**
+The model delivers that: a founder retaining ~49% through the Series A holds
+that share of the enterprise value — **€4.11M against the DCF floor of €8.36M**,
+and €5.4–12.1M against the exit multiples discounted back. **Even the floor
+clears the hurdle twice over**, which is the honest justification for doing it
+at all.
 
 ---
 
@@ -50,15 +51,26 @@ fact you can demonstrate, not a milestone you can assert.
 | Stage | Amount | Pre-money | Gate — what must be true before raising | Use of funds |
 |---|---|---|---|---|
 | **Internal** | €80k cash + time | — | Product exists (it does) | Payments, subscriptions, one anchor athlete live |
-| **Pre-seed** | €400k | €2.5M | 400 athletes · €10k MRR · anchor athlete public · payments processing real money · fan churn measured for 3 months | 3 hires, Spain go-to-market, club channel |
-| **Seed** | €2.0M | €10M | €80k MRR · fan churn < 8%/mo · CAC payback < 9mo · 2nd market opened · 30+ paying sponsors | Team to 24, second and third market, moderation infrastructure |
+| **Pre-seed** | **€600k** | €2.5M | 400 athletes · €10k MRR · anchor athlete public · payments processing real money · fan churn measured for 3 months | 2 hires, Spain go-to-market, club channel |
+| **Seed** *(optional)* | €2.0M | €10M | €80k MRR · fan churn < 8%/mo · CAC payback < 9mo · 2nd market opened · 30+ paying sponsors | Team to 15, second and third market, moderation infrastructure |
 | **Series A** | €8.0M | €40M | €300k MRR · net revenue retention > 110% · sponsorship take > 25% of revenue · unit economics stable across 3 markets | EU-wide, sales org, managed services |
 
-**The plan needs €655k. The rounds above raise €2.4M before Series A.** The
+**The plan needs €655k. The rounds above raise €2.6M before Series A.** The
 difference is deliberate: raising only what the model needs leaves no room for
-the assumption that turns out wrong, and a company that runs out of cash in Y3
-at the trough dies with a working product. Raise the buffer; do not spend it
-unless the conservative case materialises.
+the assumption that turns out wrong, and a company that runs out of cash at the
+trough dies with a working product. Raise the buffer; do not spend it unless
+the conservative case materialises.
+
+The pre-seed alone covers the **€468k trough in Y4** with €132k to spare, which
+is why the seed is marked optional above. It is growth capital — a second market
+sooner — not rescue capital. A plan whose survival does not depend on the next
+round arriving on schedule is a materially stronger one to raise against.
+
+Be precise about what that claims. **€600k clears the trough the model
+produces; €655k is that trough plus the 40% buffer.** The seed is optional
+against the plan as modelled — not against the conservative case the buffer
+exists for. If the buffer is needed, the €55k gap is what the non-dilutive stack
+above is for.
 
 ### Why the pre-seed gate is the one that matters
 
@@ -67,7 +79,7 @@ that tests the thesis: *will fans of a semi-professional athlete actually pay?*
 
 Nothing in the product proves that today. Three months of real subscription data
 from one anchor athlete answers it definitively — and if the answer is no, you
-have spent €80k and a year, not €2.4M and four.
+have spent €80k and a year, not €2.6M and four.
 
 **That is the single most important sequencing decision in this plan.**
 
@@ -84,12 +96,12 @@ Taking dilution before exhausting these is leaving money on the table.
 | **ENISA Crecimiento** | up to €300k | Participative loan, no equity | Y2–Y3 |
 | **CDTI Neotec** | up to €250k (70% of budget) | **Grant**, no equity | Y2 — requires R&D framing; the analytics engine qualifies |
 | **Startup Capital (regional, Catalunya)** | €25k–€100k | Grant / soft loan | Y1–Y2 |
-| **Ley de Startups** tax regime | — | **15% corporate tax** for first 4 profitable years vs 25% | Modelled — worth €209k across Y4–Y7 |
+| **Ley de Startups** tax regime | — | **15% corporate tax** for the first four taxable years vs 25% | Modelled — worth €1.56M across Y6–Y9 |
 | Beckham Law | — | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
 
-**A realistic non-dilutive stack is €300–500k**, which covers most of the €446k
-trough. Combined with a smaller pre-seed, the founder could reach the Seed gate
-holding materially more equity.
+**A realistic non-dilutive stack is €300–500k**, which covers most of the €468k
+trough on its own. Combined with a smaller pre-seed, the founder could reach the
+Seed gate holding materially more equity.
 
 The 15% startup tax rate is already in the model. The others are excluded —
 they are upside, and grant timelines are unreliable enough that no plan should
@@ -193,10 +205,17 @@ That last row is a hard filter, not a preference. See
 | Round | Raised | Pre-money | Post-money | New investor % | Founder(s) after |
 |---|---|---|---|---|---|
 | Internal | — | — | — | — | 100% |
-| Pre-seed | €400k | €2.5M | €2.9M | 13.8% | 84% (after 2% advisory) |
-| Seed | €2.0M | €10M | €12M | 16.7% | 68% |
+| Pre-seed | €600k | €2.5M | €3.1M | 19.4% | 79% (after 2% advisory) |
+| Seed *(optional)* | €2.0M | €10M | €12M | 16.7% | 66% |
 | Series A | €8.0M | €40M | €48M | 16.7% | 55% |
-| ESOP (cumulative) | — | — | — | 10% | **~45%** |
+| ESOP (cumulative) | — | — | — | 10% | **~49%** |
 
-Retaining ~45% through Series A is a good outcome and depends almost entirely on
-the pre-seed being small and the non-dilutive stack being used first.
+Retaining ~49% through Series A is a good outcome, and it depends on the
+non-dilutive stack being used before equity rather than after it.
+
+> [!note] This table used to be typed by hand, and did not add up
+> The previous version raised €400k and still ended at ~45%, because each row
+> was written independently rather than carried forward from the one above it.
+> Every cell here is now generated by `model.dilution()` and pinned by the doc
+> guard: the pre-seed grew by €200k and retention went **up**, because the
+> arithmetic was wrong before, not because the round got cheaper.

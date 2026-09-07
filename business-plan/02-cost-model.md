@@ -52,19 +52,25 @@ price aggressively.
 
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| AWS + zero-egress CDN | €3k | €33k | €183k | **€419k** |
-| AWS + CloudFront list price | €6k | €103k | €610k | **€1.52M** |
-| **Annual difference** | €3k | €69k | €427k | **€1.10M** |
+| AWS + zero-egress CDN | €3k | €30k | €153k | **€344k** |
+| AWS + CloudFront list price | €5k | €66k | €327k | **€808k** |
+| **Annual difference** | €3k | €37k | €174k | **€465k** |
 
-At 1.8 GB per paying fan per month and 759k paying fans, Y7 moves ~16 PB. At
-CloudFront list (~€0.075/GB after volume tiers) that is €1.52M. Behind an
-object store with free egress (Cloudflare R2, Backblaze B2 + Bunny) it is
-€419k.
+At 1.8 GB per paying fan per month and 321k paying fans, Y7 moves ~6.9 PB. At
+CloudFront list (~€0.075/GB after volume tiers) **the bandwidth alone is
+€520k**; behind an object store with free egress (Cloudflare R2, Backblaze B2 +
+Bunny) the same bytes cost **€56k**. The table rows above are larger than both
+because they add the €288k of AWS compute and storage that neither choice
+avoids — it is the difference between the rows, not the rows themselves, that
+the egress decision moves.
 
-**€1.1M a year is a Series A's worth of runway, decided by one architectural
-choice.** The recommendation is AWS for compute and database — where its
-managed services genuinely earn their premium — and a zero-egress provider for
-media delivery. Hybrid, deliberately.
+**€465k a year is very nearly this plan's entire €468k cash trough, spent
+annually and decided by one architectural choice** — €3.5M across the ten
+years.
+
+The recommendation is AWS for compute and database — where its managed services
+genuinely earn their premium — and a zero-egress provider for media delivery.
+Hybrid, deliberately.
 
 ---
 

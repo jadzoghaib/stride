@@ -260,6 +260,67 @@ class Assumptions:
 A = Assumptions()
 
 
+# ---- the raise schedule ---------------------------------------------------
+# This lived in three places -- the workbook builder, the chart data and the
+# prose -- and they disagreed. The workbook was still raising EUR 400k in
+# Y1/Y3/Y5 after every document had moved to EUR 600k in Y1/Y4/Y6, because
+# regenerating it from this model never touched a list hardcoded in the
+# builder. Years are when the gate is met, not when the money is convenient.
+ROUNDS: list[dict] = [
+    {"year": 1, "stage": "Pre-seed", "amount": 600_000, "pre": 2_500_000},
+    {"year": 4, "stage": "Seed (optional)", "amount": 2_000_000, "pre": 10_000_000},
+    {"year": 6, "stage": "Series A", "amount": 8_000_000, "pre": 40_000_000},
+]
+
+# The two grants that dilute alongside the rounds: an advisory grant made at
+# the pre-seed, and the option pool topped up to 10% by the Series A.
+ADVISORY_GRANT: float = 0.02
+ESOP_POOL: float = 0.10
+
+
+def grant_years() -> tuple[int, int]:
+    """The years the advisory grant and the ESOP land in.
+
+    Found by stage and by latest year rather than by position in ROUNDS. The
+    workbook builds its own per-year grant rows and was indexing ROUNDS[0] and
+    ROUNDS[-1]: reordering the list, or adding a round out of order, would have
+    put the 2% grant on a different round from the one charged here, and the
+    sheet would have disagreed with this module without saying so.
+    """
+    advisory_year = next(rd["year"] for rd in ROUNDS if rd["stage"] == "Pre-seed")
+    # By stage, not by latest year: a round added after the Series A would
+    # otherwise carry the option pool with it, and the plan ties the 10% to the
+    # Series A milestone specifically. Falls back to the last round only if
+    # there is no Series A to tie it to.
+    esop_year = next((rd["year"] for rd in ROUNDS if rd["stage"] == "Series A"),
+                     max(rd["year"] for rd in ROUNDS))
+    return advisory_year, esop_year
+
+
+def dilution() -> list[dict]:
+    """The cap table after each round.
+
+    The table in section 04 was typed by hand and did not survive its own
+    arithmetic: the later rows did not follow from the earlier ones under any
+    reading of the earlier ones. Deriving it here lets the doc guard pin every
+    cell, which is the only thing that keeps a table like this honest.
+    """
+    _, esop_year = grant_years()
+    out: list[dict] = []
+    held = 1.0
+    for rd in sorted(ROUNDS, key=lambda r: r["year"]):
+        post = rd["pre"] + rd["amount"]
+        stake = rd["amount"] / post
+        held *= 1 - stake
+        if rd["stage"] == "Pre-seed":
+            held -= ADVISORY_GRANT
+        out.append({**rd, "post": post, "stake": stake, "held": held})
+    out.append({"year": esop_year, "stage": "ESOP (cumulative)",
+                "amount": 0.0, "pre": 0.0, "post": 0.0,
+                "stake": ESOP_POOL, "held": held * (1 - ESOP_POOL)})
+    return out
+
+
 def i(n: int) -> int:
     """Year number (1-10) -> list index."""
     return n - 1
@@ -514,6 +575,27 @@ def build() -> list[dict]:
     return rows
 
 
+# The exit multiples, in one place. They were a literal inside render() and a
+# reconstruction inside the doc guard, which meant changing one here would leave
+# the guard happily approving the old prose -- the exact two-sources-of-truth
+# failure the rest of this module exists to avoid.
+EXIT_MULTIPLES: list[tuple[str, str, float, str]] = [
+    ("Marketplace comparables", "4.0x revenue", 4.0, "revenue"),
+    ("Blended marketplace + SaaS", "6.5x revenue", 6.5, "revenue"),
+    ("High-growth SaaS mix", "9.0x revenue", 9.0, "revenue"),
+    ("EBITDA multiple", "14x EBITDA", 14.0, "ebitda"),
+]
+
+
+def exit_values(rows: list[dict]) -> list[dict]:
+    """Each exit multiple at the horizon year, and discounted back to today."""
+    last = rows[-1]
+    df = (1 + A.wacc) ** last["year"]          # end-of-horizon money to today
+    return [{"label": label, "basis": basis,
+             "at_exit": (at := max(last[key], 0.0) * mult), "today": at / df}
+            for label, basis, mult, key in EXIT_MULTIPLES]
+
+
 def valuation(rows: list[dict]) -> dict:
     pv = sum(r["fcf"] / (1 + A.wacc) ** r["year"] for r in rows)
     tv = rows[-1]["fcf"] * (1 + A.terminal_growth) / (A.wacc - A.terminal_growth)
@@ -633,12 +715,9 @@ def render(rows: list[dict]) -> dict[str, str]:
     last = rows[-1]
     df = (1 + A.wacc) ** last["year"]   # discount end-of-horizon money to today
     mult = table([f"Exit method (Y{last['year']})", "Multiple",
-                  f"Value at Y{last['year']}", "Discounted to today"], [
-        ["Marketplace comparables", "4.0x revenue", eur(last["revenue"] * 4), eur(last["revenue"] * 4 / df)],
-        ["Blended marketplace + SaaS", "6.5x revenue", eur(last["revenue"] * 6.5), eur(last["revenue"] * 6.5 / df)],
-        ["High-growth SaaS mix", "9.0x revenue", eur(last["revenue"] * 9), eur(last["revenue"] * 9 / df)],
-        ["EBITDA multiple", "14x EBITDA", eur(max(last["ebitda"], 0) * 14), eur(max(last["ebitda"], 0) * 14 / df)],
-    ])
+                  f"Value at Y{last['year']}", "Discounted to today"],
+                 [[e["label"], e["basis"], eur(e["at_exit"]), eur(e["today"])]
+                  for e in exit_values(rows)])
 
     # Cost structure at maturity. Hand-written until it drifted: the table
     # survived the Stripe rate correction unchanged and went on claiming EUR

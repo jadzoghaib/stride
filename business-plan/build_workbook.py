@@ -218,8 +218,10 @@ FUNDING_ROWS = {
     "Pre-money valuation": 5,
     "Post-money valuation": 6,
     "New investor stake": 7,
-    "Cumulative dilution": 8,
-    "Founders + team retained": 9,
+    "Advisory grant": 8,
+    "ESOP pool": 9,
+    "Founders + team retained": 10,
+    "Cumulative dilution": 11,
 }
 
 
@@ -873,8 +875,14 @@ def build() -> pathlib.Path:
 
     # ══ FUNDING ═════════════════════════════════════════════════════════════
     fu = sheet(wb, "Funding", "Funding rounds and dilution")
-    raises = [400_000, 0, 2_000_000, 0, 8_000_000, 0, 0, 0, 0, 0]
-    pre = [2_500_000, 0, 10_000_000, 0, 40_000_000, 0, 0, 0, 0, 0]
+    # From M.ROUNDS, not restated here. These two lists were the reason the
+    # workbook kept raising EUR 400k in Y1/Y3/Y5 through a regeneration that
+    # was supposed to bring it onto the slower plan.
+    raises = [0.0] * 10
+    pre = [0.0] * 10
+    for _rd in M.ROUNDS:
+        raises[_rd["year"] - 1] = float(_rd["amount"])
+        pre[_rd["year"] - 1] = float(_rd["pre"])
     U = FUNDING_ROWS
     r = 4
 
@@ -891,12 +899,25 @@ def build() -> pathlib.Path:
     urow("New investor stake", "%", fmt=PCT,
          formula=f"=IF({{c}}{U['Post-money valuation']}=0,0,"
                  f"{{c}}{U['Equity raised']}/{{c}}{U['Post-money valuation']})")
-    urow("Cumulative dilution", "%", fmt=PCT,
-         first=f"={{c}}{U['New investor stake']}",
-         formula=f"=1-(1-{{p}}{U['Cumulative dilution']})"
-                 f"*(1-{{c}}{U['New investor stake']})")
+    # The two grants that dilute alongside the rounds. Without them the sheet
+    # compounded investor stakes only and finished at 56% retained, against the
+    # 49% in section 04 -- the workbook and the plan disagreeing about who owns
+    # the company, which is a worse failure than either number being wrong.
+    advisory = [0.0] * 10
+    esop = [0.0] * 10
+    _advisory_year, _esop_year = M.grant_years()
+    advisory[_advisory_year - 1] = M.ADVISORY_GRANT
+    esop[_esop_year - 1] = M.ESOP_POOL
+    urow("Advisory grant", "%", values=advisory, fmt=PCT)
+    urow("ESOP pool", "%", values=esop, fmt=PCT)
     urow("Founders + team retained", "%", fmt=PCT, bold=True,
-         formula=f"=1-{{c}}{U['Cumulative dilution']}")
+         first=f"=(1-{{c}}{U['New investor stake']}-{{c}}{U['Advisory grant']})"
+               f"*(1-{{c}}{U['ESOP pool']})",
+         formula=f"=({{p}}{U['Founders + team retained']}"
+                 f"*(1-{{c}}{U['New investor stake']})"
+                 f"-{{c}}{U['Advisory grant']})*(1-{{c}}{U['ESOP pool']})")
+    urow("Cumulative dilution", "%", fmt=PCT,
+         formula=f"=1-{{c}}{U['Founders + team retained']}")
 
     # ══ VALUATION ═══════════════════════════════════════════════════════════
     va = sheet(wb, "Valuation", "Valuation — DCF, NPV, IRR and exit multiples")

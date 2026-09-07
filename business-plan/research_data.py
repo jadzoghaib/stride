@@ -117,7 +117,7 @@ ROWS: list[tuple] = [
      "Low", "Our own engagement data per sport per country once connectors are live. This is "
             "what makes the index self-improving rather than something anyone could copy."),
     ("Athlete count trajectory", "athletes", "ESTIMATE",
-     "400 rising to 85,000 over ten years. This is the PLAN, not a benchmark: marketing spend "
+     "400 rising to 40,000 over ten years. This is the PLAN, not a benchmark: marketing spend "
      "is derived from it at segment CAC, not the other way round. Everything in the model "
      "scales off this line.",
      "None — it is a target",
