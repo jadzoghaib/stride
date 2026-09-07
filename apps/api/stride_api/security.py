@@ -19,6 +19,18 @@ from .observability import metrics
 
 # (burst, refill per second) — auth is strict, general API is a generous ceiling
 AUTH_BURST, AUTH_REFILL = 20, 0.1   # ~6 credential attempts/min sustained per IP
+# Registration gets its own, smaller bucket rather than sharing the one above.
+#
+# Behind a proxy whose forwarded header we deliberately do not trust -- see
+# `forwarded_allow_ips` in config.py, unset so nobody can pick their own bucket
+# by spoofing a header -- every visitor presents the same address, so these
+# buckets are shared by everyone at once. That is a fair trade for sign-in,
+# which a real person hits a handful of times. It is not a fair trade when
+# registration shares it: on a deployment with open signup, one visitor
+# retrying a form could spend all twenty tokens and lock *every* visitor out of
+# signing in for minutes. Separate buckets mean the worst case is that
+# registration is briefly unavailable while sign-in keeps working.
+REGISTER_BURST, REGISTER_REFILL = 10, 0.05
 API_BURST, API_REFILL = 300, 5.0
 
 
@@ -47,8 +59,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         path = request.url.path
         if path.startswith("/api"):
             ip = request.client.host if request.client else "unknown"
-            if path.startswith(("/api/auth/login", "/api/auth/register",
-                                "/api/auth/forgot", "/api/auth/reset", "/api/auth/password")):
+            if path.startswith("/api/auth/register"):
+                allowed = buckets.allow(f"register:{ip}", REGISTER_BURST, REGISTER_REFILL)
+            elif path.startswith(("/api/auth/login", "/api/auth/forgot",
+                                  "/api/auth/reset", "/api/auth/password")):
                 allowed = buckets.allow(f"auth:{ip}", AUTH_BURST, AUTH_REFILL)
             else:
                 allowed = buckets.allow(f"api:{ip}", API_BURST, API_REFILL)

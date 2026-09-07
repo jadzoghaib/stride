@@ -153,7 +153,7 @@ four accounts. Counting from the database is the only honest way to do it:
 | `STRIDE_ENV` | `production` | Secure cookies; the app refuses to boot on the dev secret |
 | `STRIDE_SECRET` | generated | Signs sessions. Never commit one |
 | `STRIDE_ALLOW_SIGNUP` | `1` | Open. `0` closes it and collects nothing |
-| `STRIDE_DEMO_ACCOUNTS` | `1` | Whether the sign-in page advertises the seeded accounts — independent of the above |
+| `STRIDE_DEMO_ACCOUNTS` | `1` | Whether the sign-in page lists the seeded accounts. Read by the client from `/api/meta`; independent of the row above |
 | `STRIDE_DB` | `/home/stride/data/stride.db` | The runtime user's own home — a mounted disk would be root-owned |
 | `STRIDE_MEDIA_DIR` | `/home/stride/media` | Same reason |
 | `STRIDE_WEB_DIST` | `/app/web` | Set in the image; where the built client lives |
@@ -171,6 +171,13 @@ Honest list, so nothing is a surprise when someone asks.
 - **No email.** Verification, password reset and change-of-address record a row
   and send nothing. **With signup open this is visible to real users**: no
   address is ever confirmed, and a forgotten password cannot be recovered.
+- **Everyone shares one rate-limit bucket.** `STRIDE_FORWARDED_ALLOW_IPS` is
+  unset on purpose, so nobody can pick their own bucket by spoofing a header —
+  but that means the limiter sees Render's edge address for every visitor.
+  Registration has its own bucket so it cannot starve sign-in, and sign-in
+  cannot starve registration; within each, visitors share. Per-visitor limits
+  need a proxy configuration that can be trusted, which is a real-users problem
+  rather than a demo one.
 - **The instance sleeps.** On the free plan it spins down after inactivity and
   cold-starts in roughly a minute. Move to a paid instance before sending the
   link to someone whose time you care about.

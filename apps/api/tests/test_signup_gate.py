@@ -35,16 +35,20 @@ def signup_open():
     """Open it, for the same reason the fixture above closes it.
 
     `Settings` reads `STRIDE_ALLOW_SIGNUP` once at import, so a suite run in the
-    deployed environment -- where it is `0` -- would fail every test that
-    assumed the default was open. Asserting a default is asserting something
-    about the machine rather than about the code.
+    deployed environment -- where it is now `1`, and was `0` before that -- would
+    otherwise fail every test that assumed a particular default. Asserting a
+    default is asserting something about the machine rather than about the code.
+
+    `demo_accounts` is pinned alongside it for the same reason: it has its own
+    variable now, and a test that asserts the two are independent must set both
+    rather than inherit either.
     """
-    original = settings.allow_signup
-    settings.allow_signup = True
+    originals = settings.allow_signup, settings.demo_accounts
+    settings.allow_signup, settings.demo_accounts = True, True
     try:
         yield
     finally:
-        settings.allow_signup = original
+        settings.allow_signup, settings.demo_accounts = originals
 
 
 def test_meta_is_public_and_says_signup_is_open(client, signup_open):

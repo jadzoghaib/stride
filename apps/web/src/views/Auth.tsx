@@ -61,11 +61,15 @@ export default function Auth() {
    *  `null` while unknown, and the tab strip renders nothing rather than
    *  flickering a "Create account" tab that is about to disappear. */
   const [signupOpen, setSignupOpen] = useState<boolean | null>(null)
+  //: Whether to advertise the seeded demo credentials. A separate question from
+  //  whether registration is open — a deployment can sensibly do both — and it
+  //  has to be *read* here, or the setting is a payload nobody acts on.
+  const [showDemo, setShowDemo] = useState(true)
   useEffect(() => {
-    api.get<{ signup_open: boolean }>('/api/meta')
+    api.get<{ signup_open: boolean; demo_accounts: boolean }>('/api/meta')
       // an unreachable meta endpoint must not lock the door: fall back to open,
       // which is the historical behaviour and fails toward the honest 403
-      .then((m) => setSignupOpen(m.signup_open))
+      .then((m) => { setSignupOpen(m.signup_open); setShowDemo(m.demo_accounts) })
       .catch(() => setSignupOpen(true))
   }, [])
   const [params] = useSearchParams()
@@ -448,6 +452,7 @@ export default function Auth() {
           </button>
         </form>
 
+        {showDemo && (
         <div className="panel mt-4 p-4">
           <div className="cap">Demo accounts</div>
           <div className="mt-2 space-y-1 text-xs text-ink-2">
@@ -463,6 +468,7 @@ export default function Auth() {
             <div className="pt-1 text-ink-3">Shared password: stride123</div>
           </div>
         </div>
+        )}
       </div>
     </div>
   )
