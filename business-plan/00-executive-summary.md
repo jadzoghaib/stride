@@ -107,17 +107,20 @@ definitively — which is why that, and not a feature, is the pre-seed gate.
 
 ## The ask
 
-**€400k pre-seed at €2.5M pre-money.**
+**€600k pre-seed at €2.5M pre-money.**
 
 The gate is evidence, not a milestone we can assert: 400 athletes, €10k MRR, an
 anchor athlete public, payments processing real money, and **fan churn measured
-for three months.** Use of funds: three hires, Spain go-to-market, the club
+for three months.** Use of funds: two hires, Spain go-to-market, the club
 channel.
 
-The plan needs €655k. The staged rounds raise €2.4M before Series A, and the
-difference is deliberate — raising only what the model needs leaves no room for
-the assumption that turns out wrong, and a company that runs out of cash in Y3
-at the trough dies with a working product.
+The plan needs €655k — the **€468k cash trough in Y4** plus a 40% buffer — and
+the pre-seed clears the trough itself with €132k to spare. That is what asking
+for €600k rather than €400k buys: **the seed becomes optional.** It brings a
+second market forward; it is not the thing standing between the company and
+running out of cash. The rounds above it raise €2.6M before a Series A, and the
+honest answer to *"what if the next round does not come?"* is now "we grow more
+slowly", not "we die".
 
 ## What our decisions cost
 

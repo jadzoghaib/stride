@@ -873,8 +873,14 @@ def build() -> pathlib.Path:
 
     # ══ FUNDING ═════════════════════════════════════════════════════════════
     fu = sheet(wb, "Funding", "Funding rounds and dilution")
-    raises = [400_000, 0, 2_000_000, 0, 8_000_000, 0, 0, 0, 0, 0]
-    pre = [2_500_000, 0, 10_000_000, 0, 40_000_000, 0, 0, 0, 0, 0]
+    # From M.ROUNDS, not restated here. These two lists were the reason the
+    # workbook kept raising EUR 400k in Y1/Y3/Y5 through a regeneration that
+    # was supposed to bring it onto the slower plan.
+    raises = [0.0] * 10
+    pre = [0.0] * 10
+    for _rd in M.ROUNDS:
+        raises[_rd["year"] - 1] = float(_rd["amount"])
+        pre[_rd["year"] - 1] = float(_rd["pre"])
     U = FUNDING_ROWS
     r = 4
 

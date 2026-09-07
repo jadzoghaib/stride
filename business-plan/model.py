@@ -260,6 +260,47 @@ class Assumptions:
 A = Assumptions()
 
 
+# ---- the raise schedule ---------------------------------------------------
+# This lived in three places -- the workbook builder, the chart data and the
+# prose -- and they disagreed. The workbook was still raising EUR 400k in
+# Y1/Y3/Y5 after every document had moved to EUR 600k in Y1/Y4/Y6, because
+# regenerating it from this model never touched a list hardcoded in the
+# builder. Years are when the gate is met, not when the money is convenient.
+ROUNDS: list[dict] = [
+    {"year": 1, "stage": "Pre-seed", "amount": 600_000, "pre": 2_500_000},
+    {"year": 4, "stage": "Seed (optional)", "amount": 2_000_000, "pre": 10_000_000},
+    {"year": 6, "stage": "Series A", "amount": 8_000_000, "pre": 40_000_000},
+]
+
+# The two grants that dilute alongside the rounds: an advisory grant made at
+# the pre-seed, and the option pool topped up to 10% by the Series A.
+ADVISORY_GRANT: float = 0.02
+ESOP_POOL: float = 0.10
+
+
+def dilution() -> list[dict]:
+    """The cap table after each round.
+
+    The table in section 04 was typed by hand and did not survive its own
+    arithmetic: the later rows did not follow from the earlier ones under any
+    reading of the earlier ones. Deriving it here lets the doc guard pin every
+    cell, which is the only thing that keeps a table like this honest.
+    """
+    out: list[dict] = []
+    held = 1.0
+    for rd in ROUNDS:
+        post = rd["pre"] + rd["amount"]
+        stake = rd["amount"] / post
+        held *= 1 - stake
+        if rd["stage"] == "Pre-seed":
+            held -= ADVISORY_GRANT
+        out.append({**rd, "post": post, "stake": stake, "held": held})
+    out.append({"year": ROUNDS[-1]["year"], "stage": "ESOP (cumulative)",
+                "amount": 0.0, "pre": 0.0, "post": 0.0,
+                "stake": ESOP_POOL, "held": held * (1 - ESOP_POOL)})
+    return out
+
+
 def i(n: int) -> int:
     """Year number (1-10) -> list index."""
     return n - 1

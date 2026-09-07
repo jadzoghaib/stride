@@ -86,7 +86,7 @@ in popular sports. The honest reconciliation is that we disintermediate the
 *deal-finding*, not the *representation* — an agent still negotiates, we just
 make the introduction on evidence instead of on their contact list.
 
-### D1 — Raise €558k, or the €2.4M the rounds imply?
+### D1 — Raise €655k, or the €2.6M the rounds imply?
 
 **Recommendation: non-dilutive stack first** (ENISA + Neotec, €300–500k), then a
 smaller pre-seed. Every grant euro is equity retained.
@@ -102,7 +102,7 @@ sustainability. **Worth deciding deliberately rather than by default.**
 **Recommendation: lead with the exit multiple discounted back (€11–25M), present
 the DCF (€8.4M) as the conservative floor**, and explain why they differ. An
 examiner who spots a perpetuity-growth DCF applied to a company still growing
-22% in the terminal year will discount everything else.
+27% in the terminal year will discount everything else.
 
 ---
 

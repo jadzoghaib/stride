@@ -42,6 +42,10 @@ def eur_m(x: float) -> float:
     return round(x / 1e6, 3)
 
 
+RAISE_EUR_M = {rd["year"]: round(rd["amount"] / 1e6, 3) for rd in model.ROUNDS}
+RAISE_STAGE = {rd["year"]: rd["stage"] for rd in model.ROUNDS}
+
+
 def main() -> None:
     rows = model.build()
     seven = rows[:7]
@@ -64,7 +68,11 @@ def main() -> None:
            ["In niche sports", 4_600_000, "~55%, sport index segmentation"],
            ["With >=5,000 following (TAM)", 138_000, "~3%, softest number in the plan"],
            ["SAM -- six launch markets", 55_000, "~40% of TAM"],
-           ["SOM -- what the plan claims by Y7", 52_000, "model athlete target"]])
+           # From the model, not typed: the old 52,000 was 95% of the SAM
+           # one row above it, which is the contradiction section 3.3 now
+           # discloses. The slower ramp lands at 40% of SAM by Y7.
+           ["SOM -- what the plan claims by Y7", seven[6]["athletes"],
+            "model athlete target"]])
 
     # G4 -- the sport index. All 714 pairs, so the chart can show the whole
     # cloud with Spain picked out rather than only the winners' table.
@@ -121,10 +129,10 @@ def main() -> None:
     write("g8-cash-and-capital.csv",
           ["year", "fcf_eur_m", "cumulative_cash_before_raises_eur_m", "raise_eur_m", "stage"],
           [[r["year"], eur_m(r["fcf"]), eur_m(c),
-            # The pre-seed is EUR 600k, and G8 exists to show it clearing the
-            # trough. Left at 0.400 the chart drew the company running out of
-            # cash in Y3 -- the opposite of the section it illustrates.
-            {1: 0.600, 4: 2.000, 6: 8.000}.get(r["year"], ""),
+            # From model.ROUNDS. G8 exists to show the pre-seed clearing the
+            # trough, and when this was a literal it once drew the company
+            # running out of cash -- the opposite of the section it illustrates.
+            RAISE_EUR_M.get(r["year"], ""),
             # Placed where each gate is actually met rather than on the old
             # schedule. MRR here is recurring revenue -- fan subscriptions plus
             # sponsor SaaS, excluding one-off deals -- which is the basis
@@ -133,7 +141,7 @@ def main() -> None:
             # reading differs: fan subscriptions alone would put them in Y5 and
             # Y7, which is why the plan defines the term rather than leaving it
             # implied.
-            {1: "Pre-seed", 4: "Seed (optional)", 6: "Series A"}.get(r["year"], "")]
+            RAISE_STAGE.get(r["year"], "")]
            for r, c in zip(ten, cash)])
 
     # G9 -- the take-rate corridor. Both ends are real competitor rates, so this

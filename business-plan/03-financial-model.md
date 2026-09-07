@@ -45,7 +45,7 @@ during fast growth — the previous version of this model did exactly that.
 
 **Gross adds dwarf net adds.** At 9%/month a cohort retains 32% over a year, so
 most of next year's fans are replacements for this year's. In Y7 we acquire
-831k fans to finish with 759k, having lost 570k. That is the real acquisition
+354k fans to finish with 321k, having lost 239k. That is the real acquisition
 machine, and it was invisible until churn was modelled explicitly.
 
 ---

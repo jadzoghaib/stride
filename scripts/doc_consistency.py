@@ -152,6 +152,34 @@ def peak_funding() -> float:
     return -trough
 
 
+def egress_delta(year: int) -> float:
+    """What the naive CDN costs over the zero-egress one, in a given year."""
+    r = ROWS[year - 1]
+    return r["infra_naive"] - r["infra"]
+
+
+def egress_cumulative() -> float:
+    return sum(r["infra_naive"] - r["infra"] for r in ROWS)
+
+
+def startup_tax_saving() -> float:
+    """What the Ley de Startups 15% rate is worth against the standard 25%.
+
+    Section 04 claimed EUR 209k "across Y4-Y7" -- a window the model does not
+    use and a figure nothing produced. The low rate lands on the first four
+    TAXABLE years, which the slower ramp puts at Y6-Y9.
+    """
+    return sum(r["taxable"] * (A.tax_high - A.tax_low)
+               for r in ROWS if abs(r["tax_rate"] - A.tax_low) < 1e-9)
+
+
+def rounds_before_series_a() -> float:
+    return sum(rd["amount"] for rd in model.ROUNDS if rd["stage"] != "Series A")
+
+
+DILUTION = {d["stage"]: d for d in model.dilution()}
+
+
 # (document, description, regex capturing one number, expected value, tolerance)
 CLAIMS: list[tuple[str, str, str, float, float]] = [
     # --- the figures that had drifted, now watched -------------------------
@@ -224,12 +252,124 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("00-executive-summary.md", "revenue forfeited by the 15% take",
      r"forfeits €([\d.]+)M of Y7 revenue", take_rate_delta() / 1e6, 0.1),
 
+    # --- the raise schedule, and what it clears ---------------------------
+    # The pre-seed went from EUR 400k to EUR 600k and the documents split three
+    # ways: the draft moved, the workbook did not (it was still raising 400k in
+    # Y1/Y3/Y5), and 00/04/07 kept the old ask next to the new capital need. The
+    # amount now has one home in model.ROUNDS and every restatement is watched.
+    ("00-executive-summary.md", "the pre-seed ask",
+     r"\*\*€(\d+)k pre-seed at €2\.5M pre-money\.\*\*",
+     model.ROUNDS[0]["amount"] / 1e3, 1.0),
+    ("04-capital-and-valuation.md", "the pre-seed ask",
+     r"\| \*\*Pre-seed\*\* \| \*\*€(\d+)k\*\*", model.ROUNDS[0]["amount"] / 1e3, 1.0),
+    ("stride-business-plan-draft.md", "the pre-seed ask",
+     r"\| \*\*Pre-seed\*\* \| \*\*€(\d+)k\*\*", model.ROUNDS[0]["amount"] / 1e3, 1.0),
+
+    ("00-executive-summary.md", "raised before a Series A",
+     r"raise €([\d.]+)M before a Series A", rounds_before_series_a() / 1e6, 0.05),
+    ("04-capital-and-valuation.md", "raised before a Series A",
+     r"The rounds above raise €([\d.]+)M before Series A",
+     rounds_before_series_a() / 1e6, 0.05),
+    ("07-open-questions.md", "raised before a Series A",
+     r"or the €([\d.]+)M the rounds imply", rounds_before_series_a() / 1e6, 0.05),
+    ("07-open-questions.md", "capital the plan needs",
+     r"Raise €(\d+)k, or the", peak_funding() * 1.4 / 1e3, 1.0),
+
+    # The trough is the number the raise has to clear, so it is quoted in four
+    # places and was right in one of them.
+    ("00-executive-summary.md", "the cash trough",
+     r"\*\*€(\d+)k cash trough in Y4\*\*", peak_funding() / 1e3, 1.0),
+    ("04-capital-and-valuation.md", "the cash trough",
+     r"\*\*€(\d+)k trough in Y4\*\*", peak_funding() / 1e3, 1.0),
+    ("04-capital-and-valuation.md", "the trough the grant stack covers",
+     r"covers most of the €(\d+)k", peak_funding() / 1e3, 1.0),
+    ("README.md", "peak burn",
+     r"peak burn €(\d+)k", peak_funding() / 1e3, 1.0),
+
+    # The dilution path, cell by cell. It was typed by hand and its later rows
+    # did not follow from its earlier ones under any reading of them.
+    ("04-capital-and-valuation.md", "pre-seed post-money",
+     r"\| Pre-seed \| €600k \| €2\.5M \| €([\d.]+)M \|",
+     DILUTION["Pre-seed"]["post"] / 1e6, 0.05),
+    ("04-capital-and-valuation.md", "pre-seed investor stake",
+     r"\| Pre-seed \| €600k \| €2\.5M \| €3\.1M \| ([\d.]+)% \|",
+     DILUTION["Pre-seed"]["stake"] * 100, 0.1),
+    ("04-capital-and-valuation.md", "founders held after the pre-seed",
+     r"€3\.1M \| 19\.4% \| (\d+)% \(after 2% advisory\)",
+     DILUTION["Pre-seed"]["held"] * 100, 0.5),
+    ("04-capital-and-valuation.md", "founders held after the seed",
+     r"\| Seed \*\(optional\)\* \| €2\.0M \| €10M \| €12M \| 16\.7% \| (\d+)% \|",
+     DILUTION["Seed (optional)"]["held"] * 100, 0.5),
+    ("04-capital-and-valuation.md", "founders held after the Series A",
+     r"\| Series A \| €8\.0M \| €40M \| €48M \| 16\.7% \| (\d+)% \|",
+     DILUTION["Series A"]["held"] * 100, 0.5),
+    ("04-capital-and-valuation.md", "founders held after the ESOP",
+     r"\| ESOP \(cumulative\) \| — \| — \| — \| 10% \| \*\*~(\d+)%\*\* \|",
+     DILUTION["ESOP (cumulative)"]["held"] * 100, 0.5),
+    ("04-capital-and-valuation.md", "equity retained through the Series A",
+     r"Retaining ~(\d+)% through Series A",
+     DILUTION["ESOP (cumulative)"]["held"] * 100, 0.5),
+
+    # The founder-hurdle paragraph. Its old version multiplied a retention the
+    # dilution table did not support by an enterprise value nothing produced.
+    ("04-capital-and-valuation.md", "equity retained through the Series A, in prose",
+     r"a founder retaining ~(\d+)% through the Series A",
+     DILUTION["ESOP (cumulative)"]["held"] * 100, 0.5),
+    ("04-capital-and-valuation.md", "the founder's share of the DCF floor",
+     r"\*\*€([\d.]+)M against the DCF floor",
+     DILUTION["ESOP (cumulative)"]["held"] * VAL["enterprise_value"] / 1e6, 0.02),
+    ("04-capital-and-valuation.md", "the DCF floor itself",
+     r"against the DCF floor of €([\d.]+)M\*\*", VAL["enterprise_value"] / 1e6, 0.02),
+
+    ("04-capital-and-valuation.md", "what the startup tax rate is worth",
+     r"worth €([\d.]+)M across Y6–Y9", startup_tax_saving() / 1e6, 0.05),
+
+    # --- the egress decision, quoted in four documents ---------------------
+    # Every one of these was stale, and the draft's prose contradicted a table
+    # two lines above it: EUR 0.81M against EUR 344k is not a EUR 1.1M gap.
+    ("02-cost-model.md", "Y7 infrastructure, zero-egress",
+     r"\| AWS \+ zero-egress CDN \| €3k \| €30k \| €153k \| \*\*€(\d+)k\*\* \|",
+     Y7["infra"] / 1e3, 1.0),
+    ("02-cost-model.md", "Y7 infrastructure, CloudFront list",
+     r"\| AWS \+ CloudFront list price \| €5k \| €66k \| €327k \| \*\*€(\d+)k\*\* \|",
+     Y7["infra_naive"] / 1e3, 1.0),
+    ("02-cost-model.md", "the Y7 egress difference",
+     r"\*\*€(\d+)k a year is the whole", egress_delta(7) / 1e3, 1.0),
+    ("02-cost-model.md", "the egress difference across the plan",
+     r"— €([\d.]+)M across the ten years", egress_cumulative() / 1e6, 0.05),
+    ("README.md", "the Y7 egress difference",
+     r"costs \*\*€(\d+)k more in Y7\*\*", egress_delta(7) / 1e3, 1.0),
+    ("README.md", "the egress difference across the plan",
+     r"more in Y7\*\* — and €([\d.]+)M", egress_cumulative() / 1e6, 0.05),
+    ("stride-business-plan-draft.md", "the Y7 egress difference",
+     r"is \*\*€(\d+)k a year at Y7\*\*", egress_delta(7) / 1e3, 1.0),
+    ("stride-business-plan-draft.md", "the egress difference across the plan",
+     r"\*\*€([\d.]+)M cumulative across the plan\*\*", egress_cumulative() / 1e6, 0.05),
+    ("stride-business-plan-draft.md", "the infrastructure ratio",
+     r"infrastructure differs by \*\*([\d.]+)×\*\*",
+     Y7["infra_naive"] / Y7["infra"], 0.05),
+    ("stride-business-plan-draft.md", "gross margin points lost to naive egress",
+     r"\*\*([\d.]+) points of gross margin at Y7\*\*",
+     100 * egress_delta(7) / Y7["revenue"], 0.1),
+
+    # --- the acquisition machine ------------------------------------------
+    # Stated in thousands of fans and left on the old ramp, where it read as
+    # though the plan acquired 831k fans a year.
+    ("03-financial-model.md", "Y7 fan gross adds",
+     r"In Y7 we acquire\n(\d+)k fans", Y7["fan_gross_adds"] / 1e3, 1.0),
+    ("03-financial-model.md", "Y7 paying fans",
+     r"fans to finish with (\d+)k", Y7["paying_fans"] / 1e3, 1.0),
+    ("03-financial-model.md", "Y7 fans churned",
+     r"having lost (\d+)k", Y7["fans_churned"] / 1e3, 1.0),
+
     # --- the preliminary full draft ---------------------------------------
     # A draft is exactly where a figure goes stale, and this one repeats numbers
     # from six other documents. The infrastructure pair is pinned because the
     # first version of it was wrong: it quoted a EUR 3.9M naive cost from the 9x
-    # egress *rate*, when total infrastructure differs by 3.6x — compute and
-    # storage are unaffected by the egress decision.
+    # egress *rate*, when total infrastructure differs by 2.4x — compute and
+    # storage are unaffected by the egress decision. The 3.6x that replaced it
+    # was itself left behind by the slower ramp, which is why the ratio and both
+    # euro figures are pinned below rather than described in a comment.
     # The tier prices, pinned to the one place they are defined. They had already
     # diverged once: model.py's unit-economics table carried a EUR 14.99 tier
     # that exists nowhere else and priced the season pass at 99 against 89.

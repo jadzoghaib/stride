@@ -231,7 +231,7 @@ rather than an afterthought:
 ## Verification
 
 ```bash
-python scripts/verify.py                 # everything: 12 checks, ~3 minutes
+python scripts/verify.py                 # everything: 11 checks (12 with --postgres)
 python scripts/verify.py --quick         # skip the build, the drill, the workbook
 ```
 
@@ -253,14 +253,15 @@ python scripts/verify.py --postgres postgresql://postgres:stride@127.0.0.1:55432
 python scripts/verify.py --external      # also reach every URL the business plan cites
 ```
 
-Two tests are skipped on SQLite and only run there; on Postgres the suite is
-361 rather than 359. The dual backend is a claim this repository makes, so it
-is worth the container to check it.
+Two tests need a Postgres server and skip without one, so the suite is **396
+passed, 2 skipped** on SQLite and **398 passed** against Postgres 16. The dual
+backend is a claim this repository makes, so it is worth the container to check
+it.
 
 The individual checks, if you want one on its own:
 
 ```bash
-cd apps/api && uv run pytest -q          # 359 passed, 2 skipped (those two need Postgres)
+cd apps/api && uv run pytest -q          # 396 passed, 2 skipped (those two need Postgres)
 cd apps/web && npx tsc -b && npx vite build
 python scripts/design_audit.py           # contrast measured, type scale named, DESIGN.md honoured
 python scripts/journey.py     http://127.0.0.1:8490   # 38 product rules, end to end

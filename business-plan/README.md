@@ -76,7 +76,7 @@ python business-plan/graph_data.py               # regenerate the chart CSVs
 ```
 
 The plan marks twelve places where a graph belongs, as `📊 GRAPH Gn` callouts.
-`graph_data.py` writes the series behind nine of them into
+`graph_data.py` writes the series behind ten of them into
 [`attachments/chart-data/`](attachments/), so a chart drawn from these files
 cannot disagree with the model. §9.4 of the plan indexes every slot.
 
@@ -94,9 +94,9 @@ the rate of monthly ones, so the retention gain compounds the fee saving. See
 **2. Media egress, not compute.** The current product is deterministic
 analytics: compute is a rounding error, which `docs/costs.md` correctly says.
 The moment fans pay for video, that stops being true. Served naively from
-CloudFront, egress alone costs **€1.1M more in Y7** than the same bytes behind
-a zero-egress CDN. This is an architecture decision with a seven-figure price
-tag.
+CloudFront, egress alone costs **€465k more in Y7** — and €3.5M across the
+plan — than the same bytes behind a zero-egress CDN. The Y7 figure is the
+whole of this plan's cash trough, spent annually, on one architecture decision.
 
 **3. The age model is tiered, not a single number.** 16 is the floor for an
 account, and that choice is forward-compatible: Spain's draft Organic Law on
