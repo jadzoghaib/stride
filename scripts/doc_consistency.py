@@ -189,6 +189,55 @@ MULTIPLES = [e["today"] for e in model.exit_values(ROWS)]
 # (document, description, regex capturing one number, expected value, tolerance)
 CLAIMS: list[tuple[str, str, str, float, float]] = [
     # --- the figures that had drifted, now watched -------------------------
+    # --- the plan README's headline table ---------------------------------
+    # Twenty-five figures in the table a reader opens first, and none of them
+    # were watched. Revenue happened to survive the egress correction; EBITDA,
+    # one row below it, drifted in four cells out of five. Exactly the fault
+    # already recorded against the draft's two headline tables, in a third
+    # table nobody had thought to pin.
+    # Tolerances are HALF THE LAST PRINTED PLACE, not a round number that looks
+    # small. Written first with 0.01 against figures printed to two decimals,
+    # which accepts a full display step of error: all four stale EBITDA cells
+    # this table's correction was about passed the pins added to catch them.
+    # A pin looser than its own display precision reports "checked" and checks
+    # nothing.
+    *[("README.md", f"headline table, Y{y} active athletes",
+       r"\| Active athletes \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
+       ROWS[y - 1]["athletes"], 0.5) for n, y in enumerate((1, 3, 5, 7, 10))],
+    *[("README.md", f"headline table, Y{y} paying fans",
+       r"\| Paying fans \(year end\) \|" + r" \d+k \|" * n + r" (\d+)k",
+       ROWS[y - 1]["paying_fans"] / 1e3, 0.5) for n, y in enumerate((1, 3, 5, 7, 10))],
+    *[("README.md", f"headline table, Y{y} net revenue",
+       r"\| \*\*Net revenue\*\* \|" + r" \*\*€[\d.]+M\*\* \|" * n + r" \*\*€([\d.]+)M\*\*",
+       ROWS[y - 1]["revenue"] / 1e6, 0.005) for n, y in enumerate((1, 3, 5, 7, 10))],
+    *[("README.md", f"headline table, Y{y} headcount",
+       r"\| Headcount \|" + r" [\d.]+ \|" * n + r" ([\d.]+)",
+       ROWS[y - 1]["headcount"], 0.05) for n, y in enumerate((1, 3, 5, 7, 10))],
+
+    # EBITDA needs one regex per column rather than a comprehension: the row
+    # mixes thousands and millions, and the sign is a real minus (U+2212), not
+    # a hyphen. The sign sits in the pattern rather than the capture so a
+    # flipped sign fails as "claim not found" instead of crashing float().
+    ("README.md", "headline table, Y1 EBITDA",
+     r"\| EBITDA \| −€(\d+)k", abs(ROWS[0]["ebitda"]) / 1e3, 0.5),
+    ("README.md", "headline table, Y3 EBITDA",
+     r"\| EBITDA \| −€\d+k \| −€(\d+)k", abs(ROWS[2]["ebitda"]) / 1e3, 0.5),
+    ("README.md", "headline table, Y5 EBITDA",
+     r"\| EBITDA \| −€\d+k \| −€\d+k \| €([\d.]+)M",
+     ROWS[4]["ebitda"] / 1e6, 0.005),
+    ("README.md", "headline table, Y7 EBITDA",
+     r"\| EBITDA \| −€\d+k \| −€\d+k \| €[\d.]+M \| €([\d.]+)M",
+     ROWS[6]["ebitda"] / 1e6, 0.005),
+    ("README.md", "headline table, Y10 EBITDA",
+     r"\| EBITDA \|(?: −?€[\d.]+[kM] \|){4} €([\d.]+)M",
+     ROWS[9]["ebitda"] / 1e6, 0.005),
+
+    # The fixed-fee mechanic the README leads with. Correct, and unpinned.
+    ("README.md", "what a €4.99 tier retains",
+     r"€4\.99 tier we keep (\d+)%", retained(4.99) * 100, 0.5),
+    ("README.md", "what a €9.99 tier retains",
+     r"At €9\.99 we\nkeep (\d+)%", retained(9.99) * 100, 0.5),
+
     ("README.md", "capital required",
      r"Capital required to fund it: €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
     ("README.md", "first EBITDA-positive year",
@@ -228,6 +277,19 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("02-cost-model.md", "infrastructure as a share of Y7 revenue",
      r"Infrastructure is ([\d.]+)% of revenue",
      100 * Y7["infra"] / Y7["revenue"], 0.05),
+    # 02's team table never came onto the slower plan: it ran to 50 FTE by Y7
+    # against the model's 22, with people cost stale to match, because nothing
+    # watched either row. Both are per-year now, seven columns each.
+    *[("02-cost-model.md", f"team table, Y{y} headcount",
+       r"\| Headcount \(FTE\) \|" + r" [\d.]+ \|" * (y - 1) + r" ([\d.]+)",
+       ROWS[y - 1]["headcount"], 0.05) for y in range(1, 8)],
+    *[("02-cost-model.md", f"team table, Y{y} people cost",
+       r"\| People cost \|" + r" €[\d.]+[kM] \|" * (y - 1) + r" €(\d+)k",
+       ROWS[y - 1]["people"] / 1e3, 0.5) for y in range(1, 6)],
+    *[("02-cost-model.md", f"team table, Y{y} people cost",
+       r"\| People cost \|" + r" €[\d.]+[kM] \|" * (y - 1) + r" €([\d.]+)M",
+       ROWS[y - 1]["people"] / 1e6, 0.005) for y in (6, 7)],
+
     ("02-cost-model.md", "Y1 applications behind one athlete",
      r"Applications behind the athlete plan \| ([\d,]+) ", Y1["applications"], 1),
     ("02-cost-model.md", "Y1 manual reviews", r"\| Manual reviews \| ([\d,]+) ", Y1["reviews"], 1),

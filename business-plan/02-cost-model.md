@@ -151,8 +151,8 @@ figure below is loaded cost.
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
-| Headcount (FTE) | 1.5 | 3.0 | 7.0 | 14.0 | 24.0 | 36.0 | 50.0 |
-| People cost | €57k | €156k | €420k | €896k | €1.58M | €2.45M | €3.50M |
+| Headcount (FTE) | 1.5 | 2.0 | 3.5 | 6.0 | 10.0 | 15.0 | 22.0 |
+| People cost | €57k | €104k | €210k | €384k | €660k | €1.02M | €1.54M |
 
 **Spain is a structural cost advantage.** A senior engineer at €72k loaded costs
 roughly half the equivalent in London or Amsterdam and a third of the Bay Area,
