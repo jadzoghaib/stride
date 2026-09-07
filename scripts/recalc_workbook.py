@@ -12,7 +12,7 @@ those rows are themselves formulas: until a spreadsheet application opens the
 file, nobody has ever computed them. The check existed and had never once run.
 
 This module runs it. It is a small Excel evaluator -- the workbook uses nine
-functions across 1,992 formulas, which is a small enough vocabulary to implement
+functions across 2,010 formulas, which is a small enough vocabulary to implement
 exactly rather than depend on a library (the obvious ones pull in scipy, which
 this machine's Application Control blocks anyway).
 
@@ -23,6 +23,8 @@ Exit code 0 when every formula evaluates and every VARIANCE row is zero.
 
 from __future__ import annotations
 
+import decimal
+import math
 import pathlib
 import re
 import sys
@@ -288,7 +290,12 @@ class Calculator:
             "+": lambda: a + b,
             "-": lambda: a - b,
             "*": lambda: a * b,
-            "/": lambda: (a / b) if b else 0.0,
+            # Excel would show #DIV/0! here. Returning zero instead lets a
+            # broken formula sail through as a passing VARIANCE, which is
+            # the one outcome this whole script exists to prevent. The
+            # divisions that legitimately guard against a zero denominator
+            # sit inside an IF, and IF is lazy, so they never reach this.
+            "/": lambda: _divide(a, b),
             "^": lambda: a ** b,
             "<": lambda: a < b,
             ">": lambda: a > b,
@@ -380,6 +387,12 @@ class Calculator:
         return done
 
 
+def _divide(a: float, b: float) -> float:
+    if b == 0:
+        raise ValueError(f"#DIV/0! evaluating {a!r}/{b!r}")
+    return a / b
+
+
 def _num(value) -> float:
     if isinstance(value, bool):
         return 1.0 if value else 0.0
@@ -395,11 +408,19 @@ def _truthy(value) -> bool:
 
 
 def _round_half_up(value: float, digits: int) -> float:
-    """Excel rounds halves away from zero; Python rounds them to even."""
-    factor = 10 ** digits
-    scaled = value * factor
-    nudged = int(scaled + (0.5 if scaled >= 0 else -0.5))
-    return nudged / factor
+    """Excel rounds halves away from zero; Python rounds them to even.
+
+    Adding 0.5 and truncating is not that: 1.005 is stored as slightly less
+    than one and a half hundredths, so `int(100.4999... + 0.5)` gives 1.00
+    where Excel gives 1.01. Decimal on the float's shortest repr rounds the
+    number as written, which is what a spreadsheet appears to do.
+    """
+    if not math.isfinite(value):
+        return value
+    quantum = decimal.Decimal(1).scaleb(-digits)
+    rounded = decimal.Decimal(repr(value)).quantize(
+        quantum, rounding=decimal.ROUND_HALF_UP)
+    return float(rounded)
 
 
 def _irr(flows: list[float], guess: float = 0.1) -> float:
@@ -425,11 +446,20 @@ def check_variances(calc: Calculator) -> list[str]:
     problems, checked = [], 0
     for row in ws.iter_rows(min_col=1, max_col=1):
         label = row[0].value
-        if not isinstance(label, str) or "VARIANCE" not in label.upper():
+        # An exact match, not a substring one. The sheet's own explanatory
+        # sentence contains the word VARIANCE, so a substring test picked up a
+        # prose row and computed five meaningless "variance" cells out of it --
+        # which is where the odd count of 145 came from. There are 140.
+        if not isinstance(label, str) or label.strip().upper() != "VARIANCE":
             continue
         heading = _heading_above(ws, row[0].row)
         for col in range(3, ws.max_column + 1):
             if ws.cell(row=row[0].row, column=col).value is None:
+                # Not a skip: a variance cell that stops existing is a check
+                # that quietly covers less than it says it does.
+                problems.append(
+                    f"VARIANCE {heading} Y{col - 2}: cell is empty, so this "
+                    f"year is no longer compared against model.py")
                 continue
             checked += 1
             value = _num(calc.cell("Check", col, row[0].row))

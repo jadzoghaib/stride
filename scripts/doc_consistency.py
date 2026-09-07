@@ -345,8 +345,17 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"and €[\d.]+–([\d.]+)M against the exit multiples",
      DILUTION["ESOP (cumulative)"]["held"] * max(MULTIPLES) / 1e6, 0.08),
 
+    # Unpinned figures that the egress correction moved and review caught:
+    # the gap between the ask and the pre-seed, and G11's restatement of the
+    # Y7 infrastructure number from the table three sections above it.
+    ("04-capital-and-valuation.md", "the gap between the ask and the pre-seed",
+     r"the €(\d+)k gap is what the non-dilutive stack",
+     (peak_funding() * 1.4 - model.ROUNDS[0]["amount"]) / 1e3, 1.0),
+    ("stride-business-plan-draft.md", "Y7 infrastructure in the G11 callout",
+     r"€2\.55M against €(\d+)k at Y7", Y7["infra"] / 1e3, 1.0),
+
     ("04-capital-and-valuation.md", "the DCF floor itself",
-     r"against the DCF floor of €([\d.]+)M\*\*", VAL["enterprise_value"] / 1e6, 0.02),
+     r"against the DCF floor of €([\d.]+)M\*\*", VAL["enterprise_value"] / 1e6, 0.005),
 
     ("04-capital-and-valuation.md", "what the startup tax rate is worth",
      r"worth €([\d.]+)M across Y6–Y9", startup_tax_saving() / 1e6, 0.05),

@@ -42,7 +42,7 @@ jobs:
           STRIDE_TEST_DATABASE_URL: postgresql://postgres:stride@localhost:5432/stride
 
   guards:
-    # The three drift guards. Each was written after something slipped past a
+    # The four drift guards. Each was written after something slipped past a
     # review, and each has since caught something a review missed.
     name: Model & workbook guards
     runs-on: ubuntu-latest

@@ -36,7 +36,7 @@ loss. At a 70% failure probability, the surviving case must return roughly
 **€1.5–2M to the founder** for the decision to have been rational ex ante.
 
 The model delivers that: a founder retaining ~49% through the Series A holds
-that share of the enterprise value — **€4.11M against the DCF floor of €8.36M**,
+that share of the enterprise value — **€4.11M against the DCF floor of €8.37M**,
 and €5.4–12.1M against the exit multiples discounted back. **Even the floor
 clears the hurdle twice over**, which is the honest justification for doing it
 at all.
@@ -69,7 +69,7 @@ round arriving on schedule is a materially stronger one to raise against.
 Be precise about what that claims. **€600k clears the trough the model
 produces; €649k is that trough plus the 40% buffer.** The seed is optional
 against the plan as modelled — not against the conservative case the buffer
-exists for. If the buffer is needed, the €55k gap is what the non-dilutive stack
+exists for. If the buffer is needed, the €49k gap is what the non-dilutive stack
 above is for.
 
 ### Why the pre-seed gate is the one that matters

@@ -769,7 +769,7 @@ easiest way to lose credibility with anyone who has run a marketplace.
 > band.
 > **Data** · `attachments/chart-data/g11-cogs-composition.csv`
 > **Must say** · The reflex on hearing "content platform" is a bandwidth bill.
-> **It is a payments bill** — €2.55M against €344k at Y7. The architecture
+> **It is a payments bill** — €2.55M against €336k at Y7. The architecture
 > decision is real and worth taking; it is not the thing that decides the
 > margin.
 
@@ -1318,7 +1318,7 @@ Ordered by how much the plan would change if the answer surprised us.
 - **Financial model:** `business-plan/model.py`. Ten-year projection, real
   working capital, capex, amortisation, loss carry-forward, Spanish Startup Law
   tax step (15% for four profitable years, then 25%).
-- **Consistency:** an automated guard checks **132 prose claims across 9
+- **Consistency:** an automated guard checks **134 prose claims across 9
   documents** against the model, plus the evidence chain from published
   comparables → derived assumptions. The build fails if any figure drifts —
   including this sentence, whose two numbers are themselves pinned to the
