@@ -55,19 +55,19 @@ fact you can demonstrate, not a milestone you can assert.
 | **Seed** *(optional)* | €2.0M | €10M | €80k MRR · fan churn < 8%/mo · CAC payback < 9mo · 2nd market opened · 30+ paying sponsors | Team to 15, second and third market, moderation infrastructure |
 | **Series A** | €8.0M | €40M | €300k MRR · net revenue retention > 110% · sponsorship take > 25% of revenue · unit economics stable across 3 markets | EU-wide, sales org, managed services |
 
-**The plan needs €655k. The rounds above raise €2.6M before Series A.** The
+**The plan needs €649k. The rounds above raise €2.6M before Series A.** The
 difference is deliberate: raising only what the model needs leaves no room for
 the assumption that turns out wrong, and a company that runs out of cash at the
 trough dies with a working product. Raise the buffer; do not spend it unless
 the conservative case materialises.
 
-The pre-seed alone covers the **€468k trough in Y4** with €132k to spare, which
+The pre-seed alone covers the **€464k trough in Y4** with €136k to spare, which
 is why the seed is marked optional above. It is growth capital — a second market
 sooner — not rescue capital. A plan whose survival does not depend on the next
 round arriving on schedule is a materially stronger one to raise against.
 
 Be precise about what that claims. **€600k clears the trough the model
-produces; €655k is that trough plus the 40% buffer.** The seed is optional
+produces; €649k is that trough plus the 40% buffer.** The seed is optional
 against the plan as modelled — not against the conservative case the buffer
 exists for. If the buffer is needed, the €55k gap is what the non-dilutive stack
 above is for.
@@ -99,7 +99,7 @@ Taking dilution before exhausting these is leaving money on the table.
 | **Ley de Startups** tax regime | — | **15% corporate tax** for the first four taxable years vs 25% | Modelled — worth €1.56M across Y6–Y9 |
 | Beckham Law | — | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
 
-**A realistic non-dilutive stack is €300–500k**, which covers most of the €468k
+**A realistic non-dilutive stack is €300–500k**, which covers most of the €464k
 trough on its own. Combined with a smaller pre-seed, the founder could reach the
 Seed gate holding materially more equity.
 
@@ -118,10 +118,10 @@ Two methods, because they answer different questions and disagree for a reason.
 <!-- MODEL:valuation -->
 | Valuation (DCF) | Value |
 |---|---|
-| PV of explicit FCF, Y1–Y10 | €3.90M |
-| Terminal value (g=3%) | €41.50M |
+| PV of explicit FCF, Y1–Y10 | €3.91M |
+| Terminal value (g=3%) | €41.53M |
 | PV of terminal value | €4.46M |
-| **Enterprise value (WACC 25%)** | **€8.36M** |
+| **Enterprise value (WACC 25%)** | **€8.37M** |
 <!-- /MODEL:valuation -->
 
 ### Exit multiple
@@ -133,7 +133,7 @@ Two methods, because they answer different questions and disagree for a reason.
 | Marketplace comparables | 4.0x revenue | €101.53M | €10.90M |
 | Blended marketplace + SaaS | 6.5x revenue | €164.99M | €17.72M |
 | High-growth SaaS mix | 9.0x revenue | €228.45M | €24.53M |
-| EBITDA multiple | 14x EBITDA | €151.03M | €16.22M |
+| EBITDA multiple | 14x EBITDA | €151.13M | €16.23M |
 <!-- /MODEL:multiples -->
 
 ### Why they disagree, and which to believe
@@ -156,9 +156,9 @@ worth €8.4M today.
 <!-- MODEL:sensitivity -->
 | Enterprise value | WACC 20% | WACC 25% | WACC 30% |
 |---|---|---|---|
-| Terminal growth 2% | €13.65M | €8.13M | €5.13M |
-| Terminal growth 3% | €14.22M | **€8.36M** | €5.24M |
-| Terminal growth 4% | €14.85M | €8.62M | €5.36M |
+| Terminal growth 2% | €13.67M | €8.14M | €5.14M |
+| Terminal growth 3% | €14.23M | **€8.37M** | €5.25M |
+| Terminal growth 4% | €14.86M | €8.63M | €5.37M |
 <!-- /MODEL:sensitivity -->
 
 **Defensible headline: €11–25M enterprise value, the Y10 exit multiples

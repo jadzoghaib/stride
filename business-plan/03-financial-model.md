@@ -141,20 +141,20 @@ curve that stays above 50% through Y7 is what a Series B buyer wants to see.
 | Net revenue | €25k | €134k | €535k | €1.50M | €3.43M | €6.53M | €10.70M | €15.39M | €19.92M | €25.38M |
 | Payment processing | €8k | €39k | €137k | €371k | €830k | €1.56M | €2.55M | €3.67M | €4.78M | €6.08M |
 | Payouts | €645 | €3k | €11k | €32k | €74k | €144k | €237k | €343k | €446k | €574k |
-| Infrastructure (AWS) | €3k | €9k | €30k | €75k | €153k | €240k | €344k | €435k | €516k | €583k |
+| Infrastructure (AWS) | €2k | €9k | €28k | €73k | €149k | €234k | €336k | €428k | €508k | €576k |
 | Moderation | €1k | €4k | €10k | €19k | €33k | €51k | €70k | €89k | €108k | €127k |
 | Athlete verification | €745 | €2k | €5k | €8k | €12k | €15k | €18k | €20k | €23k | €25k |
-| **Gross profit** | €11k | €77k | €342k | €999k | €2.32M | €4.51M | €7.48M | €10.84M | €14.04M | €18.00M |
-| Gross margin | 46% | 57% | 64% | 66% | 68% | 69% | 70% | 70% | 71% | 71% |
+| **Gross profit** | €11k | €77k | €344k | €1.00M | €2.33M | €4.52M | €7.49M | €10.85M | €14.05M | €18.01M |
+| Gross margin | 46% | 57% | 64% | 67% | 68% | 69% | 70% | 70% | 71% | 71% |
 | People | €57k | €104k | €210k | €384k | €660k | €1.02M | €1.54M | €2.02M | €2.44M | €2.89M |
 | Marketing / CAC | €29k | €87k | €229k | €520k | €915k | €1.30M | €1.70M | €1.85M | €1.80M | €1.95M |
 | Legal & compliance | €18k | €45k | €90k | €150k | €200k | €235k | €270k | €300k | €325k | €345k |
 | Other opex | €2k | €11k | €43k | €120k | €274k | €522k | €856k | €1.23M | €1.59M | €2.03M |
-| **EBITDA** | €-95k | €-170k | €-229k | €-176k | €275k | €1.43M | €3.11M | €5.44M | €7.88M | €10.79M |
-| Tax | €0 | €0 | €0 | €0 | €0 | €87k | €418k | €747k | €1.09M | €2.51M |
+| **EBITDA** | €-95k | €-169k | €-228k | €-173k | €278k | €1.44M | €3.12M | €5.45M | €7.89M | €10.80M |
+| Tax | €0 | €0 | €0 | €0 | €0 | €89k | €419k | €748k | €1.09M | €2.52M |
 | Working capital movement | €-16k | €-38k | €-110k | €-264k | €-516k | €-821k | €-1.09M | €-1.21M | €-1.17M | €-1.46M |
 | Capex (capitalised development) | €17k | €31k | €63k | €115k | €198k | €306k | €462k | €605k | €733k | €866k |
-| **Free cash flow** | €-96k | €-163k | €-182k | €-27k | €592k | €1.86M | €3.32M | €5.30M | €7.23M | €8.86M |
+| **Free cash flow** | €-96k | €-162k | €-181k | €-25k | €596k | €1.87M | €3.33M | €5.30M | €7.23M | €8.87M |
 <!-- /MODEL:pl -->
 
 Free cash flow is EBITDA less tax, working capital movement and capex — not
@@ -180,29 +180,29 @@ parent (~85% at a 20% take on far larger tickets).
 | Year | Free cash flow | Cumulative |
 |---|---|---|
 | Y1 | €-96k | €-96k |
-| Y2 | €-163k | €-259k |
-| Y3 | €-182k | €-441k |
-| Y4 | €-27k | €-468k |
-| Y5 | €592k | €124k |
-| Y6 | €1.86M | €1.99M |
-| Y7 | €3.32M | €5.31M |
-| Y8 | €5.30M | €10.61M |
-| Y9 | €7.23M | €17.83M |
-| Y10 | €8.86M | €26.70M |
+| Y2 | €-162k | €-258k |
+| Y3 | €-181k | €-439k |
+| Y4 | €-25k | €-464k |
+| Y5 | €596k | €132k |
+| Y6 | €1.87M | €2.00M |
+| Y7 | €3.33M | €5.33M |
+| Y8 | €5.30M | €10.63M |
+| Y9 | €7.23M | €17.86M |
+| Y10 | €8.87M | €26.73M |
 <!-- /MODEL:cash -->
 
 | Capital requirement | Value |
 <!-- MODEL:funding -->
 | Capital requirement | Value |
 |---|---|
-| Deepest cumulative cash position | €-468k |
+| Deepest cumulative cash position | €-464k |
 | Year it occurs | Y4 |
-| Buffer at 40% (hiring slips, churn worse) | €187k |
-| **Total capital to fund the plan** | **€655k** |
+| Buffer at 40% (hiring slips, churn worse) | €186k |
+| **Total capital to fund the plan** | **€649k** |
 | First EBITDA-positive year | Y5 |
 <!-- /MODEL:funding -->
 
-**€655k is a small number for a plan that reaches €10.7M of revenue by Y7,
+**€649k is a small number for a plan that reaches €10.7M of revenue by Y7,
 and that should be interrogated rather than celebrated.** It is small because
 the model hires behind revenue rather than ahead of it, and because fan
 acquisition is free. A growth-optimised version — hiring 12 months earlier,
@@ -220,7 +220,7 @@ be wrong are **fans per athlete** and **share of athletes who monetise**.
 | Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Capital need |
 |---|---|---|---|---|
 | **Conservative** | Fans/athlete −30%, monetise rate −25% | ~€8.4M | ~€1.9M | ~€1.26M |
-| **Base** | As modelled | €10.70M | €3.11M | €655k |
+| **Base** | As modelled | €10.70M | €3.12M | €649k |
 | **Growth-optimised** | Hire 12mo ahead, 3 markets from Y2 | ~€39M | ~€9M | €3–5M |
 
 To run these, edit `Assumptions` in `model.py` and rerun. The conservative case

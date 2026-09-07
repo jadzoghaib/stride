@@ -54,6 +54,7 @@ jobs:
       - run: uv run python scripts/admission_stress.py
       - run: uv run python business-plan/build_workbook.py
       - run: uv run python scripts/verify_workbook.py
+      - run: uv run python scripts/recalc_workbook.py
 
   live:
     # The three scripts that drive a running server rather than the app object.

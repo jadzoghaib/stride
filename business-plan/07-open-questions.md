@@ -86,7 +86,7 @@ in popular sports. The honest reconciliation is that we disintermediate the
 *deal-finding*, not the *representation* — an agent still negotiates, we just
 make the introduction on evidence instead of on their contact list.
 
-### D1 — Raise €655k, or the €2.6M the rounds imply?
+### D1 — Raise €649k, or the €2.6M the rounds imply?
 
 **Recommendation: non-dilutive stack first** (ENISA + Neotec, €300–500k), then a
 smaller pre-seed. Every grant euro is equity retained.

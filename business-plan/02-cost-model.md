@@ -52,21 +52,28 @@ price aggressively.
 
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| AWS + zero-egress CDN | €3k | €30k | €153k | **€344k** |
-| AWS + CloudFront list price | €5k | €66k | €327k | **€808k** |
-| **Annual difference** | €3k | €37k | €174k | **€465k** |
+| AWS + zero-egress CDN | €2k | €28k | €149k | **€336k** |
+| AWS + CloudFront list price | €4k | €56k | €290k | **€738k** |
+| **Annual difference** | €2k | €27k | €142k | **€402k** |
 
-At 1.8 GB per paying fan per month and 321k paying fans, Y7 moves ~6.9 PB. At
-CloudFront list (~€0.075/GB after volume tiers) **the bandwidth alone is
-€520k**; behind an object store with free egress (Cloudflare R2, Backblaze B2 +
-Bunny) the same bytes cost **€56k**. The table rows above are larger than both
-because they add the €288k of AWS compute and storage that neither choice
-avoids — it is the difference between the rows, not the rows themselves, that
-the egress decision moves.
+At 1.8 GB per paying fan per month and an average of 278k paying fans through
+the year, Y7 moves ~6.0 PB. At CloudFront list (~€0.075/GB after volume tiers)
+**the bandwidth alone is €450k**; behind an object store with free egress
+(Cloudflare R2, Backblaze B2 + Bunny) the same bytes cost **€48k**. The table
+rows above are larger than both because they add the €288k of AWS compute and
+storage that neither choice avoids — it is the difference between the rows, not
+the rows themselves, that the egress decision moves.
 
-**€465k a year is very nearly this plan's entire €468k cash trough, spent
-annually and decided by one architectural choice** — €3.5M across the ten
-years.
+> [!note] Average fans, not December's
+> Bandwidth is billed for the months a fan is actually subscribed, so the
+> driver is the **average** count through the year, not the year-end one. The
+> model charged twelve months at the December figure until this was corrected,
+> which overstated infrastructure in every year of the plan — the same error
+> its own cohort model documents on the revenue side and had already fixed
+> there.
+
+**€402k a year is most of this plan's entire €464k cash trough, spent annually
+and decided by one architectural choice** — €3.1M across the ten years.
 
 The recommendation is AWS for compute and database — where its managed services
 genuinely earn their premium — and a zero-egress provider for media delivery.
@@ -238,14 +245,14 @@ roster.
 | Marketing / CAC | €1.70M | 15.9% |
 | People | €1.54M | 14.4% |
 | Other opex | €856k | 8.0% |
-| Infrastructure | €344k | 3.2% |
+| Infrastructure | €336k | 3.1% |
 | Legal & compliance | €270k | 2.5% |
 | Payouts | €237k | 2.2% |
 | Moderation | €70k | 0.7% |
 | Athlete verification | €18k | 0.2% |
-| **EBITDA** | **€3.11M** | **29.1%** |
+| **EBITDA** | **€3.12M** | **29.1%** |
 <!-- /MODEL:costs_y7 -->
 
-Infrastructure is under 2% of revenue. **Payments are seven times larger.** Any
+Infrastructure is 3.1% of revenue. **Payments are nearly eight times larger.** Any
 optimisation effort belongs there — tier pricing, annual billing, processor
 negotiation — not in the AWS bill.

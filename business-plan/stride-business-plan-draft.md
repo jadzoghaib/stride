@@ -66,8 +66,8 @@ commercial value have come apart**.
 | Paying fans | 25,288 | 321,288 |
 | Gross margin | 64% | 70% |
 
-EBITDA turns positive in **Y5**. Total capital to fund the plan: **€655k**
-(peak burn €468k plus a 40% buffer) — which the **€600k pre-seed very nearly
+EBITDA turns positive in **Y5**. Total capital to fund the plan: **€649k**
+(peak burn €464k plus a 40% buffer) — which the **€600k pre-seed very nearly
 covers on its own.** Take rates are published and fixed: **15%
 on fan revenue, 10% on sponsorship**, no monthly athlete fee.
 
@@ -243,7 +243,7 @@ graph TD
   cyclical. Padel in Spain in particular. `[to research: federation licence
   counts, 2019→2026]`
 - **Interest rates and a harder funding market** favour a plan that reaches
-  EBITDA-positive in Y5 on €655k, rather than one that needs €10M to find out.
+  EBITDA-positive in Y5 on €649k, rather than one that needs €10M to find out.
 
 ## 3.3 Market sizing
 
@@ -736,28 +736,29 @@ Content delivery is the cost that kills naive versions of this business.
 
 | | Egress per GB | Total Y7 infrastructure |
 |---|---|---|
-| Naive (CloudFront list price) | €0.075 | €0.81M |
-| **Zero-egress CDN architecture** | **€0.008** | **€344k** |
+| Naive (CloudFront list price) | €0.075 | €0.74M |
+| **Zero-egress CDN architecture** | **€0.008** | **€336k** |
 
-At **1.8 GB per fan per month**, the egress *rate* differs by **9.4×**. Total
-infrastructure differs by **2.4×** — compute and storage are unaffected — which
-is **€465k a year at Y7** and **€3.5M cumulative across the plan**.
+At **1.8 GB per fan per month** — charged on the *average* fan count through
+the year, not December's — the egress *rate* differs by **9.4×**. Total
+infrastructure differs by **2.2×** — compute and storage are unaffected — which
+is **€402k a year at Y7** and **€3.1M cumulative across the plan**.
 
-In margin terms it is **4.3 points of gross margin at Y7** (69.9% → 65.6%). Not
+In margin terms it is **3.8 points of gross margin at Y7** (70.0% → 66.2%). Not
 existential, and we would rather size it correctly than call it existential: it
-is a design-time architecture decision worth €3.5M, taken once, at the start.
+is a design-time architecture decision worth €3.1M, taken once, at the start.
 
 **Infrastructure trajectory:**
 
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| Infrastructure | €3k | €30k | €153k | €344k |
+| Infrastructure | €2k | €28k | €149k | €336k |
 | Payment processing | €8k | €137k | €0.83M | €2.55M |
 | Moderation | €1k | €10k | €33k | €70k |
 | Athlete verification | €1k | €5k | €12k | €18k |
 
 **Payment processing is the dominant COGS line — larger than infrastructure by
-7× at Y7.** No amount of engineering removes it; it is why gross margin lands
+nearly 8× at Y7.** No amount of engineering removes it; it is why gross margin lands
 in the low 70s rather than a SaaS 80%+, and pretending otherwise would be the
 easiest way to lose credibility with anyone who has run a marketplace.
 
@@ -1052,12 +1053,12 @@ popular sports enter from a position of proof.
 | Seed *(optional)* | €2.0M | €10M | €80k MRR · churn <8%/mo · CAC payback <9mo · 2nd market · 30+ sponsors |
 | Series A | €8.0M | €40M | €300k MRR · NRR >110% · sponsorship >25% of revenue |
 
-**The plan needs €655k** (peak burn €468k + 40% buffer).
+**The plan needs €649k** (peak burn €464k + 40% buffer).
 
 > [!important] The €600k pre-seed funds the company to profitability
 > This is the change that slowing the ramp bought, and it is worth more than the
-> revenue it gave up. **The deepest the cash ever goes is €468k, in Y4** — and a
-> €600k pre-seed covers that with €132k to spare. EBITDA turns positive in Y5
+> revenue it gave up. **The deepest the cash ever goes is €464k, in Y4** — and a
+> €600k pre-seed covers that with €136k to spare. EBITDA turns positive in Y5
 > and free cash flow follows it.
 >
 > So **the seed is no longer a survival requirement.** It is a growth option: a
@@ -1073,13 +1074,13 @@ popular sports enter from a position of proof.
 
 > [!example] 📊 ==GRAPH G8 — the trough, and the buffer over it==
 > **Chart** · Cumulative cash line, Y1–Y7, with the raises as step-ups. Mark
-> the **Y4 trough at −€468k** with a dropline, draw the €600k pre-seed as a
+> the **Y4 trough at −€464k** with a dropline, draw the €600k pre-seed as a
 > horizontal rule above it, and shade the gap between them: that band is the
 > buffer, and it is the argument of this section.
 > **Data** · `attachments/chart-data/g8-cash-and-capital.csv` — the cumulative column
 > is stated **before** raises, so the trough is the number the raise has to
 > clear.
-> **Must say** · The hole is **€468k deep and four years wide**, and the
+> **Must say** · The hole is **€464k deep and four years wide**, and the
 > €600k pre-seed alone clears it — the seed sitting above the line is optional
 > growth capital, not rescue.
 > Anyone can check that arithmetic straight off the chart, which is the point of
@@ -1317,7 +1318,7 @@ Ordered by how much the plan would change if the answer surprised us.
 - **Financial model:** `business-plan/model.py`. Ten-year projection, real
   working capital, capex, amortisation, loss carry-forward, Spanish Startup Law
   tax step (15% for four profitable years, then 25%).
-- **Consistency:** an automated guard checks **130 prose claims across 9
+- **Consistency:** an automated guard checks **132 prose claims across 9
   documents** against the model, plus the evidence chain from published
   comparables → derived assumptions. The build fails if any figure drifts —
   including this sentence, whose two numbers are themselves pinned to the

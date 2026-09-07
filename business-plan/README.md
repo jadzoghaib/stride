@@ -59,7 +59,7 @@ python business-plan/model.py
 | EBITDA | −€95k | −€229k | €0.27M | €3.11M | €10.79M |
 | Headcount | 1.5 | 3.5 | 10 | 22 | 38 |
 
-**Capital required to fund it: €655k** (peak burn €468k plus a 40% buffer)**.** EBITDA turns positive in **Y5**.
+**Capital required to fund it: €649k** (peak burn €464k plus a 40% buffer)**.** EBITDA turns positive in **Y5**.
 
 **Ten years, not seven** — at Y7 the business is still compounding above 50%, so
 a terminal value placed there does most of the valuation work and does it badly.
@@ -94,10 +94,10 @@ the rate of monthly ones, so the retention gain compounds the fee saving. See
 **2. Media egress, not compute.** The current product is deterministic
 analytics: compute is a rounding error, which `docs/costs.md` correctly says.
 The moment fans pay for video, that stops being true. Served naively from
-CloudFront, egress alone costs **€465k more in Y7** — and €3.5M across the
-plan — than the same bytes behind a zero-egress CDN. The Y7 figure is very
-nearly this plan's entire €468k cash trough, spent annually, on one
-architecture decision.
+CloudFront, egress alone costs **€402k more in Y7** — and €3.1M across the
+plan — than the same bytes behind a zero-egress CDN. The Y7 figure is most of
+this plan's entire €464k cash trough, spent annually, on one architecture
+decision.
 
 **3. The age model is tiered, not a single number.** 16 is the floor for an
 account, and that choice is forward-compatible: Spain's draft Organic Law on
