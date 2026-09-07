@@ -272,9 +272,9 @@ rather than cited.*
 
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| Fan take | €21k (84%) | €318k (60%) | €1.69M (49%) | €4.81M (45%) |
-| Sponsorship take | €3k (11%) | €89k (17%) | €1.04M (30%) | €3.97M (37%) |
-| Sponsor SaaS | €1k (5%) | €124k (23%) | €0.69M (20%) | €1.92M (18%) |
+| Fan take | €21k (84%) | €322k (60%) | €1.69M (49%) | €4.81M (45%) |
+| Sponsorship take | €3k (11%) | €91k (17%) | €1.04M (30%) | €3.97M (37%) |
+| Sponsor SaaS | €1k (5%) | €122k (23%) | €0.69M (20%) | €1.92M (18%) |
 | **Total** | **€25k** | **€0.53M** | **€3.43M** | **€10.70M** |
 
 The mix shifts deliberately. Fans fund the early years because they can be

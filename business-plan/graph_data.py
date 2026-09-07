@@ -125,9 +125,12 @@ def main() -> None:
             # trough. Left at 0.400 the chart drew the company running out of
             # cash in Y3 -- the opposite of the section it illustrates.
             {1: 0.600, 4: 2.000, 6: 8.000}.get(r["year"], ""),
-            # Placed where the gate is actually met rather than on the old
-            # schedule: the seed needs EUR 80k MRR, which the slower ramp
-            # reaches in Y4, and Series A needs EUR 300k MRR, reached in Y6.
+            # Placed where each gate is actually met rather than on the old
+            # schedule. MRR here is recurring revenue -- fan subscriptions plus
+            # sponsor SaaS, excluding one-off deals -- which is the basis
+            # section 6.4 states. On that basis EUR 80k lands in Y4 and EUR 300k
+            # in Y6. On fan subscriptions alone they would be Y5 and Y7, which
+            # is why the plan defines the term rather than leaving it implied.
             {1: "Pre-seed", 4: "Seed (optional)", 6: "Series A"}.get(r["year"], "")]
            for r, c in zip(ten, cash)])
 

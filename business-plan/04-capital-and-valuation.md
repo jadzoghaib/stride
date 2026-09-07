@@ -131,8 +131,8 @@ error in either — it is the standard failure of perpetuity-growth DCF applied 
 a company that has not finished growing.**
 
 The DCF's terminal value assumes growth collapses to 3% the day after Y10, from
-a year that still grew 22%. For a marketplace that has just reached €25M revenue
-at a 74% gross margin with a network effect, that is not a neutral assumption —
+a year that still grew 27%. For a marketplace that has just reached €25M revenue
+at a 71% gross margin with a network effect, that is not a neutral assumption —
 it is a pessimistic one. The terminal value is 53% of the DCF's total, so that
 single assumption carries half the answer.
 

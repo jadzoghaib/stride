@@ -1032,6 +1032,18 @@ popular sports enter from a position of proof.
 
 ## 6.4 Capital
 
+> [!note] What "MRR" means in these gates
+> **Recurring revenue only: fan subscriptions plus sponsor SaaS, divided by
+> twelve.** Sponsorship deals are excluded — they are one-off contracts, and
+> counting them would let a single large deal clear a gate that is meant to
+> evidence a subscription business.
+>
+> On that basis the €80k seed gate is met in **Y4** and the €300k Series A gate
+> in **Y6**. The definition matters enough to state: on fan subscriptions alone
+> those gates land in Y5 and Y7, and on total revenue including deals they land
+> a year earlier again. Three defensible readings, two years apart at the far
+> end — so the plan picks one and says which.
+
 | Stage | Amount | Pre-money | Gate |
 |---|---|---|---|
 | Internal | €80k + time | — | Product exists ✓ |
@@ -1083,7 +1095,7 @@ rather you weight the comparables.
 
 > [!note] Why the two disagree
 > The DCF assumes growth collapses to 3% the day after Y10, from a year that
-> still grew 22%. That is the standard failure of perpetuity-growth DCF applied
+> still grew 27%. That is the standard failure of perpetuity-growth DCF applied
 > to a company that has not finished growing — not an error in either method.
 
 > [!example] 📊 ==GRAPH G10 — the football field==
