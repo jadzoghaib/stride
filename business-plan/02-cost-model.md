@@ -13,10 +13,10 @@ most of the cost, and it lands on our commission, not on the athlete's share.
 <!-- MODEL:unit_economics -->
 | Fan pays (monthly) | Our take (15%) | Payment cost | We keep | % of take retained |
 |---|---|---|---|---|
-| €4.99 | €0.75 | €0.34 | €0.40 | 54% |
-| €9.99 | €1.50 | €0.44 | €1.06 | 71% |
-| €24.99 | €3.75 | €0.72 | €3.02 | 81% |
-| €89.00 (annual) | €13.35 | €1.94 | €11.41 | 85% |
+| €4.99 | €0.62 | €0.34 | €0.27 | 44% |
+| €9.99 | €1.24 | €0.44 | €0.80 | 64% |
+| €24.99 | €3.10 | €0.72 | €2.37 | 77% |
+| €89.00 (annual) | €11.03 | €1.94 | €9.09 | 82% |
 <!-- /MODEL:unit_economics -->
 
 **Read that first row again.** At a €4.99 tier, nearly half our commission goes to the
@@ -25,16 +25,19 @@ matters more than any rate negotiation.
 
 Three responses, in order of impact:
 
-1. **Anchor the default tier at €9.99.** Costs nothing, worth 17 points of
-   retained take.
+1. **Anchor the default tier at €9.99.** Costs nothing, worth 20 points of
+   retained take — 44% survives the fee at €4.99 against 64% at €9.99.
 2. **Push annual billing.** One fixed fee instead of twelve — worth ~€2.75 per subscriber
    per year. Patreon reports annual patrons churn at **one third** the rate of monthly ones,
    so the retention gain is larger than the fee saving.
 3. **Renegotiate at volume.** Above ~€5M/yr processed, interchange-plus pricing is
    available. Not modelled — upside.
 
-At Y7 the payment rail costs **€13.07M against €57.96M of revenue** — 23% of
-revenue, our largest single cost line, larger than all salaries combined.
+At Y7 the payment rail costs **€6.04M against €24.13M of revenue** — 25% of
+revenue, our largest single cost line, larger than all salaries combined
+(€3.50M). The share rose when VAT entered the model: the processor charges on
+the price a fan pays, while the revenue it is measured against is net of the
+VAT that price includes.
 
 ---
 
@@ -225,16 +228,16 @@ roster.
 <!-- MODEL:costs_y7 -->
 | Line | Y7 amount | % of revenue |
 |---|---|---|
-| Payment processing | €6.04M | 22.8% |
-| People | €3.50M | 13.2% |
-| Marketing / CAC | €3.42M | 12.9% |
-| Other opex | €2.12M | 8.0% |
-| Payouts | €561k | 2.1% |
-| Infrastructure | €419k | 1.6% |
-| Legal & compliance | €270k | 1.0% |
-| Moderation | €165k | 0.6% |
+| Payment processing | €6.04M | 25.0% |
+| People | €3.50M | 14.5% |
+| Marketing / CAC | €3.42M | 14.2% |
+| Other opex | €1.93M | 8.0% |
+| Payouts | €561k | 2.3% |
+| Infrastructure | €419k | 1.7% |
+| Legal & compliance | €270k | 1.1% |
+| Moderation | €165k | 0.7% |
 | Athlete verification | €43k | 0.2% |
-| **EBITDA** | **€9.99M** | **37.7%** |
+| **EBITDA** | **€7.79M** | **32.3%** |
 <!-- /MODEL:costs_y7 -->
 
 Infrastructure is under 2% of revenue. **Payments are fourteen times larger.** Any

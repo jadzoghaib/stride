@@ -55,11 +55,11 @@ python business-plan/model.py
 |---|---|---|---|---|---|
 | Active athletes | 400 | 5,500 | 25,000 | 52,000 | 85,000 |
 | Paying fans (year end) | 2k | 46k | 285k | 759k | 1,415k |
-| **Net revenue** | **€0.03M** | **€1.04M** | **€8.40M** | **€26.52M** | **€57.96M** |
-| EBITDA | −€91k | −€274k | €1.72M | €9.99M | €28.21M |
+| **Net revenue** | **€0.02M** | **€0.92M** | **€7.57M** | **€24.13M** | **€52.93M** |
+| EBITDA | −€95k | −€384k | €0.96M | €7.79M | €23.59M |
 | Headcount | 1.5 | 7 | 24 | 50 | 80 |
 
-**Capital required to fund it: €625k** (peak burn €446k plus a 40% buffer)**.** EBITDA turns positive in **Y4**.
+**Capital required to fund it: €824k** (peak burn €589k plus a 40% buffer)**.** EBITDA turns positive in **Y5**.
 
 **Ten years, not seven** — at Y7 the business is still compounding above 50%, so
 a terminal value placed there does most of the valuation work and does it badly.

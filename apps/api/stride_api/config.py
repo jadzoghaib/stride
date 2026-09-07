@@ -84,7 +84,10 @@ class Settings:
         # reads the TypeScript file and checks. Bump both when the documents
         # change; the acceptance recorded on each account says which text they
         # agreed to.
-        self.legal_policy_version = os.environ.get("STRIDE_LEGAL_POLICY_VERSION", "2026-08-17")
+        # Kept in step with POLICY_VERSION in apps/web/src/lib/legal.ts: the client
+        # sends the version it displayed, and this is the fallback for anything that
+        # does not. They drift apart silently, so they move together.
+        self.legal_policy_version = os.environ.get("STRIDE_LEGAL_POLICY_VERSION", "2026-09-07")
 
         # Open by default, so dev and the test suite are unchanged; closed only
         # where a deployment says so. A public demo has to close it: nothing in

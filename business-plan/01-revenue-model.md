@@ -84,8 +84,8 @@ raising the take rate by a point, without asking athletes for anything.
 
 SaaS matters disproportionately: it is **100% margin** (no GMV, no payment
 rail), and it converts the analytics engine into revenue that does not depend on
-a deal closing. By Y7 it is €3.36M of the €26.52M — 13% of revenue at close to
-100% gross margin, which is roughly 17% of gross profit.
+a deal closing. By Y7 it is €3.36M of the €24.13M — 14% of revenue at close to
+100% gross margin, which is roughly 20% of gross profit.
 
 ---
 
@@ -205,18 +205,18 @@ two decisions have to agree with each other.
 
 ### The lever, quantified
 
-At Y7 each point of take on fan GMV is worth **€0.92M of revenue**. It is the
+At Y7 each point of take on fan GMV is worth **€0.76M of revenue**. It is the
 single biggest lever in the model, and it now has a real number at both ends
 rather than one:
 
 | Take | Y7 revenue | Y7 EBITDA | Against |
 |---|---|---|---|
-| 20% | €31.12M | €14.22M | OnlyFans' rate, derived from filed accounts |
-| **15%** | **€26.52M** | **€9.99M** | **our proposal** |
-| 10% | €21.93M | €5.77M | Patreon's published, all-in rate |
+| 20% | €27.93M | €11.28M | OnlyFans' rate, derived from filed accounts |
+| **15%** | **€24.13M** | **€7.79M** | **our proposal** |
+| 10% | €20.34M | €4.30M | Patreon's published, all-in rate |
 
-Read the bottom row before the top one. **Matching Patreon costs €4.59M of Y7
-revenue and €4.23M of EBITDA — EBITDA falls 42%, from €9.99M to €5.77M.** The
+Read the bottom row before the top one. **Matching Patreon costs €3.80M of Y7
+revenue and €3.49M of EBITDA — EBITDA falls 45%, from €7.79M to €4.30M.** The
 same five points that look like upside going up are what a price war costs
 going down, and the downside lands harder because the cost base does not shrink
 with the take.
@@ -228,7 +228,7 @@ with the take.
 > becomes a picture of where we sit between two real companies.
 > **Data** · `attachments/chart-data/g9-take-rate-corridor.csv`
 > **Must say** · ==The downside is steeper than the upside.== Five points up
-> adds €4.6M of revenue; five points down costs €4.6M of revenue and **42% of
+> adds €3.8M of revenue; five points down costs €3.8M of revenue and **45% of
 > EBITDA**, because the cost base does not shrink with the take. Draw the EBITDA
 > series so that asymmetry is the thing the eye lands on.
 

@@ -124,6 +124,34 @@ class Assumptions:
     # athlete-friendly", which was true and was only the ceiling. 01 carries
     # what each end of the corridor costs.
     take_fan: float = 0.15
+
+    # VAT on fan subscriptions, and the reason it belongs in the model rather
+    # than in a footnote.
+    #
+    # Art 9a of the VAT Implementing Regulation presumes a platform supplying
+    # electronic services acts in its own name, and the presumption is
+    # *irrebuttable* where the platform both sets the essential terms and
+    # processes the payment. Stride publishes fixed take rates and runs the PSP,
+    # so it does both. On that reading Stride is the deemed supplier to the fan
+    # and VAT is due on the whole subscription, not on the commission.
+    #
+    # EU consumer prices are displayed inclusive of VAT, so the tier price a fan
+    # sees is what they pay: the taxable base is that price divided by
+    # (1 + rate), and the take applies to the base. Leaving this out treated
+    # every fan price as if it were net, which overstated fan revenue by the
+    # whole of the VAT.
+    #
+    # 0.21 is Spain's standard rate, and Spain is the launch market. It is a
+    # simplification: B2C digital services are taxed where the *customer* is, so
+    # the effective rate across the plan's markets runs roughly 20% (France, UK)
+    # to 25% (Sweden, Denmark), with Portugal 23% and Italy 22%. A single
+    # Spanish rate is the right base case for the early years and slightly
+    # optimistic later, as the mix moves north.
+    #
+    # Sponsorship is deliberately untouched. Those are B2B supplies -- reverse
+    # charge cross-border, and reclaimable by the buyer domestically -- so VAT
+    # does not reduce what the business keeps.
+    vat_rate_fan: float = 0.21
     take_sponsorship: float = 0.10
 
     # ---- payment rails (charged on GMV, not on our net revenue) ------------
@@ -273,7 +301,11 @@ def segment_year(seg: Segment, athlete_count: float, prev_athletes: float,
     fans = fan_path(prev_fans, target_fans, seg.fan_churn_month[i_], cap_monthly)
 
     # Revenue on the AVERAGE fan count — the honest basis.
-    sub_gmv = fans["avg"] * seg.fan_arpu_month[i_] * 12
+    #
+    # `fan_arpu_month` is the price a fan pays, which in the EU is displayed
+    # inclusive of VAT. The taxable base is net of it; see `vat_rate_fan`.
+    net_arpu = seg.fan_arpu_month[i_] / (1 + A.vat_rate_fan)
+    sub_gmv = fans["avg"] * net_arpu * 12
     fan_gmv = sub_gmv * (1 + A.ppv_tips_multiple)
 
     deals = athlete_count * seg.deal_rate[i_] * seg.deals_per_athlete[i_]
@@ -334,10 +366,22 @@ def build() -> list[dict]:
         revenue = rev_fan + rev_sponsorship + rev_saas
 
         # --- cost of sales ---------------------------------------------
-        fan_txns = fan_gmv / A.avg_fan_txn_eur
+        #
+        # On the GROSS fan value, not the taxable base. `fan_gmv` is net of VAT
+        # because that is what the take applies to, but the payment processor
+        # debits the card for the whole price including VAT and charges its
+        # percentage on that. Netting it here understated payments -- the
+        # dominant COGS line -- by the VAT on its own fee base.
+        #
+        # `avg_fan_txn_eur` is a price a fan pays, so the transaction count
+        # divides the gross too. Dividing net by gross undercounted the
+        # transactions the fixed fee is charged per.
+        fan_gross = fan_gmv * (1 + A.vat_rate_fan)
+        processed = fan_gross + sponsorship_gmv
+        fan_txns = fan_gross / A.avg_fan_txn_eur
         deal_txns = sponsorship_gmv / A.avg_deal_txn_eur
-        psp = (gmv * A.psp_pct) + (fan_txns + deal_txns) * A.psp_fixed_eur
-        payouts = (gmv * A.payout_pct) + (fan_txns / 30 + deal_txns) * A.payout_fixed_eur
+        psp = (processed * A.psp_pct) + (fan_txns + deal_txns) * A.psp_fixed_eur
+        payouts = (processed * A.payout_pct) + (fan_txns / 30 + deal_txns) * A.payout_fixed_eur
 
         egress_gb = paying_fans * A.gb_per_fan_month * 12
         infra = A.aws_base_month[i_] * 12 + egress_gb * A.egress_eur_per_gb
@@ -391,7 +435,10 @@ def build() -> list[dict]:
 
         # --- working capital, capex and amortisation ----------------------
         receivables = (rev_sponsorship + rev_saas) * A.ar_days / 365
-        payout_float = gmv * A.float_days / 365
+        # Gross for the same reason as the fees: the cash held before it is
+        # paid out is what the fans were charged, VAT included, and the VAT
+        # is held too until it is remitted.
+        payout_float = processed * A.float_days / 365
         payables = opex * A.ap_days / 365
         nwc = receivables - payout_float - payables
         change_in_nwc = nwc - prev_nwc
@@ -687,7 +734,12 @@ def unit_economics() -> str:
     # annual billing.
     tiers.append((market_model.SEASON_PASS_EUR, " (annual)"))
     for price, period in tiers:
-        take = price * A.take_fan
+        # The displayed price is VAT-inclusive, so the take is charged on the
+        # base and the processor's fee on the price. Taking 15% of the shelf
+        # price here overstated every row by the VAT, and this table is the
+        # argument for a price floor -- the one place the arithmetic has to be
+        # exactly right.
+        take = (price / (1 + A.vat_rate_fan)) * A.take_fan
         psp = price * A.psp_pct + A.psp_fixed_eur
         net = take - psp
         rows.append([

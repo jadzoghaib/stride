@@ -113,6 +113,26 @@ def test_a_reset_is_still_recoverable_by_hand(client, db):
     assert after == before + 1, "the message is still queued for an admin to read"
 
 
+def test_the_policy_version_matches_the_document_the_client_shows():
+    """One constant, two files, and nothing was checking they agreed.
+
+    Acceptance is recorded against the version the client *displayed*, so if the
+    client's `POLICY_VERSION` and the server's `legal_policy_version` drift, the
+    server records consent against a document nobody was shown — which defeats
+    the point of versioning acceptance at all. A comment saying "keep these in
+    step" is not enforcement.
+    """
+    from pathlib import Path
+    import re
+
+    legal_ts = Path(__file__).resolve().parents[3] / "apps" / "web" / "src" / "lib" / "legal.ts"
+    assert legal_ts.is_file(), f"expected the client's legal copy at {legal_ts}"
+    found = re.search(r"POLICY_VERSION\s*=\s*'([^']+)'", legal_ts.read_text(encoding="utf-8"))
+    assert found, "POLICY_VERSION not found in legal.ts"
+    assert found.group(1) == settings.legal_policy_version, (
+        f"client shows {found.group(1)}, server records {settings.legal_policy_version}")
+
+
 def test_registration_is_refused_when_closed(client, signup_closed):
     r = client.post("/api/auth/register", json={
         "email": "stranger@example.com", "password": "correct-horse-battery",
