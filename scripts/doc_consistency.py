@@ -195,36 +195,42 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # one row below it, drifted in four cells out of five. Exactly the fault
     # already recorded against the draft's two headline tables, in a third
     # table nobody had thought to pin.
+    # Tolerances are HALF THE LAST PRINTED PLACE, not a round number that looks
+    # small. Written first with 0.01 against figures printed to two decimals,
+    # which accepts a full display step of error: all four stale EBITDA cells
+    # this table's correction was about passed the pins added to catch them.
+    # A pin looser than its own display precision reports "checked" and checks
+    # nothing.
     *[("README.md", f"headline table, Y{y} active athletes",
        r"\| Active athletes \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
-       ROWS[y - 1]["athletes"], 1) for n, y in enumerate((1, 3, 5, 7, 10))],
+       ROWS[y - 1]["athletes"], 0.5) for n, y in enumerate((1, 3, 5, 7, 10))],
     *[("README.md", f"headline table, Y{y} paying fans",
        r"\| Paying fans \(year end\) \|" + r" \d+k \|" * n + r" (\d+)k",
-       ROWS[y - 1]["paying_fans"] / 1e3, 1.0) for n, y in enumerate((1, 3, 5, 7, 10))],
+       ROWS[y - 1]["paying_fans"] / 1e3, 0.5) for n, y in enumerate((1, 3, 5, 7, 10))],
     *[("README.md", f"headline table, Y{y} net revenue",
        r"\| \*\*Net revenue\*\* \|" + r" \*\*€[\d.]+M\*\* \|" * n + r" \*\*€([\d.]+)M\*\*",
-       ROWS[y - 1]["revenue"] / 1e6, 0.01) for n, y in enumerate((1, 3, 5, 7, 10))],
+       ROWS[y - 1]["revenue"] / 1e6, 0.005) for n, y in enumerate((1, 3, 5, 7, 10))],
     *[("README.md", f"headline table, Y{y} headcount",
        r"\| Headcount \|" + r" [\d.]+ \|" * n + r" ([\d.]+)",
-       ROWS[y - 1]["headcount"], 0.1) for n, y in enumerate((1, 3, 5, 7, 10))],
+       ROWS[y - 1]["headcount"], 0.05) for n, y in enumerate((1, 3, 5, 7, 10))],
 
     # EBITDA needs one regex per column rather than a comprehension: the row
     # mixes thousands and millions, and the sign is a real minus (U+2212), not
     # a hyphen. The sign sits in the pattern rather than the capture so a
     # flipped sign fails as "claim not found" instead of crashing float().
     ("README.md", "headline table, Y1 EBITDA",
-     r"\| EBITDA \| −€(\d+)k", abs(ROWS[0]["ebitda"]) / 1e3, 1.0),
+     r"\| EBITDA \| −€(\d+)k", abs(ROWS[0]["ebitda"]) / 1e3, 0.5),
     ("README.md", "headline table, Y3 EBITDA",
-     r"\| EBITDA \| −€\d+k \| −€(\d+)k", abs(ROWS[2]["ebitda"]) / 1e3, 1.0),
+     r"\| EBITDA \| −€\d+k \| −€(\d+)k", abs(ROWS[2]["ebitda"]) / 1e3, 0.5),
     ("README.md", "headline table, Y5 EBITDA",
      r"\| EBITDA \| −€\d+k \| −€\d+k \| €([\d.]+)M",
-     ROWS[4]["ebitda"] / 1e6, 0.01),
+     ROWS[4]["ebitda"] / 1e6, 0.005),
     ("README.md", "headline table, Y7 EBITDA",
      r"\| EBITDA \| −€\d+k \| −€\d+k \| €[\d.]+M \| €([\d.]+)M",
-     ROWS[6]["ebitda"] / 1e6, 0.01),
+     ROWS[6]["ebitda"] / 1e6, 0.005),
     ("README.md", "headline table, Y10 EBITDA",
      r"\| EBITDA \|(?: −?€[\d.]+[kM] \|){4} €([\d.]+)M",
-     ROWS[9]["ebitda"] / 1e6, 0.01),
+     ROWS[9]["ebitda"] / 1e6, 0.005),
 
     # The fixed-fee mechanic the README leads with. Correct, and unpinned.
     ("README.md", "what a €4.99 tier retains",
