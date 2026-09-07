@@ -1039,10 +1039,12 @@ popular sports enter from a position of proof.
 > evidence a subscription business.
 >
 > On that basis the €80k seed gate is met in **Y4** and the €300k Series A gate
-> in **Y6**. The definition matters enough to state: on fan subscriptions alone
-> those gates land in Y5 and Y7, and on total revenue including deals they land
-> a year earlier again. Three defensible readings, two years apart at the far
-> end — so the plan picks one and says which.
+> in **Y6**. Counting total revenue including one-off deals gives the same two
+> years, so the choice only matters against the narrowest reading: on fan
+> subscriptions alone the gates land in **Y5 and Y7**. One year of difference at
+> the seed and one at the Series A — small enough to be missed, large enough to
+> argue about, which is why the plan states the basis rather than leaving a
+> reader to infer it.
 
 | Stage | Amount | Pre-money | Gate |
 |---|---|---|---|

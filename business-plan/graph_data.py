@@ -129,8 +129,10 @@ def main() -> None:
             # schedule. MRR here is recurring revenue -- fan subscriptions plus
             # sponsor SaaS, excluding one-off deals -- which is the basis
             # section 6.4 states. On that basis EUR 80k lands in Y4 and EUR 300k
-            # in Y6. On fan subscriptions alone they would be Y5 and Y7, which
-            # is why the plan defines the term rather than leaving it implied.
+            # in Y6 -- as they also do counting total revenue. Only the narrowest
+            # reading differs: fan subscriptions alone would put them in Y5 and
+            # Y7, which is why the plan defines the term rather than leaving it
+            # implied.
             {1: "Pre-seed", 4: "Seed (optional)", 6: "Series A"}.get(r["year"], "")]
            for r, c in zip(ten, cash)])
 
