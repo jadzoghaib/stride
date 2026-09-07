@@ -25,16 +25,19 @@ matters more than any rate negotiation.
 
 Three responses, in order of impact:
 
-1. **Anchor the default tier at €9.99.** Costs nothing, worth 17 points of
-   retained take.
+1. **Anchor the default tier at €9.99.** Costs nothing, worth 20 points of
+   retained take — 44% survives the fee at €4.99 against 64% at €9.99.
 2. **Push annual billing.** One fixed fee instead of twelve — worth ~€2.75 per subscriber
    per year. Patreon reports annual patrons churn at **one third** the rate of monthly ones,
    so the retention gain is larger than the fee saving.
 3. **Renegotiate at volume.** Above ~€5M/yr processed, interchange-plus pricing is
    available. Not modelled — upside.
 
-At Y7 the payment rail costs **€13.07M against €57.96M of revenue** — 23% of
-revenue, our largest single cost line, larger than all salaries combined.
+At Y7 the payment rail costs **€6.04M against €24.13M of revenue** — 25% of
+revenue, our largest single cost line, larger than all salaries combined
+(€3.50M). The share rose when VAT entered the model: the processor charges on
+the price a fan pays, while the revenue it is measured against is net of the
+VAT that price includes.
 
 ---
 

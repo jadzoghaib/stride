@@ -738,8 +738,13 @@ def build() -> pathlib.Path:
     wrow("Sponsor receivables", unit="SaaS+take x AR days/365",
          formula=(f"=(Revenue!{{c}}{R['Sponsorship take']}+Revenue!{{c}}{R['Sponsor SaaS']})"
                   f"*Assumptions!{{c}}{A_ROW['ar_days']}/365"))
-    wrow("Athlete payout float", unit="GMV owed, not yet paid",
-         formula=(f"=Revenue!{{c}}{R['TOTAL GMV']}*Assumptions!{{c}}{A_ROW['float_days']}/365"))
+    # On the processed amount, matching model.py: the cash held before payout is
+    # what the fans were actually charged, VAT included, and the VAT is held too
+    # until it is remitted. TOTAL GMV is ex-VAT and would understate the float.
+    wrow("Athlete payout float", unit="processed GMV owed, not yet paid",
+         formula=(f"=(Revenue!{{c}}{R['Fan GMV including VAT']}"
+                  f"+Revenue!{{c}}{R['Total sponsorship GMV']})"
+                  f"*Assumptions!{{c}}{A_ROW['float_days']}/365"))
     wrow("Trade payables", unit="opex x AP days/365",
          formula=(f"=Costs!{{c}}{C['TOTAL OPERATING COSTS']}*Assumptions!{{c}}{A_ROW['ap_days']}/365"))
     wrow("Net working capital", unit="AR - float - AP", bold=True,

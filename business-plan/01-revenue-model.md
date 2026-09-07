@@ -228,7 +228,7 @@ with the take.
 > becomes a picture of where we sit between two real companies.
 > **Data** · `attachments/chart-data/g9-take-rate-corridor.csv`
 > **Must say** · ==The downside is steeper than the upside.== Five points up
-> adds €4.6M of revenue; five points down costs €4.6M of revenue and **42% of
+> adds €3.8M of revenue; five points down costs €3.8M of revenue and **45% of
 > EBITDA**, because the cost base does not shrink with the take. Draw the EBITDA
 > series so that asymmetry is the thing the eye lands on.
 
