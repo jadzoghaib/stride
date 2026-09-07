@@ -77,6 +77,42 @@ def test_the_demo_accounts_flag_is_independent_of_signup(client, signup_open):
     assert body["demo_accounts"] is True, "still seeded, still listed, still true"
 
 
+def test_meta_reports_whether_mail_is_actually_delivered(client):
+    """The client needs this to stop describing a delivery that never happens.
+
+    `email_outbox` records what a person is owed and nothing drains it, so a
+    "check your inbox" told every new account to wait for a message that was
+    never sent, and "a reset link is on its way" was simply untrue. Off by
+    default because it is off in fact.
+    """
+    original = settings.email_delivery
+    try:
+        # Both states set explicitly. Asserting the default would be asserting
+        # something about the machine -- a deployment with a provider attached
+        # sets this to "1" -- which is the dependence the fixtures above exist
+        # to remove.
+        settings.email_delivery = False
+        assert client.get("/api/meta").json()["email_delivery"] is False
+        settings.email_delivery = True
+        assert client.get("/api/meta").json()["email_delivery"] is True
+    finally:
+        settings.email_delivery = original
+
+
+def test_a_reset_is_still_recoverable_by_hand(client, db):
+    """Turning the promise off must not turn the mechanism off.
+
+    No mail goes out, but the token is still issued and still recorded, so an
+    admin reading the outbox can walk somebody through a reset. Breaking that
+    to make the interface honest would have been the wrong trade.
+    """
+    before = db.execute("SELECT COUNT(*) AS n FROM email_outbox").fetchone()["n"]
+    assert client.post("/api/auth/forgot",
+                       json={"email": "fan@demo.stride"}).status_code == 200
+    after = db.execute("SELECT COUNT(*) AS n FROM email_outbox").fetchone()["n"]
+    assert after == before + 1, "the message is still queued for an admin to read"
+
+
 def test_registration_is_refused_when_closed(client, signup_closed):
     r = client.post("/api/auth/register", json={
         "email": "stranger@example.com", "password": "correct-horse-battery",

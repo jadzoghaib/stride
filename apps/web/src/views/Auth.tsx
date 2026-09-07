@@ -69,12 +69,20 @@ export default function Auth() {
   //  starting at `true` flashes a list of credentials on a deployment that has
   //  turned them off, then withdraws it.
   const [showDemo, setShowDemo] = useState<boolean | null>(null)
+  //: Whether anything delivers the mail this system queues. Off here means the
+  //  page must not offer self-service reset, and must not send a new account to
+  //  an inbox that will stay empty.
+  const [emailWorks, setEmailWorks] = useState<boolean | null>(null)
   useEffect(() => {
-    api.get<{ signup_open: boolean; demo_accounts: boolean }>('/api/meta')
+    api.get<{ signup_open: boolean; demo_accounts: boolean; email_delivery: boolean }>('/api/meta')
       // an unreachable meta endpoint must not lock the door: fall back to open,
       // which is the historical behaviour and fails toward the honest 403
-      .then((m) => { setSignupOpen(m.signup_open); setShowDemo(m.demo_accounts) })
-      .catch(() => setSignupOpen(true))
+      .then((m) => {
+        setSignupOpen(m.signup_open)
+        setShowDemo(m.demo_accounts)
+        setEmailWorks(m.email_delivery)
+      })
+      .catch(() => { setSignupOpen(true); setEmailWorks(false) })
   }, [])
   const [params] = useSearchParams()
   // `?mode=register` is honoured only once the deployment has said it accepts
@@ -87,6 +95,9 @@ export default function Auth() {
   useEffect(() => {
     if (signupOpen === true && params.get('mode') === 'register') setMode('register')
   }, [signupOpen, params])
+  useEffect(() => {
+    if (emailWorks === false && mode === 'forgot') setMode('login')
+  }, [emailWorks, mode])
   const [accepted, setAccepted] = useState(false)
   // the landing deep-links a role in; anything else falls back to the first tile
   const [role, setRole] = useState(
@@ -114,10 +125,16 @@ export default function Auth() {
     setNotice('')
     try {
       if (mode === 'forgot') {
+        // Not while the answer is still unknown: a fast submit on a direct
+        // ?mode=forgot load would otherwise queue a reset before the redirect
+        // fires, and pick its notice from a null.
+        if (emailWorks === null) return
         // Always the same answer, whatever the address: the server will not say
         // whether an account exists, and neither will this screen.
         await api.post('/api/auth/forgot', { email: form.email })
-        setNotice('If that address has an account, a reset link is on its way. It works once, for two hours.')
+        setNotice(emailWorks
+          ? 'If that address has an account, a reset link is on its way. It works once, for two hours.'
+          : 'A reset link was queued, but this deployment cannot send email, so it will not arrive.')
         return
       }
       const me =
@@ -125,6 +142,11 @@ export default function Auth() {
           ? await api.post<Me & { needs_email_confirmation?: boolean }>('/api/auth/login', { email: form.email, password: form.password })
           : await api.post<Me & { needs_email_confirmation?: boolean }>('/api/auth/register',
               { ...form, role, accept_terms: accepted, policy_version: POLICY_VERSION })
+      // `needs_email_confirmation` comes back only where Supabase is the
+      // credential authority, and Supabase sends that mail itself — nothing to
+      // do with this system's own outbox or `email_delivery`. Conditioning the
+      // copy on that flag told a Supabase user no email was coming while one
+      // was, and sent them to a sign-in that cannot work until they confirm.
       if (me.needs_email_confirmation) {
         setNotice('Account created. Check your inbox for the confirmation email, then sign in.')
         setMode('login')
@@ -372,11 +394,19 @@ export default function Auth() {
               <input className="field mt-1" type="password" required minLength={8}
                      autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                      value={form.password} onChange={(e) => set('password', e.target.value)} />
-              {mode === 'login' && (
+              {mode === 'login' && emailWorks === true && (
                 <button type="button" className="meta mt-1.5 block text-accent-ink hover:underline"
                         onClick={() => { setMode('forgot'); setError(''); setNotice('') }}>
                   Forgot your password?
                 </button>
+              )}
+              {mode === 'login' && emailWorks === false && (
+                /* Said plainly rather than left as a link that goes nowhere:
+                   this deployment queues mail and nothing delivers it, so a
+                   reset a person requests would never arrive. */
+                <span className="meta mt-1.5 block">
+                  No password recovery on this deployment — it cannot send email.
+                </span>
               )}
             </label>
           )}
@@ -455,7 +485,9 @@ export default function Auth() {
           {error && <div className="rounded border border-critical/40 bg-critical/10 px-3 py-2 text-sm text-critical">{error}</div>}
           {notice && <div className="rounded border border-ok/40 bg-ok/10 px-3 py-2 text-sm text-ok">{notice}</div>}
 
-          <button className="btn-go w-full" disabled={busy || (mode === 'register' && !accepted)}>
+          <button className="btn-go w-full"
+                  disabled={busy || (mode === 'register' && !accepted)
+                            || (mode === 'forgot' && emailWorks === null)}>
             {busy ? 'Working…' : mode === 'login' ? 'Sign in' : mode === 'forgot' ? 'Send reset link' : 'Create account'}
           </button>
         </form>
