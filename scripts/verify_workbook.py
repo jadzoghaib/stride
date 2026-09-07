@@ -167,6 +167,11 @@ def _lazy_if(expr: str) -> str:
     while (i := expr.find("IF(")) != -1:
         depth, args, start, j = 1, [], i + 3, i + 3
         while depth:
+            if j >= len(expr):
+                # The structural pass already records a PARENS problem for this
+                # formula; crashing here would replace that report with a
+                # traceback and lose every other finding in the run.
+                raise ValueError(f'unbalanced parentheses in {expr!r}')
             ch = expr[j]
             if ch == "(":
                 depth += 1
