@@ -153,44 +153,106 @@ def find_cycle(graph: dict[Cell, set[Cell]]) -> list[Cell] | None:
     return None
 
 
+_REF = re.compile(r"\b([A-Z]{1,2})([0-9]{1,3})\b")
+_SAFE = re.compile(r"^[-+*/()0-9., <>=!]*$")
+
+
+def _lazy_if(expr: str) -> str:
+    """Rewrite Excel IF(a,b,c) as a Python conditional expression.
+
+    Excel evaluates only the branch it takes. A Python call evaluates every
+    argument first, so IF(C6=0,0,C4/C6) -- the guard that stops a year with no
+    round dividing by zero -- raised exactly the error it exists to prevent.
+    """
+    while (i := expr.find("IF(")) != -1:
+        depth, args, start, j = 1, [], i + 3, i + 3
+        while depth:
+            ch = expr[j]
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+                if depth == 0:
+                    args.append(expr[start:j])
+                    break
+            elif ch == "," and depth == 1:
+                args.append(expr[start:j])
+                start = j + 1
+            j += 1
+        if len(args) != 3:
+            raise ValueError(f"IF with {len(args)} arguments in {expr!r}")
+        cond, yes, no = (_lazy_if(a) for a in args)
+        expr = f"{expr[:i]}(({yes}) if ({cond}) else ({no})){expr[j + 1:]}"
+    return expr
+
+
+def _evaluate(ws, col: str, row: int, cache: dict) -> float:
+    """Evaluate one Funding cell, following references within the sheet.
+
+    Recomputing the recurrence from the input rows -- which is what this did
+    first -- checks the inputs and not the workbook: a wrong "Founders + team
+    retained" formula reaches the deliverable with the check still green. So
+    the sheet's own formulas are what gets evaluated here.
+
+    Deliberately tiny: the Funding sheet uses arithmetic and IF and nothing
+    else, and an expression that is not plain arithmetic after substitution is
+    reported rather than evaluated.
+    """
+    key = (col, row)
+    if key in cache:
+        return cache[key]
+    cache[key] = 0.0                       # break any cycle rather than recurse forever
+    raw = ws[f"{col}{row}"].value
+    if raw is None:
+        value = 0.0
+    elif not (isinstance(raw, str) and raw.startswith("=")):
+        value = float(raw)
+    else:
+        expr = _REF.sub(
+            lambda m: repr(_evaluate(ws, m.group(1), int(m.group(2)), cache)), raw[1:])
+        expr = re.sub(r"(?<![<>=!])=(?!=)", "==", expr).replace("<>", "!=")
+        expr = _lazy_if(expr)
+        if not _SAFE.match(expr.replace("if", "").replace("else", "")):
+            raise ValueError(f"Funding!{col}{row}: unsupported formula {raw!r}")
+        value = float(eval(expr, {"__builtins__": {}}, {}))         # noqa: S307
+    cache[key] = value
+    return value
+
+
 def check_cap_table() -> list[str]:
-    """Evaluate the Funding sheet's own chain and compare it to dilution().
+    """Compare the Funding sheet's computed ownership to model.dilution().
 
     Structural checks pass happily while a sheet says the founders keep 56% and
     the plan says 49% -- which is what it did, because the advisory grant and
-    the ESOP existed in model.dilution() and in no cell of the workbook. This
-    walks the sheet's real inputs through the sheet's real recurrence, so the
-    two cannot drift apart again without failing here.
+    the ESOP existed in model.dilution() and in no cell of the workbook.
+
+    Every year is compared, not only the round years: a stray raise or grant in
+    Y7-Y10 moves ownership just as effectively as one in Y1, and the model's
+    last checkpoint is carried forward across the years that have no round.
     """
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "business-plan"))
     import model
 
     ws = load_workbook(WORKBOOK)["Funding"]
-    rows = {"raised": 4, "pre": 5, "advisory": 8, "esop": 9}
+    retained_row = 10
     years = len(model.A.athletes)
-
-    def cell(r: int, i: int):
-        return ws.cell(row=r, column=3 + i).value or 0
-
-    held, sheet_held = 1.0, []
-    for i in range(years):
-        raised, pre = cell(rows["raised"], i), cell(rows["pre"], i)
-        post = (pre + raised) if raised else 0
-        stake = (raised / post) if post else 0.0
-        held = (held * (1 - stake) - cell(rows["advisory"], i)) * (1 - cell(rows["esop"], i))
-        sheet_held.append(held)
 
     by_stage = {d["stage"]: d for d in model.dilution()}
     _, esop_year = model.grant_years()
-    want = {rd["year"]: by_stage[rd["stage"]]["held"] for rd in model.ROUNDS}
-    want[esop_year] = by_stage["ESOP (cumulative)"]["held"]   # ESOP lands with the last round
+    checkpoint = {rd["year"]: by_stage[rd["stage"]]["held"] for rd in model.ROUNDS}
+    checkpoint[esop_year] = by_stage["ESOP (cumulative)"]["held"]
 
-    out = []
-    for year, expected in sorted(want.items()):
-        got = sheet_held[year - 1]
-        if abs(got - expected) > 1e-9:
-            out.append(f"CAPTABLE Funding!Y{year} retained {got:.4%}, "
-                       f"model.dilution() says {expected:.4%}")
+    cache: dict = {}
+    out, expected = [], 1.0
+    try:
+        for i in range(years):
+            expected = checkpoint.get(i + 1, expected)
+            got = _evaluate(ws, get_column_letter(3 + i), retained_row, cache)
+            if abs(got - expected) > 1e-9:
+                out.append(f"CAPTABLE Funding!Y{i + 1} retained {got:.4%}, "
+                           f"model.dilution() says {expected:.4%}")
+    except ValueError as exc:
+        out.append(f"CAPTABLE {exc}")
     return out
 
 

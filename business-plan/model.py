@@ -288,7 +288,13 @@ def grant_years() -> tuple[int, int]:
     sheet would have disagreed with this module without saying so.
     """
     advisory_year = next(rd["year"] for rd in ROUNDS if rd["stage"] == "Pre-seed")
-    return advisory_year, max(rd["year"] for rd in ROUNDS)
+    # By stage, not by latest year: a round added after the Series A would
+    # otherwise carry the option pool with it, and the plan ties the 10% to the
+    # Series A milestone specifically. Falls back to the last round only if
+    # there is no Series A to tie it to.
+    esop_year = next((rd["year"] for rd in ROUNDS if rd["stage"] == "Series A"),
+                     max(rd["year"] for rd in ROUNDS))
+    return advisory_year, esop_year
 
 
 def dilution() -> list[dict]:
