@@ -66,6 +66,12 @@ is why the seed is marked optional above. It is growth capital — a second mark
 sooner — not rescue capital. A plan whose survival does not depend on the next
 round arriving on schedule is a materially stronger one to raise against.
 
+Be precise about what that claims. **€600k clears the trough the model
+produces; €655k is that trough plus the 40% buffer.** The seed is optional
+against the plan as modelled — not against the conservative case the buffer
+exists for. If the buffer is needed, the €55k gap is what the non-dilutive stack
+above is for.
+
 ### Why the pre-seed gate is the one that matters
 
 Every gate after it is a scaling question. The pre-seed gate is the **only** one

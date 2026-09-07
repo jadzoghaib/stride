@@ -57,12 +57,16 @@ price aggressively.
 | **Annual difference** | €3k | €37k | €174k | **€465k** |
 
 At 1.8 GB per paying fan per month and 321k paying fans, Y7 moves ~6.9 PB. At
-CloudFront list (~€0.075/GB after volume tiers) that is €808k. Behind an
-object store with free egress (Cloudflare R2, Backblaze B2 + Bunny) it is
-€344k.
+CloudFront list (~€0.075/GB after volume tiers) **the bandwidth alone is
+€520k**; behind an object store with free egress (Cloudflare R2, Backblaze B2 +
+Bunny) the same bytes cost **€56k**. The table rows above are larger than both
+because they add the €288k of AWS compute and storage that neither choice
+avoids — it is the difference between the rows, not the rows themselves, that
+the egress decision moves.
 
-**€465k a year is the whole of this plan's cash trough, spent annually and
-decided by one architectural choice** — €3.5M across the ten years.
+**€465k a year is very nearly this plan's entire €468k cash trough, spent
+annually and decided by one architectural choice** — €3.5M across the ten
+years.
 
 The recommendation is AWS for compute and database — where its managed services
 genuinely earn their premium — and a zero-egress provider for media delivery.

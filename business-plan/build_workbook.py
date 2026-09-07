@@ -218,8 +218,10 @@ FUNDING_ROWS = {
     "Pre-money valuation": 5,
     "Post-money valuation": 6,
     "New investor stake": 7,
-    "Cumulative dilution": 8,
-    "Founders + team retained": 9,
+    "Advisory grant": 8,
+    "ESOP pool": 9,
+    "Founders + team retained": 10,
+    "Cumulative dilution": 11,
 }
 
 
@@ -897,12 +899,24 @@ def build() -> pathlib.Path:
     urow("New investor stake", "%", fmt=PCT,
          formula=f"=IF({{c}}{U['Post-money valuation']}=0,0,"
                  f"{{c}}{U['Equity raised']}/{{c}}{U['Post-money valuation']})")
-    urow("Cumulative dilution", "%", fmt=PCT,
-         first=f"={{c}}{U['New investor stake']}",
-         formula=f"=1-(1-{{p}}{U['Cumulative dilution']})"
-                 f"*(1-{{c}}{U['New investor stake']})")
+    # The two grants that dilute alongside the rounds. Without them the sheet
+    # compounded investor stakes only and finished at 56% retained, against the
+    # 49% in section 04 -- the workbook and the plan disagreeing about who owns
+    # the company, which is a worse failure than either number being wrong.
+    advisory = [0.0] * 10
+    esop = [0.0] * 10
+    advisory[M.ROUNDS[0]["year"] - 1] = M.ADVISORY_GRANT
+    esop[M.ROUNDS[-1]["year"] - 1] = M.ESOP_POOL
+    urow("Advisory grant", "%", values=advisory, fmt=PCT)
+    urow("ESOP pool", "%", values=esop, fmt=PCT)
     urow("Founders + team retained", "%", fmt=PCT, bold=True,
-         formula=f"=1-{{c}}{U['Cumulative dilution']}")
+         first=f"=(1-{{c}}{U['New investor stake']}-{{c}}{U['Advisory grant']})"
+               f"*(1-{{c}}{U['ESOP pool']})",
+         formula=f"=({{p}}{U['Founders + team retained']}"
+                 f"*(1-{{c}}{U['New investor stake']})"
+                 f"-{{c}}{U['Advisory grant']})*(1-{{c}}{U['ESOP pool']})")
+    urow("Cumulative dilution", "%", fmt=PCT,
+         formula=f"=1-{{c}}{U['Founders + team retained']}")
 
     # ══ VALUATION ═══════════════════════════════════════════════════════════
     va = sheet(wb, "Valuation", "Valuation — DCF, NPV, IRR and exit multiples")

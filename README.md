@@ -18,7 +18,7 @@
   <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-1f2937?style=flat-square&logo=python&logoColor=FFB020">
   <img alt="React 18" src="https://img.shields.io/badge/react-18-1f2937?style=flat-square&logo=react&logoColor=FFB020">
   <img alt="FastAPI" src="https://img.shields.io/badge/fastapi-0.11x-1f2937?style=flat-square&logo=fastapi&logoColor=FFB020">
-  <img alt="Tests 359 passing" src="https://img.shields.io/badge/tests-359%20passing-1f2937?style=flat-square&logo=pytest&logoColor=3FCF8E">
+  <img alt="Tests 396 passing" src="https://img.shields.io/badge/tests-396%20passing-1f2937?style=flat-square&logo=pytest&logoColor=3FCF8E">
   <img alt="LLM cost zero" src="https://img.shields.io/badge/LLM%20inference%20cost-%240-1f2937?style=flat-square">
   <img alt="Status: first product draft" src="https://img.shields.io/badge/status-first%20product%20draft-1f2937?style=flat-square">
 </p>
@@ -179,7 +179,7 @@ ranking — it is excluded and named, never silently scored as zero.
 
 **One code path, two databases.** SQLite by default; set `STRIDE_DATABASE_URL` for Postgres. A
 ~100-line shim translates the dialect, so nothing above the connection changes — and the claim is
-checked rather than asserted: the same suite runs on both, 359 tests on SQLite and 361 on Postgres,
+checked rather than asserted: the same suite runs on both, 396 tests on SQLite and 398 on Postgres,
 where the two measurement tests that skip without a server can finally run.
 
 📐 Architecture: [`docs/architecture.md`](docs/architecture.md) · Client: [`docs/ui-architecture.md`](docs/ui-architecture.md) ·

@@ -555,6 +555,27 @@ def build() -> list[dict]:
     return rows
 
 
+# The exit multiples, in one place. They were a literal inside render() and a
+# reconstruction inside the doc guard, which meant changing one here would leave
+# the guard happily approving the old prose -- the exact two-sources-of-truth
+# failure the rest of this module exists to avoid.
+EXIT_MULTIPLES: list[tuple[str, str, float, str]] = [
+    ("Marketplace comparables", "4.0x revenue", 4.0, "revenue"),
+    ("Blended marketplace + SaaS", "6.5x revenue", 6.5, "revenue"),
+    ("High-growth SaaS mix", "9.0x revenue", 9.0, "revenue"),
+    ("EBITDA multiple", "14x EBITDA", 14.0, "ebitda"),
+]
+
+
+def exit_values(rows: list[dict]) -> list[dict]:
+    """Each exit multiple at the horizon year, and discounted back to today."""
+    last = rows[-1]
+    df = (1 + A.wacc) ** last["year"]          # end-of-horizon money to today
+    return [{"label": label, "basis": basis,
+             "at_exit": (at := max(last[key], 0.0) * mult), "today": at / df}
+            for label, basis, mult, key in EXIT_MULTIPLES]
+
+
 def valuation(rows: list[dict]) -> dict:
     pv = sum(r["fcf"] / (1 + A.wacc) ** r["year"] for r in rows)
     tv = rows[-1]["fcf"] * (1 + A.terminal_growth) / (A.wacc - A.terminal_growth)
@@ -674,12 +695,9 @@ def render(rows: list[dict]) -> dict[str, str]:
     last = rows[-1]
     df = (1 + A.wacc) ** last["year"]   # discount end-of-horizon money to today
     mult = table([f"Exit method (Y{last['year']})", "Multiple",
-                  f"Value at Y{last['year']}", "Discounted to today"], [
-        ["Marketplace comparables", "4.0x revenue", eur(last["revenue"] * 4), eur(last["revenue"] * 4 / df)],
-        ["Blended marketplace + SaaS", "6.5x revenue", eur(last["revenue"] * 6.5), eur(last["revenue"] * 6.5 / df)],
-        ["High-growth SaaS mix", "9.0x revenue", eur(last["revenue"] * 9), eur(last["revenue"] * 9 / df)],
-        ["EBITDA multiple", "14x EBITDA", eur(max(last["ebitda"], 0) * 14), eur(max(last["ebitda"], 0) * 14 / df)],
-    ])
+                  f"Value at Y{last['year']}", "Discounted to today"],
+                 [[e["label"], e["basis"], eur(e["at_exit"]), eur(e["today"])]
+                  for e in exit_values(rows)])
 
     # Cost structure at maturity. Hand-written until it drifted: the table
     # survived the Stripe rate correction unchanged and went on claiming EUR

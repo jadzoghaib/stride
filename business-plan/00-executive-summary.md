@@ -118,7 +118,7 @@ The plan needs €655k — the **€468k cash trough in Y4** plus a 40% buffer �
 the pre-seed clears the trough itself with €132k to spare. That is what asking
 for €600k rather than €400k buys: **the seed becomes optional.** It brings a
 second market forward; it is not the thing standing between the company and
-running out of cash. The rounds above it raise €2.6M before a Series A, and the
+running out of cash. The rounds raise €2.6M before a Series A, and the
 honest answer to *"what if the next round does not come?"* is now "we grow more
 slowly", not "we die".
 

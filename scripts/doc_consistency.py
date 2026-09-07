@@ -179,12 +179,11 @@ def rounds_before_series_a() -> float:
 
 DILUTION = {d["stage"]: d for d in model.dilution()}
 
-# The "discounted to today" column of the exit-multiple table in 04, rebuilt
-# from the same arithmetic model.render() uses for it. The prose quotes the ends
-# of this range, so the range needs a source that is not the prose.
-_DF = (1 + A.wacc) ** Y10["year"]
-MULTIPLES = ([m * Y10["revenue"] / _DF for m in (4.0, 6.5, 9.0)]
-             + [14 * max(Y10["ebitda"], 0) / _DF])
+# The "discounted to today" column of the exit-multiple table in 04. Rebuilding
+# the arithmetic here was a second source of truth: changing a multiple in
+# model.render() would have left this guard approving the old prose. It reads
+# the shared helper instead.
+MULTIPLES = [e["today"] for e in model.exit_values(ROWS)]
 
 
 # (document, description, regex capturing one number, expected value, tolerance)
@@ -365,10 +364,22 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     *[("02-cost-model.md", f"egress table, Y{y} annual difference",
        r"\| \*\*Annual difference\*\* \|" + r" €\d+k \|" * n + r" \*?\*?€(\d+)k",
        egress_delta(y) / 1e3, 1.0) for n, y in enumerate((1, 3, 5, 7))],
+    ("02-cost-model.md", "Y7 bandwidth at CloudFront list",
+     r"\*\*the bandwidth alone is\n€(\d+)k\*\*",
+     Y7["paying_fans"] * A.gb_per_fan_month * 12 * A.egress_eur_per_gb_naive / 1e3, 1.0),
+    ("02-cost-model.md", "Y7 bandwidth behind a zero-egress CDN",
+     r"the same bytes cost \*\*€(\d+)k\*\*",
+     Y7["paying_fans"] * A.gb_per_fan_month * 12 * A.egress_eur_per_gb / 1e3, 1.0),
+    ("02-cost-model.md", "the Y7 compute and storage floor",
+     r"they add the €(\d+)k of AWS compute", A.aws_base_month[6] * 12 / 1e3, 1.0),
     ("02-cost-model.md", "the Y7 egress difference",
-     r"\*\*€(\d+)k a year is the whole", egress_delta(7) / 1e3, 1.0),
+     r"\*\*€(\d+)k a year is very nearly", egress_delta(7) / 1e3, 1.0),
+    ("02-cost-model.md", "the trough the egress difference is compared to",
+     r"very nearly this plan's entire €(\d+)k cash trough", peak_funding() / 1e3, 1.0),
+    ("README.md", "the trough the egress difference is compared to",
+     r"nearly this plan's entire €(\d+)k cash trough", peak_funding() / 1e3, 1.0),
     ("02-cost-model.md", "the egress difference across the plan",
-     r"— €([\d.]+)M across the ten years", egress_cumulative() / 1e6, 0.05),
+     r"— €([\d.]+)M across the ten\s+years", egress_cumulative() / 1e6, 0.05),
     ("README.md", "the Y7 egress difference",
      r"costs \*\*€(\d+)k more in Y7\*\*", egress_delta(7) / 1e3, 1.0),
     ("README.md", "the egress difference across the plan",
