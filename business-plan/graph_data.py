@@ -121,8 +121,19 @@ def main() -> None:
     write("g8-cash-and-capital.csv",
           ["year", "fcf_eur_m", "cumulative_cash_before_raises_eur_m", "raise_eur_m", "stage"],
           [[r["year"], eur_m(r["fcf"]), eur_m(c),
-            {1: 0.400, 3: 2.000, 5: 8.000}.get(r["year"], ""),
-            {1: "Pre-seed", 3: "Seed", 5: "Series A"}.get(r["year"], "")]
+            # The pre-seed is EUR 600k, and G8 exists to show it clearing the
+            # trough. Left at 0.400 the chart drew the company running out of
+            # cash in Y3 -- the opposite of the section it illustrates.
+            {1: 0.600, 4: 2.000, 6: 8.000}.get(r["year"], ""),
+            # Placed where each gate is actually met rather than on the old
+            # schedule. MRR here is recurring revenue -- fan subscriptions plus
+            # sponsor SaaS, excluding one-off deals -- which is the basis
+            # section 6.4 states. On that basis EUR 80k lands in Y4 and EUR 300k
+            # in Y6 -- as they also do counting total revenue. Only the narrowest
+            # reading differs: fan subscriptions alone would put them in Y5 and
+            # Y7, which is why the plan defines the term rather than leaving it
+            # implied.
+            {1: "Pre-seed", 4: "Seed (optional)", 6: "Series A"}.get(r["year"], "")]
            for r, c in zip(ten, cash)])
 
     # G9 -- the take-rate corridor. Both ends are real competitor rates, so this

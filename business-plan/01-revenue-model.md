@@ -84,8 +84,8 @@ raising the take rate by a point, without asking athletes for anything.
 
 SaaS matters disproportionately: it is **100% margin** (no GMV, no payment
 rail), and it converts the analytics engine into revenue that does not depend on
-a deal closing. By Y7 it is €3.36M of the €24.13M — 14% of revenue at close to
-100% gross margin, which is roughly 20% of gross profit.
+a deal closing. By Y7 it is €1.92M of the €10.70M — 18% of revenue at close to
+100% gross margin, which is roughly 26% of gross profit.
 
 ---
 
@@ -205,18 +205,18 @@ two decisions have to agree with each other.
 
 ### The lever, quantified
 
-At Y7 each point of take on fan GMV is worth **€0.76M of revenue**. It is the
+At Y7 each point of take on fan GMV is worth **€0.32M of revenue**. It is the
 single biggest lever in the model, and it now has a real number at both ends
 rather than one:
 
 | Take | Y7 revenue | Y7 EBITDA | Against |
 |---|---|---|---|
-| 20% | €27.93M | €11.28M | OnlyFans' rate, derived from filed accounts |
-| **15%** | **€24.13M** | **€7.79M** | **our proposal** |
-| 10% | €20.34M | €4.30M | Patreon's published, all-in rate |
+| 20% | €12.31M | €4.59M | OnlyFans' rate, derived from filed accounts |
+| **15%** | **€10.70M** | **€3.11M** | **our proposal** |
+| 10% | €9.10M | €1.64M | Patreon's published, all-in rate |
 
-Read the bottom row before the top one. **Matching Patreon costs €3.80M of Y7
-revenue and €3.49M of EBITDA — EBITDA falls 45%, from €7.79M to €4.30M.** The
+Read the bottom row before the top one. **Matching Patreon costs €1.60M of Y7
+revenue and €1.48M of EBITDA — EBITDA falls 47%, from €3.11M to €1.64M.** The
 same five points that look like upside going up are what a price war costs
 going down, and the downside lands harder because the cost base does not shrink
 with the take.
@@ -228,7 +228,7 @@ with the take.
 > becomes a picture of where we sit between two real companies.
 > **Data** · `attachments/chart-data/g9-take-rate-corridor.csv`
 > **Must say** · ==The downside is steeper than the upside.== Five points up
-> adds €3.8M of revenue; five points down costs €3.8M of revenue and **45% of
+> adds €1.6M of revenue; five points down costs €1.6M of revenue and **47% of
 > EBITDA**, because the cost base does not shrink with the take. Draw the EBITDA
 > series so that asymmetry is the thing the eye lands on.
 
@@ -272,10 +272,10 @@ rather than cited.*
 
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| Fan take | €25k (87%) | €692k (67%) | €4.77M (57%) | €13.78M (52%) |
-| Sponsorship take | €3k (9%) | €166k (16%) | €2.48M (29%) | €9.38M (35%) |
-| Sponsor SaaS | €1k (4%) | €180k (17%) | €1.15M (14%) | €3.36M (13%) |
-| **Total** | **€29k** | **€1.04M** | **€8.40M** | **€26.52M** |
+| Fan take | €21k (84%) | €322k (60%) | €1.69M (49%) | €4.81M (45%) |
+| Sponsorship take | €3k (11%) | €91k (17%) | €1.04M (30%) | €3.97M (37%) |
+| Sponsor SaaS | €1k (5%) | €122k (23%) | €0.69M (20%) | €1.92M (18%) |
+| **Total** | **€25k** | **€0.53M** | **€3.43M** | **€10.70M** |
 
 The mix shifts deliberately. Fans fund the early years because they can be
 acquired at near-zero cost — **athletes bring their own audience**. Sponsorship

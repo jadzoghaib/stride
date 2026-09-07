@@ -15,7 +15,7 @@
 
 Each was the right call, and each closed off something worth naming:
 
-- **15% flat** forfeits €3.8M of Y7 revenue versus 20%. Bought: a pricing
+- **15% flat** forfeits €1.6M of Y7 revenue versus 20%. Bought: a pricing
   argument that survives contact with the exact athlete we target.
 - **18+ for fan subscriptions** forfeits the 16–17 cohort's fan revenue for the
   first year or two. Bought: distance from the risk that has produced litigation
@@ -99,8 +99,8 @@ sustainability. **Worth deciding deliberately rather than by default.**
 
 ### D3 — Which valuation do we present?
 
-**Recommendation: lead with the exit multiple discounted back (€25–56M), present
-the DCF (€19.0M) as the conservative floor**, and explain why they differ. An
+**Recommendation: lead with the exit multiple discounted back (€11–25M), present
+the DCF (€8.4M) as the conservative floor**, and explain why they differ. An
 examiner who spots a perpetuity-growth DCF applied to a company still growing
 22% in the terminal year will discount everything else.
 

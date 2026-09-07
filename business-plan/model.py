@@ -98,7 +98,19 @@ POPULAR = Segment(
 @dataclass
 class Assumptions:
     # ---- demand side -------------------------------------------------------
-    athletes: list[int] = field(default_factory=lambda: [400, 1_800, 5_500, 13_000, 25_000, 38_000, 52_000, 65_000, 76_000, 85_000])
+    # Slowed deliberately, and the old curve did not fit the plan's own market.
+    # SAM in section 3.3 is ~55,000 athletes; the previous ramp reached 52,000 by
+    # Y7 (95% of it) and 85,000 by Y10 -- 155% of the entire addressable market.
+    # The draft flagged the Y7 number as "close to the whole SAM" and never
+    # mentioned that Y10 went straight through it.
+    #
+    # This curve reaches 22,000 by Y7 (40% of SAM) and 40,000 by Y10 (73%). It
+    # also matches the go-to-market the plan actually describes: club-by-club,
+    # race-day, federation-led acquisition in sceptical communities, which is
+    # slow by construction. Growth still decelerates smoothly -- 3.0x, 2.5x,
+    # 2.0x, 1.75x, 1.52x, 1.38x -- it simply starts from a believable multiple
+    # rather than 4.5x in the first year after launch.
+    athletes: list[int] = field(default_factory=lambda: [400, 1_200, 3_000, 6_000, 10_500, 16_000, 22_000, 28_000, 34_000, 40_000])
     # Niche first (no incumbent, acute need), popular entering from Y3 once the
     # niche cohort's earnings make the disintermediation pitch quantified.
     niche_share: list[float] = field(default_factory=lambda: [0.95, 0.92, 0.80, 0.68, 0.58, 0.50, 0.45, 0.43, 0.42, 0.41])
@@ -108,7 +120,10 @@ class Assumptions:
     ppv_tips_multiple: float = 0.35
 
     # ---- sponsor SaaS ------------------------------------------------------
-    sponsors: list[int] = field(default_factory=lambda: [25, 110, 340, 800, 1_500, 2_400, 3_500, 4_600, 5_600, 6_400])
+    # Sponsors follow athlete supply -- they arrive for the roster -- so this
+    # curve is slowed in step with `athletes`. Left at the old numbers it would
+    # have modelled demand densifying against a supply side half the size.
+    sponsors: list[int] = field(default_factory=lambda: [25, 90, 230, 500, 900, 1_400, 2_000, 2_600, 3_100, 3_600])
     sponsor_paid_rate: list[float] = field(default_factory=lambda: [0.10, 0.14, 0.17, 0.19, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20])
     sponsor_arpu_month: list[int] = field(default_factory=lambda: [199, 229, 260, 290, 320, 360, 400, 430, 455, 475])
     # A matching product is worth nothing without athletes to match. Below this
@@ -205,7 +220,12 @@ class Assumptions:
     ops_hours_per_year: int = 1_700
 
     # ---- operating costs ---------------------------------------------------
-    headcount: list[float] = field(default_factory=lambda: [1.5, 3.0, 7.0, 14.0, 24.0, 36.0, 50.0, 62.0, 72.0, 80.0])
+    # Hiring follows the athletes, and this is the line that decides whether
+    # slowing down is prudent or merely expensive. Held at the old curve against
+    # the slower ramp, the plan hired for growth that never arrived and the
+    # capital requirement went from EUR 824k to EUR 3.1M -- the same company,
+    # four times the money, because the costs kept the old plan's shape.
+    headcount: list[float] = field(default_factory=lambda: [1.5, 2.0, 3.5, 6.0, 10.0, 15.0, 22.0, 28.0, 33.0, 38.0])
     loaded_salary_eur: list[int] = field(default_factory=lambda: [38_000, 52_000, 60_000, 64_000, 66_000, 68_000, 70_000, 72_000, 74_000, 76_000])
     sponsor_cac_eur: list[int] = field(default_factory=lambda: [900, 1_050, 1_200, 1_400, 1_600, 1_750, 1_900, 2_000, 2_100, 2_200])
     legal_compliance_eur: list[int] = field(default_factory=lambda: [18_000, 45_000, 90_000, 150_000, 200_000, 235_000, 270_000, 300_000, 325_000, 345_000])

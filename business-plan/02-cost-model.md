@@ -33,9 +33,9 @@ Three responses, in order of impact:
 3. **Renegotiate at volume.** Above ~€5M/yr processed, interchange-plus pricing is
    available. Not modelled — upside.
 
-At Y7 the payment rail costs **€6.04M against €24.13M of revenue** — 25% of
+At Y7 the payment rail costs **€2.55M against €10.70M of revenue** — 24% of
 revenue, our largest single cost line, larger than all salaries combined
-(€3.50M). The share rose when VAT entered the model: the processor charges on
+(€1.54M). The share rose when VAT entered the model: the processor charges on
 the price a fan pays, while the revenue it is measured against is net of the
 VAT that price includes.
 
@@ -185,7 +185,7 @@ those applications need a human to open a link
 | **Reviewer FTE implied** | **0.02** | **0.15** | **0.46** | **0.61** | **0.61** |
 
 **The euros are not the point and the model says so.** Verification peaks at
-€47k a year and 0.64 of one person, and the whole discounted stream is worth
+€25k a year and 0.33 of one person, and the whole discounted stream is worth
 €63k against a €22.5M enterprise value — 0.28%. Two things follow, and they
 matter more than the line item:
 
@@ -228,18 +228,18 @@ roster.
 <!-- MODEL:costs_y7 -->
 | Line | Y7 amount | % of revenue |
 |---|---|---|
-| Payment processing | €6.04M | 25.0% |
-| People | €3.50M | 14.5% |
-| Marketing / CAC | €3.42M | 14.2% |
-| Other opex | €1.93M | 8.0% |
-| Payouts | €561k | 2.3% |
-| Infrastructure | €419k | 1.7% |
-| Legal & compliance | €270k | 1.1% |
-| Moderation | €165k | 0.7% |
-| Athlete verification | €43k | 0.2% |
-| **EBITDA** | **€7.79M** | **32.3%** |
+| Payment processing | €2.55M | 23.8% |
+| Marketing / CAC | €1.70M | 15.9% |
+| People | €1.54M | 14.4% |
+| Other opex | €856k | 8.0% |
+| Infrastructure | €344k | 3.2% |
+| Legal & compliance | €270k | 2.5% |
+| Payouts | €237k | 2.2% |
+| Moderation | €70k | 0.7% |
+| Athlete verification | €18k | 0.2% |
+| **EBITDA** | **€3.11M** | **29.1%** |
 <!-- /MODEL:costs_y7 -->
 
-Infrastructure is under 2% of revenue. **Payments are fourteen times larger.** Any
+Infrastructure is under 2% of revenue. **Payments are seven times larger.** Any
 optimisation effort belongs there — tier pricing, annual billing, processor
 negotiation — not in the AWS bill.

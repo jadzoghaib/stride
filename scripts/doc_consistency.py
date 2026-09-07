@@ -330,6 +330,25 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("stride-business-plan-draft.md", "summary table, Y7 gross margin",
      r"\| Gross margin \| \d+% \| (\d+)% \|", 100 * ROWS[6]["gross"] / ROWS[6]["revenue"], 0.6),
 
+    # --- derived prose that drifted when the growth curve changed -----------
+    # Each of these was written out of the model once and then left behind by a
+    # model change. Review caught them, not this file, which is the argument for
+    # pinning them: a figure nothing watches is a figure that goes stale.
+    ("01-revenue-model.md", "revenue mix, Y7 fan take",
+     r"\| Fan take \| .*\| €([\d.]+)M \(\d+%\) \|", ROWS[6]["rev_fan"] / 1e6, 0.05),
+    ("01-revenue-model.md", "revenue mix, Y7 sponsorship take",
+     r"\| Sponsorship take \| .*\| €([\d.]+)M \(\d+%\) \|", ROWS[6]["rev_sponsorship"] / 1e6, 0.05),
+    ("01-revenue-model.md", "revenue mix, Y7 SaaS",
+     r"\| Sponsor SaaS \| .*\| €([\d.]+)M \(\d+%\) \|", ROWS[6]["rev_saas"] / 1e6, 0.05),
+
+    ("03-financial-model.md", "Y2 revenue growth",
+     r"Growth: Y2 \+(\d+)%", 100 * (ROWS[1]["revenue"] / ROWS[0]["revenue"] - 1), 1.0),
+    ("03-financial-model.md", "Y7 revenue growth",
+     r"Y6 \+\d+%, Y7 \+(\d+)%", 100 * (ROWS[6]["revenue"] / ROWS[5]["revenue"] - 1), 1.0),
+
+    ("04-capital-and-valuation.md", "the blended exit multiple quoted in prose",
+     r"the blended exit multiple says €([\d.]+)M", 6.5 * ROWS[9]["revenue"] / 1e6, 0.5),
+
     ("11-admission-and-matching.md", "Y10 blended admission rate",
      r"admission rate climbs from 20% to (\d+)%", Y10["admit_rate"] * 100, 0.6),
 
@@ -347,8 +366,9 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      100 * (NO_VAT_Y7["ebitda"] - Y7["ebitda"]) / NO_VAT_Y7["ebitda"], 0.6),
 ]
 
-WORDS = {"ten": 10, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15,
-         "sixteen": 16, "twenty": 20}
+WORDS = {"five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+         "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14,
+         "fifteen": 15, "sixteen": 16, "twenty": 20}
 
 
 def check_duplicated_sport_table() -> list[str]:
