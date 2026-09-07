@@ -179,6 +179,13 @@ def rounds_before_series_a() -> float:
 
 DILUTION = {d["stage"]: d for d in model.dilution()}
 
+# The "discounted to today" column of the exit-multiple table in 04, rebuilt
+# from the same arithmetic model.render() uses for it. The prose quotes the ends
+# of this range, so the range needs a source that is not the prose.
+_DF = (1 + A.wacc) ** Y10["year"]
+MULTIPLES = ([m * Y10["revenue"] / _DF for m in (4.0, 6.5, 9.0)]
+             + [14 * max(Y10["ebitda"], 0) / _DF])
+
 
 # (document, description, regex capturing one number, expected value, tolerance)
 CLAIMS: list[tuple[str, str, str, float, float]] = [
@@ -326,6 +333,16 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("04-capital-and-valuation.md", "the founder's share of the DCF floor",
      r"\*\*€([\d.]+)M against the DCF floor",
      DILUTION["ESOP (cumulative)"]["held"] * VAL["enterprise_value"] / 1e6, 0.02),
+    # The two ends of the founder's stake against the exit multiples. Derived
+    # from the dilution cascade and a generated table, and quoted in prose --
+    # which is the combination that goes stale.
+    ("04-capital-and-valuation.md", "founder stake at the lowest exit multiple",
+     r"and €([\d.]+)–[\d.]+M against the exit multiples",
+     DILUTION["ESOP (cumulative)"]["held"] * min(MULTIPLES) / 1e6, 0.08),
+    ("04-capital-and-valuation.md", "founder stake at the highest exit multiple",
+     r"and €[\d.]+–([\d.]+)M against the exit multiples",
+     DILUTION["ESOP (cumulative)"]["held"] * max(MULTIPLES) / 1e6, 0.08),
+
     ("04-capital-and-valuation.md", "the DCF floor itself",
      r"against the DCF floor of €([\d.]+)M\*\*", VAL["enterprise_value"] / 1e6, 0.02),
 
@@ -335,12 +352,19 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # --- the egress decision, quoted in four documents ---------------------
     # Every one of these was stale, and the draft's prose contradicted a table
     # two lines above it: EUR 0.81M against EUR 344k is not a EUR 1.1M gap.
-    ("02-cost-model.md", "Y7 infrastructure, zero-egress",
-     r"\| AWS \+ zero-egress CDN \| €3k \| €30k \| €153k \| \*\*€(\d+)k\*\* \|",
-     Y7["infra"] / 1e3, 1.0),
-    ("02-cost-model.md", "Y7 infrastructure, CloudFront list",
-     r"\| AWS \+ CloudFront list price \| €5k \| €66k \| €327k \| \*\*€(\d+)k\*\* \|",
-     Y7["infra_naive"] / 1e3, 1.0),
+    # Every cell of the egress table, anchored by position rather than by
+    # quoting its neighbours. Written the other way round first, which made ten
+    # unwatched cells load-bearing: drift in the Y3 column would have failed the
+    # *Y7* claim as "not found" and named the wrong year.
+    *[("02-cost-model.md", f"egress table, Y{y} infrastructure (zero-egress)",
+       r"\| AWS \+ zero-egress CDN \|" + r" €\d+k \|" * n + r" \*?\*?€(\d+)k",
+       ROWS[y - 1]["infra"] / 1e3, 1.0) for n, y in enumerate((1, 3, 5, 7))],
+    *[("02-cost-model.md", f"egress table, Y{y} infrastructure (CloudFront list)",
+       r"\| AWS \+ CloudFront list price \|" + r" €\d+k \|" * n + r" \*?\*?€(\d+)k",
+       ROWS[y - 1]["infra_naive"] / 1e3, 1.0) for n, y in enumerate((1, 3, 5, 7))],
+    *[("02-cost-model.md", f"egress table, Y{y} annual difference",
+       r"\| \*\*Annual difference\*\* \|" + r" €\d+k \|" * n + r" \*?\*?€(\d+)k",
+       egress_delta(y) / 1e3, 1.0) for n, y in enumerate((1, 3, 5, 7))],
     ("02-cost-model.md", "the Y7 egress difference",
      r"\*\*€(\d+)k a year is the whole", egress_delta(7) / 1e3, 1.0),
     ("02-cost-model.md", "the egress difference across the plan",
