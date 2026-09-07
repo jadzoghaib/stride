@@ -500,15 +500,35 @@ def build() -> pathlib.Path:
              formula=(f"=MAX(0,{{c}}{D[base]}-IF({{k}}=1,0,{{p}}{D[base]})+{{c}}{r-1})"))
         drow(f"{tag} monetising athletes",
              formula=f"={{c}}{D[base]}*Assumptions!{{c}}{A_ROW[f'{t}_monetise']}")
-        drow(f"{tag} paying fans (year end)",
-             formula=f"={{c}}{r-1}*Assumptions!{{c}}{A_ROW[f'{t}_fpa']}", bold=True)
+        # The TARGET, not the outcome. fan_path() solves for the adds that would
+        # reach this number and then caps them at capacity; when the cap binds,
+        # the year they actually deliver is lower. Naming it "paying fans (year
+        # end)" is what let the sheet report the target as the result.
+        drow(f"{tag} paying fans (target, year end)",
+             formula=f"={{c}}{D[f'{tag} monetising athletes']}"
+                     f"*Assumptions!{{c}}{A_ROW[f'{t}_fpa']}")
+        target = D[f"{tag} paying fans (target, year end)"]
         # cohort mechanics, spelled out so the maths is visible rather than asserted
         drow(f"{tag} monthly retention r = 1-churn", unit="factor",
              formula=f"=1-Assumptions!{{c}}{A_ROW[f'{t}_fchurn']}", fmt='0.000')
-        drow(f"{tag} opening fans survived 12 months", unit="= open x r^12",
-             formula=f"=IF({{k}}=1,0,{{p}}{D[f'{tag} paying fans (year end)']}*{{c}}{r-1}^12)")
         rr = D[f"{tag} monthly retention r = 1-churn"]
-        surv = r - 1
+        # The year-end count is two rows below this one and cannot be written
+        # first: it needs the gross adds, which need these survivors. Referring
+        # to it by position is safe -- it is always the *previous* column, so
+        # the dependency runs backwards through time, not in a cycle -- and the
+        # assert below fails the build if the row ever moves.
+        surv = r
+        end = r + 2
+        # No leading "=": openpyxl types any string starting with one as a
+        # formula, so this unit label shipped as data_type 'f' and Excel
+        # rendered #NAME? in the cell on open.
+        # Y1 opens at zero and is written as its own formula, not as
+        # IF(k=1,0,...): the guarded branch still NAMES the year-end cell two
+        # rows down, and in Y1 `{p}` has no previous column to resolve to, so
+        # Excel read it as this column and reported a circular reference.
+        drow(f"{tag} opening fans survived 12 months", unit="open x r^12",
+             first="=0",
+             formula=f"={{p}}{end}*{{c}}{rr}^12")
         # Capped HERE, on the driver, because everything downstream reads this
         # row: the annual figure below it and — the one that matters — average
         # fans during the year, which is what revenue accrues on. Capping only
@@ -516,19 +536,34 @@ def build() -> pathlib.Path:
         # uncapped, which is the exact shape of the bug the ceiling was added to
         # prevent. Python caps `monthly_adds` in fan_path(); this is that.
         drow(f"{tag} monthly gross adds", unit="solved, then capped by capacity",
-             formula=(f"=MIN(MAX(0,({{c}}{D[f'{tag} paying fans (year end)']}-{{c}}{surv})"
+             formula=(f"=MIN(MAX(0,({{c}}{target}-{{c}}{surv})"
                       f"/((1-{{c}}{rr}^12)/(1-{{c}}{rr}))),"
                       f"{{c}}{D[f'{tag} monetising athletes']}"
                       f"*Assumptions!{{c}}{A_ROW[f'{t}_maxadds']}/12)"))
+        adds = D[f"{tag} monthly gross adds"]
+        # What the capped adds actually deliver: survivors + adds x (1-r^12)/(1-r).
+        # Equal to the target whenever capacity does not bind, and below it when
+        # it does -- which is the whole point of the ceiling.
+        drow(f"{tag} paying fans (year end)", unit="survivors + capped adds",
+             formula=(f"={{c}}{surv}+{{c}}{adds}"
+                      f"*(1-{{c}}{rr}^12)/(1-{{c}}{rr})"), bold=True)
+        assert D[f"{tag} paying fans (year end)"] == end, (
+            f"{tag} year-end row moved to {D[f'{tag} paying fans (year end)']}, "
+            f"but the survivors row above points at {end}")
         # Plain x12 again: the ceiling is applied to the monthly row above, so
         # this inherits it rather than clamping a second time.
         drow(f"{tag} fans acquired (gross)", unit="x12 months",
-             formula=f"={{c}}{r-1}*12")
+             formula=f"={{c}}{adds}*12")
         drow(f"{tag} S = r(1-r^12)/(1-r)", unit="geometric sum", fmt='0.000',
              formula=f"={{c}}{rr}*(1-{{c}}{rr}^12)/(1-{{c}}{rr})")
+        ssum = D[f"{tag} S = r(1-r^12)/(1-r)"]
+        # Opens on last year's ACTUAL close, not last year's target. Y1 has no
+        # opening stock, so its mean is the adds term alone -- again as `first`
+        # rather than a guarded reference to a cell below it.
         drow(f"{tag} average fans during year", unit="exact mean, revenue basis",
-             formula=(f"=(IF({{k}}=1,0,{{p}}{D[f'{tag} paying fans (year end)']})*{{c}}{r-1}"
-                      f"+{{c}}{D[f'{tag} monthly gross adds']}/(1-{{c}}{rr})*(12-{{c}}{r-1}))/12"),
+             first=f"=({{c}}{adds}/(1-{{c}}{rr})*(12-{{c}}{ssum}))/12",
+             formula=(f"=({{p}}{end}*{{c}}{ssum}"
+                      f"+{{c}}{adds}/(1-{{c}}{rr})*(12-{{c}}{ssum}))/12"),
              bold=True)
         drow(f"{tag} fans lost to churn", unit="avg x churn x 12",
              formula=(f"={{c}}{D[f'{tag} average fans during year']}*12"

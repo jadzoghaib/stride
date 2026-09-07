@@ -433,6 +433,7 @@ def build() -> list[dict]:
         prev_fans = {s["name"]: s["paying_fans"] for s in segs}
 
         paying_fans = sum(s["paying_fans"] for s in segs)
+        avg_fans = sum(s["avg_fans"] for s in segs)
         deals = sum(s["deals"] for s in segs)
         fan_gmv = sum(s["fan_gmv"] for s in segs)
         sponsorship_gmv = sum(s["sponsorship_gmv"] for s in segs)
@@ -464,7 +465,14 @@ def build() -> list[dict]:
         psp = (processed * A.psp_pct) + (fan_txns + deal_txns) * A.psp_fixed_eur
         payouts = (processed * A.payout_pct) + (fan_txns / 30 + deal_txns) * A.payout_fixed_eur
 
-        egress_gb = paying_fans * A.gb_per_fan_month * 12
+        # On AVERAGE fans, not the year-end count. A fan uses
+        # `gb_per_fan_month` for each month they are actually subscribed, so
+        # twelve months times the December count bills everyone acquired during
+        # the year as though they had been there since January. This is the
+        # same error fan_path() documents on the revenue side -- fixed there,
+        # left standing here, and it overstated infrastructure every year of
+        # the plan.
+        egress_gb = avg_fans * A.gb_per_fan_month * 12
         infra = A.aws_base_month[i_] * 12 + egress_gb * A.egress_eur_per_gb
         infra_naive = A.aws_base_month[i_] * 12 + egress_gb * A.egress_eur_per_gb_naive
 
@@ -566,7 +574,7 @@ def build() -> list[dict]:
             headcount=A.headcount[i_],
             segs={s["name"]: s for s in segs},
             niche_share=A.niche_share[i_],
-            avg_fans=sum(s["avg_fans"] for s in segs),
+            avg_fans=avg_fans,
             fan_gross_adds=sum(s["fan_gross_adds"] for s in segs),
             fans_churned=sum(s["fans_churned"] for s in segs),
             athlete_gross_adds=sum(s["athlete_gross_adds"] for s in segs),

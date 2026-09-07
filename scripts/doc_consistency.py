@@ -224,7 +224,10 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"cross at \*\*€([\d,]+)/month", 27 / ((A.take_fan - 0.10) - 0.28 / A.avg_fan_txn_eur), 5),
 
     ("02-cost-model.md", "payments vs infrastructure multiple",
-     r"\*\*Payments are (\w+) times larger", Y7["psp"] / Y7["infra"], 0.6),
+     r"\*\*Payments are nearly (\w+) times larger", Y7["psp"] / Y7["infra"], 0.6),
+    ("02-cost-model.md", "infrastructure as a share of Y7 revenue",
+     r"Infrastructure is ([\d.]+)% of revenue",
+     100 * Y7["infra"] / Y7["revenue"], 0.05),
     ("02-cost-model.md", "Y1 applications behind one athlete",
      r"Applications behind the athlete plan \| ([\d,]+) ", Y1["applications"], 1),
     ("02-cost-model.md", "Y1 manual reviews", r"\| Manual reviews \| ([\d,]+) ", Y1["reviews"], 1),
@@ -342,8 +345,17 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"and €[\d.]+–([\d.]+)M against the exit multiples",
      DILUTION["ESOP (cumulative)"]["held"] * max(MULTIPLES) / 1e6, 0.08),
 
+    # Unpinned figures that the egress correction moved and review caught:
+    # the gap between the ask and the pre-seed, and G11's restatement of the
+    # Y7 infrastructure number from the table three sections above it.
+    ("04-capital-and-valuation.md", "the gap between the ask and the pre-seed",
+     r"the €(\d+)k gap is what the non-dilutive stack",
+     (peak_funding() * 1.4 - model.ROUNDS[0]["amount"]) / 1e3, 1.0),
+    ("stride-business-plan-draft.md", "Y7 infrastructure in the G11 callout",
+     r"€2\.55M against €(\d+)k at Y7", Y7["infra"] / 1e3, 1.0),
+
     ("04-capital-and-valuation.md", "the DCF floor itself",
-     r"against the DCF floor of €([\d.]+)M\*\*", VAL["enterprise_value"] / 1e6, 0.02),
+     r"against the DCF floor of €([\d.]+)M\*\*", VAL["enterprise_value"] / 1e6, 0.005),
 
     ("04-capital-and-valuation.md", "what the startup tax rate is worth",
      r"worth €([\d.]+)M across Y6–Y9", startup_tax_saving() / 1e6, 0.05),
@@ -364,20 +376,26 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     *[("02-cost-model.md", f"egress table, Y{y} annual difference",
        r"\| \*\*Annual difference\*\* \|" + r" €\d+k \|" * n + r" \*?\*?€(\d+)k",
        egress_delta(y) / 1e3, 1.0) for n, y in enumerate((1, 3, 5, 7))],
+    # On avg_fans, like the model: a fan consumes bandwidth for the months
+    # they are subscribed, so the year-end count bills the whole year for
+    # people who joined in November. These two pins carried the old base and
+    # would have gone on approving it.
     ("02-cost-model.md", "Y7 bandwidth at CloudFront list",
-     r"\*\*the bandwidth alone is\n€(\d+)k\*\*",
-     Y7["paying_fans"] * A.gb_per_fan_month * 12 * A.egress_eur_per_gb_naive / 1e3, 1.0),
+     r"\*\*the bandwidth alone is €(\d+)k\*\*",
+     Y7["avg_fans"] * A.gb_per_fan_month * 12 * A.egress_eur_per_gb_naive / 1e3, 1.0),
     ("02-cost-model.md", "Y7 bandwidth behind a zero-egress CDN",
      r"the same bytes cost \*\*€(\d+)k\*\*",
-     Y7["paying_fans"] * A.gb_per_fan_month * 12 * A.egress_eur_per_gb / 1e3, 1.0),
+     Y7["avg_fans"] * A.gb_per_fan_month * 12 * A.egress_eur_per_gb / 1e3, 1.0),
+    ("02-cost-model.md", "Y7 average paying fans, the egress driver",
+     r"an average of (\d+)k paying fans", Y7["avg_fans"] / 1e3, 1.0),
     ("02-cost-model.md", "the Y7 compute and storage floor",
      r"they add the €(\d+)k of AWS compute", A.aws_base_month[6] * 12 / 1e3, 1.0),
     ("02-cost-model.md", "the Y7 egress difference",
-     r"\*\*€(\d+)k a year is very nearly", egress_delta(7) / 1e3, 1.0),
+     r"\*\*€(\d+)k a year is most of", egress_delta(7) / 1e3, 1.0),
     ("02-cost-model.md", "the trough the egress difference is compared to",
-     r"very nearly this plan's entire €(\d+)k cash trough", peak_funding() / 1e3, 1.0),
+     r"most of this plan's entire €(\d+)k cash trough", peak_funding() / 1e3, 1.0),
     ("README.md", "the trough the egress difference is compared to",
-     r"nearly this plan's entire €(\d+)k cash trough", peak_funding() / 1e3, 1.0),
+     r"this plan's entire €(\d+)k cash trough", peak_funding() / 1e3, 1.0),
     ("02-cost-model.md", "the egress difference across the plan",
      r"— €([\d.]+)M across the ten\s+years", egress_cumulative() / 1e6, 0.05),
     ("README.md", "the Y7 egress difference",

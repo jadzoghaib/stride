@@ -147,6 +147,10 @@ def main() -> int:
     phases.append(run(Phase("doc consistency"), [PY, "scripts/doc_consistency.py"]))
     if not args.quick:
         phases.append(run(Phase("workbook formulas"), [PY, "scripts/verify_workbook.py"]))
+        # Structure is not arithmetic. This one evaluates every formula and
+        # checks the workbook against model.py, which is what the Check
+        # sheet promised and nothing had ever run.
+        phases.append(run(Phase("workbook arithmetic"), [PY, "scripts/recalc_workbook.py"]))
 
     print("\n" + "─" * 78)
     width = max(len(p.name) for p in phases)

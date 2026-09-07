@@ -70,7 +70,7 @@ Three things in it are worth two minutes of a technical diligence call:
 |  | Y3 | Y7 |
 |---|---|---|
 | Net revenue | €535k | €10.70M |
-| EBITDA | €-229k | €3.11M |
+| EBITDA | €-228k | €3.12M |
 | Active athletes | 3,000 | 22,000 |
 | Paying fans | 25,288 | 321,288 |
 | Gross margin | 64% | 70% |
@@ -114,8 +114,8 @@ anchor athlete public, payments processing real money, and **fan churn measured
 for three months.** Use of funds: two hires, Spain go-to-market, the club
 channel.
 
-The plan needs €655k — the **€468k cash trough in Y4** plus a 40% buffer — and
-the pre-seed clears the trough itself with €132k to spare. That is what asking
+The plan needs €649k — the **€464k cash trough in Y4** plus a 40% buffer — and
+the pre-seed clears the trough itself with €136k to spare. That is what asking
 for €600k rather than €400k buys: **the seed becomes optional.** It brings a
 second market forward; it is not the thing standing between the company and
 running out of cash. The rounds raise €2.6M before a Series A, and the

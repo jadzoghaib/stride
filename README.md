@@ -231,12 +231,12 @@ rather than an afterthought:
 ## Verification
 
 ```bash
-python scripts/verify.py                 # everything: 11 checks (12 with --postgres)
+python scripts/verify.py                 # everything: 12 checks (13 with --postgres)
 python scripts/verify.py --quick         # skip the build, the drill, the workbook
 ```
 
 That is the whole protocol. It runs the unit suite, the design-token audit, the
-build, the four API audits, the failure drill, the admission sweep and the two
+build, the four API audits, the failure drill, the admission sweep and the three
 business-plan guards, then prints one table. It exists because running them by
 hand in sequence *drains the API rate limiter* -- 300 requests of burst against
 audits that fire hundreds -- and a drill that starts on an empty bucket used to
@@ -271,7 +271,8 @@ python scripts/links.py --api http://127.0.0.1:8490   # every link and API call 
 python scripts/failure_drill.py                       # latency -> errors -> db down -> recovery
 python scripts/admission_stress.py                    # the admission bar under a funnel sweep
 python scripts/doc_consistency.py                     # every figure in prose still matches model.py
-python scripts/verify_workbook.py                     # 1,992 formulas, no dangling refs, no cycles
+python scripts/verify_workbook.py                     # 2,010 formulas, no dangling refs, no cycles
+python scripts/recalc_workbook.py                     # evaluates them all; Check sheet variances must be 0
 ```
 
 `journey.py` and `permissions.py` write to the demo database and restore it afterwards, so
