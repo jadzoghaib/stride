@@ -225,18 +225,18 @@ roster.
 <!-- MODEL:costs_y7 -->
 | Line | Y7 amount | % of revenue |
 |---|---|---|
-| Payment processing | €6.04M | 22.8% |
-| People | €3.50M | 13.2% |
-| Marketing / CAC | €3.42M | 12.9% |
-| Other opex | €2.12M | 8.0% |
-| Payouts | €561k | 2.1% |
-| Infrastructure | €419k | 1.6% |
-| Legal & compliance | €270k | 1.0% |
-| Moderation | €165k | 0.6% |
+| Payment processing | €5.30M | 22.0% |
+| People | €3.50M | 14.5% |
+| Marketing / CAC | €3.42M | 14.2% |
+| Other opex | €1.93M | 8.0% |
+| Payouts | €506k | 2.1% |
+| Infrastructure | €419k | 1.7% |
+| Legal & compliance | €270k | 1.1% |
+| Moderation | €165k | 0.7% |
 | Athlete verification | €43k | 0.2% |
-| **EBITDA** | **€9.99M** | **37.7%** |
+| **EBITDA** | **€8.58M** | **35.6%** |
 <!-- /MODEL:costs_y7 -->
 
-Infrastructure is under 2% of revenue. **Payments are fourteen times larger.** Any
+Infrastructure is under 2% of revenue. **Payments are thirteen times larger.** Any
 optimisation effort belongs there — tier pricing, annual billing, processor
 negotiation — not in the AWS bill.

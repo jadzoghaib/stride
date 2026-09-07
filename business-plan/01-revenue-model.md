@@ -84,8 +84,8 @@ raising the take rate by a point, without asking athletes for anything.
 
 SaaS matters disproportionately: it is **100% margin** (no GMV, no payment
 rail), and it converts the analytics engine into revenue that does not depend on
-a deal closing. By Y7 it is €3.36M of the €26.52M — 13% of revenue at close to
-100% gross margin, which is roughly 17% of gross profit.
+a deal closing. By Y7 it is €3.36M of the €24.13M — 14% of revenue at close to
+100% gross margin, which is roughly 19% of gross profit.
 
 ---
 
@@ -205,18 +205,18 @@ two decisions have to agree with each other.
 
 ### The lever, quantified
 
-At Y7 each point of take on fan GMV is worth **€0.92M of revenue**. It is the
+At Y7 each point of take on fan GMV is worth **€0.76M of revenue**. It is the
 single biggest lever in the model, and it now has a real number at both ends
 rather than one:
 
 | Take | Y7 revenue | Y7 EBITDA | Against |
 |---|---|---|---|
-| 20% | €31.12M | €14.22M | OnlyFans' rate, derived from filed accounts |
-| **15%** | **€26.52M** | **€9.99M** | **our proposal** |
-| 10% | €21.93M | €5.77M | Patreon's published, all-in rate |
+| 20% | €27.93M | €12.07M | OnlyFans' rate, derived from filed accounts |
+| **15%** | **€24.13M** | **€8.58M** | **our proposal** |
+| 10% | €20.34M | €5.09M | Patreon's published, all-in rate |
 
-Read the bottom row before the top one. **Matching Patreon costs €4.59M of Y7
-revenue and €4.23M of EBITDA — EBITDA falls 42%, from €9.99M to €5.77M.** The
+Read the bottom row before the top one. **Matching Patreon costs €3.80M of Y7
+revenue and €3.49M of EBITDA — EBITDA falls 41%, from €8.58M to €5.09M.** The
 same five points that look like upside going up are what a price war costs
 going down, and the downside lands harder because the cost base does not shrink
 with the take.

@@ -12,7 +12,13 @@
  *  never ambiguous to a reader.
  */
 
-export const POLICY_VERSION = '2026-08-17'
+//: Bumped when the documents change in a way a person would want to have been
+//  told about. 2026-09-07 named the controller and gave a contact address for
+//  data requests, replacing a paragraph that promised both "before public
+//  launch" — material, because it is the route by which someone exercises the
+//  rights the policy grants. Acceptance is recorded against the version shown,
+//  so anyone who signed up earlier keeps showing the version they actually saw.
+export const POLICY_VERSION = '2026-09-07'
 
 export const LEGAL_STATUS =
   'Engineering-accurate draft, pending legal review before public launch. It describes exactly what the ' +
@@ -46,9 +52,13 @@ const privacy: LegalDoc = {
     {
       h: 'Who is responsible',
       p: [
-        'Stride is the controller for the personal data described here. Until the operating entity is ' +
-          'incorporated, the contact point is the project owner; the registered entity, address and ' +
-          'representative will replace this paragraph before public launch.',
+        'Stride is the controller for the personal data described here. Stride is operated from ' +
+          'Barcelona, Spain. The operating entity is not yet incorporated, so the controller is the ' +
+          'project owner; the registered company name and address will replace that detail here once ' +
+          'it exists.',
+        'For any question about your data, and to exercise any of the rights below, write to ' +
+          'jadzoghaib@hotmail.com. That address reaches the controller directly and is the route to ' +
+          'use for access, correction, export, erasure, restriction and objection requests.',
         'Spain-based operation means the LSSI-CE identification duties apply alongside the GDPR, which ' +
           'is why the operator identity is called out separately rather than buried in a contact form.',
       ],

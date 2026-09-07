@@ -66,8 +66,8 @@ commercial value have come apart**.
 | Paying fans | 46,333 | 759,408 |
 | Gross margin | 69% | 73% |
 
-EBITDA turns positive in **Y4**. Total capital to fund the plan: **€625k**
-(peak burn €446k plus a 40% buffer). Take rates are published and fixed: **15%
+EBITDA turns positive in **Y5**. Total capital to fund the plan: **€799k**
+(peak burn €571k plus a 40% buffer). Take rates are published and fixed: **15%
 on fan revenue, 10% on sponsorship**, no monthly athlete fee.
 
 > [!example] 📊 ==GRAPH G1 — the plan in one frame==
@@ -242,7 +242,7 @@ graph TD
   cyclical. Padel in Spain in particular. `[to research: federation licence
   counts, 2019→2026]`
 - **Interest rates and a harder funding market** favour a plan that reaches
-  EBITDA-positive in Y4 on €625k, rather than one that needs €10M to find out.
+  EBITDA-positive in Y5 on €799k, rather than one that needs €10M to find out.
 
 ## 3.3 Market sizing
 
@@ -746,7 +746,7 @@ salary, taken once, at the start.
 | Athlete verification | €1k | €9k | €30k | €43k |
 
 **Payment processing is the dominant COGS line — larger than infrastructure by
-14× at Y7.** No amount of engineering removes it; it is why gross margin lands
+13× at Y7.** No amount of engineering removes it; it is why gross margin lands
 in the low 70s rather than a SaaS 80%+, and pretending otherwise would be the
 easiest way to lose credibility with anyone who has run a marketplace.
 
@@ -971,7 +971,7 @@ pass; assumed mix 40/50/10.
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
-| Net revenue | €0.03M | €0.23M | €1.04M | €3.37M | €8.40M | €16.20M | €26.52M |
+| Net revenue | €0.02M | €0.21M | €0.92M | €2.97M | €7.57M | €14.70M | €24.13M |
 | EBITDA | €-0.09M | €-0.19M | €-0.27M | €0.08M | €1.72M | €5.13M | €9.99M |
 | Athletes | 400 | 1,800 | 5,500 | 13,000 | 25,000 | 38,000 | 52,000 |
 | Paying fans | 2,058 | 12,217 | 46,333 | 130,165 | 285,069 | 490,646 | 759,408 |
@@ -1027,21 +1027,34 @@ popular sports enter from a position of proof.
 | Seed | €2.0M | €10M | €80k MRR · churn <8%/mo · CAC payback <9mo · 2nd market · 30+ sponsors |
 | Series A | €8.0M | €40M | €300k MRR · NRR >110% · sponsorship >25% of revenue |
 
-**The plan needs €625k** (peak burn €446k + 40% buffer). The staged rounds raise
+**The plan needs €799k** (peak burn €571k + 40% buffer). The staged rounds raise
 €2.4M before Series A. The difference is deliberate: raising only what the model
 needs leaves no room for the assumption that turns out wrong, and a company that
 runs out of cash in Y3 at the trough dies with a working product.
 
+> [!danger] The €400k pre-seed no longer reaches the seed gate
+> Carrying VAT on fan prices deepened the trough from €446k to **€571k**, and
+> the trough falls in **Y3 — the year the seed is supposed to arrive.** So the
+> pre-seed has to fund €571k of cumulative burn and is currently asking for
+> €400k. **It is short by roughly €171k.**
+>
+> Three ways out, and this is a founder's decision rather than a modelling one:
+> raise the pre-seed to about **€600k** at the same valuation and accept the
+> dilution; **pull the seed forward** into Y2, which means hitting its gates a
+> year earlier; or **cut Y1–Y3 cost**, where the only line big enough to matter
+> is headcount. The plan does not currently pick one, and it should before it
+> goes in front of anybody.
+
 > [!example] 📊 ==GRAPH G8 — the trough, and the buffer over it==
 > **Chart** · Cumulative cash line, Y1–Y7, with the raises as step-ups. Mark
-> the **Y3 trough at −€446k** with a dropline, draw the €625k requirement as a
+> the **Y3 trough at −€571k** with a dropline, draw the €799k requirement as a
 > horizontal rule above it, and shade the gap between them: that band is the
 > buffer, and it is the argument of this section.
 > **Data** · `attachments/chart-data/g8-cash-and-capital.csv` — the cumulative column
 > is stated **before** raises, so the trough is the number the raise has to
 > clear.
-> **Must say** · The hole is **€446k deep and three years wide**, and the plan
-> asks for €625k to cross it — the extra 40% is the room to be wrong once.
+> **Must say** · The hole is **€571k deep and three years wide**, and the plan
+> asks for €799k to cross it — the extra 40% is the room to be wrong once.
 > Anyone can check that arithmetic straight off the chart, which is the point of
 > drawing it rather than asserting it.
 
@@ -1083,7 +1096,7 @@ already being referred to in conversation.
 | **R1** | **Fans do not pay for niche athletes** — the thesis fails | 3 | 5 | **15** | P1 is built specifically to test this for €80k, not €2.4M. Pre-seed gate requires 3 months of real churn data. If false, the sponsorship marketplace remains a smaller, viable business |
 | **R2** | **Churn is at benchmark, not 45% better** | 3 | 4 | **12** | See below — the model understates this. Mitigation is measurement, early, on one athlete |
 | **R3** | **Athlete acquisition is slower than modelled** | 3 | 4 | **12** | Club and federation channels are multiplicative (1 conversation = 20–40 athletes). Anchor-athlete referral loop. CAC has room: niche CAC is €16 against €40 popular |
-| **R11** | **VAT deemed-supplier treatment** — Art 9a presumes we supply the fan in our own name, and the presumption cannot be rebutted by a platform that both sets the terms and processes the payment. We do both | 4 | 3 | **12** | See [[#8 · Legal & Regulatory]] **L1**. Y7 revenue −9.0%, Y7 EBITDA −14.1%, trough €446k → €571k. High probability, contained impact, and **answerable in one conversation with a Spanish tax adviser** — which is why it is the first item on the pre-launch legal list rather than a monitored risk |
+| **R11** | **VAT rate mix runs above the modelled 21%** — B2C digital services are taxed where the customer is, and the plan sells into markets charging 20% to 25% | 3 | 2 | **6** | Re-scored down, because the *principle* is no longer a risk: the model now carries Spanish VAT on fan prices, so the deemed-supplier exposure is priced in rather than pending. What remains is mix — every point of blended rate above 21% costs roughly a point of fan revenue, and the Nordic markets are the expensive end. See [[#8 · Legal & Regulatory]] **L1** |
 | **R5** | **Regulatory — DAC7 due diligence, age assurance, Spanish startup law changes** | 3 | 3 | **9** | Re-scored. **DAC7 is not a P4 build**: sponsorship deliverables are "personal services" with no de minimis, so seller due diligence is needed before the first paid deal — see §8.1 **L3**. Accounts are 16+; fan subscriptions stay 18+ in v1, deliberately conservative. Legal budget €18k→€270k |
 | **R7** | **Moderation / content liability** | 3 | 3 | **9** | Re-scored upward: image **and video** upload now ship, so the P2 exposure arrived ahead of the P2 tooling. Block, report and an admin review queue exist and the queue is budgeted from Y1; automated classification ahead of the human queue does not exist yet. 18+ subscriptions |
 | **R4** | **A funded competitor enters the niche** | 2 | 4 | **8** | Data and liquidity are the moat, not the code. 18–24 month head start on measured athlete data. Communities reward incumbency |
@@ -1148,16 +1161,28 @@ weekend.
 
 | # | Issue | Why it matters here | Effect if it lands against us |
 |---|---|---|---|
-| **L1** | **VAT: are we the deemed supplier?** Art 9a of the VAT Implementing Regulation presumes a platform supplying electronic services acts *in its own name*. The presumption is **irrebuttable** where the platform sets the essential terms **and** processes the payment. We publish fixed take rates and run the PSP — we do both | The fan pays €9.99. If we are the deemed supplier, VAT is due on the **whole** €9.99, not on our €1.50 commission, and the model's `fan_arpu_month` of €9.49 has to be read as VAT-**inclusive** | **Y7 revenue €26.52M → €24.13M (−9.0%), Y7 EBITDA €9.99M → €8.58M (−14.1%), and the cash trough deepens from €446k to €571k** — which would consume most of the €625k requirement's buffer |
+| **L1** | **VAT: we assume we are the deemed supplier.** Art 9a of the VAT Implementing Regulation presumes a platform supplying electronic services acts *in its own name*, and the presumption is **irrebuttable** where the platform sets the essential terms **and** processes the payment. We publish fixed take rates and run the PSP — we do both | So the fan price is treated as VAT-inclusive throughout: the taxable base is the price divided by 1.21, and the take applies to that base. **This is now in the model**, not a note beside it | **Priced in, at Spain's 21%.** Were the reading wrong and the take charged on a net price, Y7 revenue would be €26.52M and Y7 EBITDA €9.99M — so carrying it costs 14% of Y7 EBITDA. The remaining exposure is the *rate*, not the principle: see below |
 | **L2** | **Adult content: permitted or not?** The plan cites OnlyFans as proof of the model. It does not follow that we copy their content policy. Stripe and every mainstream PSP prohibit adult content | The PSP assumption in §4.4 is **1.9% + €0.25**. High-risk processing for adult platforms runs several times that, and payments are already the dominant COGS line | Payments are €6.04M at Y7 on the mainstream rate. A high-risk rate does not dent the margin, it removes it. **Recommendation: prohibit adult content in the terms, explicitly, from day one** — the athlete audience is practitioner-led and the policy costs us nothing we want |
 | **L3** | **DAC7 arrives earlier than P4.** The reporting directive covers "personal services" — time- or task-based work performed *at a user's request*. Commentary is fairly settled that pre-recorded subscription content falls **outside** that. A sponsorship deliverable — a post an athlete produces because a sponsor briefed it — falls squarely **inside**, and personal services carry **no de minimis**: one deal is reportable | §4.2 schedules DAC7 at P4/Series A. That is right for the subscription side and wrong for the sponsorship side, which is **already built** | Seller due diligence (TIN, address, business registration) has to be collected **before the first paid deal**, not in Y4. Cheap if designed in, expensive as a retrofit against a live roster |
 
-> [!warning] ==L1 is the one to resolve first.==
-> It is a single question — *do we quote prices VAT-inclusive or VAT-exclusive,
-> and who remits* — with a 14% EBITDA swing behind it, and it is answerable in
-> one conversation with a Spanish tax adviser. Until it is answered, **read the
-> §6 figures as VAT-exclusive**, which is the optimistic reading. It belongs in
-> the risk register as well as here.
+> [!warning] ==What is still open about VAT is the rate, not the principle.==
+> The model carries **21%**, Spain's standard rate, because Spain is the launch
+> market. But B2C digital services are taxed **where the customer is**, not
+> where the supplier is, so the effective rate is a moving blend of the markets
+> the plan sells into: 20% in France and the UK, 22% in Italy, 23% in Portugal,
+> **25% in Sweden and Denmark**. A single Spanish rate is right for the early
+> years and slightly optimistic later, as the Nordic share grows.
+>
+> Two things follow. **The one-account-per-country VAT registration problem is
+> solved by the OSS scheme** — one return, filed in Spain, covering the EU — and
+> that is an administrative task rather than a structural one. And **the
+> direction of surprise is favourable**: if a tax adviser says the deemed-supplier
+> reading does not apply to us, every fan figure improves. Prices are quoted
+> inclusive here because that is the conservative side to be wrong on.
+>
+> Sponsorship is untouched by any of this. Those are B2B supplies — reverse
+> charge across borders, reclaimable domestically — so VAT does not reduce what
+> the business keeps on that side.
 
 ## 8.2 Data protection — the part that is already done
 
@@ -1265,7 +1290,7 @@ Ordered by how much the plan would change if the answer surprised us.
 - **Financial model:** `business-plan/model.py`. Ten-year projection, real
   working capital, capex, amortisation, loss carry-forward, Spanish Startup Law
   tax step (15% for four profitable years, then 25%).
-- **Consistency:** an automated guard checks **59 prose claims across 9
+- **Consistency:** an automated guard checks **57 prose claims across 9
   documents** against the model, plus the evidence chain from published
   comparables → derived assumptions. The build fails if any figure drifts —
   including this sentence, whose two numbers are themselves pinned to the

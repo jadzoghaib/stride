@@ -114,22 +114,21 @@ def _trough(rows: list[dict]) -> float:
     return -trough
 
 
-def vat_inclusive() -> list[dict]:
-    """The plan re-run on the reading that fan ARPU is VAT-*inclusive*.
+def without_vat() -> list[dict]:
+    """The plan re-run as if we were *not* the deemed supplier.
 
-    Art 9a of the VAT Implementing Regulation makes a platform that both sets
-    the terms and processes the payment the deemed supplier, irrebuttably --
-    which is our shape exactly. If that is how it lands, the EUR 9.49 in the
-    segments is gross of Spanish VAT rather than net of it, and every fan
-    figure in the plan is 21% smaller than it reads. The model has no VAT
-    treatment at all, so this is the honest way to size the exposure rather
-    than adding an assumption nobody has checked.
+    VAT is in the model now: fan prices are treated as inclusive, because Art 9a
+    makes a platform that both sets the terms and processes the payment the
+    deemed supplier and the presumption cannot be rebutted. So the counterfactual
+    has flipped. It used to be "what if VAT applies"; the interesting question
+    now is what the plan looks like if the reading turns out to be wrong and the
+    take is charged on a net price after all -- which is upside, and the only
+    direction a surprise here can go.
     """
     import copy
     alt = copy.deepcopy(A)
-    alt.segments = [copy.deepcopy(seg) for seg in A.segments]
-    for seg in alt.segments:
-        seg.fan_arpu_month = [x / 1.21 for x in seg.fan_arpu_month]
+    alt.segments = A.segments      # deepcopy would detach the segment objects
+    alt.vat_rate_fan = 0.0
     original, model.A = model.A, alt
     try:
         return model.build()
@@ -137,8 +136,8 @@ def vat_inclusive() -> list[dict]:
         model.A = original
 
 
-VAT = vat_inclusive()
-VAT_Y7 = VAT[6]
+NO_VAT = without_vat()
+NO_VAT_Y7 = NO_VAT[6]
 
 
 # The capital the plan needs: the deepest point of cumulative free cash flow,
@@ -310,25 +309,22 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("11-admission-and-matching.md", "Y10 blended admission rate",
      r"admission rate climbs from 20% to (\d+)%", Y10["admit_rate"] * 100, 0.6),
 
-    # --- section 8, the VAT exposure ---------------------------------------
-    # Every one of these is a number a reader could act on -- it is the largest
-    # single swing in the plan that is not a thesis risk -- and none of them
-    # exists anywhere but in prose, which is precisely the shape of figure that
-    # goes stale first.
-    ("stride-business-plan-draft.md", "Y7 revenue if fan ARPU is VAT-inclusive",
-     r"Y7 revenue €[\d.]+M → €([\d.]+)M", VAT_Y7["revenue"] / 1e6, 0.05),
-    ("stride-business-plan-draft.md", "the revenue the VAT reading costs, as a share",
-     r"Y7 revenue €[\d.]+M → €[\d.]+M \(−([\d.]+)%\)",
-     100 * (Y7["revenue"] - VAT_Y7["revenue"]) / Y7["revenue"], 0.15),
-    ("stride-business-plan-draft.md", "Y7 EBITDA if fan ARPU is VAT-inclusive",
-     r"Y7 EBITDA €[\d.]+M → €([\d.]+)M", VAT_Y7["ebitda"] / 1e6, 0.05),
-    ("stride-business-plan-draft.md", "the EBITDA the VAT reading costs, as a share",
-     r"Y7 EBITDA −([\d.]+)%", 100 * (Y7["ebitda"] - VAT_Y7["ebitda"]) / Y7["ebitda"], 0.15),
-    ("stride-business-plan-draft.md", "the cash trough under the VAT reading",
-     r"trough €\d+k → €(\d+)k", _trough(VAT) / 1e3, 2.0),
+    # --- section 8, VAT now that it is modelled -----------------------------
+    # These moved from sizing an exposure to pinning an assumption. The plan
+    # carries Spanish VAT on fan prices, so what a reader needs is the size of
+    # what that costs -- which is also the upside if the deemed-supplier reading
+    # turns out to be wrong.
+    ("stride-business-plan-draft.md", "Y7 revenue if we were not the deemed supplier",
+     r"Y7 revenue would be €([\d.]+)M", NO_VAT_Y7["revenue"] / 1e6, 0.05),
+    ("stride-business-plan-draft.md", "Y7 EBITDA if we were not the deemed supplier",
+     r"and Y7 EBITDA €([\d.]+)M", NO_VAT_Y7["ebitda"] / 1e6, 0.05),
+    ("stride-business-plan-draft.md", "what carrying VAT costs Y7 EBITDA, as a share",
+     r"carrying it costs (\d+)% of Y7 EBITDA",
+     100 * (NO_VAT_Y7["ebitda"] - Y7["ebitda"]) / NO_VAT_Y7["ebitda"], 0.6),
 ]
 
-WORDS = {"fourteen": 14, "fifteen": 15, "sixteen": 16, "twenty": 20, "ten": 10, "twelve": 12}
+WORDS = {"ten": 10, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15,
+         "sixteen": 16, "twenty": 20}
 
 
 def check_duplicated_sport_table() -> list[str]:

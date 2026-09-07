@@ -124,6 +124,34 @@ class Assumptions:
     # athlete-friendly", which was true and was only the ceiling. 01 carries
     # what each end of the corridor costs.
     take_fan: float = 0.15
+
+    # VAT on fan subscriptions, and the reason it belongs in the model rather
+    # than in a footnote.
+    #
+    # Art 9a of the VAT Implementing Regulation presumes a platform supplying
+    # electronic services acts in its own name, and the presumption is
+    # *irrebuttable* where the platform both sets the essential terms and
+    # processes the payment. Stride publishes fixed take rates and runs the PSP,
+    # so it does both. On that reading Stride is the deemed supplier to the fan
+    # and VAT is due on the whole subscription, not on the commission.
+    #
+    # EU consumer prices are displayed inclusive of VAT, so the tier price a fan
+    # sees is what they pay: the taxable base is that price divided by
+    # (1 + rate), and the take applies to the base. Leaving this out treated
+    # every fan price as if it were net, which overstated fan revenue by the
+    # whole of the VAT.
+    #
+    # 0.21 is Spain's standard rate, and Spain is the launch market. It is a
+    # simplification: B2C digital services are taxed where the *customer* is, so
+    # the effective rate across the plan's markets runs roughly 20% (France, UK)
+    # to 25% (Sweden, Denmark), with Portugal 23% and Italy 22%. A single
+    # Spanish rate is the right base case for the early years and slightly
+    # optimistic later, as the mix moves north.
+    #
+    # Sponsorship is deliberately untouched. Those are B2B supplies -- reverse
+    # charge cross-border, and reclaimable by the buyer domestically -- so VAT
+    # does not reduce what the business keeps.
+    vat_rate_fan: float = 0.21
     take_sponsorship: float = 0.10
 
     # ---- payment rails (charged on GMV, not on our net revenue) ------------
@@ -273,7 +301,11 @@ def segment_year(seg: Segment, athlete_count: float, prev_athletes: float,
     fans = fan_path(prev_fans, target_fans, seg.fan_churn_month[i_], cap_monthly)
 
     # Revenue on the AVERAGE fan count — the honest basis.
-    sub_gmv = fans["avg"] * seg.fan_arpu_month[i_] * 12
+    #
+    # `fan_arpu_month` is the price a fan pays, which in the EU is displayed
+    # inclusive of VAT. The taxable base is net of it; see `vat_rate_fan`.
+    net_arpu = seg.fan_arpu_month[i_] / (1 + A.vat_rate_fan)
+    sub_gmv = fans["avg"] * net_arpu * 12
     fan_gmv = sub_gmv * (1 + A.ppv_tips_multiple)
 
     deals = athlete_count * seg.deal_rate[i_] * seg.deals_per_athlete[i_]
