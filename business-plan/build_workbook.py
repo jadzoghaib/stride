@@ -905,8 +905,9 @@ def build() -> pathlib.Path:
     # the company, which is a worse failure than either number being wrong.
     advisory = [0.0] * 10
     esop = [0.0] * 10
-    advisory[M.ROUNDS[0]["year"] - 1] = M.ADVISORY_GRANT
-    esop[M.ROUNDS[-1]["year"] - 1] = M.ESOP_POOL
+    _advisory_year, _esop_year = M.grant_years()
+    advisory[_advisory_year - 1] = M.ADVISORY_GRANT
+    esop[_esop_year - 1] = M.ESOP_POOL
     urow("Advisory grant", "%", values=advisory, fmt=PCT)
     urow("ESOP pool", "%", values=esop, fmt=PCT)
     urow("Founders + team retained", "%", fmt=PCT, bold=True,

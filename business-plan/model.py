@@ -278,6 +278,19 @@ ADVISORY_GRANT: float = 0.02
 ESOP_POOL: float = 0.10
 
 
+def grant_years() -> tuple[int, int]:
+    """The years the advisory grant and the ESOP land in.
+
+    Found by stage and by latest year rather than by position in ROUNDS. The
+    workbook builds its own per-year grant rows and was indexing ROUNDS[0] and
+    ROUNDS[-1]: reordering the list, or adding a round out of order, would have
+    put the 2% grant on a different round from the one charged here, and the
+    sheet would have disagreed with this module without saying so.
+    """
+    advisory_year = next(rd["year"] for rd in ROUNDS if rd["stage"] == "Pre-seed")
+    return advisory_year, max(rd["year"] for rd in ROUNDS)
+
+
 def dilution() -> list[dict]:
     """The cap table after each round.
 
@@ -286,16 +299,17 @@ def dilution() -> list[dict]:
     reading of the earlier ones. Deriving it here lets the doc guard pin every
     cell, which is the only thing that keeps a table like this honest.
     """
+    _, esop_year = grant_years()
     out: list[dict] = []
     held = 1.0
-    for rd in ROUNDS:
+    for rd in sorted(ROUNDS, key=lambda r: r["year"]):
         post = rd["pre"] + rd["amount"]
         stake = rd["amount"] / post
         held *= 1 - stake
         if rd["stage"] == "Pre-seed":
             held -= ADVISORY_GRANT
         out.append({**rd, "post": post, "stake": stake, "held": held})
-    out.append({"year": ROUNDS[-1]["year"], "stage": "ESOP (cumulative)",
+    out.append({"year": esop_year, "stage": "ESOP (cumulative)",
                 "amount": 0.0, "pre": 0.0, "post": 0.0,
                 "stake": ESOP_POOL, "held": held * (1 - ESOP_POOL)})
     return out

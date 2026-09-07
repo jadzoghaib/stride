@@ -153,6 +153,47 @@ def find_cycle(graph: dict[Cell, set[Cell]]) -> list[Cell] | None:
     return None
 
 
+def check_cap_table() -> list[str]:
+    """Evaluate the Funding sheet's own chain and compare it to dilution().
+
+    Structural checks pass happily while a sheet says the founders keep 56% and
+    the plan says 49% -- which is what it did, because the advisory grant and
+    the ESOP existed in model.dilution() and in no cell of the workbook. This
+    walks the sheet's real inputs through the sheet's real recurrence, so the
+    two cannot drift apart again without failing here.
+    """
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "business-plan"))
+    import model
+
+    ws = load_workbook(WORKBOOK)["Funding"]
+    rows = {"raised": 4, "pre": 5, "advisory": 8, "esop": 9}
+    years = len(model.A.athletes)
+
+    def cell(r: int, i: int):
+        return ws.cell(row=r, column=3 + i).value or 0
+
+    held, sheet_held = 1.0, []
+    for i in range(years):
+        raised, pre = cell(rows["raised"], i), cell(rows["pre"], i)
+        post = (pre + raised) if raised else 0
+        stake = (raised / post) if post else 0.0
+        held = (held * (1 - stake) - cell(rows["advisory"], i)) * (1 - cell(rows["esop"], i))
+        sheet_held.append(held)
+
+    by_stage = {d["stage"]: d for d in model.dilution()}
+    _, esop_year = model.grant_years()
+    want = {rd["year"]: by_stage[rd["stage"]]["held"] for rd in model.ROUNDS}
+    want[esop_year] = by_stage["ESOP (cumulative)"]["held"]   # ESOP lands with the last round
+
+    out = []
+    for year, expected in sorted(want.items()):
+        got = sheet_held[year - 1]
+        if abs(got - expected) > 1e-9:
+            out.append(f"CAPTABLE Funding!Y{year} retained {got:.4%}, "
+                       f"model.dilution() says {expected:.4%}")
+    return out
+
+
 def main() -> int:
     if not WORKBOOK.exists():
         print(f"no workbook at {WORKBOOK} — run business-plan/build_workbook.py first")
@@ -208,6 +249,8 @@ def main() -> int:
                     sheet, rw, col = target
                     if wb[sheet].cell(rw, col).value is None:
                         problems.append(f"DANGLING {here} -> empty {show(target)}")
+
+    problems += check_cap_table()
 
     cycle = find_cycle(graph)
     if cycle:
