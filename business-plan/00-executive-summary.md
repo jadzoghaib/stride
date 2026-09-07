@@ -77,9 +77,9 @@ Three things in it are worth two minutes of a technical diligence call:
 <!-- /MODEL:summary -->
 
 EBITDA turns positive in **Y5**. Take rates are published and fixed: **15% on
-fan revenue, 10% on sponsorship**, no monthly athlete fee. Gross margin sits in
-the low 70s rather than a SaaS 80%+ because the payment rail is real and no
-amount of engineering removes it.
+fan revenue, 10% on sponsorship**, no monthly athlete fee. Gross margin climbs
+from 64% in Y3 to **71% by Y10** rather than reaching a SaaS 80%+, because the
+payment rail is real and no amount of engineering removes it.
 
 Every figure here is generated from the model, and a guard in the repository
 fails the build if any of them drift from it.

@@ -245,6 +245,14 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"\*\*(\d+)% on\s+fan revenue", A.take_fan * 100, 0.1),
     ("00-executive-summary.md", "sponsorship take rate",
      r"fan revenue, (\d+)% on sponsorship\*\*", A.take_sponsorship * 100, 0.1),
+    # "sits in the low 70s" described a margin that starts at 64%. Both ends of
+    # the curve are pinned now, because a range in prose is two stale figures
+    # waiting to happen rather than one.
+    ("00-executive-summary.md", "Y3 gross margin",
+     r"climbs\nfrom (\d+)% in Y3", 100 * ROWS[2]["gross"] / ROWS[2]["revenue"], 0.6),
+    ("00-executive-summary.md", "Y10 gross margin",
+     r"to \*\*(\d+)% by Y10\*\*", 100 * Y10["gross"] / Y10["revenue"], 0.6),
+
     ("00-executive-summary.md", "Y10 gross adds as modelled",
      r"instead of ([\d.]+)M\*\*", churn_gross_adds()[0] / 1e6, 0.02),
     ("00-executive-summary.md", "Y10 gross adds at benchmark churn",
