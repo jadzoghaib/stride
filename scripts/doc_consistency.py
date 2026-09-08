@@ -421,8 +421,21 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("esade-body.md", "payment processing as a share of Y7 revenue",
      r"\*\*Payment processing is (\d+)% of Y7 revenue",
      100 * Y7["psp"] / Y7["revenue"], 0.6),
+
+    # The sales forecast's sponsor rows. The first version of this table called
+    # the platform sponsor count "paying sponsors", overstating paying
+    # customers fivefold; building the KPI sheet is what surfaced it.
+    *[("esade-body.md", f"forecast, Y{y} sponsors on the platform",
+       r"\| Sponsors on the platform \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
+       A.sponsors[y - 1], 0.5) for n, y in enumerate((1, 3, 5, 7, 10))],
+    *[("esade-body.md", f"forecast, Y{y} sponsors paying SaaS",
+       r"\| of which paying SaaS \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
+       ROWS[y - 1]["paying_sponsors"], 0.6) for n, y in enumerate((1, 3, 5, 7, 10))],
+    ("esade-body.md", "Y3 sponsors paying SaaS, in the objectives table",
+     r"3,000 athletes, (\d+) sponsors paying SaaS",
+     ROWS[2]["paying_sponsors"], 0.6),
     ("esade-body.md", "workbook formula count",
-     r"evaluates all ([\d,]+) workbook\s+formulas", 2010, 0.5),
+     r"evaluates all ([\d,]+) workbook\s+formulas", 2500, 0.5),
 
     ("02-cost-model.md", "Y1 applications behind one athlete",
      r"Applications behind the athlete plan \| ([\d,]+) ", Y1["applications"], 1),
