@@ -57,7 +57,7 @@ python business-plan/model.py
 
 | | Y1 | Y3 | Y5 | Y7 | Y10 |
 |---|---|---|---|---|---|
-| Active athletes | 400 | 3,000 | 10,500 | 22,000 | 40,000 |
+| Active athletes (year end) | 400 | 3,000 | 10,500 | 22,000 | 40,000 |
 | Paying fans (year end) | 2k | 25k | 120k | 321k | 666k |
 | **Net revenue** | **€0.02M** | **€0.53M** | **€3.43M** | **€10.70M** | **€25.38M** |
 | EBITDA | −€95k | −€228k | €0.28M | €3.12M | €10.80M |

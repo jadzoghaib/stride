@@ -202,7 +202,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # A pin looser than its own display precision reports "checked" and checks
     # nothing.
     *[("README.md", f"headline table, Y{y} active athletes",
-       r"\| Active athletes \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
+       r"\| Active athletes \(year end\) \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
        ROWS[y - 1]["athletes"], 0.5) for n, y in enumerate((1, 3, 5, 7, 10))],
     *[("README.md", f"headline table, Y{y} paying fans",
        r"\| Paying fans \(year end\) \|" + r" \d+k \|" * n + r" (\d+)k",
@@ -366,6 +366,63 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"€([\d.]+)M at Y7\. Multi-PSP", Y7["psp"] / 1e6, 0.005),
     ("stride-business-plan-draft.md", "R10 infrastructure as a share of revenue",
      r"Infra is ([\d.]+)% of Y7 revenue", 100 * Y7["infra"] / Y7["revenue"], 0.05),
+
+    # --- the ESADE submission body ----------------------------------------
+    # The document that gets marked. It restates figures from fourteen other
+    # files, so it is the likeliest place for a stale number to reach an
+    # examiner, and it is pinned harder than any of them.
+    ("esade-body.md", "capital the plan needs",
+     r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 0.5),
+    ("esade-body.md", "the cash trough",
+     r"a €(\d+)k cash\s+trough in Y4", peak_funding() / 1e3, 0.5),
+    ("esade-body.md", "the pre-seed ask",
+     r"\*\*The ask is €(\d+)k at €2\.5M pre-money\.\*\*",
+     model.ROUNDS[0]["amount"] / 1e3, 0.5),
+    ("esade-body.md", "spare over the trough",
+     r"clears the trough itself with\s+€(\d+)k to spare",
+     (model.ROUNDS[0]["amount"] - peak_funding()) / 1e3, 0.5),
+    ("esade-body.md", "first EBITDA-positive year",
+     r"EBITDA turns positive in \*\*Y(\d+)\*\*",
+     next((r["year"] for r in ROWS if r["ebitda"] > 0), 0), 0.1),
+    ("esade-body.md", "fan take rate",
+     r"\*\*(\d+)% on\s+fan revenue", A.take_fan * 100, 0.1),
+    ("esade-body.md", "sponsorship take rate",
+     r"fan revenue, (\d+)% on sponsorship\*\*", A.take_sponsorship * 100, 0.1),
+    ("esade-body.md", "Y3 gross margin",
+     r"climbs from (\d+)% in Y3", 100 * ROWS[2]["gross"] / ROWS[2]["revenue"], 0.6),
+    ("esade-body.md", "Y10 gross margin",
+     r"to \*\*(\d+)% by Y10\*\*", 100 * Y10["gross"] / Y10["revenue"], 0.6),
+
+    # the seven-year P&L, every cell
+    *[("esade-body.md", f"P&L, Y{y} net revenue",
+       r"\| Net revenue \|" + r" [\d,]+ \|" * (y - 1) + r" ([\d,]+)",
+       ROWS[y - 1]["revenue"] / 1e3, 0.5) for y in range(1, 8)],
+    *[("esade-body.md", f"P&L, Y{y} EBITDA",
+       r"\| \*\*EBITDA\*\* \|" + r" \*\*−?[\d,]+\*\* \|" * (y - 1) + r" \*\*(−?[\d,]+)\*\*",
+       ROWS[y - 1]["ebitda"] / 1e3, 0.5) for y in range(1, 8)],
+
+    # the sales forecast
+    *[("esade-body.md", f"forecast, Y{y} active athletes",
+       r"\| Active athletes \(year end\) \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
+       ROWS[y - 1]["athletes"], 0.5) for n, y in enumerate((1, 3, 5, 7, 10))],
+    *[("esade-body.md", f"forecast, Y{y} net revenue",
+       r"\| \*\*Net revenue\*\* \|" + r" \*\*€[\d.]+M\*\* \|" * n + r" \*\*€([\d.]+)M\*\*",
+       ROWS[y - 1]["revenue"] / 1e6, 0.005) for n, y in enumerate((1, 3, 5, 7, 10))],
+
+    ("esade-body.md", "the DCF floor",
+     r"The DCF says \*\*€([\d.]+)M\*\* today", VAL["enterprise_value"] / 1e6, 0.005),
+    ("esade-body.md", "revenue forfeited by the 15% take",
+     r"forfeits €([\d.]+)M of Y7\s+revenue", take_rate_delta() / 1e6, 0.05),
+    ("esade-body.md", "what the startup tax rate is worth",
+     r"worth €([\d.]+)M\s+across Y6–Y9", startup_tax_saving() / 1e6, 0.005),
+    ("esade-body.md", "Y10 gross adds at benchmark churn",
+     r"needs 0\.79M gross adds a year instead of\s+>?\s*([\d.]+)M",
+     churn_gross_adds()[0] / 1e6, 0.02),
+    ("esade-body.md", "payment processing as a share of Y7 revenue",
+     r"\*\*Payment processing is (\d+)% of Y7 revenue",
+     100 * Y7["psp"] / Y7["revenue"], 0.6),
+    ("esade-body.md", "workbook formula count",
+     r"evaluates all ([\d,]+) workbook\s+formulas", 2010, 0.5),
 
     ("02-cost-model.md", "Y1 applications behind one athlete",
      r"Applications behind the athlete plan \| ([\d,]+) ", Y1["applications"], 1),
@@ -812,7 +869,11 @@ def main() -> int:
         # `([\d.]+)` can swallow a sentence-ending full stop, and a `(\d+)`
         # pattern against a prose figure that later gains a decimal silently
         # captures only the integer part and passes on a truncated number.
-        found = float(WORDS.get(raw, raw.replace(",", "").rstrip(".")))
+        # U+2212 MINUS SIGN is what the documents actually print; float()
+        # only parses ASCII hyphen. Normalising here keeps the sign in the
+        # capture, so a flipped sign fails loudly instead of being dropped.
+        cleaned = raw.replace(",", "").replace("−", "-").rstrip(".")
+        found = float(WORDS.get(raw, cleaned))
         if abs(found - expected) > tol:
             failures.append(f"{doc}: {label} says {found:,.2f}, model says {expected:,.2f}")
 
