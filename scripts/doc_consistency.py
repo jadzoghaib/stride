@@ -356,6 +356,10 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("14-legal-and-growth.md", "Y10 EBITDA",
      r"€([\d.]+)M EBITDA by Y10", ROWS[9]["ebitda"] / 1e6, 0.05),
 
+    # --- 15 Primary research (ESADE section 5.1.4) -------------------------
+    ("15-market-research.md", "Y1 admission rate",
+     r"\*\*20\.0% in Y1 to ([\d.]+)% by", 100 * ROWS[6]["admit_rate"], 0.05),
+
     ("02-cost-model.md", "Y1 applications behind one athlete",
      r"Applications behind the athlete plan \| ([\d,]+) ", Y1["applications"], 1),
     ("02-cost-model.md", "Y1 manual reviews", r"\| Manual reviews \| ([\d,]+) ", Y1["reviews"], 1),

@@ -41,6 +41,7 @@ are no agents at all, and the athlete's alternative to Stride is nothing. See
 | 12 | [Operations plan](12-operations-plan.md) | Process map, subcontracting, service levels, unit costs, launch plan — ESADE outline §7 |
 | 13 | [Organization & HR](13-organization-and-hr.md) | Structure, job descriptions, HR policy, governance, SDG alignment — ESADE outline §8 |
 | 14 | [Legal form & growth](14-legal-and-growth.md) | S.L., IP and trade marks, and the three axes of growth — ESADE outline §10 and §12 |
+| 15 | [Primary research](15-market-research.md) | Expert and athlete interviews, what they changed, and what they do not settle — ESADE outline §5.1.4 |
 | — | **Research tab** in the workbook | How every assumption was baselined, with sources and confidence |
 
 Every number in 03 and 04 is produced by [`model.py`](model.py). Change an
