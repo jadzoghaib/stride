@@ -437,6 +437,18 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("esade-body.md", "workbook formula count",
      r"evaluates all ([\d,]+) workbook\s+formulas", 2500, 0.5),
 
+    # The pro forma cash flow the outline requires at 9.3. Read from the
+    # workbook, so the body cannot disagree with the statement it came from.
+    ("esade-body.md", "Y7 free cash flow",
+     r"\| \*\*Free Cash Flow\*\* \|(?: \*\*−?€[\d.,]+[kM]\*\* \|){3} \*\*€([\d.]+)M\*\*",
+     ROWS[6]["fcf"] / 1e6, 0.005),
+    ("esade-body.md", "Y7 operating cash flow",
+     r"\| \*\*Operating Cash Flow\*\* \|(?: \*\*−?€[\d.,]+[kM]\*\* \|){3} \*\*€([\d.]+)M\*\*",
+     ROWS[6]["operating_cf"] / 1e6, 0.005),
+    ("esade-body.md", "Y7 capital expenditure",
+     r"\| Capital expenditure \|(?: −€[\d.,]+k \|){3} −€(\d+)k",
+     ROWS[6]["capex"] / 1e3, 0.5),
+
     ("02-cost-model.md", "Y1 applications behind one athlete",
      r"Applications behind the athlete plan \| ([\d,]+) ", Y1["applications"], 1),
     ("02-cost-model.md", "Y1 manual reviews", r"\| Manual reviews \| ([\d,]+) ", Y1["reviews"], 1),
