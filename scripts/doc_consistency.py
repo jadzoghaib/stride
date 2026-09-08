@@ -360,6 +360,13 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("15-market-research.md", "Y1 admission rate",
      r"\*\*20\.0% in Y1 to ([\d.]+)% by", 100 * ROWS[6]["admit_rate"], 0.05),
 
+    # The risk register restates two cost figures the recalibration moved and
+    # nothing watched: R6 quoted PSP at Y7 and R10 infra as a share of revenue.
+    ("stride-business-plan-draft.md", "R6 payment processing at Y7",
+     r"€([\d.]+)M at Y7\. Multi-PSP", Y7["psp"] / 1e6, 0.005),
+    ("stride-business-plan-draft.md", "R10 infrastructure as a share of revenue",
+     r"Infra is ([\d.]+)% of Y7 revenue", 100 * Y7["infra"] / Y7["revenue"], 0.05),
+
     ("02-cost-model.md", "Y1 applications behind one athlete",
      r"Applications behind the athlete plan \| ([\d,]+) ", Y1["applications"], 1),
     ("02-cost-model.md", "Y1 manual reviews", r"\| Manual reviews \| ([\d,]+) ", Y1["reviews"], 1),
