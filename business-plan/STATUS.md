@@ -100,10 +100,16 @@ Only `01-` to `11-` are appendices.
 
 ## The habit that has caught the most errors
 
-Every figure written in prose is pinned to the model, and **the tolerance is half
-the last printed place**. Anything looser reports "checked" and checks nothing —
-that was proven in the wild: a pin with a 0.05 tolerance on a two-decimal figure
-let four stale EBITDA cells pass the very check added to catch them.
+Every figure written in prose is pinned to the model, and **the rule for a new
+pin is half the last printed place**. Anything looser reports "checked" and
+checks nothing — proven in the wild, when a 0.05 tolerance on a two-decimal
+figure let four stale EBITDA cells pass the very check added to catch them.
+
+The rule is not yet retrofitted. Roughly a hundred older pins are looser than
+that, some deliberately (a rounded crossover like €1,380/month is not claiming
+euro precision) and some not. Until that pass is done, **a green guard means
+every pinned figure is within its own stated tolerance — not that every figure
+is exact.**
 
 When adding a claim, pin it in `scripts/doc_consistency.py` on the way in, not
 after it drifts. Two tables sat stale through four pull requests because nothing

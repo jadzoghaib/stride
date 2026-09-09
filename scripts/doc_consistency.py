@@ -40,7 +40,7 @@ def retained(price: float) -> float:
     The take is charged on the VAT-EXCLUSIVE price, because `fan_gmv` is net of
     VAT and `rev_fan = fan_gmv * take_fan`. Taking 15% of the gross price here
     inflated the commission by 21% and reported 54% and 71% retention where the
-    model says 44% and 65% -- and because the guard reproduced the error, it
+    model says 44% and 64% -- and because the guard reproduced the error, it
     could not catch it. `model.unit_economics()` is the authority.
     """
     take = (price / (1 + A.vat_rate_fan)) * A.take_fan

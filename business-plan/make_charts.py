@@ -217,15 +217,17 @@ def g5() -> None:
     # Two pairs share a point exactly -- Stride with Patreon at (9, 9), which is
     # the whole argument, and TEKTA with agents at (1, 0). Nudge and place by
     # hand; seven points do not need a layout algorithm, they need care.
+    # Nudges stay inside the declared 0-10 scale; coincident markers are
+    # separated along x, and their labels do the rest.
     NUDGE = {"Patreon / Substack": (0.62, -0.30),
-             "Traditional agents": (0.0, -1.05)}
+             "Traditional agents": (0.75, 0.0)}
     LABEL = {"Stride": (0, 14, "center"),
              "Patreon / Substack": (10, -4, "left"),
              "Passes / Fanfix": (0, -17, "center"),
              "Influencer SaaS (Aspire, Grin)": (10, -4, "left"),
              "NIL collectives (US)": (0, 13, "center"),
-             "TEKTA (Publicis/Kelce)": (-9, -4, "right"),
-             "Traditional agents": (-9, -4, "right")}
+             "TEKTA (Publicis/Kelce)": (0, 12, "center"),
+             "Traditional agents": (0, -18, "center")}
 
     fig, ax = plt.subplots(figsize=(WIDTH, 3.7))
     for r in d:

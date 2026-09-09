@@ -1037,9 +1037,15 @@ def build() -> pathlib.Path:
                     f"+Costs!{{c}}{C['Athlete acquisition — popular']})"
                     f"/Drivers!{{c}}{D['Athletes acquired (gross)']})")
     a_ch = r
-    r = row(cl, r, "Blended athlete churn", "per year", fmt=PCT,
-            formula=f"={{c}}{n_share}*Assumptions!{{c}}{A_ROW['niche_achurn']}"
-                    f"+(1-{{c}}{n_share})*Assumptions!{{c}}{A_ROW['popular_achurn']}")
+    # Weighted by the GROSS-ADD mix, to match the CAC above. Weighting by the
+    # athlete stock measured a different cohort from the one the spend buys.
+    r = row(cl, r, "Blended athlete churn", "gross-add weighted", fmt=PCT,
+            formula=f"=IF(Drivers!{{c}}{D['Athletes acquired (gross)']}=0,0,"
+                    f"(Drivers!{{c}}{D['Niche athletes acquired (gross)']}"
+                    f"*Assumptions!{{c}}{A_ROW['niche_achurn']}"
+                    f"+Drivers!{{c}}{D['Popular athletes acquired (gross)']}"
+                    f"*Assumptions!{{c}}{A_ROW['popular_achurn']})"
+                    f"/Drivers!{{c}}{D['Athletes acquired (gross)']})")
     a_life = r
     r = row(cl, r, "Expected athlete life", "years", fmt='0.00',
             formula=f"=IF({{c}}{a_ch}=0,0,1/{{c}}{a_ch})")

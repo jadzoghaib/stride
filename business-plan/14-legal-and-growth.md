@@ -14,13 +14,14 @@ that document does not, and then the growth path.*
 
 | Form | Minimum capital | Fit |
 |---|---|---|
-| **Sociedad Limitada (S.L.)** | **€1** since the Ley de Startups (2022) | **Chosen.** Standard for Spanish venture-backed startups; investors expect it |
+| **Sociedad Limitada (S.L.)** | **€1** since *Ley 18/2022, Crea y Crece* | **Chosen.** Standard for Spanish venture-backed startups; investors expect it |
 | Sociedad Anónima (S.A.) | €60,000, 25% paid up | Rejected. Capital requirement and formality serve no purpose pre-Series A |
 | Autónomo (sole trader) | — | Rejected. No limited liability; cannot issue shares, so cannot raise |
 | Foreign holding (Delaware, Estonia) | — | Rejected for now. See below |
 
-**Why S.L.** Limited liability, share issuance for the pre-seed, eligibility for
-the **Ley de Startups** regime (15% corporate tax for the first four taxable
+**Why S.L.** Limited liability, share issuance for the pre-seed, and — a
+separate statute from the one that cut the capital floor — eligibility for the
+**Ley 28/2022, Ley de Startups** regime (15% corporate tax for the first four taxable
 years, worth €1.57M across Y6–Y9 in the model), and eligibility for ENISA
 participative loans and CDTI Neotec grants, which are the non-dilutive stack in
 [04](04-capital-and-valuation.md).
