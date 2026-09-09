@@ -113,8 +113,14 @@ def test_variance_compares_one_post_against_a_one_post_projection(sponsor):
     assert multi, "the seed attaches more than one post to at least one deal"
     for a in multi:
         per_post = a["reach"] / a["posts"]
+        # `abs`, not `rel`. The endpoint rounds variance_pct to one decimal, so
+        # the tolerance has to be half that last place. A relative tolerance
+        # passes only while the variance is large: this failed the day the seed
+        # drifted to a variance of 0.26%, where rounding to 0.3 is a 14%
+        # relative error and no error at all in the terms the API reports.
         assert a["variance_pct"] == pytest.approx(
-            100 * (per_post - a["projected_reach"]) / a["projected_reach"], rel=0.01)
+            100 * (per_post - a["projected_reach"]) / a["projected_reach"],
+            abs=0.05, rel=0)   # abs alone still keeps pytest default rel
 
 
 def test_the_country_split_is_shares_and_says_it_is_an_estimate(sponsor):

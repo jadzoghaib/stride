@@ -96,7 +96,7 @@ Taking dilution before exhausting these is leaving money on the table.
 | **ENISA Crecimiento** | up to €300k | Participative loan, no equity | Y2–Y3 |
 | **CDTI Neotec** | up to €250k (70% of budget) | **Grant**, no equity | Y2 — requires R&D framing; the analytics engine qualifies |
 | **Startup Capital (regional, Catalunya)** | €25k–€100k | Grant / soft loan | Y1–Y2 |
-| **Ley de Startups** tax regime | — | **15% corporate tax** for the first four taxable years vs 25% | Modelled — worth €1.56M across Y6–Y9 |
+| **Ley de Startups** tax regime | — | **15% corporate tax** for the first four taxable years vs 25% | Modelled — worth €1.57M across Y6–Y9 |
 | Beckham Law | — | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
 
 **A realistic non-dilutive stack is €300–500k**, which covers most of the €464k

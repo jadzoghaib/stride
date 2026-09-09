@@ -34,7 +34,16 @@ Y1, Y7, Y10 = ROWS[0], ROWS[6], ROWS[9]
 
 
 def retained(price: float) -> float:
-    take = price * A.take_fan
+    """Share of our commission we keep after the payment rail, on the model's
+    own basis.
+
+    The take is charged on the VAT-EXCLUSIVE price, because `fan_gmv` is net of
+    VAT and `rev_fan = fan_gmv * take_fan`. Taking 15% of the gross price here
+    inflated the commission by 21% and reported 54% and 71% retention where the
+    model says 44% and 64% -- and because the guard reproduced the error, it
+    could not catch it. `model.unit_economics()` is the authority.
+    """
+    take = (price / (1 + A.vat_rate_fan)) * A.take_fan
     return (take - (price * A.psp_pct + A.psp_fixed_eur)) / take
 
 
@@ -152,6 +161,20 @@ def peak_funding() -> float:
     return -trough
 
 
+def workbook_formulas() -> int:
+    """How many formula cells the workbook actually has.
+
+    Hard-coding this made the pin useless in one direction: it could tell that
+    the prose disagreed with a number typed into the guard, but not that the
+    workbook itself had changed. Counting the artefact closes that.
+    """
+    from openpyxl import load_workbook
+
+    wb = load_workbook(ROOT / "business-plan" / "Stride_Financial_Model.xlsx")
+    return sum(1 for ws in wb for row in ws.iter_rows() for c in row
+               if isinstance(c.value, str) and c.value.startswith("="))
+
+
 def egress_delta(year: int) -> float:
     """What the naive CDN costs over the zero-egress one, in a given year."""
     r = ROWS[year - 1]
@@ -202,7 +225,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # A pin looser than its own display precision reports "checked" and checks
     # nothing.
     *[("README.md", f"headline table, Y{y} active athletes",
-       r"\| Active athletes \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
+       r"\| Active athletes \(year end\) \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
        ROWS[y - 1]["athletes"], 0.5) for n, y in enumerate((1, 3, 5, 7, 10))],
     *[("README.md", f"headline table, Y{y} paying fans",
        r"\| Paying fans \(year end\) \|" + r" \d+k \|" * n + r" (\d+)k",
@@ -236,7 +259,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("README.md", "what a €4.99 tier retains",
      r"€4\.99 tier we keep (\d+)%", retained(4.99) * 100, 0.5),
     ("README.md", "what a €9.99 tier retains",
-     r"At €9\.99 we\nkeep (\d+)%", retained(9.99) * 100, 0.5),
+     r"At €9\.99 we keep (\d+)%", retained(9.99) * 100, 0.5),
 
     ("README.md", "capital required",
      r"Capital required to fund it: €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
@@ -289,6 +312,186 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     *[("02-cost-model.md", f"team table, Y{y} people cost",
        r"\| People cost \|" + r" €[\d.]+[kM] \|" * (y - 1) + r" €([\d.]+)M",
        ROWS[y - 1]["people"] / 1e6, 0.005) for y in (6, 7)],
+
+    # --- 12 Operations Plan (ESADE section 7) ----------------------------
+    *[("12-operations-plan.md", f"operations volume, Y{y} applications",
+       r"\| Applications \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
+       ROWS[y - 1]["applications"], 0.5) for n, y in enumerate((1, 3, 5, 7))],
+    *[("12-operations-plan.md", f"operations volume, Y{y} manual reviews",
+       r"\| Sent to human review \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
+       ROWS[y - 1]["reviews"], 0.5) for n, y in enumerate((1, 3, 5, 7))],
+    *[("12-operations-plan.md", f"operations volume, Y{y} admission rate",
+       r"\| Admission rate \|" + r" [\d.]+% \|" * n + r" ([\d.]+)%",
+       100 * ROWS[y - 1]["admit_rate"], 0.05) for n, y in enumerate((1, 3, 5, 7))],
+    *[("12-operations-plan.md", f"operations volume, Y{y} review FTE",
+       r"\| \*\*Review FTE required\*\* \|" + r" \*\*[\d.]+\*\* \|" * n + r" \*\*([\d.]+)\*\*",
+       ROWS[y - 1]["review_fte"], 0.005) for n, y in enumerate((1, 3, 5, 7))],
+
+    ("12-operations-plan.md", "what the startup tax rate is worth",
+     r"worth \*\*€([\d.]+)M across Y6–Y9\*\*", startup_tax_saving() / 1e6, 0.005),
+    ("12-operations-plan.md", "Y7 payment processing",
+     r"\| Payment processing \| €([\d.]+)M \|", Y7["psp"] / 1e6, 0.005),
+    ("12-operations-plan.md", "Y7 infrastructure",
+     r"\| Infrastructure \| €(\d+)k \|", Y7["infra"] / 1e3, 0.5),
+    ("12-operations-plan.md", "infrastructure as a share of Y7 revenue",
+     r"Infrastructure is ([\d.]+)% of revenue",
+     100 * Y7["infra"] / Y7["revenue"], 0.05),
+    ("12-operations-plan.md", "what a €4.99 tier retains",
+     r"\| €4\.99 \| €4\.12 \| €0\.62 \| €0\.25 \+ 1\.9% \| \*\*(\d+)%\*\*",
+     retained(4.99) * 100, 0.5),
+    ("12-operations-plan.md", "what a €9.99 tier retains",
+     r"\| €9\.99 \| €8\.26 \| €1\.24 \| €0\.25 \+ 1\.9% \| \*\*(\d+)%\*\*",
+     retained(9.99) * 100, 0.5),
+
+    # --- 13 Organization and HR (ESADE section 8) -------------------------
+    *[("13-organization-and-hr.md", f"HR table, Y{y} headcount",
+       r"\| Headcount \(FTE\) \|" + r" [\d.]+ \|" * (y - 1) + r" ([\d.]+)",
+       ROWS[y - 1]["headcount"], 0.05) for y in range(1, 8)],
+    *[("13-organization-and-hr.md", f"HR table, Y{y} people cost",
+       r"\| People cost \|" + r" €[\d.]+[kM] \|" * (y - 1) + r" €(\d+)k",
+       ROWS[y - 1]["people"] / 1e3, 0.5) for y in range(1, 6)],
+    *[("13-organization-and-hr.md", f"HR table, Y{y} people cost",
+       r"\| People cost \|" + r" €[\d.]+[kM] \|" * (y - 1) + r" €([\d.]+)M",
+       ROWS[y - 1]["people"] / 1e6, 0.005) for y in (6, 7)],
+
+    ("13-organization-and-hr.md", "Y10 headcount",
+     r"Growth to (\d+) FTE by Y10", ROWS[9]["headcount"], 0.5),
+    ("13-organization-and-hr.md", "Y7 revenue against the Y7 team",
+     r"reaches \*\*€([\d.]+)M of revenue at Y7", Y7["revenue"] / 1e6, 0.05),
+    ("13-organization-and-hr.md", "Y7 headcount in prose",
+     r"of revenue at Y7 with (\d+) people", ROWS[6]["headcount"], 0.5),
+    ("13-organization-and-hr.md", "founders held after the pre-seed",
+     r"(\d+)% held after the 2% advisory grant",
+     DILUTION["Pre-seed"]["held"] * 100, 0.5),
+    ("13-organization-and-hr.md", "founders held after the seed",
+     r"\| \*\*Seed\*\* \(€2\.0M, optional\) \|[^|]*\| (\d+)%",
+     DILUTION["Seed (optional)"]["held"] * 100, 0.5),
+    ("13-organization-and-hr.md", "founders held after the Series A",
+     r"\| \*\*Series A\*\* \(€8\.0M\) \|[^|]*\| (\d+)%",
+     DILUTION["Series A"]["held"] * 100, 0.5),
+    # Anchored to its own row. `\*\*~(\d+)%\*\*` matched any bold ~NN% in the
+    # file, so an unrelated figure added above it would have been checked
+    # against the ESOP number without anyone noticing.
+    ("13-organization-and-hr.md", "equity retained after the ESOP",
+     r"\| Post-ESOP \|[^|]*\|\s*\*\*~(\d+)%\*\*",
+     DILUTION["ESOP (cumulative)"]["held"] * 100, 0.5),
+    ("13-organization-and-hr.md", "revenue forfeited by the 15% take",
+     r"forfeits \*\*€([\d.]+)M of Y7 revenue", take_rate_delta() / 1e6, 0.05),
+
+    ("14-legal-and-growth.md", "what the startup tax rate is worth",
+     r"worth €([\d.]+)M across Y6–Y9", startup_tax_saving() / 1e6, 0.005),
+    ("14-legal-and-growth.md", "Y10 EBITDA",
+     r"€([\d.]+)M EBITDA by Y10", ROWS[9]["ebitda"] / 1e6, 0.05),
+
+    # --- 15 Primary research (ESADE section 5.1.4) -------------------------
+    ("15-market-research.md", "Y7 admission rate, the value the sentence ends on",
+     r"\*\*20\.0% in Y1 to ([\d.]+)% by", 100 * ROWS[6]["admit_rate"], 0.05),
+
+    # The risk register restates two cost figures the recalibration moved and
+    # nothing watched: R6 quoted PSP at Y7 and R10 infra as a share of revenue.
+    ("stride-business-plan-draft.md", "R6 payment processing at Y7",
+     r"€([\d.]+)M at Y7\. Multi-PSP", Y7["psp"] / 1e6, 0.005),
+    ("stride-business-plan-draft.md", "R10 infrastructure as a share of revenue",
+     r"Infra is ([\d.]+)% of Y7 revenue", 100 * Y7["infra"] / Y7["revenue"], 0.05),
+
+    # --- the ESADE submission body ----------------------------------------
+    # The document that gets marked. It restates figures from fourteen other
+    # files, so it is the likeliest place for a stale number to reach an
+    # examiner, and it is pinned harder than any of them.
+    ("esade-body.md", "capital the plan needs",
+     r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 0.5),
+    ("esade-body.md", "the cash trough",
+     r"a €(\d+)k cash\s+trough in Y4", peak_funding() / 1e3, 0.5),
+    ("esade-body.md", "the pre-seed ask",
+     r"\*\*The ask is €(\d+)k at €2\.5M pre-money\.\*\*",
+     model.ROUNDS[0]["amount"] / 1e3, 0.5),
+    ("esade-body.md", "spare over the trough",
+     r"clears the trough itself with\s+€(\d+)k to spare",
+     (model.ROUNDS[0]["amount"] - peak_funding()) / 1e3, 0.5),
+    ("esade-body.md", "first EBITDA-positive year",
+     r"EBITDA turns positive in \*\*Y(\d+)\*\*",
+     next((r["year"] for r in ROWS if r["ebitda"] > 0), 0), 0.1),
+    ("esade-body.md", "fan take rate",
+     r"\*\*(\d+)% on\s+fan revenue", A.take_fan * 100, 0.1),
+    ("esade-body.md", "sponsorship take rate",
+     r"fan revenue, (\d+)% on sponsorship\*\*", A.take_sponsorship * 100, 0.1),
+    ("esade-body.md", "Y3 gross margin",
+     r"climbs from (\d+)% in Y3", 100 * ROWS[2]["gross"] / ROWS[2]["revenue"], 0.6),
+    ("esade-body.md", "Y10 gross margin",
+     r"to \*\*(\d+)% by Y10\*\*", 100 * Y10["gross"] / Y10["revenue"], 0.6),
+
+    # the seven-year P&L, every cell
+    *[("esade-body.md", f"P&L, Y{y} net revenue",
+       r"\| Net revenue \|" + r" [\d,]+ \|" * (y - 1) + r" ([\d,]+)",
+       ROWS[y - 1]["revenue"] / 1e3, 0.5) for y in range(1, 8)],
+    *[("esade-body.md", f"P&L, Y{y} EBITDA",
+       r"\| \*\*EBITDA\*\* \|" + r" \*\*−?[\d,]+\*\* \|" * (y - 1) + r" \*\*(−?[\d,]+)\*\*",
+       ROWS[y - 1]["ebitda"] / 1e3, 0.5) for y in range(1, 8)],
+
+    # the sales forecast
+    *[("esade-body.md", f"forecast, Y{y} active athletes",
+       r"\| Active athletes \(year end\) \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
+       ROWS[y - 1]["athletes"], 0.5) for n, y in enumerate((1, 3, 5, 7, 10))],
+    *[("esade-body.md", f"forecast, Y{y} net revenue",
+       r"\| \*\*Net revenue\*\* \|" + r" \*\*€[\d.]+M\*\* \|" * n + r" \*\*€([\d.]+)M\*\*",
+       ROWS[y - 1]["revenue"] / 1e6, 0.005) for n, y in enumerate((1, 3, 5, 7, 10))],
+
+    ("esade-body.md", "the DCF floor",
+     r"The DCF says \*\*€([\d.]+)M\*\* today", VAL["enterprise_value"] / 1e6, 0.005),
+    ("esade-body.md", "revenue forfeited by the 15% take",
+     r"forfeits €([\d.]+)M of Y7\s+revenue", take_rate_delta() / 1e6, 0.05),
+    ("esade-body.md", "what the startup tax rate is worth",
+     r"worth €([\d.]+)M\s+across Y6–Y9", startup_tax_saving() / 1e6, 0.005),
+    ("esade-body.md", "Y10 gross adds at benchmark churn",
+     r"needs 0\.79M gross adds a year instead of\s+>?\s*([\d.]+)M",
+     churn_gross_adds()[0] / 1e6, 0.02),
+    ("esade-body.md", "payment processing as a share of Y7 revenue",
+     r"\*\*Payment processing is (\d+)% of Y7 revenue",
+     100 * Y7["psp"] / Y7["revenue"], 0.6),
+
+    # The sales forecast's sponsor rows. The first version of this table called
+    # the platform sponsor count "paying sponsors", overstating paying
+    # customers fivefold; building the KPI sheet is what surfaced it.
+    *[("esade-body.md", f"forecast, Y{y} sponsors on the platform",
+       r"\| Sponsors on the platform \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
+       A.sponsors[y - 1], 0.5) for n, y in enumerate((1, 3, 5, 7, 10))],
+    *[("esade-body.md", f"forecast, Y{y} sponsors paying SaaS",
+       r"\| of which paying SaaS \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
+       ROWS[y - 1]["paying_sponsors"], 0.6) for n, y in enumerate((1, 3, 5, 7, 10))],
+    ("esade-body.md", "Y3 sponsors paying SaaS, in the objectives table",
+     r"3,000 athletes, (\d+) sponsors paying SaaS",
+     ROWS[2]["paying_sponsors"], 0.6),
+    ("esade-body.md", "workbook formula count",
+     r"evaluates all ([\d,]+) workbook\s+formulas", workbook_formulas, 0.5),
+
+    # The pro forma cash flow the outline requires at 9.3. Read from the
+    # workbook, so the body cannot disagree with the statement it came from.
+    ("esade-body.md", "Y7 free cash flow",
+     r"\| \*\*Free Cash Flow\*\* \|(?: \*\*−?€[\d.,]+[kM]\*\* \|){3} \*\*€([\d.]+)M\*\*",
+     ROWS[6]["fcf"] / 1e6, 0.005),
+    ("esade-body.md", "Y7 operating cash flow",
+     r"\| \*\*Operating Cash Flow\*\* \|(?: \*\*−?€[\d.,]+[kM]\*\* \|){3} \*\*€([\d.]+)M\*\*",
+     ROWS[6]["operating_cf"] / 1e6, 0.005),
+    ("esade-body.md", "Y7 capital expenditure",
+     r"\| Capital expenditure \|(?: −€[\d.,]+k \|){3} −€(\d+)k",
+     ROWS[6]["capex"] / 1e3, 0.5),
+
+    # The admission-review unit cost. Three model-derived figures in one line
+    # of prose, none of them watched until now.
+    ("12-operations-plan.md", "what a €24.99 tier retains",
+     r"\| €24\.99 \| €20\.65 \| €3\.10 \| €0\.25 \+ 1\.9% \| \*\*(\d+)%\*\*",
+     retained(24.99) * 100, 0.5),
+
+    ("12-operations-plan.md", "cost of one review in Y1",
+     r"\*\*€([\d.]+) in Y1, €[\d.]+ by Y7\*\*",
+     ROWS[0]["review_hourly"] * A.review_minutes / 60, 0.005),
+    ("12-operations-plan.md", "cost of one review by Y7",
+     r"\*\*€[\d.]+ in Y1, €([\d.]+) by Y7\*\*",
+     ROWS[6]["review_hourly"] * A.review_minutes / 60, 0.005),
+    ("12-operations-plan.md", "loaded review rate in Y1",
+     r"rising from €([\d.]+) to €[\d.]+\)", ROWS[0]["review_hourly"], 0.005),
+    ("12-operations-plan.md", "loaded review rate by Y7",
+     r"rising from €[\d.]+ to €([\d.]+)\)", ROWS[6]["review_hourly"], 0.005),
 
     ("02-cost-model.md", "Y1 applications behind one athlete",
      r"Applications behind the athlete plan \| ([\d,]+) ", Y1["applications"], 1),
@@ -420,7 +623,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"against the DCF floor of €([\d.]+)M\*\*", VAL["enterprise_value"] / 1e6, 0.005),
 
     ("04-capital-and-valuation.md", "what the startup tax rate is worth",
-     r"worth €([\d.]+)M across Y6–Y9", startup_tax_saving() / 1e6, 0.05),
+     r"worth €([\d.]+)M across Y6–Y9", startup_tax_saving() / 1e6, 0.005),
 
     # --- the egress decision, quoted in four documents ---------------------
     # Every one of these was stale, and the draft's prose contradicted a table
@@ -735,7 +938,11 @@ def main() -> int:
         # `([\d.]+)` can swallow a sentence-ending full stop, and a `(\d+)`
         # pattern against a prose figure that later gains a decimal silently
         # captures only the integer part and passes on a truncated number.
-        found = float(WORDS.get(raw, raw.replace(",", "").rstrip(".")))
+        # U+2212 MINUS SIGN is what the documents actually print; float()
+        # only parses ASCII hyphen. Normalising here keeps the sign in the
+        # capture, so a flipped sign fails loudly instead of being dropped.
+        cleaned = raw.replace(",", "").replace("−", "-").rstrip(".")
+        found = float(WORDS.get(raw, cleaned))
         if abs(found - expected) > tol:
             failures.append(f"{doc}: {label} says {found:,.2f}, model says {expected:,.2f}")
 

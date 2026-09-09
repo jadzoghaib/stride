@@ -289,6 +289,9 @@ def build() -> pathlib.Path:
         ("  BalanceSheet   with an explicit balance check row", None),
         ("  Valuation      DCF, NPV, IRR, exit multiples, sensitivity", None),
         ("  Funding        rounds, dilution, ownership", None),
+        ("  HiringPlan     headcount by role, reconciled to the model", None),
+        ("  CAC_CLV        acquisition cost against lifetime value", None),
+        ("  KPIs           scale, quality of revenue, efficiency", None),
         ("  Check          the Python model's figures, to verify the formulas agree", None),
         ("", None),
         ("WHY TEN YEARS", BOLD),
@@ -953,6 +956,235 @@ def build() -> pathlib.Path:
                  f"-{{c}}{U['Advisory grant']})*(1-{{c}}{U['ESOP pool']})")
     urow("Cumulative dilution", "%", fmt=PCT,
          formula=f"=1-{{c}}{U['Founders + team retained']}")
+
+    # ══ HIRING PLAN ═════════════════════════════════════════════════════════
+    hp = sheet(wb, "HiringPlan", "Hiring plan — headcount by role, reconciled to the model")
+    r = 4
+    r = section(hp, r, "FTE BY ROLE")
+    ROLES = [
+        ("Founder / CEO", [1.0] * 10, 45_000),
+        ("Engineering", [0.5, 1.0, 1.5, 2.0, 3.5, 5.0, 7.0, 9.0, 11.0, 13.0], 55_000),
+        ("BD / partnerships", [0, 0, 0.5, 1.0, 2.0, 3.0, 5.0, 6.0, 7.0, 8.0], 38_000),
+        ("Athlete success", [0, 0, 0.5, 1.0, 1.5, 2.5, 4.0, 5.0, 6.0, 7.0], 30_000),
+        ("Trust & safety / review", [0, 0, 0, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0], 34_000),
+        ("Finance / operations", [0, 0, 0, 0.5, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0], 42_000),
+        ("Data protection officer", [0, 0, 0, 0, 0, 0.5, 1.0, 1.0, 1.0, 1.0], 60_000),
+    ]
+    role_rows = {}
+    first_role = r
+    for label, fte, _g in ROLES:
+        role_rows[label] = r
+        r = row(hp, r, label, "FTE", values=fte, fmt='0.0')
+    last_role = r - 1
+    total_fte = r
+    r = row(hp, r, "TOTAL FTE", "FTE", bold=True, top=True, fmt='0.0',
+            formula=f"=SUM({{c}}{first_role}:{{c}}{last_role})")
+    model_hc = r
+    r = row(hp, r, "Model headcount", "Assumptions", fmt='0.0', font=LINK,
+            formula=f"=Assumptions!{{c}}{A_ROW['headcount']}")
+    r = row(hp, r, "CHECK", "must be zero", bold=True, fmt='0.0',
+            formula=f"=ROUND({{c}}{total_fte}-{{c}}{model_hc},3)")
+
+    r += 1
+    r = section(hp, r, "COST — ROLE BUILD-UP AGAINST THE MODEL")
+    ss = r
+    r = row(hp, r, "Employer social security", "on gross",
+            values=[0.32] * 10, fmt=PCT, hard=True)
+    cost_first = r
+    for label, _fte, gross in ROLES:
+        r = row(hp, r, f"{label} — loaded", "EUR",
+                formula=f"={{c}}{role_rows[label]}*{gross}*(1+{{c}}{ss})")
+    cost_last = r - 1
+    build_up = r
+    r = row(hp, r, "TOTAL, role build-up", "EUR", bold=True, top=True,
+            formula=f"=SUM({{c}}{cost_first}:{{c}}{cost_last})")
+    modelled = r
+    r = row(hp, r, "People cost in the model", "Costs", font=LINK,
+            formula=f"=Costs!{{c}}{C['People']}")
+    r = row(hp, r, "Difference — role mix", "build-up less model",
+            formula=f"={{c}}{build_up}-{{c}}{modelled}")
+    r = row(hp, r, "  memo: build-up per FTE", "EUR", font=LINK,
+            formula=f"=IF({{c}}{total_fte}=0,0,{{c}}{build_up}/{{c}}{total_fte})")
+    r = row(hp, r, "  memo: model blended per FTE", "EUR", font=LINK,
+            formula=f"=Assumptions!{{c}}{A_ROW['salary']}")
+
+    r += 1
+    hp.cell(r, 1, "The FTE block reconciles exactly and is the plan. The cost "
+                  "build-up prices those roles at their own salaries; the model "
+                  "prices the same headcount at a blended loaded average that "
+                  "rises from 38k to 76k over the plan, while the build-up "
+                  "holds today's salaries flat. The two cross over at Y4: the "
+                  "build-up is the higher figure in Y1-Y3, where one founder "
+                  "salary dominates a team of two or three, and the model is "
+                  "higher from Y4 as its blended rate climbs. The model is the "
+                  "one that reaches the P&L either way. The memo rows below "
+                  "make the two rates comparable.").font = Font(italic=True, size=8, color="6B7280", name="Calibri")
+
+    # ══ CAC & CLV ═══════════════════════════════════════════════════════════
+    cl = sheet(wb, "CAC_CLV", "Customer acquisition cost and lifetime value")
+    r = 4
+    r = section(cl, r, "ATHLETE — BLENDED ACROSS SEGMENTS")
+    n_share = r
+    r = row(cl, r, "Niche share of athletes", "%", fmt=PCT, font=LINK,
+            formula=f"=Assumptions!{{c}}{A_ROW['niche_share']}")
+    a_cac = r
+    # Spend divided by the athletes it bought. Weighting the two segment costs
+    # by the athlete STOCK measured the wrong mix: acquisition buys gross adds,
+    # and in a business with 20-30% annual athlete churn those two differ.
+    r = row(cl, r, "Blended CAC per athlete acquired", "spend / gross adds",
+            formula=f"=IF(Drivers!{{c}}{D['Athletes acquired (gross)']}=0,0,"
+                    f"(Costs!{{c}}{C['Athlete acquisition — niche']}"
+                    f"+Costs!{{c}}{C['Athlete acquisition — popular']})"
+                    f"/Drivers!{{c}}{D['Athletes acquired (gross)']})")
+    a_ch = r
+    # Weighted by the GROSS-ADD mix, to match the CAC above. Weighting by the
+    # athlete stock measured a different cohort from the one the spend buys.
+    r = row(cl, r, "Blended athlete churn", "gross-add weighted", fmt=PCT,
+            formula=f"=IF(Drivers!{{c}}{D['Athletes acquired (gross)']}=0,0,"
+                    f"(Drivers!{{c}}{D['Niche athletes acquired (gross)']}"
+                    f"*Assumptions!{{c}}{A_ROW['niche_achurn']}"
+                    f"+Drivers!{{c}}{D['Popular athletes acquired (gross)']}"
+                    f"*Assumptions!{{c}}{A_ROW['popular_achurn']})"
+                    f"/Drivers!{{c}}{D['Athletes acquired (gross)']})")
+    a_life = r
+    r = row(cl, r, "Expected athlete life", "years", fmt='0.00',
+            formula=f"=IF({{c}}{a_ch}=0,0,1/{{c}}{a_ch})")
+    a_rev = r
+    r = row(cl, r, "Net revenue per athlete", "EUR/yr", font=LINK,
+            formula=f"=IF(Drivers!{{c}}{D['Total athletes (year end)']}=0,0,"
+                    f"Revenue!{{c}}{R['NET REVENUE']}"
+                    f"/Drivers!{{c}}{D['Total athletes (year end)']})")
+    a_con = r
+    r = row(cl, r, "Contribution per athlete per year", "after COGS",
+            formula=f"=IF(Revenue!{{c}}{R['NET REVENUE']}=0,0,{{c}}{a_rev}"
+                    f"*'P&L'!{{c}}{P['GROSS PROFIT']}/Revenue!{{c}}{R['NET REVENUE']})")
+    a_clv = r
+    r = row(cl, r, "ATHLETE LTV", "EUR", bold=True, top=True,
+            formula=f"={{c}}{a_con}*{{c}}{a_life}")
+    a_ratio = r
+    r = row(cl, r, "LTV / CAC", "x", bold=True, fmt='0.0',
+            formula=f"=IF({{c}}{a_cac}=0,0,{{c}}{a_clv}/{{c}}{a_cac})")
+    r = row(cl, r, "CAC payback", "months", fmt='0.0',
+            formula=f"=IF({{c}}{a_con}<=0,0,12*{{c}}{a_cac}/{{c}}{a_con})")
+    r += 1
+    cl.cell(r, 1, "The athlete LTV/CAC ratio is unusually high, and that is the "
+                  "thesis rather than an error: acquisition is cheap precisely "
+                  "because there is no incumbent agent to outbid in these "
+                  "sports. It should be read alongside the fan LTV below, which "
+                  "is small — the economics work on volume of athletes, not on "
+                  "the value of any one of them.").font = Font(
+                      italic=True, size=8, color="6B7280", name="Calibri")
+    r += 2
+
+    r += 1
+    r = section(cl, r, "FAN — NICHE SUBSCRIPTION ONLY")
+    cl.cell(r - 1, 4, "excludes PPV and tips, which the revenue model "
+                      "carries separately").font = Font(
+                          italic=True, size=8, color="6B7280", name="Calibri")
+    f_arpu = r
+    r = row(cl, r, "Fan ARPU, VAT inclusive", "EUR/mo", fmt=MONEY2, font=LINK,
+            formula=f"=Assumptions!{{c}}{A_ROW['niche_arpu']}")
+    f_net = r
+    r = row(cl, r, "Net of VAT", "EUR/mo", fmt=MONEY2,
+            formula=f"={{c}}{f_arpu}/(1+Assumptions!{{c}}{A_ROW['vat_fan']})")
+    f_take = r
+    r = row(cl, r, "Our take", "EUR/mo", fmt=MONEY2,
+            formula=f"={{c}}{f_net}*Assumptions!{{c}}{A_ROW['take_fan']}")
+    f_psp = r
+    r = row(cl, r, "Payment cost on the charge", "EUR/mo", fmt=MONEY2,
+            formula=f"={{c}}{f_arpu}*Assumptions!{{c}}{A_ROW['psp_pct']}"
+                    f"+Assumptions!{{c}}{A_ROW['psp_fix']}")
+    f_pay = r
+    r = row(cl, r, "Payout cost, share per fan month", "EUR", fmt=MONEY2,
+            formula=f"={{c}}{f_arpu}*Assumptions!{{c}}{A_ROW['payout_pct']}"
+                    f"+Assumptions!{{c}}{A_ROW['payout_fix']}/30")
+    f_con = r
+    r = row(cl, r, "Contribution per fan month", "EUR", fmt=MONEY2,
+            formula=f"={{c}}{f_take}-{{c}}{f_psp}-{{c}}{f_pay}")
+    f_ch = r
+    r = row(cl, r, "Fan churn", "per month", fmt=PCT, font=LINK,
+            formula=f"=Assumptions!{{c}}{A_ROW['niche_fchurn']}")
+    f_life = r
+    r = row(cl, r, "Expected fan life", "months", fmt='0.0',
+            formula=f"=IF({{c}}{f_ch}=0,0,1/{{c}}{f_ch})")
+    r = row(cl, r, "FAN LTV", "EUR", bold=True, top=True, fmt=MONEY2,
+            formula=f"={{c}}{f_con}*{{c}}{f_life}")
+    r = row(cl, r, "Fan CAC", "EUR", values=[0] * 10, fmt=MONEY2, hard=True)
+    r += 1
+    cl.cell(r, 1, "Fan CAC is zero by construction: athletes bring their own "
+                  "audiences and the model spends nothing acquiring fans. That "
+                  "understates the risk rather than flattering the return, and "
+                  "the plan discloses it as such.").font = Font(italic=True, size=8, color="6B7280", name="Calibri")
+    r += 2
+
+    r = section(cl, r, "SPONSOR")
+    s_cac = r
+    r = row(cl, r, "Sponsor CAC", "EUR", font=LINK,
+            formula=f"=Assumptions!{{c}}{A_ROW['sponsor_cac']}")
+    s_saas = r
+    r = row(cl, r, "SaaS per paying sponsor", "EUR/yr", font=LINK,
+            formula=f"=Assumptions!{{c}}{A_ROW['sponsor_arpu']}*12")
+    s_spo = r
+    r = row(cl, r, "Sponsorship take per paying sponsor", "EUR/yr", font=LINK,
+            formula=f"=IF(Drivers!{{c}}{D['Paying sponsors']}=0,0,"
+                    f"Revenue!{{c}}{R['Sponsorship take']}"
+                    f"/Drivers!{{c}}{D['Paying sponsors']})")
+    s_con = r
+    r = row(cl, r, "Contribution per sponsor per year", "EUR",
+            formula=f"={{c}}{s_saas}+{{c}}{s_spo}")
+    s_gross = r
+    r = row(cl, r, "  at gross margin", "EUR",
+            formula=f"={{c}}{s_con}*'P&L'!{{c}}{P['Gross margin']}")
+    r = row(cl, r, "CAC payback", "months", bold=True, top=True, fmt='0.0',
+            formula=f"=IF({{c}}{s_gross}<=0,0,12*{{c}}{s_cac}/{{c}}{s_gross})")
+    r += 1
+    cl.cell(r, 1, "No sponsor LTV is shown. It needs a sponsor retention "
+                  "assumption the model does not make, and inventing one here "
+                  "would create a figure nothing else in the plan validates. "
+                  "Payback needs no such assumption, so payback is what is "
+                  "reported.").font = Font(italic=True, size=8, color="6B7280", name="Calibri")
+
+    # ══ KPIs ════════════════════════════════════════════════════════════════
+    kp = sheet(wb, "KPIs", "KPIs — the dozen numbers that describe the business")
+    r = 4
+    r = section(kp, r, "SCALE")
+    r = row(kp, r, "Active athletes", "count", fmt=NUM, font=LINK,
+            formula=f"=Drivers!{{c}}{D['Total athletes (year end)']}")
+    r = row(kp, r, "Paying fans, year end", "count", fmt=NUM, font=LINK,
+            formula=f"=Drivers!{{c}}{D['Paying fans (year end)']}")
+    r = row(kp, r, "Paying sponsors", "count", fmt=NUM, font=LINK,
+            formula=f"=Drivers!{{c}}{D['Paying sponsors']}")
+    # Subscription GMV x the take, NOT `Fan take`, which runs off total fan GMV
+    # and so carries PPV and tips. Section 6.4 defines MRR as subscriptions plus
+    # SaaS exactly so that a one-off cannot clear a recurring-revenue gate.
+    r = row(kp, r, "Recurring MRR", "subs x take + SaaS / 12", font=LINK,
+            formula=f"=(Revenue!{{c}}{R['Subscription GMV']}"
+                    f"*Assumptions!{{c}}{A_ROW['take_fan']}"
+                    f"+Revenue!{{c}}{R['Sponsor SaaS']})/12")
+    r += 1
+
+    r = section(kp, r, "QUALITY OF REVENUE")
+    r = row(kp, r, "Net revenue", "EUR", font=LINK,
+            formula=f"=Revenue!{{c}}{R['NET REVENUE']}")
+    r = row(kp, r, "Gross margin", "%", fmt=PCT, font=LINK,
+            formula=f"='P&L'!{{c}}{P['Gross margin']}")
+    r = row(kp, r, "EBITDA margin", "%", fmt=PCT, font=LINK,
+            formula=f"='P&L'!{{c}}{P['EBITDA margin']}")
+    r = row(kp, r, "Revenue per FTE", "EUR",
+            formula=f"=IF(Assumptions!{{c}}{A_ROW['headcount']}=0,0,"
+                    f"Revenue!{{c}}{R['NET REVENUE']}"
+                    f"/Assumptions!{{c}}{A_ROW['headcount']})")
+    r += 1
+
+    r = section(kp, r, "RETENTION AND EFFICIENCY")
+    r = row(kp, r, "Fan churn, niche", "per month", fmt=PCT, font=LINK,
+            formula=f"=Assumptions!{{c}}{A_ROW['niche_fchurn']}")
+    r = row(kp, r, "Athlete churn, niche", "per year", fmt=PCT, font=LINK,
+            formula=f"=Assumptions!{{c}}{A_ROW['niche_achurn']}")
+    r = row(kp, r, "Athlete LTV / CAC", "x", fmt='0.0', font=LINK,
+            formula=f"=CAC_CLV!{{c}}{a_ratio}")
+    r = row(kp, r, "Take rate on GMV", "%", fmt=PCT, font=LINK,
+            formula=f"=Revenue!{{c}}{R['Take rate on GMV']}")
 
     # ══ VALUATION ═══════════════════════════════════════════════════════════
     va = sheet(wb, "Valuation", "Valuation — DCF, NPV, IRR and exit multiples")

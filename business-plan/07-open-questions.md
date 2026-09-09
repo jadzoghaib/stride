@@ -40,8 +40,8 @@ are pricing against. **This is close to settled; flag it if you disagree.**
 
 ### A3 — Minimum tier price and annual billing
 
-€4.99 retains 54% of our take after payment costs; €9.99 retains 71%; a €89
-season pass retains 85%.
+€4.99 retains 44% of our take after payment costs; €9.99 retains 64%; a €89
+season pass retains 82%.
 
 **Recommendation: €9.99 default, €4.99 available but unsuggested, and push the
 season pass hard.** Worth more than a take-rate change and costs nothing.

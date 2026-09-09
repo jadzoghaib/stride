@@ -38,6 +38,10 @@ are no agents at all, and the athlete's alternative to Stride is nothing. See
 | 09 | [Analytics strategy](09-analytics-strategy.md) | How the data function phases in — and the one thing that is urgent now |
 | 10 | [Competitor: TEKTA](10-competitor-tekta.md) | Publicis/Kelce's NIL venture — what it validates, and the market its economics exclude |
 | 11 | [Admission & matching](11-admission-and-matching.md) | Who gets in and how a campaign ranks them — the cold-start gate, club nomination, and why there is no learned ranker yet |
+| 12 | [Operations plan](12-operations-plan.md) | Process map, subcontracting, service levels, unit costs, launch plan — ESADE outline §7 |
+| 13 | [Organization & HR](13-organization-and-hr.md) | Structure, job descriptions, HR policy, governance, SDG alignment — ESADE outline §8 |
+| 14 | [Legal form & growth](14-legal-and-growth.md) | S.L., IP and trade marks, and the three axes of growth — ESADE outline §10 and §12 |
+| 15 | [Primary research](15-market-research.md) | Expert and athlete interviews, what they changed, and what they do not settle — ESADE outline §5.1.4 |
 | — | **Research tab** in the workbook | How every assumption was baselined, with sources and confidence |
 
 Every number in 03 and 04 is produced by [`model.py`](model.py). Change an
@@ -53,7 +57,7 @@ python business-plan/model.py
 
 | | Y1 | Y3 | Y5 | Y7 | Y10 |
 |---|---|---|---|---|---|
-| Active athletes | 400 | 3,000 | 10,500 | 22,000 | 40,000 |
+| Active athletes (year end) | 400 | 3,000 | 10,500 | 22,000 | 40,000 |
 | Paying fans (year end) | 2k | 25k | 120k | 321k | 666k |
 | **Net revenue** | **€0.02M** | **€0.53M** | **€3.43M** | **€10.70M** | **€25.38M** |
 | EBITDA | −€95k | −€228k | €0.28M | €3.12M | €10.80M |
@@ -84,9 +88,9 @@ cannot disagree with the model. §9.4 of the plan indexes every slot.
 
 ## The four things that decide whether this works
 
-**1. The fixed payment fee, not the take rate.** At a €4.99 tier we keep 54% of
-our own commission because Stripe's €0.25 lands on a €0.75 take. At €9.99 we
-keep 71%. This single mechanic should set the minimum tier price and push hard
+**1. The fixed payment fee, not the take rate.** At a €4.99 tier we keep 44% of
+our own commission, because Stripe's €0.25 lands on a €0.62 take — the take is
+charged on the VAT-exclusive price. At €9.99 we keep 64%. This single mechanic should set the minimum tier price and push hard
 toward annual billing — Patreon reports annual patrons churn at **one third**
 the rate of monthly ones, so the retention gain compounds the fee saving. See
 [02](02-cost-model.md#the-fixed-fee-problem).
