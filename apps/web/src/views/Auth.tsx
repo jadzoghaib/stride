@@ -505,6 +505,18 @@ export default function Auth() {
           </button>
         </form>
 
+        {/* The pending state is not nothing. On a cold visit meta takes a few
+            seconds to answer, and an empty form with no explanation reads as a
+            finished page that offers no way in. This says the accounts are
+            coming without printing any of them, so a deployment that has
+            turned them off never leaks a working login. */}
+        {showDemo === null && (
+        <div className="panel mt-4 p-4">
+          <div className="cap">Demo accounts</div>
+          <div className="meta mt-2">Loading…</div>
+        </div>
+        )}
+
         {showDemo === true && (
         <div className="panel mt-4 p-4">
           <div className="cap">Demo accounts</div>
