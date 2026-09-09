@@ -120,7 +120,7 @@ def test_variance_compares_one_post_against_a_one_post_projection(sponsor):
         # relative error and no error at all in the terms the API reports.
         assert a["variance_pct"] == pytest.approx(
             100 * (per_post - a["projected_reach"]) / a["projected_reach"],
-            abs=0.05)
+            abs=0.05, rel=0)   # abs alone still keeps pytest default rel
 
 
 def test_the_country_split_is_shares_and_says_it_is_an_estimate(sponsor):

@@ -34,7 +34,16 @@ Y1, Y7, Y10 = ROWS[0], ROWS[6], ROWS[9]
 
 
 def retained(price: float) -> float:
-    take = price * A.take_fan
+    """Share of our commission we keep after the payment rail, on the model's
+    own basis.
+
+    The take is charged on the VAT-EXCLUSIVE price, because `fan_gmv` is net of
+    VAT and `rev_fan = fan_gmv * take_fan`. Taking 15% of the gross price here
+    inflated the commission by 21% and reported 54% and 71% retention where the
+    model says 44% and 65% -- and because the guard reproduced the error, it
+    could not catch it. `model.unit_economics()` is the authority.
+    """
+    take = (price / (1 + A.vat_rate_fan)) * A.take_fan
     return (take - (price * A.psp_pct + A.psp_fixed_eur)) / take
 
 
@@ -250,7 +259,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("README.md", "what a €4.99 tier retains",
      r"€4\.99 tier we keep (\d+)%", retained(4.99) * 100, 0.5),
     ("README.md", "what a €9.99 tier retains",
-     r"At €9\.99 we\nkeep (\d+)%", retained(9.99) * 100, 0.5),
+     r"At €9\.99 we keep (\d+)%", retained(9.99) * 100, 0.5),
 
     ("README.md", "capital required",
      r"Capital required to fund it: €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
@@ -328,10 +337,10 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"Infrastructure is ([\d.]+)% of revenue",
      100 * Y7["infra"] / Y7["revenue"], 0.05),
     ("12-operations-plan.md", "what a €4.99 tier retains",
-     r"\| €4\.99 \| €0\.75 \| €0\.25 \+ 1\.9% \| \*\*(\d+)%\*\*",
+     r"\| €4\.99 \| €4\.12 \| €0\.62 \| €0\.25 \+ 1\.9% \| \*\*(\d+)%\*\*",
      retained(4.99) * 100, 0.5),
     ("12-operations-plan.md", "what a €9.99 tier retains",
-     r"\| €9\.99 \| €1\.50 \| €0\.25 \+ 1\.9% \| \*\*(\d+)%\*\*",
+     r"\| €9\.99 \| €8\.26 \| €1\.24 \| €0\.25 \+ 1\.9% \| \*\*(\d+)%\*\*",
      retained(9.99) * 100, 0.5),
 
     # --- 13 Organization and HR (ESADE section 8) -------------------------
@@ -469,6 +478,10 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
 
     # The admission-review unit cost. Three model-derived figures in one line
     # of prose, none of them watched until now.
+    ("12-operations-plan.md", "what a €24.99 tier retains",
+     r"\| €24\.99 \| €20\.65 \| €3\.10 \| €0\.25 \+ 1\.9% \| \*\*(\d+)%\*\*",
+     retained(24.99) * 100, 0.5),
+
     ("12-operations-plan.md", "cost of one review in Y1",
      r"\*\*€([\d.]+) in Y1, €[\d.]+ by Y7\*\*",
      ROWS[0]["review_hourly"] * A.review_minutes / 60, 0.005),

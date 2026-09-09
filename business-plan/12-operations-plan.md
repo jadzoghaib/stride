@@ -251,13 +251,15 @@ negotiation — not in the AWS bill.
 The single most important operational mechanic in the business is that
 **Stripe's fixed fee lands on our commission, not on the ticket.**
 
-| Fan pays | Our take (15%) | Processing cost | We retain |
-|---|---|---|---|
-| €4.99 | €0.75 | €0.25 + 1.9% | **54%** |
-| €9.99 | €1.50 | €0.25 + 1.9% | **71%** |
+| Fan pays | Ex-VAT | Our take (15%) | Processing cost | We retain |
+|---|---|---|---|---|
+| €4.99 | €4.12 | €0.62 | €0.25 + 1.9% | **44%** |
+| €9.99 | €8.26 | €1.24 | €0.25 + 1.9% | **64%** |
+| €24.99 | €20.65 | €3.10 | €0.25 + 1.9% | **77%** |
 
-At a €4.99 tier we keep just over half of our own commission. At €9.99 we keep
-just over seven tenths of it. This single mechanic should set the **minimum tier
+The take is charged on the **VAT-exclusive** price, because that is the base the
+model uses. At €4.99 we keep well under half of our own commission; at €9.99,
+about two thirds. This single mechanic should set the **minimum tier
 price** and push hard toward **annual billing** — Patreon reports annual patrons
 churn at roughly one third the rate of monthly ones, so the retention gain
 compounds the fee saving.

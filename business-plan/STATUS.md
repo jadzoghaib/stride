@@ -40,6 +40,7 @@ Document is **70%** of the grade, presentation **30%**. Body must stay **under
 Nothing is hand-typed. Rebuild after any change to the model:
 
 ```bash
+uv run python business-plan/model.py --write                   # the MODEL: tables
 uv run python business-plan/graph_data.py                      # CSVs from model.py
 uv run --with matplotlib python business-plan/make_charts.py   # 12 exhibits
 uv run --with python-docx python business-plan/build_docx.py   # the .docx
@@ -49,7 +50,7 @@ uv run python business-plan/build_workbook.py                  # the .xlsx
 Then check it:
 
 ```bash
-uv run python scripts/doc_consistency.py    # 281 prose claims against the model
+uv run python scripts/doc_consistency.py    # 282 prose claims against the model
 uv run python scripts/verify_workbook.py    # structure: refs, cycles, parsing
 uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 ```
