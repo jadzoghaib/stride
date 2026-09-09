@@ -49,7 +49,7 @@ uv run python business-plan/build_workbook.py                  # the .xlsx
 Then check it:
 
 ```bash
-uv run python scripts/doc_consistency.py    # 277 prose claims against the model
+uv run python scripts/doc_consistency.py    # 281 prose claims against the model
 uv run python scripts/verify_workbook.py    # structure: refs, cycles, parsing
 uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 ```

@@ -152,6 +152,20 @@ def peak_funding() -> float:
     return -trough
 
 
+def workbook_formulas() -> int:
+    """How many formula cells the workbook actually has.
+
+    Hard-coding this made the pin useless in one direction: it could tell that
+    the prose disagreed with a number typed into the guard, but not that the
+    workbook itself had changed. Counting the artefact closes that.
+    """
+    from openpyxl import load_workbook
+
+    wb = load_workbook(ROOT / "business-plan" / "Stride_Financial_Model.xlsx")
+    return sum(1 for ws in wb for row in ws.iter_rows() for c in row
+               if isinstance(c.value, str) and c.value.startswith("="))
+
+
 def egress_delta(year: int) -> float:
     """What the naive CDN costs over the zero-egress one, in a given year."""
     r = ROWS[year - 1]
@@ -439,7 +453,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"3,000 athletes, (\d+) sponsors paying SaaS",
      ROWS[2]["paying_sponsors"], 0.6),
     ("esade-body.md", "workbook formula count",
-     r"evaluates all ([\d,]+) workbook\s+formulas", 2520, 0.5),
+     r"evaluates all ([\d,]+) workbook\s+formulas", workbook_formulas, 0.5),
 
     # The pro forma cash flow the outline requires at 9.3. Read from the
     # workbook, so the body cannot disagree with the statement it came from.
@@ -452,6 +466,19 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("esade-body.md", "Y7 capital expenditure",
      r"\| Capital expenditure \|(?: −€[\d.,]+k \|){3} −€(\d+)k",
      ROWS[6]["capex"] / 1e3, 0.5),
+
+    # The admission-review unit cost. Three model-derived figures in one line
+    # of prose, none of them watched until now.
+    ("12-operations-plan.md", "cost of one review in Y1",
+     r"\*\*€([\d.]+) in Y1, €[\d.]+ by Y7\*\*",
+     ROWS[0]["review_hourly"] * A.review_minutes / 60, 0.005),
+    ("12-operations-plan.md", "cost of one review by Y7",
+     r"\*\*€[\d.]+ in Y1, €([\d.]+) by Y7\*\*",
+     ROWS[6]["review_hourly"] * A.review_minutes / 60, 0.005),
+    ("12-operations-plan.md", "loaded review rate in Y1",
+     r"rising from €([\d.]+) to €[\d.]+\)", ROWS[0]["review_hourly"], 0.005),
+    ("12-operations-plan.md", "loaded review rate by Y7",
+     r"rising from €[\d.]+ to €([\d.]+)\)", ROWS[6]["review_hourly"], 0.005),
 
     ("02-cost-model.md", "Y1 applications behind one athlete",
      r"Applications behind the athlete plan \| ([\d,]+) ", Y1["applications"], 1),

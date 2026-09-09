@@ -358,7 +358,9 @@ def g8() -> None:
     ax.text(yr[0] + 0.08, (-preseed + trough) / 2, "buffer", fontsize=7.5,
             color=AMBER, va="center")
 
-    for r in d[:7]:
+    # `seven` is the plotted slice, which is Y1-Y5. Iterating d[:7] annotated
+    # the Series A at Y6, outside the axis, where it detaches or clips.
+    for r in seven:
         if r["stage"]:
             ax.annotate(r["stage"], xy=(int(r["year"]), 0.06),
                         fontsize=7, color=TEAL, ha="center")

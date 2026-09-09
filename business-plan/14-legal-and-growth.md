@@ -109,8 +109,8 @@ Growth is sequenced along three axes, and only one moves at a time.
 | Stage | Markets | Trigger to move |
 |---|---|---|
 | Pre-seed | **Spain only** | — |
-| Seed | +2 markets (Portugal, then Italy) | 3 months of fan churn data; €80k recurring MRR |
-| Series A | +3–4 markets, EU-wide | Unit economics stable across 3 markets |
+| Seed | +1 market (Portugal) | 3 months of fan churn data; €80k recurring MRR |
+| Series A | +3–4 markets (Italy first), EU-wide | Unit economics stable across 3 markets |
 | Y8+ | Selective non-EU | Regulatory review per market |
 
 The second market is chosen for **sport-mix similarity, not size**: the sport

@@ -211,6 +211,11 @@ class Renderer:
                                           rf"§{dest}.\1", body)
                             body = re.sub(rf"\[{src_no}\.(\d+)\]",
                                           rf"[{dest}.\1]", body)
+                            # bare labels too: [12](12-operations-plan.md)
+                            # rendered as "12", a document number the
+                            # assembled plan does not use.
+                            body = re.sub(rf"\[{src_no}\]\(", f"[{dest}](",
+                                          body)
                     Renderer(self.doc, shift=int(m.group(2) or 0),
                              renumber=m.group(3)).render(body)
                 else:

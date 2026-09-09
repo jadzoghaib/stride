@@ -1028,9 +1028,14 @@ def build() -> pathlib.Path:
     r = row(cl, r, "Niche share of athletes", "%", fmt=PCT, font=LINK,
             formula=f"=Assumptions!{{c}}{A_ROW['niche_share']}")
     a_cac = r
-    r = row(cl, r, "Blended CAC per athlete", "EUR",
-            formula=f"={{c}}{n_share}*Assumptions!{{c}}{A_ROW['niche_cac']}"
-                    f"+(1-{{c}}{n_share})*Assumptions!{{c}}{A_ROW['popular_cac']}")
+    # Spend divided by the athletes it bought. Weighting the two segment costs
+    # by the athlete STOCK measured the wrong mix: acquisition buys gross adds,
+    # and in a business with 20-30% annual athlete churn those two differ.
+    r = row(cl, r, "Blended CAC per athlete acquired", "spend / gross adds",
+            formula=f"=IF(Drivers!{{c}}{D['Athletes acquired (gross)']}=0,0,"
+                    f"(Costs!{{c}}{C['Athlete acquisition — niche']}"
+                    f"+Costs!{{c}}{C['Athlete acquisition — popular']})"
+                    f"/Drivers!{{c}}{D['Athletes acquired (gross)']})")
     a_ch = r
     r = row(cl, r, "Blended athlete churn", "per year", fmt=PCT,
             formula=f"={{c}}{n_share}*Assumptions!{{c}}{A_ROW['niche_achurn']}"
@@ -1143,8 +1148,12 @@ def build() -> pathlib.Path:
             formula=f"=Drivers!{{c}}{D['Paying fans (year end)']}")
     r = row(kp, r, "Paying sponsors", "count", fmt=NUM, font=LINK,
             formula=f"=Drivers!{{c}}{D['Paying sponsors']}")
-    r = row(kp, r, "Recurring MRR", "fan subs + SaaS / 12", font=LINK,
-            formula=f"=(Revenue!{{c}}{R['Fan take']}"
+    # Subscription GMV x the take, NOT `Fan take`, which runs off total fan GMV
+    # and so carries PPV and tips. Section 6.4 defines MRR as subscriptions plus
+    # SaaS exactly so that a one-off cannot clear a recurring-revenue gate.
+    r = row(kp, r, "Recurring MRR", "subs x take + SaaS / 12", font=LINK,
+            formula=f"=(Revenue!{{c}}{R['Subscription GMV']}"
+                    f"*Assumptions!{{c}}{A_ROW['take_fan']}"
                     f"+Revenue!{{c}}{R['Sponsor SaaS']})/12")
     r += 1
 
