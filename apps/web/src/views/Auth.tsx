@@ -65,10 +65,14 @@ export default function Auth() {
   //  whether registration is open — a deployment can sensibly do both — and it
   //  has to be *read* here, or the setting is a payload nobody acts on.
   //
-  //  `null` until the answer arrives, for the same reason `signupOpen` is:
-  //  starting at `true` flashes a list of credentials on a deployment that has
-  //  turned them off, then withdraws it.
-  const [showDemo, setShowDemo] = useState<boolean | null>(null)
+  //  Starts at `true`, unlike `signupOpen`, and the asymmetry is deliberate.
+  //  This deployment sleeps between visits, so `/api/meta` takes about thirty
+  //  seconds to answer on a first visit — precisely when a first-time visitor
+  //  is looking at the page. Waiting for the answer showed them a bare sign-in
+  //  form with no way in and no sign that anything was loading. Offering
+  //  seeded logins a moment early on a deployment that has disabled them is
+  //  the cheaper mistake; `false` from meta still withdraws them.
+  const [showDemo, setShowDemo] = useState<boolean | null>(true)
   //: Whether anything delivers the mail this system queues. Off here means the
   //  page must not offer self-service reset, and must not send a new account to
   //  an inbox that will stay empty.
@@ -82,7 +86,11 @@ export default function Auth() {
         setShowDemo(m.demo_accounts)
         setEmailWorks(m.email_delivery)
       })
-      .catch(() => { setSignupOpen(true); setEmailWorks(false) })
+      // `showDemo` is set here too. Leaving it out was the whole bug: the
+      // comment above promises an unreachable endpoint will not lock the door,
+      // and for this panel it locked it permanently, because nothing else ever
+      // assigns it.
+      .catch(() => { setSignupOpen(true); setShowDemo(true); setEmailWorks(false) })
   }, [])
   const [params] = useSearchParams()
   // `?mode=register` is honoured only once the deployment has said it accepts
