@@ -172,7 +172,7 @@ endurance and combat sports is the opening position. Full method in Appendix H.
 
 Two strands of primary research: an expert interview inside Olympic
 broadcasting, and conversations with athletes in the target segment. Full
-method, limitations and findings in **Appendix O**.
+method, limitations and findings follow in **§3.1.5**.
 
 **Expert — Íñigo Cristóbal Losada**, AI Lead at olympics.com after eleven years
 at Olympic Broadcasting Services, where he was Broadcaster Services Manager
@@ -242,7 +242,7 @@ and a subscription is discretionary.
 
 ### 3.2.2 The sector, and the competition
 
-![Figure 5 — The empty corner. Everyone else serves the head, and nobody monetises the fan.](attachments/charts/g5-competitive-map.png)
+![Figure 5 — Nobody occupies all three. Patreon matches us on both axes and has neither a sponsor side nor sport context.](attachments/charts/g5-competitive-map.png)
 
 | Player | Fan monetisation | Long tail | Why they are not us |
 |---|---|---|---|
@@ -657,6 +657,6 @@ so that the uncertainty is cheap to resolve and everything else is already done.
 
 **Project artefacts**
 
-- Financial model: `Stride_Financial_Model.xlsx`, 2,010 formulas.
+- Financial model: `Stride_Financial_Model.xlsx`, 2,520 formulas.
 - Source and model: github.com/jadzoghaib/stride
 - Deployed demo: stride-demo.onrender.com

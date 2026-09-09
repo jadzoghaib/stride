@@ -60,6 +60,11 @@ APPENDICES: list[tuple[str, str]] = [
     ("K", "11-admission-and-matching.md"),
 ]
 
+# Included documents are renumbered into the body's own scheme. Any of them may
+# cite any other, so the map has to be global rather than per-file: rewriting
+# only the file being rendered left `[12.11]` standing inside section 8.
+SECTION_MAP = {"12": "5", "13": "6", "14": "8", "15": "3.1"}
+
 INLINE = re.compile(
     r"(\*\*.+?\*\*|\*[^*]+?\*|`[^`]+?`|\[\[?[^\]]+?\]\]?\([^)]+?\)|~~.+?~~|==.+?==)")
 IMAGE = re.compile(r"^!\[([^\]]*)\]\(([^)]+)\)\s*$")
@@ -197,8 +202,15 @@ class Renderer:
                 if src.exists():
                     body = src.read_text(encoding="utf-8")
                     if m.group(3):
-                        # in-text cross references move with the headings
-                        body = re.sub(r"§\d+\.(\d)", rf"§{m.group(3)}.\1", body)
+                        # Cross references move with the headings: section
+                        # marks, and the visible labels of markdown links.
+                        # Every included document is remapped, not just
+                        # this one, because they cite each other.
+                        for src_no, dest in SECTION_MAP.items():
+                            body = re.sub(rf"§{src_no}\.(\d+)",
+                                          rf"§{dest}.\1", body)
+                            body = re.sub(rf"\[{src_no}\.(\d+)\]",
+                                          rf"[{dest}.\1]", body)
                     Renderer(self.doc, shift=int(m.group(2) or 0),
                              renumber=m.group(3)).render(body)
                 else:

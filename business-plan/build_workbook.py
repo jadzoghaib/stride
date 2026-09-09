@@ -1066,7 +1066,10 @@ def build() -> pathlib.Path:
     r += 2
 
     r += 1
-    r = section(cl, r, "FAN — NICHE, THE SEGMENT THE PLAN STARTS IN")
+    r = section(cl, r, "FAN — NICHE SUBSCRIPTION ONLY")
+    cl.cell(r - 1, 4, "excludes PPV and tips, which the revenue model "
+                      "carries separately").font = Font(
+                          italic=True, size=8, color="6B7280", name="Calibri")
     f_arpu = r
     r = row(cl, r, "Fan ARPU, VAT inclusive", "EUR/mo", fmt=MONEY2, font=LINK,
             formula=f"=Assumptions!{{c}}{A_ROW['niche_arpu']}")

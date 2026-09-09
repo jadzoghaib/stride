@@ -209,28 +209,58 @@ def g4() -> None:
 def g5() -> None:
     d = rows("g5-competitive-map.csv")
 
-    fig, ax = plt.subplots(figsize=(WIDTH, 3.4))
+    # The third dimension, because the two axes alone cannot separate us from
+    # Patreon: does the player carry a SPONSOR side as well as a fan side?
+    sponsor_side = {"Stride", "Influencer SaaS (Aspire, Grin)",
+                    "TEKTA (Publicis/Kelce)", "Traditional agents",
+                    "NIL collectives (US)"}
+    # Two pairs share a point exactly -- Stride with Patreon at (9, 9), which is
+    # the whole argument, and TEKTA with agents at (1, 0). Nudge and place by
+    # hand; seven points do not need a layout algorithm, they need care.
+    NUDGE = {"Patreon / Substack": (0.62, -0.30),
+             "Traditional agents": (0.0, -1.05)}
+    LABEL = {"Stride": (0, 14, "center"),
+             "Patreon / Substack": (10, -4, "left"),
+             "Passes / Fanfix": (0, -17, "center"),
+             "Influencer SaaS (Aspire, Grin)": (10, -4, "left"),
+             "NIL collectives (US)": (0, 13, "center"),
+             "TEKTA (Publicis/Kelce)": (-9, -4, "right"),
+             "Traditional agents": (-9, -4, "right")}
+
+    fig, ax = plt.subplots(figsize=(WIDTH, 3.7))
     for r in d:
-        stride = r["player"] == "Stride"
-        x, y = float(r["long_tail_reach_0_10"]), float(r["fan_monetisation_0_10"])
-        ax.scatter(x, y, s=170 if stride else 90,
-                   color=AMBER if stride else SAND,
+        name = r["player"]
+        stride = name == "Stride"
+        dx, dy = NUDGE.get(name, (0.0, 0.0))
+        x = float(r["long_tail_reach_0_10"]) + dx
+        y = float(r["fan_monetisation_0_10"]) + dy
+        has_sponsor = name in sponsor_side
+        ax.scatter(x, y, s=200 if stride else 95,
+                   color=AMBER if stride else (TEAL if has_sponsor else "white"),
                    edgecolors=INK if stride else MUTED,
-                   linewidths=1.0 if stride else 0.5, zorder=3)
-        ax.annotate(r["player"], xy=(x, y), xytext=(0, 11 if stride else -14),
-                    textcoords="offset points", ha="center", fontsize=7.5,
+                   linewidths=1.2 if stride else 0.9,
+                   marker="o" if has_sponsor else "s", zorder=4 if stride else 3)
+        ox, oy, ha = LABEL.get(name, (0, -15, "center"))
+        ax.annotate(name, xy=(x, y), xytext=(ox, oy), textcoords="offset points",
+                    ha=ha, fontsize=7.5,
                     fontweight="bold" if stride else "normal",
                     color=INK if stride else MUTED)
 
-    ax.axvspan(6.5, 10.6, ymin=0.62, color=AMBER, alpha=0.07, zorder=1)
-    ax.set_xlim(-0.6, 10.6)
-    ax.set_ylim(-1.2, 10.8)
+    ax.scatter([], [], marker="o", color=TEAL, edgecolors=MUTED,
+               label="has a sponsor side")
+    ax.scatter([], [], marker="s", color="white", edgecolors=MUTED,
+               label="fan side only")
+    ax.set_xlim(-1.4, 12.6)
+    ax.set_ylim(-2.4, 11.6)
     ax.set_xlabel("Reach into the long tail  →")
     ax.set_ylabel("Fan monetisation  →")
     ax.grid(True)
     ax.set_axisbelow(True)
-    title(ax, "The empty corner",
-          "Everyone else serves the head, and nobody monetises the fan.")
+    ax.legend(loc="center right", fontsize=7)
+    title(ax, "Nobody occupies all three",
+          "Patreon sits on our exact point on these two axes, nudged apart here "
+          "to stay visible — and it has no sponsor side and no sport context. "
+          "The gap is the combination, not either axis alone.")
     save(fig, "g5-competitive-map.png", "Source: g5-competitive-map.csv")
 
 

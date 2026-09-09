@@ -187,10 +187,13 @@ list deliberately** — it is the decision most likely to be pressured commercia
 and least reversible reputationally.
 
 ### Advisory
-An **advisory grant of 1%** is made at the pre-seed, vesting over two years, in
-line with the 0.5–1.5% range and performance trigger recommended in
-[04](04-capital-and-valuation.md). The dilution table above models the 2%
-ceiling, so the cap table is stated at the conservative end of that range. The
+A **2% advisory pool** is opened at the pre-seed, vesting over two years. It
+covers two grants: the anchor-athlete advisor, which
+[04](04-capital-and-valuation.md) sizes at **1%** within a 0.5–1.5% range and
+against a performance trigger, and a sports-industry board advisor of similar
+size. The dilution table above models the **full 2%**, which is deliberately
+the expensive assumption — if only one grant is ever made the founder retains
+more than the table shows, not less. The
 intended profile is sports-industry rather than technology: the plan's weakest
 external dependency is the anchor athlete and the club channel, not the code.
 
