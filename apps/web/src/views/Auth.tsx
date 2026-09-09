@@ -65,14 +65,18 @@ export default function Auth() {
   //  whether registration is open — a deployment can sensibly do both — and it
   //  has to be *read* here, or the setting is a payload nobody acts on.
   //
-  //  Starts at `true`, unlike `signupOpen`, and the asymmetry is deliberate.
-  //  This deployment sleeps between visits, so `/api/meta` takes about thirty
-  //  seconds to answer on a first visit — precisely when a first-time visitor
-  //  is looking at the page. Waiting for the answer showed them a bare sign-in
-  //  form with no way in and no sign that anything was loading. Offering
-  //  seeded logins a moment early on a deployment that has disabled them is
-  //  the cheaper mistake; `false` from meta still withdraws them.
-  const [showDemo, setShowDemo] = useState<boolean | null>(true)
+  //  `null` until the answer arrives, for the same reason `signupOpen` is:
+  //  starting at `true` flashes a list of working logins on a deployment whose
+  //  operator has turned them off.
+  //
+  //  Starting it at `true` was tried and reverted. The argument was that this
+  //  container sleeps and meta takes thirty seconds, so the panel was hidden
+  //  exactly when a first visitor arrives. That premise is wrong: one process
+  //  serves the SPA and the API, so the container is already awake by the time
+  //  index.html has been delivered and the meta call that follows is fast.
+  //  Measured on the live demo — index.html 41s from cold, the /api/meta after
+  //  it 5.8s and then 0.3s. The wait happens before the page exists.
+  const [showDemo, setShowDemo] = useState<boolean | null>(null)
   //: Whether anything delivers the mail this system queues. Off here means the
   //  page must not offer self-service reset, and must not send a new account to
   //  an inbox that will stay empty.
@@ -86,10 +90,11 @@ export default function Auth() {
         setShowDemo(m.demo_accounts)
         setEmailWorks(m.email_delivery)
       })
-      // `showDemo` is set here too. Leaving it out was the whole bug: the
+      // `showDemo` is set here too, and leaving it out was the actual bug: the
       // comment above promises an unreachable endpoint will not lock the door,
-      // and for this panel it locked it permanently, because nothing else ever
-      // assigns it.
+      // and for this panel it locked it permanently, because `null` renders
+      // nothing and nothing else ever assigns it. One failed meta call and the
+      // demo credentials were gone for good.
       .catch(() => { setSignupOpen(true); setShowDemo(true); setEmailWorks(false) })
   }, [])
   const [params] = useSearchParams()
