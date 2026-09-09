@@ -266,7 +266,7 @@ Other unit costs, for completeness:
 
 | Unit | Cost |
 |---|---|
-| One human admission review | ~€1.49 (4 min at €22.35/hr loaded) |
+| One human admission review | **€1.49 in Y1, €2.75 by Y7** (4 min at a loaded hourly rising from €22.35 to €41.18) |
 | One athlete's monthly moderation | ~€0.26 (12 items at €22/1,000) |
 | One paying fan's monthly egress | ~€0.014 (1.8 GB at €0.008) |
 

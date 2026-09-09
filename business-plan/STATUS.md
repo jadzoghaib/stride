@@ -9,9 +9,9 @@ Last updated 9 September 2026.*
 
 | What | Where |
 |---|---|
-| **The submission** | `business-plan/Stride_Business_Plan.docx` — 34-page body + appendices, 89 total |
+| **The submission** | `business-plan/Stride_Business_Plan.docx` — 34-page body + appendices, 91 total |
 | Same, without Word | `business-plan/Stride_Business_Plan.pdf` |
-| **The financial model** | `business-plan/Stride_Financial_Model.xlsx` — 18 sheets, 2,500 formulas |
+| **The financial model** | `business-plan/Stride_Financial_Model.xlsx` — 18 sheets, 2,520 formulas |
 | The body's source | `business-plan/esade-body.md` |
 | The exhibits | `business-plan/attachments/charts/` — 12 PNGs |
 | School material | `Desktop\Business Track MSc Thesis\` (outside this repo) |

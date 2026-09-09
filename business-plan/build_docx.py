@@ -67,7 +67,7 @@ CALLOUT = re.compile(r"^>\s*\[!(\w+)\]\s*(.*)$")
 # <!-- INCLUDE: file.md shift=1 --> splices another document into the body and
 # demotes its headings, so a rubric-weighted section lives in one file and is
 # rendered in two places without being written twice.
-INCLUDE = re.compile(r"^<!--\s*INCLUDE:\s*(\S+?)(?:\s+shift=(\d+))?\s*-->$")
+INCLUDE = re.compile(r"^<!--\s*INCLUDE:\s*(\S+?)(?:\s+shift=(\d+))?(?:\s+renumber=([\d.]+))?\s*-->$")
 
 
 # ── low-level docx helpers ──────────────────────────────────────────────────
@@ -147,10 +147,11 @@ def spacer(doc, pts: int = 4) -> None:
 # ── the markdown renderer ───────────────────────────────────────────────────
 class Renderer:
     def __init__(self, doc: Document, *, appendix: str | None = None,
-                 shift: int = 0):
+                 shift: int = 0, renumber: str | None = None):
         self.doc = doc
         self.appendix = appendix
         self.shift = shift
+        self.renumber = renumber
 
     def render(self, md: str) -> None:
         lines = md.split("\n")
@@ -194,10 +195,21 @@ class Renderer:
             if (m := INCLUDE.match(stripped)):
                 src = HERE / m.group(1)
                 if src.exists():
-                    Renderer(self.doc, shift=int(m.group(2) or 0)).render(
-                        src.read_text(encoding="utf-8"))
+                    body = src.read_text(encoding="utf-8")
+                    if m.group(3):
+                        # in-text cross references move with the headings
+                        body = re.sub(r"§\d+\.(\d)", rf"§{m.group(3)}.\1", body)
+                    Renderer(self.doc, shift=int(m.group(2) or 0),
+                             renumber=m.group(3)).render(body)
                 else:
                     print(f"  ! missing include {m.group(1)}", file=sys.stderr)
+                i += 1
+                continue
+
+            # <!-- MODEL:key --> markers tell the model where to write; they
+            # are not text, and rendered as paragraphs they leak the guard's
+            # plumbing into the submitted document.
+            if stripped.startswith("<!--") and stripped.endswith("-->"):
                 i += 1
                 continue
 
@@ -244,10 +256,18 @@ class Renderer:
             return
         level = raw_level + self.shift
         text = line.lstrip("#").strip()
+        # An included document numbers its own sections. Spliced into the body
+        # it must take the body's number, or section 5 ends up containing
+        # subsections 12.1 to 12.11.
+        if self.renumber:
+            text = re.sub(r"^\d+\.", f"{self.renumber}.", text)
         if self.appendix and level == 1:
-            text = f"Appendix {self.appendix} — {re.sub(r'^\\d+\\s*[—-]\\s*', '', text)}"
+            text = f"Appendix {self.appendix} — {re.sub(r'^\d+\s*[—-]\s*', '', text)}"
         sizes = {1: 16, 2: 12.5, 3: 11, 4: 10}
-        par = self.doc.add_paragraph()
+        # A real Word Heading style, not a bold paragraph. Without an outline
+        # level the TOC field indexes nothing and the Contents page stays empty
+        # however many times it is refreshed.
+        par = self.doc.add_paragraph(style=f"Heading {min(level, 4)}")
         par.paragraph_format.space_before = Pt(16 if level <= 2 else 10)
         par.paragraph_format.space_after = Pt(5)
         par.paragraph_format.keep_with_next = True
@@ -266,7 +286,15 @@ class Renderer:
         inline(par, text)
 
     def list_block(self, block: list[str]) -> None:
+        # Join continuation lines onto their marker first. Rendered one line at
+        # a time, a wrapped item became several bullets.
+        merged: list[str] = []
         for raw in block:
+            if re.match(r"^\s*([-*+]|\d+\.)\s+", raw) or not merged:
+                merged.append(raw.rstrip())
+            else:
+                merged[-1] += " " + raw.strip()
+        for raw in merged:
             text = raw.strip()
             if not text:
                 continue

@@ -71,7 +71,7 @@ protects the surface, not the substance.
 | Asset | Protection | Status |
 |---|---|---|
 | **Marketability scoring engine, admission gate, matching algorithm** | Trade secret + copyright in the source | Held. The repository is currently public for academic assessment; it goes private before commercial launch |
-| **"Stride" word mark** | EU trade mark (EUIPO), Nice classes 9, 35, 41, 42 | **To file.** ~€850 for one class, €50 per additional |
+| **"Stride" word mark** | EU trade mark (EUIPO), Nice classes 9, 35, 41, 42 | **To file.** €850 for the first class, €50 for the second, €150 for each beyond it — **€1,200** for four |
 | Domain and handles | Registration | To secure alongside the mark |
 | **Athlete engagement database** | *Sui generis* database right (Directive 96/9/EC) | Arises automatically from substantial investment in obtaining and verifying the data. This is the most valuable and least discussed protection we have |
 | Platform content (athlete posts, media) | Licensed from athletes, not owned | Terms grant a limited licence to host, display and promote; the athlete retains ownership |
@@ -109,7 +109,7 @@ Growth is sequenced along three axes, and only one moves at a time.
 | Stage | Markets | Trigger to move |
 |---|---|---|
 | Pre-seed | **Spain only** | — |
-| Seed | +1 market (Portugal or Italy) | 3 months of fan churn data; €80k recurring MRR |
+| Seed | +2 markets (Portugal, then Italy) | 3 months of fan churn data; €80k recurring MRR |
 | Series A | +3–4 markets, EU-wide | Unit economics stable across 3 markets |
 | Y8+ | Selective non-EU | Regulatory review per market |
 

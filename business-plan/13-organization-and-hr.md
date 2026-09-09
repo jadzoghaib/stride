@@ -187,7 +187,10 @@ list deliberately** — it is the decision most likely to be pressured commercia
 and least reversible reputationally.
 
 ### Advisory
-A **2% advisory grant** is made at the pre-seed, vesting over two years. The
+An **advisory grant of 1%** is made at the pre-seed, vesting over two years, in
+line with the 0.5–1.5% range and performance trigger recommended in
+[04](04-capital-and-valuation.md). The dilution table above models the 2%
+ceiling, so the cap table is stated at the conservative end of that range. The
 intended profile is sports-industry rather than technology: the plan's weakest
 external dependency is the anchor athlete and the club channel, not the code.
 
@@ -205,7 +208,7 @@ plan and visible in the product.*
 | **5 — Gender Equality** | Women's sport is systematically under-monetised by agent-mediated models, precisely because agents chase the largest audiences. An evidence-based matching engine that scores on engagement rather than on name recognition is structurally fairer to it | [11](11-admission-and-matching.md) |
 | **10 — Reduced Inequalities** | The 15% flat take with **no monthly athlete fee** means the athlete earning €200 a month pays the same rate as the one earning €5,000. A subscription fee would have been regressive | [01](01-revenue-model.md) |
 | **16 — Peace, Justice and Strong Institutions** | Nothing self-verifies. A club above the verification bar still waits for a human; a rejected proof cannot be cleared by re-submitting. Consent is versioned and audited | [11](11-admission-and-matching.md) |
-| **12 — Responsible Consumption** | The zero-egress architecture is chosen on cost, but it also cuts the energy intensity of media delivery by roughly a factor of nine per GB served | [02](02-cost-model.md) |
+| **12 — Responsible Consumption** | The zero-egress architecture is chosen on cost, and the same decision cuts billed cross-network transfer by an order of magnitude. We do **not** claim a measured energy saving: the 9.4× in [02](02-cost-model.md) is a price ratio, and no energy measurement sits behind it | [02](02-cost-model.md) |
 
 **Two commitments that cost us money**, stated because they are the test of
 whether the above is real:

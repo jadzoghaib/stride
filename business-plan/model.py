@@ -864,6 +864,10 @@ def unit_economics() -> str:
 
 DOC_TABLES = {
     "00-executive-summary.md": ["summary"],
+    # The submission body carries the same block. It sat between MODEL
+    # markers while being hand-maintained, which is the worst of both:
+    # it looked generated and was one EBITDA cell stale.
+    "esade-body.md": ["summary"],
     "02-cost-model.md": ["costs_y7", "cac", "unit_economics"],
     "03-financial-model.md": ["drivers", "churn", "segments", "gmv", "revenue", "pl", "cash", "funding"],
     "04-capital-and-valuation.md": ["valuation", "multiples", "sensitivity"],

@@ -289,6 +289,9 @@ def build() -> pathlib.Path:
         ("  BalanceSheet   with an explicit balance check row", None),
         ("  Valuation      DCF, NPV, IRR, exit multiples, sensitivity", None),
         ("  Funding        rounds, dilution, ownership", None),
+        ("  HiringPlan     headcount by role, reconciled to the model", None),
+        ("  CAC_CLV        acquisition cost against lifetime value", None),
+        ("  KPIs           scale, quality of revenue, efficiency", None),
         ("  Check          the Python model's figures, to verify the formulas agree", None),
         ("", None),
         ("WHY TEN YEARS", BOLD),
@@ -1009,11 +1012,13 @@ def build() -> pathlib.Path:
     hp.cell(r, 1, "The FTE block reconciles exactly and is the plan. The cost "
                   "build-up prices those roles at their own salaries; the model "
                   "prices the same headcount at a blended loaded average that "
-                  "rises from 38k to 76k over the plan, covering seniority and "
-                  "inflation, while the build-up holds today's salaries flat. "
-                  "The model is therefore the more expensive and more "
-                  "conservative of the two, and it is the one that reaches the "
-                  "P&L. The two memo rows below make the gap legible.").font = Font(italic=True, size=8, color="6B7280", name="Calibri")
+                  "rises from 38k to 76k over the plan, while the build-up "
+                  "holds today's salaries flat. The two cross over at Y4: the "
+                  "build-up is the higher figure in Y1-Y3, where one founder "
+                  "salary dominates a team of two or three, and the model is "
+                  "higher from Y4 as its blended rate climbs. The model is the "
+                  "one that reaches the P&L either way. The memo rows below "
+                  "make the two rates comparable.").font = Font(italic=True, size=8, color="6B7280", name="Calibri")
 
     # ══ CAC & CLV ═══════════════════════════════════════════════════════════
     cl = sheet(wb, "CAC_CLV", "Customer acquisition cost and lifetime value")
@@ -1075,9 +1080,13 @@ def build() -> pathlib.Path:
     r = row(cl, r, "Payment cost on the charge", "EUR/mo", fmt=MONEY2,
             formula=f"={{c}}{f_arpu}*Assumptions!{{c}}{A_ROW['psp_pct']}"
                     f"+Assumptions!{{c}}{A_ROW['psp_fix']}")
+    f_pay = r
+    r = row(cl, r, "Payout cost, share per fan month", "EUR", fmt=MONEY2,
+            formula=f"={{c}}{f_arpu}*Assumptions!{{c}}{A_ROW['payout_pct']}"
+                    f"+Assumptions!{{c}}{A_ROW['payout_fix']}/30")
     f_con = r
     r = row(cl, r, "Contribution per fan month", "EUR", fmt=MONEY2,
-            formula=f"={{c}}{f_take}-{{c}}{f_psp}")
+            formula=f"={{c}}{f_take}-{{c}}{f_psp}-{{c}}{f_pay}")
     f_ch = r
     r = row(cl, r, "Fan churn", "per month", fmt=PCT, font=LINK,
             formula=f"=Assumptions!{{c}}{A_ROW['niche_fchurn']}")
@@ -1109,8 +1118,11 @@ def build() -> pathlib.Path:
     s_con = r
     r = row(cl, r, "Contribution per sponsor per year", "EUR",
             formula=f"={{c}}{s_saas}+{{c}}{s_spo}")
+    s_gross = r
+    r = row(cl, r, "  at gross margin", "EUR",
+            formula=f"={{c}}{s_con}*'P&L'!{{c}}{P['Gross margin']}")
     r = row(cl, r, "CAC payback", "months", bold=True, top=True, fmt='0.0',
-            formula=f"=IF({{c}}{s_con}<=0,0,12*{{c}}{s_cac}/{{c}}{s_con})")
+            formula=f"=IF({{c}}{s_gross}<=0,0,12*{{c}}{s_cac}/{{c}}{s_gross})")
     r += 1
     cl.cell(r, 1, "No sponsor LTV is shown. It needs a sponsor retention "
                   "assumption the model does not make, and inventing one here "

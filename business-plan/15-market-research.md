@@ -36,8 +36,15 @@ product decision. Both happened.
 > sport with no agent layer, there is no route from having an audience to
 > earning from it. The sport index in [08](08-sport-index.md) measures agent
 > density across 714 country × sport pairs and finds that absence is a property
-> of *niche sports*, not of any one country. Lebanese rugby league and Spanish
-> trail running sit in the same cell of that matrix.
+> of *niche sports* rather than of any one country.
+>
+> Be precise about what the index does and does not contain: **neither Lebanon
+> nor rugby league is in it.** It covers 34 countries and 21 sports, and an
+> examiner checking against [08](08-sport-index.md) would find both missing.
+> What transfers is the mechanism, not a cell in the matrix — where no agent
+> layer exists, no route runs from audience to income — and the index is the
+> evidence that this condition is set by a sport's economics rather than by
+> its geography.
 >
 > What the Lebanese sample **cannot** support is anything about Spanish
 > willingness to pay, sponsor budgets, or market size. None of those claims rests

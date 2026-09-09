@@ -346,8 +346,12 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("13-organization-and-hr.md", "founders held after the Series A",
      r"\| \*\*Series A\*\* \(€8\.0M\) \|[^|]*\| (\d+)%",
      DILUTION["Series A"]["held"] * 100, 0.5),
+    # Anchored to its own row. `\*\*~(\d+)%\*\*` matched any bold ~NN% in the
+    # file, so an unrelated figure added above it would have been checked
+    # against the ESOP number without anyone noticing.
     ("13-organization-and-hr.md", "equity retained after the ESOP",
-     r"\*\*~(\d+)%\*\*", DILUTION["ESOP (cumulative)"]["held"] * 100, 0.5),
+     r"\| Post-ESOP \|[^|]*\|\s*\*\*~(\d+)%\*\*",
+     DILUTION["ESOP (cumulative)"]["held"] * 100, 0.5),
     ("13-organization-and-hr.md", "revenue forfeited by the 15% take",
      r"forfeits \*\*€([\d.]+)M of Y7 revenue", take_rate_delta() / 1e6, 0.05),
 
@@ -357,7 +361,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"€([\d.]+)M EBITDA by Y10", ROWS[9]["ebitda"] / 1e6, 0.05),
 
     # --- 15 Primary research (ESADE section 5.1.4) -------------------------
-    ("15-market-research.md", "Y1 admission rate",
+    ("15-market-research.md", "Y7 admission rate, the value the sentence ends on",
      r"\*\*20\.0% in Y1 to ([\d.]+)% by", 100 * ROWS[6]["admit_rate"], 0.05),
 
     # The risk register restates two cost figures the recalibration moved and
@@ -435,7 +439,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"3,000 athletes, (\d+) sponsors paying SaaS",
      ROWS[2]["paying_sponsors"], 0.6),
     ("esade-body.md", "workbook formula count",
-     r"evaluates all ([\d,]+) workbook\s+formulas", 2500, 0.5),
+     r"evaluates all ([\d,]+) workbook\s+formulas", 2520, 0.5),
 
     # The pro forma cash flow the outline requires at 9.3. Read from the
     # workbook, so the body cannot disagree with the statement it came from.
