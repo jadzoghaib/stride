@@ -117,7 +117,7 @@ export default function YourData() {
           </span>
         }
       >
-        <div className="panel table-wrap" style={{ '--table-min': '42rem' } as React.CSSProperties}>
+        <div className="panel table-wrap" style={{ '--table-min': '28rem' } as React.CSSProperties}>
           <table className="w-full text-sm">
             <thead>
               <tr>

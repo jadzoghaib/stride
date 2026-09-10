@@ -141,7 +141,7 @@ export default function AthleteDeals() {
         {history.length === 0 ? (
           <EmptyNote text="No deal history yet." />
         ) : (
-          <div className="table-wrap" style={{ '--table-min': '52rem' } as React.CSSProperties}>
+          <div className="table-wrap" style={{ '--table-min': '42rem' } as React.CSSProperties}>
             <table className="w-full text-sm">
               <thead>
                 <tr>

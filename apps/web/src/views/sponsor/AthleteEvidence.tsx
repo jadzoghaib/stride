@@ -93,7 +93,7 @@ export default function AthleteEvidence() {
 
       {Object.keys(kpis).length > 0 && (
         <Section title="Per-platform inputs (evidence)">
-          <div className="table-wrap" style={{ '--table-min': '68rem' } as React.CSSProperties}>
+          <div className="table-wrap" style={{ '--table-min': '49rem' } as React.CSSProperties}>
               <table className="w-full text-sm">
                 <thead>
                   <tr>
@@ -132,7 +132,7 @@ export default function AthleteEvidence() {
 
       {data.posts.length > 0 && (
         <Section title="Recent content (latest metric capture per post)">
-          <div className="table-wrap" style={{ '--table-min': '68rem' } as React.CSSProperties}>
+          <div className="table-wrap" style={{ '--table-min': '35rem' } as React.CSSProperties}>
             <table className="w-full text-sm">
               <thead>
                 <tr>

@@ -228,7 +228,7 @@ export default function ClubEligibility() {
               <EmptyNote text="No roster yet — add athletes in Club HQ, then nominate them here." />
             </div>
           ) : (
-            <div className="table-wrap mt-3" style={{ '--table-min': '40rem' } as React.CSSProperties}>
+            <div className="table-wrap mt-3" style={{ '--table-min': '28rem' } as React.CSSProperties}>
               <table className="w-full text-sm">
                 <thead>
                   <tr>
