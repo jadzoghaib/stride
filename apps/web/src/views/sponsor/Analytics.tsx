@@ -91,7 +91,7 @@ export default function SponsorAnalytics() {
         {rows.length === 0 ? (
           <EmptyNote text="No campaigns yet." />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="table-wrap">
             <table className="w-full min-w-[46rem] text-sm">
               <thead>
                 <tr>

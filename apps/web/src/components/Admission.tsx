@@ -111,7 +111,7 @@ export function ScoreBreakdown({
   proofStatus?: string
 }) {
   return (
-    <div>
+    <div className="table-wrap" style={{ '--table-min': '40rem' } as React.CSSProperties}>
       <table className="w-full text-sm">
         <thead>
           <tr>

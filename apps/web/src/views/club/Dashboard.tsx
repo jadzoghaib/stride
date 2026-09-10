@@ -91,7 +91,7 @@ export default function ClubDashboard() {
           <PackageForm roster={ws.roster.map((m) => ({ slug: m.slug, name: m.display_name }))}
                        onDone={() => { setCreatingPackage(false); toast('Package published'); void load() }} />
         )}
-        <div className="overflow-x-auto">
+        <div className="table-wrap" style={{ '--table-min': '72rem' } as React.CSSProperties}>
           <table className="w-full text-sm">
             <thead>
               <tr>
@@ -183,7 +183,7 @@ export default function ClubDashboard() {
         {ws.commitments.length === 0 ? (
           <EmptyNote text="No sponsor commitments yet. Sponsors back packages from your public page." />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="table-wrap" style={{ '--table-min': '72rem' } as React.CSSProperties}>
             <table className="w-full text-sm">
               <thead>
                 <tr>

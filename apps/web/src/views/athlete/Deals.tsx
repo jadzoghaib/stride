@@ -141,32 +141,34 @@ export default function AthleteDeals() {
         {history.length === 0 ? (
           <EmptyNote text="No deal history yet." />
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr>
-                <th className="table-head">Sponsor</th>
-                <th className="table-head">Campaign</th>
-                <th className="table-head">Format</th>
-                <th className="table-head text-right">Amount</th>
-                <th className="table-head">Status</th>
-                <th className="table-head">Resolved</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((d) => (
-                <tr key={d.id}>
-                  <td className="table-cell text-ink">{d.org_name}</td>
-                  <td className="table-cell">{d.campaign_name}</td>
-                  <td className="table-cell">{dealTypeLabel(d.deal_type)}</td>
-                  <td className="table-cell tnum text-right">{fmtMoney(d.amount_eur)}</td>
-                  <td className="table-cell"><StatusChip status={d.status} /></td>
-                  {/* a completed deal resolved when it was delivered, not when it
-                      was accepted — the older column would misdate it */}
-                  <td className="table-cell text-xs text-ink-3">{fmtDate(d.completed_at ?? d.responded_at)}</td>
+          <div className="table-wrap" style={{ '--table-min': '52rem' } as React.CSSProperties}>
+            <table className="w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="table-head">Sponsor</th>
+                  <th className="table-head">Campaign</th>
+                  <th className="table-head">Format</th>
+                  <th className="table-head text-right">Amount</th>
+                  <th className="table-head">Status</th>
+                  <th className="table-head">Resolved</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {history.map((d) => (
+                  <tr key={d.id}>
+                    <td className="table-cell text-ink">{d.org_name}</td>
+                    <td className="table-cell">{d.campaign_name}</td>
+                    <td className="table-cell">{dealTypeLabel(d.deal_type)}</td>
+                    <td className="table-cell tnum text-right">{fmtMoney(d.amount_eur)}</td>
+                    <td className="table-cell"><StatusChip status={d.status} /></td>
+                    {/* a completed deal resolved when it was delivered, not when it
+                        was accepted — the older column would misdate it */}
+                    <td className="table-cell text-xs text-ink-3">{fmtDate(d.completed_at ?? d.responded_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Section>
 

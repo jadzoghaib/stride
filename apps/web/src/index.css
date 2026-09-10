@@ -366,6 +366,26 @@
   .tag-accent   { @apply border-accent/45 bg-accent/10 text-accent-ink; }
 
   /* ── tables ──────────────────────────────────────────────────────────── */
+  /* The scroll container, and the half of it that is easy to forget.
+     `overflow-x-auto` alone does not make a wide table scroll: with no minimum
+     the table shrinks to the container instead, and a 7-column deal history
+     becomes seven slivers of wrapped text at 390px. The minimum is what turns
+     squeezing into scrolling, and it belongs with the container rather than on
+     each table, or it gets left off exactly where it is needed most.
+
+     `--table-min` tunes it per table: 20 columns of campaign pipeline need more
+     room than 2 columns of legal definitions. Its default suits the 5-to-7
+     column tables that are the common case here. */
+  .table-wrap {
+    @apply overflow-x-auto;
+  }
+  /* `:where()` on purpose: it contributes no specificity, so a table carrying
+     its own `min-w-[34rem]` keeps it and this only fills the gap. Written as
+     `.table-wrap > table` the default outranked the utility and silently
+     overrode three tables whose widths had been chosen deliberately. */
+  :where(.table-wrap) > table {
+    min-width: var(--table-min, 38rem);
+  }
   .table-head {
     @apply cap whitespace-nowrap border-b border-line-strong px-4 py-2.5 text-left;
   }

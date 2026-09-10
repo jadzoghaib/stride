@@ -44,7 +44,7 @@ export default function Legal() {
           )}
 
           {s.table && (
-            <div className="panel overflow-x-auto">
+            <div className="panel table-wrap" style={{ '--table-min': '24rem' } as React.CSSProperties}>
               <table className="w-full text-sm">
                 <thead>
                   <tr>
