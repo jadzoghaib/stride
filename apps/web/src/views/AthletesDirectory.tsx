@@ -218,7 +218,7 @@ export default function AthletesDirectory({ embedded = false }: { embedded?: boo
         </div>
       )}
 
-      <div className="mt-6 panel overflow-x-auto">
+      <div className="mt-6 panel table-wrap" style={{ '--table-min': '28rem' } as React.CSSProperties}>
         <table className="w-full text-sm">
           <thead>
             <tr>

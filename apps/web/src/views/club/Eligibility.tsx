@@ -228,39 +228,41 @@ export default function ClubEligibility() {
               <EmptyNote text="No roster yet — add athletes in Club HQ, then nominate them here." />
             </div>
           ) : (
-            <table className="mt-3 w-full text-sm">
-              <thead>
-                <tr>
-                  <th className="table-head">Athlete</th>
-                  <th className="table-head">Position</th>
-                  <th className="table-head">Result</th>
-                  <th className="table-head" />
-                </tr>
-              </thead>
-              <tbody>
-                {ws.roster.map((m) => (
-                  <tr key={m.membership_id}>
-                    <td className="table-cell">
-                      <Link to={`/athletes/${m.slug}`} className="text-ink hover:text-accent">
-                        {m.display_name}
-                      </Link>
-                      <span className="ml-2 text-xs text-ink-3">{m.sport}</span>
-                    </td>
-                    <td className="table-cell text-ink-3">{m.position || '—'}</td>
-                    <td className="table-cell text-xs text-ink-2">{outcomes[m.slug] ?? '—'}</td>
-                    <td className="table-cell text-right">
-                      <button
-                        className="btn px-2.5 py-1 text-xs"
-                        disabled={application?.decision !== 'verified' || budgetLeft <= 0}
-                        onClick={() => nominate(m.slug)}
-                      >
-                        <BadgeCheck size={13} /> Nominate
-                      </button>
-                    </td>
+            <div className="table-wrap mt-3" style={{ '--table-min': '28rem' } as React.CSSProperties}>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th className="table-head">Athlete</th>
+                    <th className="table-head">Position</th>
+                    <th className="table-head">Result</th>
+                    <th className="table-head" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {ws.roster.map((m) => (
+                    <tr key={m.membership_id}>
+                      <td className="table-cell">
+                        <Link to={`/athletes/${m.slug}`} className="text-ink hover:text-accent">
+                          {m.display_name}
+                        </Link>
+                        <span className="ml-2 text-xs text-ink-3">{m.sport}</span>
+                      </td>
+                      <td className="table-cell text-ink-3">{m.position || '—'}</td>
+                      <td className="table-cell text-xs text-ink-2">{outcomes[m.slug] ?? '—'}</td>
+                      <td className="table-cell text-right">
+                        <button
+                          className="btn px-2.5 py-1 text-xs"
+                          disabled={application?.decision !== 'verified' || budgetLeft <= 0}
+                          onClick={() => nominate(m.slug)}
+                        >
+                          <BadgeCheck size={13} /> Nominate
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </Section>
 

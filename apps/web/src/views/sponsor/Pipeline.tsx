@@ -76,7 +76,7 @@ export default function SponsorPipeline({ campaignId, embedded = false }: {
         if (!list.length) return null
         return (
           <Section key={stage} title={`${stage} (${list.length})`}>
-            <div className="overflow-x-auto">
+            <div className="table-wrap" style={{ '--table-min': '42rem' } as React.CSSProperties}>
               <table className="w-full text-sm">
                 <thead>
                   <tr>
@@ -140,7 +140,7 @@ export default function SponsorPipeline({ campaignId, embedded = false }: {
         {commitments.length === 0 ? (
           <EmptyNote text="No club packages backed yet — browse Clubs to support a club or an individual player through their club." />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="table-wrap" style={{ '--table-min': '42rem' } as React.CSSProperties}>
             <table className="w-full text-sm">
               <thead>
                 <tr>
@@ -267,7 +267,7 @@ function Performance({ dealId }: { dealId: number }) {
             : 'The athlete has not attached a post yet. Figures appear here as soon as they do.'}
         </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="table-wrap" style={{ '--table-min': '35rem' } as React.CSSProperties}>
           <table className="mt-4 w-full text-xs">
             <thead>
               <tr>

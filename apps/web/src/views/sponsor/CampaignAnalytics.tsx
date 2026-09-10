@@ -120,7 +120,7 @@ export default function CampaignAnalytics({ embedded = false }: { embedded?: boo
       {/* ── who carried it ─────────────────────────────────────────────── */}
       <Section title={`Athletes (${athletes.length})`}
                aside={<span className="flex items-center gap-2"><SimulatedChip what="analytics" /><span className="meta">every figure is the posts they attached</span></span>}>
-        <div className="overflow-x-auto">
+        <div className="table-wrap">
           <table className="w-full min-w-[52rem] text-sm">
             <thead>
               <tr>

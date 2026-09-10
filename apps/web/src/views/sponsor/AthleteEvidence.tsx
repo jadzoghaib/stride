@@ -93,33 +93,33 @@ export default function AthleteEvidence() {
 
       {Object.keys(kpis).length > 0 && (
         <Section title="Per-platform inputs (evidence)">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr>
-                  <th className="table-head">Platform</th>
-                  <th className="table-head text-right">Followers</th>
-                  <th className="table-head text-right">Median reach</th>
-                  <th className="table-head text-right">Median ER</th>
-                  <th className="table-head text-right">Posts / wk</th>
-                  <th className="table-head text-right">Growth 30d</th>
-                  <th className="table-head text-right">Posts in window</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(kpis).map(([platform, k]) => (
-                  <tr key={platform}>
-                    <td className="table-cell text-ink">{platformLabel(platform)}</td>
-                    <td className="table-cell tnum text-right">{fmtNum(k.followers)}</td>
-                    <td className="table-cell tnum text-right">{fmtNum(k.median_reach)}</td>
-                    <td className="table-cell tnum text-right">{fmtPct(k.median_er, 2)}</td>
-                    <td className="table-cell tnum text-right">{k.cadence_per_week ?? '—'}</td>
-                    <td className="table-cell tnum text-right">{fmtPct(k.growth_30d)}</td>
-                    <td className="table-cell tnum text-right">{k.posts_in_window}</td>
+          <div className="table-wrap" style={{ '--table-min': '49rem' } as React.CSSProperties}>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th className="table-head">Platform</th>
+                    <th className="table-head text-right">Followers</th>
+                    <th className="table-head text-right">Median reach</th>
+                    <th className="table-head text-right">Median ER</th>
+                    <th className="table-head text-right">Posts / wk</th>
+                    <th className="table-head text-right">Growth 30d</th>
+                    <th className="table-head text-right">Posts in window</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {Object.entries(kpis).map(([platform, k]) => (
+                    <tr key={platform}>
+                      <td className="table-cell text-ink">{platformLabel(platform)}</td>
+                      <td className="table-cell tnum text-right">{fmtNum(k.followers)}</td>
+                      <td className="table-cell tnum text-right">{fmtNum(k.median_reach)}</td>
+                      <td className="table-cell tnum text-right">{fmtPct(k.median_er, 2)}</td>
+                      <td className="table-cell tnum text-right">{k.cadence_per_week ?? '—'}</td>
+                      <td className="table-cell tnum text-right">{fmtPct(k.growth_30d)}</td>
+                      <td className="table-cell tnum text-right">{k.posts_in_window}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
           </div>
         </Section>
       )}
@@ -132,28 +132,30 @@ export default function AthleteEvidence() {
 
       {data.posts.length > 0 && (
         <Section title="Recent content (latest metric capture per post)">
-          <table className="w-full text-sm">
-            <thead>
-              <tr>
-                <th className="table-head">Published</th>
-                <th className="table-head">Platform</th>
-                <th className="table-head">Title</th>
-                <th className="table-head text-right">Reach</th>
-                <th className="table-head text-right">ER</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.posts.map((p, i) => (
-                <tr key={i}>
-                  <td className="table-cell text-xs text-ink-3">{fmtDate(p.published_at)}</td>
-                  <td className="table-cell">{platformLabel(p.platform)}</td>
-                  <td className="table-cell max-w-64 truncate text-ink">{p.title}</td>
-                  <td className="table-cell tnum text-right">{fmtNum(p.reach)}</td>
-                  <td className="table-cell tnum text-right">{fmtPct(p.engagement_rate, 2)}</td>
+          <div className="table-wrap" style={{ '--table-min': '35rem' } as React.CSSProperties}>
+            <table className="w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="table-head">Published</th>
+                  <th className="table-head">Platform</th>
+                  <th className="table-head">Title</th>
+                  <th className="table-head text-right">Reach</th>
+                  <th className="table-head text-right">ER</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.posts.map((p, i) => (
+                  <tr key={i}>
+                    <td className="table-cell text-xs text-ink-3">{fmtDate(p.published_at)}</td>
+                    <td className="table-cell">{platformLabel(p.platform)}</td>
+                    <td className="table-cell max-w-64 truncate text-ink">{p.title}</td>
+                    <td className="table-cell tnum text-right">{fmtNum(p.reach)}</td>
+                    <td className="table-cell tnum text-right">{fmtPct(p.engagement_rate, 2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Section>
       )}
       </div>

@@ -225,7 +225,7 @@ export default function Operations() {
         {shown.length === 0 ? (
           <EmptyNote text="No events of that type recorded yet." />
         ) : (
-          <div className="panel overflow-x-auto">
+          <div className="panel table-wrap" style={{ '--table-min': '35rem' } as React.CSSProperties}>
             <table className="w-full text-sm">
               <thead>
                 <tr>

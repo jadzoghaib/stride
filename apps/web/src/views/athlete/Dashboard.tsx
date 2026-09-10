@@ -166,7 +166,7 @@ export default function AthleteDashboard() {
                 {connected.size} of {PLATFORMS.length} live
               </span>
             </div>
-            <div className="panel overflow-x-auto">
+            <div className="panel table-wrap" style={{ '--table-min': '35rem' } as React.CSSProperties}>
               <table className="w-full text-sm">
                 <thead>
                   <tr>
@@ -427,7 +427,7 @@ function EvidenceTable({ inputs, dimension }: { inputs: NonNullable<AthleteWorks
       : [['inputs', inter as Record<string, number>] as const]
   const cols = Object.keys(rows[0][1])
   return (
-    <div className="mt-3 overflow-x-auto">
+    <div className="mt-3 table-wrap" style={{ '--table-min': '16rem' } as React.CSSProperties}>
       <table className="w-full text-xs">
         <thead>
           <tr>

@@ -394,7 +394,7 @@ export default function ReviewQueue() {
           // Wrapped like the one in Operations: five columns of federation names
           // have no natural floor to compress to, and a table that runs out of
           // room should scroll inside itself rather than push the page sideways.
-          <div className="overflow-x-auto">
+          <div className="table-wrap">
           <table className="w-full min-w-[34rem] text-sm">
             <thead>
               <tr>
