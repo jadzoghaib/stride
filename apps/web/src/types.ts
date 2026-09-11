@@ -209,6 +209,10 @@ export interface Match {
     dimensions: Record<string, number | null>
     coverage: { connected: number; total: number; missing: string[] }
   } | null
+  /** Whether this sponsor could open a thread with the athlete. Normally true —
+   *  both are in the working network — and false where the profile has no
+   *  account behind it, or a block stands. */
+  can_message?: boolean
 }
 
 /** A post the athlete can attach to a deal as proof of delivery. */

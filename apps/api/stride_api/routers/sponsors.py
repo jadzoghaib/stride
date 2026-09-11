@@ -21,7 +21,7 @@ from creatorlens.actions import create_target
 
 from ..auth import get_db, require_role
 from ..db import now_iso, row, rows
-from .messaging import notify
+from .messaging import may_open, notify
 from ..matching import (MODEL_VERSION, WEIGHTS, rank_athletes, slate,
                         slate_fingerprint)
 from .athletes import athlete_public
@@ -312,6 +312,73 @@ def _ranked(conn, org, campaign_id: int):
     return campaign, ranked, round((time.perf_counter() - started) * 1000, 1)
 
 
+def _shown_with_can_message(conn, user, ranked: list[dict]) -> list[dict]:
+    """The shown slice, each row told whether this sponsor could write to it.
+
+    Computed here rather than in `matching.py`, which ranks and has no business
+    knowing who is looking, and only over the shown slice so a long ranking does
+    not pay for rows nobody sees.
+
+    Shared by both handlers on purpose. It lived inline in the GET while the
+    shortlist calls the POST, so the field never reached the page that needed
+    it -- and the endpoint I checked was not the endpoint the product uses.
+
+    One query for every owner, rather than one per row: the permission check
+    itself costs several queries, so running it twenty times over profiles that
+    mostly have no account behind them was the expensive half of an N+1.
+    """
+    shown = ranked[:SHOWN_MATCHES]
+    if not shown:
+        return shown
+    ids = [m["athlete_id"] for m in shown]
+    placeholders = ",".join("?" * len(ids))
+    owners = {r["athlete_id"]: dict(r) for r in rows(
+        conn, f"SELECT ap.id AS athlete_id, u.id, u.display_name, u.role"
+              f" FROM athlete_profiles ap JOIN users u ON u.id = ap.user_id"
+              f" WHERE ap.id IN ({placeholders})", tuple(ids))}
+
+    # The two pair questions `may_message` asks -- is there a block, is there
+    # already a thread -- are one query each, so asking them per row is forty
+    # queries for a slate of twenty. Both are the same shape: the set of people
+    # THIS sender already has that relationship with. Fetched once, they become
+    # memory lookups.
+    me = user["id"]
+    owner_ids = [o["id"] for o in owners.values()]
+    blocked: set[int] = set()
+    talking: set[int] = set()
+    if owner_ids:
+        # Narrowed to the people on this page. Unfiltered, these read the
+        # sponsor's entire block list and every conversation they have ever
+        # held, to answer a question about twenty rows.
+        ph = ",".join("?" * len(owner_ids))
+        blocked = {r["other"] for r in rows(
+            conn, f"SELECT blocked_id AS other FROM user_blocks"
+                  f" WHERE blocker_id = ? AND blocked_id IN ({ph})"
+                  f" UNION SELECT blocker_id AS other FROM user_blocks"
+                  f" WHERE blocked_id = ? AND blocker_id IN ({ph})",
+            (me, *owner_ids, me, *owner_ids))}
+        talking = {r["other"] for r in rows(
+            conn, f"SELECT user_b AS other FROM conversations"
+                  f" WHERE user_a = ? AND user_b IN ({ph})"
+                  f" UNION SELECT user_a AS other FROM conversations"
+                  f" WHERE user_b = ? AND user_a IN ({ph})",
+            (me, *owner_ids, me, *owner_ids))}
+
+    for m in shown:
+        owner = owners.get(m["athlete_id"])
+        if owner is None or owner["id"] in blocked:
+            # Nobody holds the profile, or a block stands. A block ends contact
+            # whatever the thread history or the role matrix says.
+            m["can_message"] = False
+        elif owner["id"] in talking:
+            m["can_message"] = True          # an open thread always answers
+        else:
+            # Roles and subscriptions, not pairs — so there is nothing here to
+            # batch, and a sponsor reaching an athlete answers without a query.
+            m["can_message"] = may_open(conn, user, owner)
+    return shown
+
+
 @router.get("/campaigns/{campaign_id}/matches")
 def campaign_matches(campaign_id: int, user: dict = Depends(require_role("sponsor")),
                      conn: sqlite3.Connection = Depends(get_db)):
@@ -326,7 +393,7 @@ def campaign_matches(campaign_id: int, user: dict = Depends(require_role("sponso
     org = _own_org(conn, user)
     campaign, ranked, duration_ms = _ranked(conn, org, campaign_id)
     return {"campaign": _campaign_view(campaign),
-            "matches": ranked[:SHOWN_MATCHES],
+            "matches": _shown_with_can_message(conn, user, ranked),
             "ranked_total": len(ranked),
             "slate_id": slate_fingerprint(ranked),
             "duration_ms": duration_ms}
@@ -358,7 +425,7 @@ def record_campaign_matches(campaign_id: int, user: dict = Depends(require_role(
                    "slate": slate(ranked, SHOWN_MATCHES)})
         conn.commit()
     return {"campaign": _campaign_view(campaign),
-            "matches": ranked[:SHOWN_MATCHES],
+            "matches": _shown_with_can_message(conn, user, ranked),
             "ranked_total": len(ranked),
             "slate_id": fingerprint,
             "duration_ms": duration_ms,
