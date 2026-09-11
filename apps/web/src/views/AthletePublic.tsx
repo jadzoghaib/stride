@@ -103,6 +103,11 @@ export default function AthletePublicView() {
   //  outcome is an error — and until the server refused it, an athlete could
   //  quietly add themselves to their own public follower count.
   const isSelf = !!me?.athlete_profile && me.athlete_profile.slug === slug
+  //: The roles `/api/subscriptions` and `/api/follows` accept. A club is not
+  //  among them and must not be: it would be shown buttons that 403.
+  //  Writing is a separate question — see `a.can_message`, which the API
+  //  answers, because the rule behind it is a matrix the client has no
+  //  business reimplementing.
   const canRelate = !!me && ['athlete', 'fan', 'sponsor'].includes(me.role) && !isSelf
 
   const relate = async (kind: 'follow' | 'subscribe', on: boolean) => {
@@ -216,17 +221,27 @@ export default function AthletePublicView() {
                   <button className="btn opacity-50" disabled
                           title="This is what a visitor sees on your page">Follow</button>
                 </>
-              ) : canRelate ? (
+              ) : me ? (
+                /* Two rules, not one. Subscribe and Follow are offered to the
+                   roles those endpoints accept; the envelope is offered wherever
+                   the API says the send would work. A club sees only the
+                   envelope, which is exactly what it is allowed to do — before
+                   this it saw the signed-out branch and was invited to sign in
+                   while already signed in. */
                 <>
-                  <button className={a.subscribed ? 'btn border-accent text-ink' : 'btn-go'}
-                          onClick={() => relate('subscribe', !!a.subscribed)}>
-                    {a.subscribed ? 'Subscribed' : 'Subscribe'}
-                  </button>
+                  {canRelate && (
+                    <button className={a.subscribed ? 'btn border-accent text-ink' : 'btn-go'}
+                            onClick={() => relate('subscribe', !!a.subscribed)}>
+                      {a.subscribed ? 'Subscribed' : 'Subscribe'}
+                    </button>
+                  )}
                   {a.can_message && <MessageButton to={{ athlete: a.slug }} name={a.display_name} />}
-                  <button className={`btn ${a.following ? 'border-accent text-ink' : ''}`}
-                          onClick={() => relate('follow', !!a.following)}>
-                    {a.following ? 'Following' : 'Follow'}
-                  </button>
+                  {canRelate && (
+                    <button className={`btn ${a.following ? 'border-accent text-ink' : ''}`}
+                            onClick={() => relate('follow', !!a.following)}>
+                      {a.following ? 'Following' : 'Follow'}
+                    </button>
+                  )}
                 </>
               ) : (
                 <Link to="/auth" className="btn-go">Sign in to subscribe</Link>

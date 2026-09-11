@@ -78,6 +78,39 @@ def test_a_fan_may_message_only_the_athletes_they_subscribe_to(fan, db):
         "to_club": "meridian-fc", "body": "Hi"}).status_code == 403
 
 
+def test_a_fan_may_message_the_club_they_subscribe_to(fan, db):
+    """The subscription authorises the thread, whoever the subject is.
+
+    `subscriptions` has carried a `club_id` since it was written, and the
+    endpoint takes `kind` of "club" -- so a fan could pay a club and then find
+    no way to say anything to it. The rule only ever asked about athletes.
+    """
+    club = row(db, "SELECT id FROM clubs WHERE slug = ?", ("meridian-fc",))["id"]
+    shut = fan.post("/api/messages", json={"to_club": "meridian-fc", "body": "Hi"})
+    assert shut.status_code == 403, "no subscription, no thread"
+
+    fan.post(f"/api/subscriptions/club/{club}")
+    assert fan.post("/api/messages", json={
+        "to_club": "meridian-fc", "body": "Hi"}).status_code == 201
+
+
+def test_a_club_may_message_its_own_subscriber(db, clubu, fan):
+    """The same rule from the other end, as it already works for athletes.
+
+    A club that cannot answer the supporter paying it has a subscription that
+    only runs one way.
+    """
+    club = row(db, "SELECT id FROM clubs WHERE slug = ?", ("meridian-fc",))["id"]
+    fan_user = row(db, "SELECT id FROM users WHERE email = ?", ("fan@demo.stride",))["id"]
+
+    shut = clubu.post("/api/messages", json={"to_user": fan_user, "body": "Hi"})
+    assert shut.status_code == 403, "a club does not open with any fan"
+
+    fan.post(f"/api/subscriptions/club/{club}")
+    assert clubu.post("/api/messages", json={
+        "to_user": fan_user, "body": "Hi"}).status_code == 201
+
+
 def test_unsubscribing_keeps_the_thread_but_closes_the_door(fan, db):
     """Reply rights come from the thread, not from the role -- otherwise a
     conversation could be opened that the other side cannot answer. But a fan

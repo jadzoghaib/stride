@@ -19,9 +19,9 @@ from creatorlens.events import log_event
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from ..auth import get_db, require_role
+from ..auth import get_db, optional_user, require_role
 from ..db import now_iso, row, rows
-from .messaging import notify
+from .messaging import may_message, notify
 
 router = APIRouter(prefix="/api", tags=["clubs"])
 
@@ -79,13 +79,25 @@ def list_clubs(conn: sqlite3.Connection = Depends(get_db)):
 
 
 @router.get("/clubs/{slug}")
-def club_detail(slug: str, conn: sqlite3.Connection = Depends(get_db)):
+def club_detail(slug: str, user: dict | None = Depends(optional_user),
+                conn: sqlite3.Connection = Depends(get_db)):
     c = row(conn, "SELECT * FROM clubs WHERE slug = ?", (slug,))
     if c is None or c["status"] != "listed":  # draft/hidden clubs are not public
         raise HTTPException(404, "unknown_club")
-    return {**_club_public(conn, c),
-            "roster": _roster_view(conn, c["id"]),
-            "packages": _packages_view(conn, c["id"])}
+    out = {**_club_public(conn, c),
+           "roster": _roster_view(conn, c["id"]),
+           "packages": _packages_view(conn, c["id"])}
+    # Same contract the athlete page has: the viewer is told whether the send
+    # would work, so the page can offer the envelope only where it would, rather
+    # than offering it everywhere and refusing afterwards. A club with no
+    # account behind it cannot be written to at all.
+    if user is not None:
+        owner = row(conn, "SELECT id, display_name, role FROM users WHERE id = ?",
+                    (c["user_id"],)) if c["user_id"] else None
+        out["can_message"] = owner is not None and may_message(conn, user, owner)
+    else:
+        out["can_message"] = False
+    return out
 
 
 # ---- club workspace (role: club) -------------------------------------------------
