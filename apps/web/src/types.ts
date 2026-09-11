@@ -23,6 +23,9 @@ export interface Club {
   member_count: number
   package_count: number
   backer_count: number
+  /** Whether this viewer may open a thread with the club. False when signed
+   *  out, when the club has no account behind it, or when a block stands. */
+  can_message?: boolean
 }
 
 export interface ClubPackage {

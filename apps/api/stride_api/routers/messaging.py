@@ -64,6 +64,11 @@ def may_open(conn, sender: dict, recipient: dict) -> bool:
     athlete's subscribers, and with people who subscribe to nobody. The rule now
     matches what the paragraph above always claimed.
 
+    **A club is a subscribable subject too**, and reads the same way: a fan may
+    write to the club they subscribe to, and that club may answer. The rule
+    asked only about athletes until this was noticed, so a supporter could pay a
+    club and have no way to reach it.
+
     Reply rights are a separate question and live in `may_reply` — an existing
     thread keeps working even when the relationship behind it ends.
     """
@@ -77,26 +82,38 @@ def may_open(conn, sender: dict, recipient: dict) -> bool:
     if sender["role"] in WORKING and recipient["role"] in WORKING:
         return True
 
-    recipient_athlete = row(conn, "SELECT id FROM athlete_profiles WHERE user_id = ?",
-                            (recipient["id"],))
+    def subject_of(user_id: int) -> tuple[str, int] | None:
+        """The thing a fan can subscribe to, for whoever owns this account.
 
-    def subscribes(fan_user_id: int, athlete_profile_id: int) -> bool:
-        return row(conn, "SELECT id FROM subscriptions WHERE user_id = ? AND athlete_id = ?",
-                   (fan_user_id, athlete_profile_id)) is not None
+        A club is a subscribable subject exactly as an athlete is -- the
+        `subscriptions` table has carried `club_id` since it was written and the
+        endpoint takes a `kind` of "club". Asking only about athletes meant a
+        fan could pay a club and then have no way to say anything to it, and the
+        club no way to answer.
+        """
+        athlete = row(conn, "SELECT id FROM athlete_profiles WHERE user_id = ?", (user_id,))
+        if athlete is not None:
+            return ("athlete_id", athlete["id"])
+        club = row(conn, "SELECT id FROM clubs WHERE user_id = ?", (user_id,))
+        return ("club_id", club["id"]) if club is not None else None
 
-    # Reaching here means the recipient is outside the working network -- a fan,
-    # or an admin nobody opens with. Both remaining rules are the same rule seen
+    def subscribes(fan_user_id: int, subject: tuple[str, int]) -> bool:
+        column, subject_id = subject
+        return row(conn, f"SELECT id FROM subscriptions WHERE user_id = ? AND {column} = ?",
+                   (fan_user_id, subject_id)) is not None
+
+    # Reaching here means one side is outside the working network -- a fan, or
+    # an admin nobody opens with. Both remaining rules are the same rule seen
     # from each end: the subscription is what authorises the thread, and either
     # party may be the one to start it.
-    if sender["role"] == "athlete":
-        sender_athlete = row(conn, "SELECT id FROM athlete_profiles WHERE user_id = ?",
-                             (sender["id"],))
-        return (recipient["role"] == "fan" and sender_athlete is not None
-                and subscribes(recipient["id"], sender_athlete["id"]))
+    if sender["role"] in ("athlete", "club"):
+        sender_subject = subject_of(sender["id"])
+        return (recipient["role"] == "fan" and sender_subject is not None
+                and subscribes(recipient["id"], sender_subject))
 
     if sender["role"] == "fan":
-        return recipient_athlete is not None and subscribes(sender["id"],
-                                                            recipient_athlete["id"])
+        recipient_subject = subject_of(recipient["id"])
+        return recipient_subject is not None and subscribes(sender["id"], recipient_subject)
 
     return False
 

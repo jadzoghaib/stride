@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ContentTabs } from '../components/content'
-import { LoadError, PageHeader, PageLoading, Avatar, EmptyNote, Section } from '../components/ui'
+import { LoadError, MessageButton, PageHeader, PageLoading, Avatar, EmptyNote, Section } from '../components/ui'
 import { api, errorText } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { fmtMoney } from '../lib/format'
@@ -72,7 +72,12 @@ export default function ClubPublic() {
             <span className="tag">{club.region}</span>
           </>
         }
-        aside={<span className="meta">{club.backer_count} active backers</span>}
+        aside={
+          <div className="flex items-center gap-3">
+            <span className="meta">{club.backer_count} active backers</span>
+            {club.can_message && <MessageButton to={{ club: club.slug }} name={club.name} />}
+          </div>
+        }
       />
       {notice && <div className="mb-4 rounded border border-ok/45 bg-ok/10 px-3.5 py-2.5 text-sm text-ok">{notice}</div>}
       {error && <div className="mb-4 rounded border border-critical/45 bg-critical/10 px-3.5 py-2.5 text-sm text-critical">{error}</div>}

@@ -103,6 +103,11 @@ export default function AthletePublicView() {
   //  outcome is an error — and until the server refused it, an athlete could
   //  quietly add themselves to their own public follower count.
   const isSelf = !!me?.athlete_profile && me.athlete_profile.slug === slug
+  //: The roles `/api/subscriptions` and `/api/follows` accept. A club is not
+  //  among them and must not be: it would be shown buttons that 403.
+  //  Writing is a separate question — see `a.can_message`, which the API
+  //  answers, because the rule behind it is a matrix the client has no
+  //  business reimplementing.
   const canRelate = !!me && ['athlete', 'fan', 'sponsor'].includes(me.role) && !isSelf
 
   const relate = async (kind: 'follow' | 'subscribe', on: boolean) => {
@@ -216,17 +221,27 @@ export default function AthletePublicView() {
                   <button className="btn opacity-50" disabled
                           title="This is what a visitor sees on your page">Follow</button>
                 </>
-              ) : canRelate ? (
+              ) : me ? (
+                /* Two rules, not one. Subscribe and Follow are offered to the
+                   roles those endpoints accept; the envelope is offered wherever
+                   the API says the send would work. A club sees only the
+                   envelope, which is exactly what it is allowed to do — before
+                   this it saw the signed-out branch and was invited to sign in
+                   while already signed in. */
                 <>
-                  <button className={a.subscribed ? 'btn border-accent text-ink' : 'btn-go'}
-                          onClick={() => relate('subscribe', !!a.subscribed)}>
-                    {a.subscribed ? 'Subscribed' : 'Subscribe'}
-                  </button>
+                  {canRelate && (
+                    <button className={a.subscribed ? 'btn border-accent text-ink' : 'btn-go'}
+                            onClick={() => relate('subscribe', !!a.subscribed)}>
+                      {a.subscribed ? 'Subscribed' : 'Subscribe'}
+                    </button>
+                  )}
                   {a.can_message && <MessageButton to={{ athlete: a.slug }} name={a.display_name} />}
-                  <button className={`btn ${a.following ? 'border-accent text-ink' : ''}`}
-                          onClick={() => relate('follow', !!a.following)}>
-                    {a.following ? 'Following' : 'Follow'}
-                  </button>
+                  {canRelate && (
+                    <button className={`btn ${a.following ? 'border-accent text-ink' : ''}`}
+                            onClick={() => relate('follow', !!a.following)}>
+                      {a.following ? 'Following' : 'Follow'}
+                    </button>
+                  )}
                 </>
               ) : (
                 <Link to="/auth" className="btn-go">Sign in to subscribe</Link>
@@ -340,7 +355,7 @@ export default function AthletePublicView() {
 
         {tab === 'memberships' && (
           <div className="mt-4">
-            <MembershipCard athlete={a} canRelate={canRelate} isSelf={isSelf}
+            <MembershipCard athlete={a} canRelate={canRelate} signedIn={!!me} isSelf={isSelf}
                             onJoin={() => relate('subscribe', !!a.subscribed)} />
           </div>
         )}
@@ -369,7 +384,7 @@ export default function AthletePublicView() {
 
       {/* ── the offer, kept in view ─────────────────────────────────────── */}
       <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-        <MembershipCard athlete={a} canRelate={canRelate} isSelf={isSelf}
+        <MembershipCard athlete={a} canRelate={canRelate} signedIn={!!me} isSelf={isSelf}
                         onJoin={() => relate('subscribe', !!a.subscribed)} />
 
         {(a.clubs ?? []).length > 0 && (
@@ -409,9 +424,13 @@ function Stat({ n, label, plural }: { n: number; label: string; plural?: string 
   )
 }
 
-function MembershipCard({ athlete, canRelate, isSelf = false, onJoin }: {
+function MembershipCard({ athlete, canRelate, signedIn, isSelf = false, onJoin }: {
   athlete: Athlete
+  /** May this viewer's role hold a membership? A club's may not. */
   canRelate: boolean
+  /** Is anybody signed in at all? Separate from the above on purpose: a club is
+   *  signed in and ineligible, and inviting it to sign in is nonsense. */
+  signedIn: boolean
   isSelf?: boolean
   onJoin: () => void
 }) {
@@ -433,6 +452,11 @@ function MembershipCard({ athlete, canRelate, isSelf = false, onJoin }: {
           <button className={joined ? 'btn mt-3 w-full' : 'btn-go mt-3 w-full'} onClick={onJoin}>
             {joined ? 'Leave membership' : 'Join'}
           </button>
+        ) : signedIn ? (
+          /* Signed in, and this role cannot hold a membership — a club backs
+             athletes through packages, not subscriptions. Saying so beats
+             sending them to a sign-in page they came from. */
+          <p className="meta mt-3">Memberships are for supporters, athletes and sponsors.</p>
         ) : (
           <Link to="/auth" className="btn-go mt-3 block w-full text-center">Sign in to join</Link>
         )}
