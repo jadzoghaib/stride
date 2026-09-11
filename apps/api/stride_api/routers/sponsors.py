@@ -343,14 +343,26 @@ def _shown_with_can_message(conn, user, ranked: list[dict]) -> list[dict]:
     # THIS sender already has that relationship with. Fetched once, they become
     # memory lookups.
     me = user["id"]
-    blocked = {r["other"] for r in rows(
-        conn, "SELECT blocked_id AS other FROM user_blocks WHERE blocker_id = ?"
-              " UNION SELECT blocker_id AS other FROM user_blocks WHERE blocked_id = ?",
-        (me, me))}
-    talking = {r["other"] for r in rows(
-        conn, "SELECT user_b AS other FROM conversations WHERE user_a = ?"
-              " UNION SELECT user_a AS other FROM conversations WHERE user_b = ?",
-        (me, me))}
+    owner_ids = [o["id"] for o in owners.values()]
+    blocked: set[int] = set()
+    talking: set[int] = set()
+    if owner_ids:
+        # Narrowed to the people on this page. Unfiltered, these read the
+        # sponsor's entire block list and every conversation they have ever
+        # held, to answer a question about twenty rows.
+        ph = ",".join("?" * len(owner_ids))
+        blocked = {r["other"] for r in rows(
+            conn, f"SELECT blocked_id AS other FROM user_blocks"
+                  f" WHERE blocker_id = ? AND blocked_id IN ({ph})"
+                  f" UNION SELECT blocker_id AS other FROM user_blocks"
+                  f" WHERE blocked_id = ? AND blocker_id IN ({ph})",
+            (me, *owner_ids, me, *owner_ids))}
+        talking = {r["other"] for r in rows(
+            conn, f"SELECT user_b AS other FROM conversations"
+                  f" WHERE user_a = ? AND user_b IN ({ph})"
+                  f" UNION SELECT user_a AS other FROM conversations"
+                  f" WHERE user_b = ? AND user_a IN ({ph})",
+            (me, *owner_ids, me, *owner_ids))}
 
     for m in shown:
         owner = owners.get(m["athlete_id"])
