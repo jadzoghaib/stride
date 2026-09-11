@@ -93,6 +93,11 @@ def test_a_fan_may_message_the_club_they_subscribe_to(fan, db):
     assert fan.post("/api/messages", json={
         "to_club": "meridian-fc", "body": "Hi"}).status_code == 201
 
+    # The subscription opens ONE club, not the category. Without this a change
+    # that let any club subscription reach every club would still pass.
+    assert fan.post("/api/messages", json={
+        "to_club": "ironline-combat", "body": "Hi"}).status_code == 403
+
 
 def test_a_club_may_message_its_own_subscriber(db, clubu, fan):
     """The same rule from the other end, as it already works for athletes.

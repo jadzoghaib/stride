@@ -355,7 +355,7 @@ export default function AthletePublicView() {
 
         {tab === 'memberships' && (
           <div className="mt-4">
-            <MembershipCard athlete={a} canRelate={canRelate} isSelf={isSelf}
+            <MembershipCard athlete={a} canRelate={canRelate} signedIn={!!me} isSelf={isSelf}
                             onJoin={() => relate('subscribe', !!a.subscribed)} />
           </div>
         )}
@@ -384,7 +384,7 @@ export default function AthletePublicView() {
 
       {/* ── the offer, kept in view ─────────────────────────────────────── */}
       <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-        <MembershipCard athlete={a} canRelate={canRelate} isSelf={isSelf}
+        <MembershipCard athlete={a} canRelate={canRelate} signedIn={!!me} isSelf={isSelf}
                         onJoin={() => relate('subscribe', !!a.subscribed)} />
 
         {(a.clubs ?? []).length > 0 && (
@@ -424,9 +424,13 @@ function Stat({ n, label, plural }: { n: number; label: string; plural?: string 
   )
 }
 
-function MembershipCard({ athlete, canRelate, isSelf = false, onJoin }: {
+function MembershipCard({ athlete, canRelate, signedIn, isSelf = false, onJoin }: {
   athlete: Athlete
+  /** May this viewer's role hold a membership? A club's may not. */
   canRelate: boolean
+  /** Is anybody signed in at all? Separate from the above on purpose: a club is
+   *  signed in and ineligible, and inviting it to sign in is nonsense. */
+  signedIn: boolean
   isSelf?: boolean
   onJoin: () => void
 }) {
@@ -448,6 +452,11 @@ function MembershipCard({ athlete, canRelate, isSelf = false, onJoin }: {
           <button className={joined ? 'btn mt-3 w-full' : 'btn-go mt-3 w-full'} onClick={onJoin}>
             {joined ? 'Leave membership' : 'Join'}
           </button>
+        ) : signedIn ? (
+          /* Signed in, and this role cannot hold a membership — a club backs
+             athletes through packages, not subscriptions. Saying so beats
+             sending them to a sign-in page they came from. */
+          <p className="meta mt-3">Memberships are for supporters, athletes and sponsors.</p>
         ) : (
           <Link to="/auth" className="btn-go mt-3 block w-full text-center">Sign in to join</Link>
         )}
