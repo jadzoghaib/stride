@@ -21,7 +21,7 @@ from creatorlens.actions import create_target
 
 from ..auth import get_db, require_role
 from ..db import now_iso, row, rows
-from .messaging import may_message, notify
+from .messaging import may_open, notify
 from ..matching import (MODEL_VERSION, WEIGHTS, rank_athletes, slate,
                         slate_fingerprint)
 from .athletes import athlete_public
@@ -336,11 +336,34 @@ def _shown_with_can_message(conn, user, ranked: list[dict]) -> list[dict]:
         conn, f"SELECT ap.id AS athlete_id, u.id, u.display_name, u.role"
               f" FROM athlete_profiles ap JOIN users u ON u.id = ap.user_id"
               f" WHERE ap.id IN ({placeholders})", tuple(ids))}
+
+    # The two pair questions `may_message` asks -- is there a block, is there
+    # already a thread -- are one query each, so asking them per row is forty
+    # queries for a slate of twenty. Both are the same shape: the set of people
+    # THIS sender already has that relationship with. Fetched once, they become
+    # memory lookups.
+    me = user["id"]
+    blocked = {r["other"] for r in rows(
+        conn, "SELECT blocked_id AS other FROM user_blocks WHERE blocker_id = ?"
+              " UNION SELECT blocker_id AS other FROM user_blocks WHERE blocked_id = ?",
+        (me, me))}
+    talking = {r["other"] for r in rows(
+        conn, "SELECT user_b AS other FROM conversations WHERE user_a = ?"
+              " UNION SELECT user_a AS other FROM conversations WHERE user_b = ?",
+        (me, me))}
+
     for m in shown:
         owner = owners.get(m["athlete_id"])
-        # A sponsor and an athlete are both in the working network, so this is
-        # normally true. False where nobody holds the profile, or a block stands.
-        m["can_message"] = owner is not None and may_message(conn, user, owner)
+        if owner is None or owner["id"] in blocked:
+            # Nobody holds the profile, or a block stands. A block ends contact
+            # whatever the thread history or the role matrix says.
+            m["can_message"] = False
+        elif owner["id"] in talking:
+            m["can_message"] = True          # an open thread always answers
+        else:
+            # Roles and subscriptions, not pairs — so there is nothing here to
+            # batch, and a sponsor reaching an athlete answers without a query.
+            m["can_message"] = may_open(conn, user, owner)
     return shown
 
 
