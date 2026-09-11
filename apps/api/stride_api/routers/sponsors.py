@@ -312,6 +312,38 @@ def _ranked(conn, org, campaign_id: int):
     return campaign, ranked, round((time.perf_counter() - started) * 1000, 1)
 
 
+def _shown_with_can_message(conn, user, ranked: list[dict]) -> list[dict]:
+    """The shown slice, each row told whether this sponsor could write to it.
+
+    Computed here rather than in `matching.py`, which ranks and has no business
+    knowing who is looking, and only over the shown slice so a long ranking does
+    not pay for rows nobody sees.
+
+    Shared by both handlers on purpose. It lived inline in the GET while the
+    shortlist calls the POST, so the field never reached the page that needed
+    it -- and the endpoint I checked was not the endpoint the product uses.
+
+    One query for every owner, rather than one per row: the permission check
+    itself costs several queries, so running it twenty times over profiles that
+    mostly have no account behind them was the expensive half of an N+1.
+    """
+    shown = ranked[:SHOWN_MATCHES]
+    if not shown:
+        return shown
+    ids = [m["athlete_id"] for m in shown]
+    placeholders = ",".join("?" * len(ids))
+    owners = {r["athlete_id"]: dict(r) for r in rows(
+        conn, f"SELECT ap.id AS athlete_id, u.id, u.display_name, u.role"
+              f" FROM athlete_profiles ap JOIN users u ON u.id = ap.user_id"
+              f" WHERE ap.id IN ({placeholders})", tuple(ids))}
+    for m in shown:
+        owner = owners.get(m["athlete_id"])
+        # A sponsor and an athlete are both in the working network, so this is
+        # normally true. False where nobody holds the profile, or a block stands.
+        m["can_message"] = owner is not None and may_message(conn, user, owner)
+    return shown
+
+
 @router.get("/campaigns/{campaign_id}/matches")
 def campaign_matches(campaign_id: int, user: dict = Depends(require_role("sponsor")),
                      conn: sqlite3.Connection = Depends(get_db)):
@@ -325,20 +357,8 @@ def campaign_matches(campaign_id: int, user: dict = Depends(require_role("sponso
     """
     org = _own_org(conn, user)
     campaign, ranked, duration_ms = _ranked(conn, org, campaign_id)
-    shown = ranked[:SHOWN_MATCHES]
-    # Whether this sponsor could actually write to each one. Computed here
-    # rather than in `matching.py`, which ranks and knows nothing about who is
-    # looking -- and only over the shown slice, so a long ranking does not pay
-    # for rows nobody sees. A sponsor and an athlete are both in the working
-    # network, so this is normally true; it is false where the athlete has no
-    # account behind the profile, or a block stands between them.
-    for m in shown:
-        owner = row(conn, "SELECT ap.user_id AS uid, u.id, u.display_name, u.role"
-                          " FROM athlete_profiles ap JOIN users u ON u.id = ap.user_id"
-                          " WHERE ap.id = ?", (m["athlete_id"],))
-        m["can_message"] = owner is not None and may_message(conn, user, dict(owner))
     return {"campaign": _campaign_view(campaign),
-            "matches": shown,
+            "matches": _shown_with_can_message(conn, user, ranked),
             "ranked_total": len(ranked),
             "slate_id": slate_fingerprint(ranked),
             "duration_ms": duration_ms}
@@ -370,7 +390,7 @@ def record_campaign_matches(campaign_id: int, user: dict = Depends(require_role(
                    "slate": slate(ranked, SHOWN_MATCHES)})
         conn.commit()
     return {"campaign": _campaign_view(campaign),
-            "matches": ranked[:SHOWN_MATCHES],
+            "matches": _shown_with_can_message(conn, user, ranked),
             "ranked_total": len(ranked),
             "slate_id": fingerprint,
             "duration_ms": duration_ms,

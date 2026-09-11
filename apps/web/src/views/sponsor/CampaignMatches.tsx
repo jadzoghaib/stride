@@ -174,8 +174,7 @@ export default function CampaignMatches({ embedded = false }: { embedded?: boole
                               value on it; asking whether someone is free in March
                               is not, and the shortlist is where that gets asked. */}
                           {m.can_message && (
-                            <MessageButton to={{ athlete: m.slug }} name={m.display_name}
-                                           label="Message" />
+                            <MessageButton to={{ athlete: m.slug }} name={m.display_name} />
                           )}
                           <Link
                             to={`/sponsor/athletes/${m.slug}?campaign=${c.id}`}

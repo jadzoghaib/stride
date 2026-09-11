@@ -53,7 +53,7 @@ function DiscoverCard({ a, rank, best = false, me, onFollow, onSubscribe }: {
                     sponsor's question; it is absent from a fan's payload, so
                     the chip only appears when the score came with it. */}
                 {a.score !== undefined && <CoverageChip coverage={a.score?.coverage ?? null} />}
-                {a.can_message && <MessageButton to={{ athlete: a.slug }} name={a.display_name} label="Message" />}
+                {a.can_message && <MessageButton to={{ athlete: a.slug }} name={a.display_name} />}
                 {me && (
                   <>
                     <button className={`btn px-3 py-1 text-xs ${a.following ? 'border-accent text-ink' : ''}`}

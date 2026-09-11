@@ -251,15 +251,17 @@ export function Section({ title, aside, id, children }: { title: string; aside?:
 
 /** The envelope. Rendered only where the server said a message would be
  *  accepted, so it is never a button whose only outcome is a refusal. */
-export function MessageButton({ to, name, onSent, label }: {
+export function MessageButton({ to, name, onSent, label = 'Message' }: {
   to: { athlete?: string; club?: string; user?: number }
   name: string
   onSent?: () => void
-  /** Give it words. The icon-only form is the exception now, not the default:
-   *  a 13px envelope sitting between "Subscribe" and "Follow" borrows no
-   *  meaning from them and reads as decoration — which is exactly how it was
-   *  missed on the profile pages. Leave it off only where the row is already
-   *  unmistakably about one person and space is genuinely short. */
+  /** The button's words, defaulting to "Message".
+   *
+   *  It used to default to no words at all, and a 13px envelope sitting between
+   *  "Subscribe" and "Follow" borrows no meaning from them — it reads as
+   *  decoration, which is exactly how it went unfound on the profile pages.
+   *  Pass something else to say something else; pass `''` for the icon alone,
+   *  where the row is already unmistakably about one person. */
   label?: string
 }) {
   const [open, setOpen] = useState(false)

@@ -75,7 +75,7 @@ export default function ClubPublic() {
         aside={
           <div className="flex items-center gap-3">
             <span className="meta">{club.backer_count} active backers</span>
-            {club.can_message && <MessageButton to={{ club: club.slug }} name={club.name} label="Message" />}
+            {club.can_message && <MessageButton to={{ club: club.slug }} name={club.name} />}
           </div>
         }
       />

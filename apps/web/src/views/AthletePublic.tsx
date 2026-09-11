@@ -235,7 +235,7 @@ export default function AthletePublicView() {
                       {a.subscribed ? 'Subscribed' : 'Subscribe'}
                     </button>
                   )}
-                  {a.can_message && <MessageButton to={{ athlete: a.slug }} name={a.display_name} label="Message" />}
+                  {a.can_message && <MessageButton to={{ athlete: a.slug }} name={a.display_name} />}
                   {canRelate && (
                     <button className={`btn ${a.following ? 'border-accent text-ink' : ''}`}
                             onClick={() => relate('follow', !!a.following)}>
