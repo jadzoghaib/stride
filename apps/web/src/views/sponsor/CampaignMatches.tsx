@@ -2,7 +2,7 @@ import { ChevronDown, ChevronUp, Send } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Board } from '../../components/Board'
-import { Avatar, CoverageChip, LoadError, Meter, Modal, PageLoading, Section, SimulatedChip, StatusChip } from '../../components/ui'
+import { Avatar, CoverageChip, LoadError, MessageButton, Meter, Modal, PageLoading, Section, SimulatedChip, StatusChip } from '../../components/ui'
 import { api, errorText } from '../../lib/api'
 import { fmtMoney } from '../../lib/format'
 import type { Campaign, Match, MatchesResponse } from '../../types'
@@ -165,10 +165,18 @@ export default function CampaignMatches({ embedded = false }: { embedded?: boole
                             <li className="text-ink-3">No strong signals either way.</li>
                           )}
                         </ul>
-                        <div className="mt-4 flex gap-2">
+                        <div className="mt-4 flex flex-wrap gap-2">
                           <button className="btn-go px-3 py-1.5 text-xs" onClick={() => setOfferFor(m)}>
                             <Send size={12} /> Send offer
                           </button>
+                          {/* Between the offer and the analytics, because that is
+                              where the question goes. An offer is a record with a
+                              value on it; asking whether someone is free in March
+                              is not, and the shortlist is where that gets asked. */}
+                          {m.can_message && (
+                            <MessageButton to={{ athlete: m.slug }} name={m.display_name}
+                                           label="Message" />
+                          )}
                           <Link
                             to={`/sponsor/athletes/${m.slug}?campaign=${c.id}`}
                             className="btn px-3 py-1.5 text-xs"

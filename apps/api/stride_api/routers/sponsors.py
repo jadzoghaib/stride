@@ -21,7 +21,7 @@ from creatorlens.actions import create_target
 
 from ..auth import get_db, require_role
 from ..db import now_iso, row, rows
-from .messaging import notify
+from .messaging import may_message, notify
 from ..matching import (MODEL_VERSION, WEIGHTS, rank_athletes, slate,
                         slate_fingerprint)
 from .athletes import athlete_public
@@ -325,8 +325,20 @@ def campaign_matches(campaign_id: int, user: dict = Depends(require_role("sponso
     """
     org = _own_org(conn, user)
     campaign, ranked, duration_ms = _ranked(conn, org, campaign_id)
+    shown = ranked[:SHOWN_MATCHES]
+    # Whether this sponsor could actually write to each one. Computed here
+    # rather than in `matching.py`, which ranks and knows nothing about who is
+    # looking -- and only over the shown slice, so a long ranking does not pay
+    # for rows nobody sees. A sponsor and an athlete are both in the working
+    # network, so this is normally true; it is false where the athlete has no
+    # account behind the profile, or a block stands between them.
+    for m in shown:
+        owner = row(conn, "SELECT ap.user_id AS uid, u.id, u.display_name, u.role"
+                          " FROM athlete_profiles ap JOIN users u ON u.id = ap.user_id"
+                          " WHERE ap.id = ?", (m["athlete_id"],))
+        m["can_message"] = owner is not None and may_message(conn, user, dict(owner))
     return {"campaign": _campaign_view(campaign),
-            "matches": ranked[:SHOWN_MATCHES],
+            "matches": shown,
             "ranked_total": len(ranked),
             "slate_id": slate_fingerprint(ranked),
             "duration_ms": duration_ms}

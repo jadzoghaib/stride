@@ -255,8 +255,11 @@ export function MessageButton({ to, name, onSent, label }: {
   to: { athlete?: string; club?: string; user?: number }
   name: string
   onSent?: () => void
-  /** Give it words where it stands on its own — in a list of notifications the
-   *  envelope has no neighbouring context to borrow meaning from. */
+  /** Give it words. The icon-only form is the exception now, not the default:
+   *  a 13px envelope sitting between "Subscribe" and "Follow" borrows no
+   *  meaning from them and reads as decoration — which is exactly how it was
+   *  missed on the profile pages. Leave it off only where the row is already
+   *  unmistakably about one person and space is genuinely short. */
   label?: string
 }) {
   const [open, setOpen] = useState(false)
