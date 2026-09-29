@@ -156,6 +156,9 @@ def walkthrough() -> str:
         ]
     if missing:
         print(f"  ! missing screenshots: {', '.join(missing)}", file=sys.stderr)
+    # Reported, not swallowed: a screen make_ui_shots refused is a screen this
+    # appendix silently drops, and a silently shorter appendix looks finished.
+    walkthrough.missing = missing
     return "\n".join(out)
 
 
@@ -164,8 +167,8 @@ def main() -> int:
     print(f"  17-evidence-base.md   {len([r for r in RD.ROWS if len(r) > 1])} assumptions")
     (HERE / "18-product-walkthrough.md").write_text(walkthrough(), encoding="utf-8")
     shots = sum(1 for n, *_ in SHOTS if (UI / f"{n}.png").exists())
-    print(f"  18-product-walkthrough.md   {shots} screens")
-    return 0
+    print(f"  18-product-walkthrough.md   {shots} of {len(SHOTS)} screens")
+    return 1 if getattr(walkthrough, "missing", None) else 0
 
 
 if __name__ == "__main__":

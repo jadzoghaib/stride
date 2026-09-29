@@ -101,6 +101,15 @@ def main() -> int:
                 written.append(name)
                 print(f"  {name:22} {target.stat().st_size // 1024:5} KB")
             except Exception as exc:  # one bad screen must not lose the rest
+                # Delete the previous capture. Refusing to overwrite it leaves
+                # a stale PNG on disk, and make_appendices embeds any PNG that
+                # exists -- so a rejected screen would still reach the appendix
+                # looking like a successful one, which is the failure this
+                # check was added to prevent.
+                stale = OUT / f"{name}.png"
+                if stale.exists():
+                    stale.unlink()
+                    print(f"  {name:22} removed stale capture", file=sys.stderr)
                 print(f"  {name:22} FAILED: {str(exc)[:90]}", file=sys.stderr)
             finally:
                 ctx.close()

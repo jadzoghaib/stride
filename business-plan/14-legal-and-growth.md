@@ -5,8 +5,8 @@ section: see [16](16-growth-strategy.md), which the outline separates and which
 an examiner grades separately. The regulatory analysis (VAT, GDPR, the age
 model and sponsorship rules) is in
 [§8 of the full plan](stride-business-plan-draft.md) and is not repeated here.
-This section covers the corporate and intellectual property questions that
-document does not.*
+This section covers the corporate and intellectual property questions the
+full plan does not.*
 
 ---
 

@@ -429,15 +429,16 @@ differently. **20% of direct applicants are admitted
 against 45% of those a club nominates**, because a club
 has already done the part of verification that is hardest to automate: it knows
 whether the person actually plays. The blended rate in the table is the mix of
-those two moving as the club channel grows.
+those two moving as the club channel grows, weighted by share of
+applications rather than of admissions.
 
 | | Athletes lost | Gross adds needed | Applications | of which club-nominated | Blended admit rate | Headcount |
 |---|---|---|---|---|---|---|
 | **Y1** | 0 | 400 | 2,000 | 0 | 20.0% | 1.5 |
-| **Y3** | 294 | 2,094 | 8,375 | 931 | 25.0% | 3.5 |
-| **Y5** | 1,296 | 5,796 | 20,337 | 4,379 | 28.5% | 10 |
-| **Y7** | 3,200 | 9,200 | 30,164 | 8,587 | 30.5% | 22 |
-| **Y10** | 6,229 | 12,229 | 38,516 | 12,772 | 31.8% | 38 |
+| **Y3** | 294 | 2,094 | 8,375 | 1,675 | 25.0% | 3.5 |
+| **Y5** | 1,296 | 5,796 | 20,337 | 6,915 | 28.5% | 10 |
+| **Y7** | 3,200 | 9,200 | 30,164 | 12,669 | 30.5% | 22 |
+| **Y10** | 6,229 | 12,229 | 38,516 | 18,102 | 31.8% | 38 |
 
 That application column is the same series the operations plan sizes review
 capacity against in §5, read from the same model rather than derived twice.
