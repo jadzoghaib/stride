@@ -635,6 +635,88 @@ def table(head: list[str], rows: list[list[str]]) -> str:
     return "\n".join(out)
 
 
+
+# ── sensitivity ─────────────────────────────────────────────────────────────
+#: Multipliers applied to the drivers the plan names as its own central
+#: uncertainties. The pessimistic case also removes the niche-churn advantage
+#: entirely: the plan assumes niche fans churn 45% slower than the Patreon
+#: benchmark, and `benchmark_churn` divides that advantage back out rather than
+#: guessing a worse number.
+SCENARIOS: dict[str, dict] = {
+    "Pessimistic": {
+        "fans_per_athlete": 0.70,
+        "monetise_rate": 0.75,
+        "benchmark_churn": True,
+    },
+    "Optimistic": {
+        "fans_per_athlete": 1.25,
+        "monetise_rate": 1.20,
+        "benchmark_churn": False,
+    },
+}
+
+#: The advantage the base case claims over benchmark churn, stated once so the
+#: prose and the scenario cannot disagree about it.
+NICHE_CHURN_ADVANTAGE = 0.45
+
+#: What the plan raises above the cash trough. It was a bare 0.4 inside
+#: render(), which meant a scenario computing its own capital requirement had
+#: to re-guess the convention the funding table already used.
+CAPITAL_BUFFER = 0.40
+
+
+def scenario(name: str) -> dict:
+    """Re-run the whole model under one named scenario.
+
+    Returns the three figures the plan quotes: Y7 revenue, Y7 EBITDA, and the
+    peak capital requirement, which is the deepest point of cumulative free
+    cash flow rather than any single year's loss.
+    """
+    import copy
+
+    global A
+    spec = SCENARIOS[name] if name in SCENARIOS else {}
+    alt = copy.deepcopy(A)
+    for seg in alt.segments:
+        if (m := spec.get("fans_per_athlete")):
+            seg.fans_per_athlete = [v * m for v in seg.fans_per_athlete]
+        if (m := spec.get("monetise_rate")):
+            seg.monetise_rate = [min(1.0, v * m) for v in seg.monetise_rate]
+        if spec.get("benchmark_churn"):
+            seg.fan_churn_month = [min(0.99, v / (1 - NICHE_CHURN_ADVANTAGE))
+                                   for v in seg.fan_churn_month]
+
+    original, A = A, alt
+    try:
+        rows = build()
+    finally:
+        A = original
+
+    cum, trough = 0.0, 0.0
+    for r in rows:
+        cum += r["fcf"]
+        trough = min(trough, cum)
+    y7 = rows[6]
+    return {"scenario": name, "revenue_y7": y7["revenue"],
+            "ebitda_y7": y7["ebitda"], "trough": -trough,
+            # the same convention the funding table uses, so the base column of
+            # the scenario table reproduces the headline ask rather than a
+            # second, smaller number that means something subtly different
+            "capital_need": -trough * (1 + CAPITAL_BUFFER)}
+
+
+def scenario_table() -> list[dict]:
+    """Base plus every named scenario, in the order the document shows them."""
+    rows = build()
+    cum, trough = 0.0, 0.0
+    for r in rows:
+        cum += r["fcf"]
+        trough = min(trough, cum)
+    base = {"scenario": "Base", "revenue_y7": rows[6]["revenue"],
+            "ebitda_y7": rows[6]["ebitda"], "trough": -trough,
+            "capital_need": -trough * (1 + CAPITAL_BUFFER)}
+    return [scenario("Pessimistic"), base, scenario("Optimistic")]
+
 def render(rows: list[dict]) -> dict[str, str]:
     ys = [f"Y{r['year']}" for r in rows]
 
@@ -789,8 +871,10 @@ def render(rows: list[dict]) -> dict[str, str]:
     funding = table(["Capital requirement", "Value"], [
         ["Deepest cumulative cash position", eur(trough)],
         ["Year it occurs", f"Y{trough_year}"],
-        ["Buffer at 40% (hiring slips, churn worse)", eur(abs(trough) * 0.4)],
-        ["**Total capital to fund the plan**", f"**{eur(abs(trough) * 1.4)}**"],
+        [f"Buffer at {CAPITAL_BUFFER:.0%} (hiring slips, churn worse)",
+         eur(abs(trough) * CAPITAL_BUFFER)],
+        ["**Total capital to fund the plan**",
+         f"**{eur(abs(trough) * (1 + CAPITAL_BUFFER))}**"],
         ["First EBITDA-positive year", f"Y{next((r['year'] for r in rows if r['ebitda'] > 0), 0)}"],
     ])
 
