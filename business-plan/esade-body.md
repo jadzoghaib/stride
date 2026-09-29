@@ -219,7 +219,7 @@ adjacent rather than competitive.
 
 The full method, the athlete findings, the limitations and the research roadmap
 follow in §3.1.5. In summary, the **athlete** conversations, rugby league
-players in Lebanon and one competing at Asian level in CrossFit, produced four
+players in Spain and Lebanon and top-ranked Lebanese CrossFit athletes, produced four
 findings:
 
 1. **Current earnings are zero.** Not low. Nothing.
@@ -751,7 +751,7 @@ so that the uncertainty is cheap to resolve and everything else is already done.
 **Primary research**
 
 - Cristóbal Losada, Í. AI Lead, olympics.com. Interview.
-- Athlete interviews: rugby league (Lebanon) and CrossFit (Asian level).
+- Athlete interviews: five athletes, rugby league (Spain and Lebanon) and CrossFit (Lebanon, Asian level).
 
 **Project artefacts**
 

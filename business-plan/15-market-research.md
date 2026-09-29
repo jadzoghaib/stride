@@ -5,21 +5,17 @@ interview inside Olympic broadcasting, and conversations with athletes in the
 segment the plan targets. This section reports what was said, what it changed,
 and what it does not settle.*
 
-> [!note] Two details to confirm before submission
-> The number of athletes spoken to is written below as "several"; replace it
-> with the exact count. The Íñigo interview date should also be stated. Both are
-> the kind of specific an examiner will ask for.
-
 ---
 
 ## 15.1 Method, and what it can support
 
 | | Strand A | Strand B |
 |---|---|---|
-| **Who** | Íñigo Cristóbal Losada, AI Lead at olympics.com | Rugby league players in Lebanon; one athlete competing at Asian level in CrossFit |
+| **Who** | Íñigo Cristóbal Losada, AI Lead at olympics.com | Rugby league players in Spain and Lebanon; top-ranked Lebanese CrossFit athletes, one competing at Asian level |
 | **Why them** | A decade inside Olympic broadcast operations and rights-holder relationships | They *are* the target segment, not a proxy for it |
+| **When** | July 2026 | Through 2026 |
 | **Format** | Unstructured conversation | Unstructured conversations |
-| **Sample** | 1 | Several |
+| **Sample** | 1 | 5 |
 
 **This is a convenience sample and it is reported as one.** Both strands come
 from the founder's own network. The findings below are directional and
@@ -29,8 +25,11 @@ a survey cannot: surface a mechanism nobody thought to ask about, and change a
 product decision. Both happened.
 
 > [!important] The Lebanon question, answered before it is asked
-> The athletes interviewed compete in Lebanon. The plan launches in **Spain**.
-> That gap is real and worth confronting directly.
+> The sample spans both countries: the rugby league players include athletes
+> competing in **Spain**, the launch market, alongside those in Lebanon, and the
+> CrossFit athletes are Lebanese. So the gap is narrower than it looks, and it
+> is still real, because five people recruited through one network cannot
+> represent a market whichever country they sit in.
 >
 > The finding those conversations produced is **structural, not national**: in a
 > sport with no agent layer, there is no route from having an audience to
@@ -46,7 +45,7 @@ product decision. Both happened.
 > evidence that this condition is set by a sport's economics rather than by
 > its geography.
 >
-> What the Lebanese sample **cannot** support is anything about Spanish
+> What a sample of five **cannot** support is anything about Spanish
 > willingness to pay, sponsor budgets, or market size. None of those claims rests
 > on it. The Spanish market sizing is desk research, and it is labelled as such.
 
@@ -144,8 +143,9 @@ to open at Y3. It is listed as an opportunity, not as a dependency.
 
 ## 15.3 Athlete interviews — the segment itself
 
-Conversations with rugby league players in Lebanon and with an athlete
-competing at Asian level in CrossFit. The founder is capped by the Lebanese
+Conversations with five athletes: rugby league players competing in Spain and
+in Lebanon, and top-ranked Lebanese CrossFit athletes, one of them at Asian
+level. The founder is capped by the Lebanese
 national rugby team, which is how this access exists and why the conversations
 were candid rather than performative.
 
