@@ -100,7 +100,6 @@ and `18-product-walkthrough.md`.
 |---|---|
 | **Slide deck** | 30% of the grade. Deliberately left until the plan is validated |
 | **Sponsor-side interviews** | The largest hole in the research. No brand-side conversations exist — the only completely untested side of the marketplace |
-| Two blanks in §3.1.5 | Exact number of athletes interviewed, and the date of the Íñigo interview |
 | Trade mark clearance | "Stride" has existing marks in apparel and fitness software. A search comes before any brand spend |
 | Loose tolerances | ~100 of the guard's pins are looser than half their printed place. Some deliberately, some not — a judgement pass, not a mechanical one |
 
