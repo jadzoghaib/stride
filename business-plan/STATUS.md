@@ -52,7 +52,7 @@ uv run python business-plan/build_workbook.py                  # the .xlsx
 Then check it:
 
 ```bash
-uv run python scripts/doc_consistency.py    # 288 prose claims against the model
+uv run python scripts/doc_consistency.py    # 294 prose claims against the model
 uv run python scripts/verify_workbook.py    # structure: refs, cycles, parsing
 uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 ```
@@ -60,7 +60,8 @@ uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 `esade-body.md` carries Operations, HR, Legal/Growth and the primary research
 **in the body** via `<!-- INCLUDE: -->`, not as appendices — the rubric weights
 Operations and HR at 15% each, and an examiner grades what is in front of them.
-Only `01-` to `11-` are appendices.
+Appendices are `01-` to `11-`, plus the two generated ones, `17-evidence-base.md`
+and `18-product-walkthrough.md`.
 
 ---
 

@@ -1,11 +1,12 @@
 # 14 — Legal Form and Intellectual Property
 
 *ESADE outline §10. The growth strategy that used to sit here is now its own
-section, see [16](16-growth-strategy.md), which the outline separates and
-which an examiner grades separately. The regulatory analysis, VAT, GDPR, the age model and
-sponsorship rules, is in [§8 of the full plan](stride-business-plan-draft.md)
-and is not repeated here; this section covers the corporate and IP questions
-that document does not, and then the growth path.*
+section: see [16](16-growth-strategy.md), which the outline separates and which
+an examiner grades separately. The regulatory analysis (VAT, GDPR, the age
+model and sponsorship rules) is in
+[§8 of the full plan](stride-business-plan-draft.md) and is not repeated here.
+This section covers the corporate and intellectual property questions that
+document does not.*
 
 ---
 
@@ -20,10 +21,11 @@ that document does not, and then the growth path.*
 | Autónomo (sole trader) | — | Rejected. No limited liability; cannot issue shares, so cannot raise |
 | Foreign holding (Delaware, Estonia) | — | Rejected for now. See below |
 
-**Why S.L.** Limited liability, share issuance for the pre-seed, and, a
-separate statute from the one that cut the capital floor, eligibility for the
-**Ley 28/2022, Ley de Startups** regime (15% corporate tax for the first four taxable
-years, worth €1.57M across Y6–Y9 in the model), and eligibility for ENISA
+**Why S.L.** Limited liability, share issuance for the pre-seed, and
+eligibility for the **Ley 28/2022, Ley de Startups** regime, which is a
+separate statute from the one that cut the capital floor (15% corporate tax for
+the first four taxable years, worth €1.57M across Y6–Y9 in the model), and
+eligibility for ENISA
 participative loans and CDTI Neotec grants, which are the non-dilutive stack in
 [04](04-capital-and-valuation.md).
 
@@ -80,7 +82,7 @@ protects the surface, not the substance.
 | Sponsor campaign data | Contractual confidentiality | Per-deal terms |
 
 > [!important] The name needs clearing before it needs filing
-> "Stride" is a common English word in an active sector, there are existing
+> "Stride" is a common English word in an active sector; there are existing
 > marks in apparel and in fitness software. A clearance search across classes 9,
 > 35, 41 and 42 in the EUIPO register comes **before** any brand spend, and a
 > rebrand is far cheaper now than after the anchor athlete launch. This is

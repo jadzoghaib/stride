@@ -4,7 +4,7 @@
 traceable to the codebase; the doc guard fails the build if any of them drift.*
 
 Stride is a two-sided marketplace delivered as software. That changes what an
-operations plan is *about*, there is no warehouse, no bill of materials and no
+operations plan is *about*: there is no warehouse, no bill of materials and no
 delivery fleet, but it does not make the section thin. The operational
 questions simply move: **how fast does an athlete get admitted, how reliably
 does a sponsor get measured delivery, and how much human judgement does each
@@ -187,7 +187,7 @@ work-in-progress inventory and carries a real cost:
 
 ## 12.7 Delivery times and service levels
 
-These are commitments, not observations, the product is deployed but
+These are commitments, not observations: the product is deployed but
 pre-revenue, so each is a target the operating plan is built to hold.
 
 | Process | Target | Why this number |
@@ -241,8 +241,8 @@ removes.**
 | Athlete verification | €18k | 0.2% |
 
 Infrastructure is 3.1% of revenue. **Payments are nearly eight times larger.**
-Any optimisation effort belongs there, tier pricing, annual billing, processor
-negotiation, not in the AWS bill.
+Any optimisation effort belongs there: tier pricing, annual billing and
+processor negotiation, not the AWS bill.
 
 ---
 
@@ -260,7 +260,7 @@ The single most important operational mechanic in the business is that
 The take is charged on the **VAT-exclusive** price, because that is the base the
 model uses. At €4.99 we keep well under half of our own commission; at €9.99,
 about two thirds. This single mechanic should set the **minimum tier
-price** and push hard toward **annual billing**, Patreon reports annual patrons
+price** and push hard toward **annual billing**. Patreon reports annual patrons
 churn at roughly one third the rate of monthly ones, so the retention gain
 compounds the fee saving.
 

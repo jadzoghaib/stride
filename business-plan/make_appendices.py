@@ -39,7 +39,8 @@ def evidence() -> str:
         "",
         "*Generated from `research_data.py`, which also produces the Research",
         "sheet of the financial model. Every driver the model runs on appears",
-        "here exactly once, with its method and the comparable behind it.*",
+        "here with its method and the comparable behind it. A driver appears*",
+        "*twice where two separate decisions rest on it.*",
         "",
         "---",
         "",
@@ -99,10 +100,14 @@ def evidence() -> str:
         "",
         "This appendix is generated, not maintained. `research_data.py` is the "
         "single source for both this table and the workbook's Research sheet, "
-        "and the `Model value` column of that sheet is a live reference into "
-        "the Assumptions sheet rather than a copied number. An assumption "
-        "cannot be changed in the model without changing what this appendix "
-        "says about it.",
+        "so the document and the model cannot disagree about where a number "
+        "came from. What it records is provenance, not value: the numbers "
+        "themselves live in the Assumptions sheet, which the workbook "
+        "references live, and the prose figures are pinned separately by "
+        "`scripts/doc_consistency.py`. Changing a driver therefore updates the "
+        "model and the pinned prose, and leaves this table's method and source "
+        "columns standing, which is correct only for as long as the reasoning "
+        "behind them still holds. That judgement is not automatable.",
         "",
     ]
     return "\n".join(out) + "\n"

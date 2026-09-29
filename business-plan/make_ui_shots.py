@@ -34,9 +34,12 @@ SHOTS = [
     ("02-athlete-dashboard", "athlete@demo.stride", "/athlete", "Athlete dashboard",
      "The marketability score and its ranked dimensions, computed from connected "
      "platform data rather than self-reported."),
+    # Captured signed out on purpose: this is the public view, and the API
+    # withholds the score and audience detail from it. The caption used to
+    # promise what a sponsor sees, which is a different and richer screen.
     ("03-athlete-public", None, "/athletes/kaia-mercer", "Public athlete profile",
-     "What a sponsor sees before any conversation: the score, the audience, and "
-     "the evidence behind both."),
+     "The public profile, seen signed out. Identity, sport and club are open; "
+     "the score and audience breakdown are withheld until a viewer is known."),
     ("04-sponsor-campaigns", "sponsor@demo.stride", "/sponsor", "Sponsor workspace",
      "Campaigns carry a brief, and the brief is what the matching engine scores "
      "against."),
@@ -76,13 +79,23 @@ def main() -> int:
                     sign_in(page, email)
                 page.goto(f"{BASE}{path}", timeout=180_000,
                           wait_until="domcontentloaded")
-                # the shell renders before its data arrives; wait for the
-                # network to settle or a figure to appear, whichever is first
+                # The shell renders before its data arrives, so a screenshot
+                # taken on navigation alone captures skeletons.
                 try:
                     page.wait_for_load_state("networkidle", timeout=45_000)
                 except Exception:
                     pass
                 page.wait_for_timeout(2500)
+
+                # A networkidle timeout is not evidence the data arrived, and
+                # saving anyway is how a loading state ends up in the appendix
+                # looking like the product. Refuse the shot instead.
+                body = page.inner_text("body")
+                if any(tell in body for tell in ("Loading…", "Loading...")):
+                    raise RuntimeError("page still showing a loading state")
+                if len(body.split()) < 40:
+                    raise RuntimeError(f"page looks empty ({len(body.split())} words)")
+
                 target = OUT / f"{name}.png"
                 page.screenshot(path=str(target))
                 written.append(name)

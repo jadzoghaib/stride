@@ -87,15 +87,18 @@ lifestyle creator does today.
 | Year 7 | Category position in Europe | 22,000 athletes across three or more markets, €10.70M net revenue |
 
 **Social impact is the business model, not a programme attached to it.** The
-commercial objective and the social one are the same sentence: revenue only
-grows when athletes who previously earned nothing start earning. That alignment
+commercial objective and the social one point the same way: the largest
+single source of growth in the model is athletes who currently earn nothing
+beginning to earn, though revenue also grows as athletes already monetising
+gain fans. That alignment
 is worth stating plainly, because it is what keeps the ethical position stable
 under commercial pressure. A model that made money by extracting more from
 already-monetised stars would face a trade-off here. This one does not.
 
 Three design decisions carry it, and each is argued where it is made rather
 than asserted here. Matching scores **measured engagement rather than name
-recognition** (§3.1.4 and Appendix K), which is structurally fairer to
+recognition** (Appendix K, which documents the scoring), which is
+structurally fairer to
 under-monetised segments, women's sport most of all. Admission verifies that a
 person **actually competes**, not that they are already popular (§5). And the
 plan commits to reporting athlete earnings as a headline figure alongside
@@ -151,7 +154,7 @@ Three customers, one of whom pays for two different things.
 | **The sponsor** | Athletes matched on evidence, and proof the campaign was delivered | 10% of deal value, plus SaaS |
 
 The athlete is the constraint. Fans and sponsors follow supply, and supply in
-this market is not scarce, it is unserved.
+this market is not scarce; it is unserved.
 
 ### 3.1.2 Market size
 
@@ -274,7 +277,7 @@ pricing sets our unit economics (§5.10).
 
 **Substitutes and new entrants.** The realistic substitute is the athlete doing
 it themselves on Instagram and a bank transfer. A funded entrant is the real
-risk (R4), and the defence is not the code, it is the accumulated scoring
+risk (R4), and the defence is not the code; it is the accumulated scoring
 history and the athlete relationships, which take time nobody can buy.
 
 ### 3.2.3 The offering
@@ -317,7 +320,7 @@ sports that never had any.
 The product exists, which is what makes the launch cost small. Total capital
 required is **€649k**: a €464k cash trough in Y4 plus a 40% buffer. Against
 that, **€80k** of founder time and direct cost is already spent. The gap between
-today and first revenue is one entity and one processor, there is no payment,
+today and first revenue is one entity and one processor: there is no payment,
 tier-price or payout entity of any kind, and the €9.99 on the membership card is
 a label rendered by the client, not a price.
 
@@ -413,34 +416,36 @@ economics, different owners and different failure modes. Supply is acquired in
 volume at low unit cost and gated on quality. Demand is acquired one account at
 a time at a cost that rises as the addressable pool of large sponsors thins.
 
-### Supply: two channels, and only one of them scales
+### Supply: the funnel replaces churn before it adds growth
+
+The number that matters is not net growth. Athletes leave, and by Y7 the plan
+loses **3,200 a year**, so showing
+6,000 net additions requires
+**9,200 gross**. Sizing the funnel from net growth
+would under-book it by a third. Every figure below is gross.
 
 Athletes arrive either directly or through a club, and the two convert very
 differently. **20% of direct applicants are admitted
 against 45% of those a club nominates**, because a club
 has already done the part of verification that is hardest to automate: it knows
-whether the person actually plays.
+whether the person actually plays. The blended rate in the table is the mix of
+those two moving as the club channel grows.
 
-That gap is the whole supply strategy. Direct acquisition is a funnel problem
-priced at CAC. The club channel is a relationship problem priced at one
-conversation, and one conversation carries a roster.
+| | Athletes lost | Gross adds needed | Applications | of which club-nominated | Blended admit rate | Headcount |
+|---|---|---|---|---|---|---|
+| **Y1** | 0 | 400 | 2,000 | 0 | 20.0% | 1.5 |
+| **Y3** | 294 | 2,094 | 8,375 | 931 | 25.0% | 3.5 |
+| **Y5** | 1,296 | 5,796 | 20,337 | 4,379 | 28.5% | 10 |
+| **Y7** | 3,200 | 9,200 | 30,164 | 8,587 | 30.5% | 22 |
+| **Y10** | 6,229 | 12,229 | 38,516 | 12,772 | 31.8% | 38 |
 
-| | Net adds | via direct | via clubs | Direct applications | Club nominations | Sponsors on platform | Headcount |
-|---|---|---|---|---|---|---|---|
-| **Y1** | 400 | 400 | 0 | 2,000 | 0 | 25 | 1.5 |
-| **Y3** | 1,800 | 1,440 | 360 | 7,200 | 800 | 230 | 3.5 |
-| **Y5** | 4,500 | 2,970 | 1,530 | 14,850 | 3,400 | 900 | 10 |
-| **Y7** | 6,000 | 3,480 | 2,520 | 17,400 | 5,600 | 2,000 | 22 |
-| **Y10** | 6,000 | 3,180 | 2,820 | 15,900 | 6,267 | 3,600 | 38 |
-
-The club share moves from **nothing in Y1 to
-42% by Y7**, and the plan does not assume it starts
-working immediately. Y1 runs entirely on direct acquisition.
+That application column is the same series the operations plan sizes review
+capacity against in §5, read from the same model rather than derived twice.
 
 > [!warning] Year 1 is the hardest year in the plan, and the table shows why
-> 2,000 applications must be sourced, reviewed and admitted
-> with **1.5 full time people and no club channel yet**. Every
-> later year has leverage that Y1 does not: a partially built club pipeline, a
+> 2,000 applications must be sourced, reviewed and
+> admitted with **1.5 full time people and no club channel yet**.
+> Every later year has leverage Y1 does not: a partially built club pipeline, a
 > product with athletes already visible in it, and staff. The pre-seed is sized
 > to buy exactly this year, and if the plan fails it most likely fails here
 > rather than at any of the larger numbers further right.
@@ -461,14 +466,11 @@ acquired first.
 
 ### Who sells
 
-Founder led through Y1 and Y2, when headcount is
-1.5 and 2. The first dedicated commercial
-capacity arrives in Y3 at 3.5 FTE, which is also the year the
-club channel reaches 20% of supply. That ordering is
-deliberate rather than convenient: a commercial hire is worth making once there
-is a repeatable club conversation to hand over, and not before.
-
-
+Founder led in Y1, at 1.5 FTE. The **BD and partnerships hire
+arrives in Y2** (§6), which is also when the club channel opens, and those two
+facts are the same decision: the hire exists to open club and sponsor accounts,
+and the club channel is what makes one conversation worth a roster. By Y3 the
+channel carries 20% of supply.
 ---
 
 # 5. Operations plan
@@ -488,7 +490,7 @@ is a repeatable club conversation to hand over, and not before.
 
 Every figure in this plan is generated by a Python model and cross-checked
 against an Excel workbook that reproduces it independently. **A consistency
-guard checks 282 prose claims across 14 documents** against the model and fails
+guard checks 294 prose claims across 15 documents** against the model and fails
 the build if any figure drifts; a second guard evaluates all 2,520 workbook
 formulas and requires every variance against the Python model to be zero.
 
@@ -613,13 +615,13 @@ something subtly different.
 
 | Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Cash trough | Capital need |
 |---|---|---|---|---|---|
-| **Pessimistic** | Fans/athlete −30%, monetise −25%, **churn at benchmark** | €8.43M | €1.96M | €877k | €1.23M |
+| **Pessimistic** | Fans/athlete −30%, monetise −25%, **niche churn at benchmark** | €8.45M | €1.97M | €865k | €1.21M |
 | **Base** | As modelled | €10.70M | €3.12M | €464k | €649k |
 | **Optimistic** | Fans/athlete +25%, monetise +20% | €12.59M | €4.08M | €347k | €485k |
 
 **The downside is survivable and the upside is unspectacular, which is the
 honest shape of this business.** Losing a third of the fan thesis costs 21% of
-Y7 revenue and roughly doubles the capital requirement, to €1.23M against a
+Y7 revenue and roughly doubles the capital requirement, to €1.21M against a
 €600k raise. That is a bridge round, not an extinction event. The optimistic
 case adds 18% to revenue, because the constraint is athlete supply rather than
 fan yield, and no fan assumption relieves it.
@@ -643,7 +645,7 @@ argue for it. That case is §10.
 ![Figure 11 — Two methods that disagree, for a reason.](attachments/charts/g10-valuation.png)
 
 The DCF says **€8.37M** today; the blended exit multiple says €165.0M at Y10.
-This is not an error in either, it is the standard failure of a
+This is not an error in either; it is the standard failure of a
 perpetuity-growth DCF applied to a company that has not finished growing. The
 terminal value assumes growth collapses to 3% the day after Y10, from a year
 that still grew 27%.

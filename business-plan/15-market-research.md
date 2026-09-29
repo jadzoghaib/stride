@@ -122,7 +122,7 @@ run with Alibaba.com, supports Olympians, Paralympians and elite athletes
 fundamentals, financial planning, branding and marketing, plus mentoring, with
 prizes including promotional packages and Alibaba.com credit.
 
-**Read carefully, this is adjacent rather than competitive**, and the distinction
+**Read carefully: this is adjacent rather than competitive**, and the distinction
 matters:
 
 | | Athlete365 Business Accelerator | Stride |
@@ -174,7 +174,7 @@ relationship, because no platform exists to carry it and no mechanism exists for
 a brand to find him through it.
 
 This is the disintermediation thesis observed from the supply side: the
-sponsorship market is not competitive here, it is **absent**.
+sponsorship market is not competitive here; it is **absent**.
 
 ### Finding 4 — The suppression loop
 
@@ -213,7 +213,7 @@ that the mechanism for expansion is exactly the one the product supplies.
 **Not supported, and not claimed:**
 
 - **Will fans actually pay?** No interview answers this. It is the assumption
-  the whole plan rests on, it is named as such in [07](07-open-questions.md) as
+  the whole plan rests on; it is named as such in [07](07-open-questions.md) as
   risk R1, and only three months of real subscription data from one anchor
   athlete resolves it. That is the pre-seed gate, and it is a gate precisely
   because the research does not clear it.

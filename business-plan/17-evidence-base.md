@@ -2,7 +2,8 @@
 
 *Generated from `research_data.py`, which also produces the Research
 sheet of the financial model. Every driver the model runs on appears
-here exactly once, with its method and the comparable behind it.*
+here with its method and the comparable behind it. A driver appears*
+*twice where two separate decisions rest on it.*
 
 ---
 
@@ -12,18 +13,18 @@ The model runs on **32 named assumptions**. Classifying them honestly matters mo
 
 | Method | Count | What it means |
 |---|---|---|
-| **SOURCED** | 11 | A published figure, cited |
+| **SOURCED** | 10 | A published figure, cited |
 | **BENCHMARKED** | 9 | Set against named comparables |
 | **DERIVED** | 3 | Computed from other assumptions or from the codebase |
-| **ESTIMATE** | 9 | Reasoned, with no published figure behind it |
+| **ESTIMATE** | 10 | Reasoned, with no published figure behind it |
 
 | Confidence | Count |
 |---|---|
-| High | 12 |
-| Medium | 11 |
+| High | 11 |
+| Medium | 12 |
 | Low | 9 |
 
-> [!warning] 9 of 32 assumptions are estimates, and 9 carry low confidence
+> [!warning] 10 of 32 assumptions are estimates, and 9 carry low confidence
 > These are listed below rather than buried. The weakest two are the
 > athlete count trajectory, which is a target rather than a forecast,
 > and sports fandom by country, which is the softest layer of the
@@ -65,7 +66,7 @@ The model runs on **32 named assumptions**. Classifying them honestly matters mo
 
 | Assumption | Method | Confidence | Benchmark or comparable | Source |
 |---|---|---|---|---|
-| **Sport participation by country** | SOURCED | High | Eurobarometer 525, share who NEVER exercise: Finland 8%, Sweden 12%, Denmark 20%, Poland 65%, Greece 68%, Portugal 73%, EU-27 average 45%. Six of the 34 countries in the index are measured; the other 28 are estimates placed inside that distribution. | Special Eurobarometer 525, Sport and Physical Activity, September 2022 |
+| **Sport participation by country** | ESTIMATE | Medium | Eurobarometer 525, share who NEVER exercise: Finland 8%, Sweden 12%, Denmark 20%, Poland 65%, Greece 68%, Portugal 73%, EU-27 average 45%. Six of the 34 countries in the index are measured; the other 28 are estimates placed inside that distribution. | Special Eurobarometer 525, Sport and Physical Activity, September 2022 |
 | **Padel market size** | SOURCED | High | Spain has ~6.0M active players (12.7% of the population), 109,040 federation licences and 17,300+ courts; globally 35M+ players and 77,000+ courts. This is the clearest case for weighting a sport regionally rather than globally — padel scores 77.7 in Spain and 45.1 worldwide. | FIP World Padel Report 2025 |
 | **Sports fandom by country** | ESTIMATE | Low | The weakest layer of the sport index, and it drives both the `demand` and `appetite` signals. Commercial audience panels (Nielsen Sports, YouGov) cost more than the entire Y1-Y2 analytics budget. | None — reasoned estimates only |
 | **Athlete count trajectory** | ESTIMATE | Low | 400 rising to 40,000 over ten years. This is the PLAN, not a benchmark: marketing spend is derived from it at segment CAC, not the other way round. Everything in the model scales off this line. | None — it is a target |
@@ -105,5 +106,5 @@ The model runs on **32 named assumptions**. Classifying them honestly matters mo
 
 ## 17.3 How this table is kept true
 
-This appendix is generated, not maintained. `research_data.py` is the single source for both this table and the workbook's Research sheet, and the `Model value` column of that sheet is a live reference into the Assumptions sheet rather than a copied number. An assumption cannot be changed in the model without changing what this appendix says about it.
+This appendix is generated, not maintained. `research_data.py` is the single source for both this table and the workbook's Research sheet, so the document and the model cannot disagree about where a number came from. What it records is provenance, not value: the numbers themselves live in the Assumptions sheet, which the workbook references live, and the prose figures are pinned separately by `scripts/doc_consistency.py`. Changing a driver therefore updates the model and the pinned prose, and leaves this table's method and source columns standing, which is correct only for as long as the reasoning behind them still holds. That judgement is not automatable.
 

@@ -28,7 +28,7 @@ The marketability score and its ranked dimensions, computed from connected platf
 
 ![Public athlete profile — /athletes/kaia-mercer](attachments/ui/03-athlete-public.png)
 
-What a sponsor sees before any conversation: the score, the audience, and the evidence behind both. Route `/athletes/kaia-mercer`, viewed signed out.
+The public profile, seen signed out. Identity, sport and club are open; the score and audience breakdown are withheld until a viewer is known. Route `/athletes/kaia-mercer`, viewed signed out.
 
 ## 18.5 Sponsor workspace
 

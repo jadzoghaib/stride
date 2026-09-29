@@ -6,7 +6,11 @@ milestone invented for this section.*
 
 ---
 
-Growth is sequenced along three axes, and only one moves at a time.
+Growth is sequenced along three axes. The market axis moves one step at a
+time and only through a funding gate, which is the constraint that matters;
+product and channel develop continuously alongside it. Y2 opens the club
+channel and the seed opens Portugal, and those are deliberately different
+kinds of move.
 
 ## 16.1 Axis 1 — Market
 

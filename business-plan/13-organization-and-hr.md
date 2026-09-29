@@ -183,7 +183,7 @@ alternatives considered are in [14](14-legal-and-growth.md).
 From the pre-seed onward, the following require investor consent: new share
 issuance, sale of the company, changes to the take rate, incurring debt above a
 threshold, and any change to the athlete age policy. **The last one is on the
-list deliberately**, it is the decision most likely to be pressured commercially
+list deliberately**; it is the decision most likely to be pressured commercially
 and least reversible reputationally.
 
 ### Advisory

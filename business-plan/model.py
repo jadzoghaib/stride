@@ -682,7 +682,11 @@ def scenario(name: str) -> dict:
             seg.fans_per_athlete = [v * m for v in seg.fans_per_athlete]
         if (m := spec.get("monetise_rate")):
             seg.monetise_rate = [min(1.0, v * m) for v in seg.monetise_rate]
-        if spec.get("benchmark_churn"):
+        # Niche only. The 45% advantage is a claim about niche-sport fans
+        # specifically -- the popular segment is already modelled at roughly
+        # benchmark -- so dividing it out of both segments invented a downside
+        # the plan never claimed protection from.
+        if spec.get("benchmark_churn") and seg.name == "niche":
             seg.fan_churn_month = [min(0.99, v / (1 - NICHE_CHURN_ADVANTAGE))
                                    for v in seg.fan_churn_month]
 
