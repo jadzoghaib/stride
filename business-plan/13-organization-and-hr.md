@@ -47,7 +47,7 @@ assumption, and testing an assumption does not need an organisation.
 
 **Three functions, not five.** Engineering, Growth and Operations carry the
 business; Finance & Compliance is fractional until Y4 and a function only from
-Y5. There is no separate marketing team before Y6 — acquisition runs through the
+Y5. There is no separate marketing team before Y6, acquisition runs through the
 Growth function, because at this stage marketing *is* partnerships.
 
 > [!note] Why the org chart is flat for longer than is comfortable
@@ -157,7 +157,7 @@ because a specific bottleneck arrives at a specific time; none is a
 
 > [!note] Why below-median base with real equity
 > The plan's whole argument is that a small team can reach €10.7M of revenue.
-> If that is true, equity is worth more than the salary gap — and if a candidate
+> If that is true, equity is worth more than the salary gap, and if a candidate
 > does not believe it, they are the wrong hire for a company whose central
 > claim is exactly that.
 
@@ -183,7 +183,7 @@ alternatives considered are in [14](14-legal-and-growth.md).
 From the pre-seed onward, the following require investor consent: new share
 issuance, sale of the company, changes to the take rate, incurring debt above a
 threshold, and any change to the athlete age policy. **The last one is on the
-list deliberately** — it is the decision most likely to be pressured commercially
+list deliberately**; it is the decision most likely to be pressured commercially
 and least reversible reputationally.
 
 ### Advisory
@@ -192,7 +192,7 @@ covers two grants: the anchor-athlete advisor, which
 [04](04-capital-and-valuation.md) sizes at **1%** within a 0.5–1.5% range and
 against a performance trigger, and a sports-industry board advisor of similar
 size. The dilution table above models the **full 2%**, which is deliberately
-the expensive assumption — if only one grant is ever made the founder retains
+the expensive assumption, if only one grant is ever made the founder retains
 more than the table shows, not less. The
 intended profile is sports-industry rather than technology: the plan's weakest
 external dependency is the anchor athlete and the club channel, not the code.
@@ -202,7 +202,7 @@ external dependency is the anchor athlete and the club channel, not the code.
 ## 13.5 Sustainability and responsible business
 
 *Addressing the programme learning objective on the UN Sustainable Development
-Goals. These are not decorative — each maps to a decision already taken in the
+Goals. These are not decorative, each maps to a decision already taken in the
 plan and visible in the product.*
 
 | SDG | How the business model addresses it | Where it is decided |

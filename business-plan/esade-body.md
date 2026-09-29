@@ -3,8 +3,8 @@
 **Stride is a creator platform with a sponsorship feature.**
 
 Athletes are creators with a second payer. OnlyFans proved that direct fan
-monetisation beats ad-share; nobody has built it for athletes, who — unlike
-lifestyle creators — also have sponsors, clubs, and a competitive record that
+monetisation beats ad-share; nobody has built it for athletes, who, unlike
+lifestyle creators, also have sponsors, clubs, and a competitive record that
 makes their audience measurable. Fan revenue leads and funds the early years.
 Sponsorship compounds behind it, and the analytics engine earns its keep by
 making the second payer possible, which a general creator platform cannot do.
@@ -17,11 +17,11 @@ is nothing. A trail runner with 25,000 followers has an inbox of unanswered
 brand DMs and no idea what a fair rate is. Nobody is fighting us for her, and
 what we learn there generalises upward. Football does not generalise downward.
 
-**A working demo exists, not a slide deck.** Connected platform analytics,
-versioned marketability scoring, an admission gate, campaign matching with
-explainable ranking, offers, deals and delivery measurement — deployed, with an
-audit log, a resilience drill, and a test suite that runs on two databases in
-continuous integration.
+**A working demo exists, not a slide deck.** It carries connected platform
+analytics, versioned marketability scoring, an admission gate, campaign
+matching with explainable ranking, offers, deals and delivery measurement. All
+of it is deployed, with an audit log, a resilience drill, and a test suite that
+runs on two databases in continuous integration. Appendix M shows the screens.
 
 ![Figure 1 — Net revenue and EBITDA, Y1 to Y7. The company is loss-making for four years, and the losses are small.](attachments/charts/g1-revenue-ebitda.png)
 
@@ -40,8 +40,8 @@ fan revenue, 10% on sponsorship**, with no monthly athlete fee. Gross margin
 climbs from 64% in Y3 to **71% by Y10** rather than reaching a SaaS 80%+,
 because the payment rail is real and no amount of engineering removes it.
 
-**The ask is €600k at €2.5M pre-money.** The plan needs €649k — a €464k cash
-trough in Y4 plus a 40% buffer — so the pre-seed clears the trough itself with
+**The ask is €600k at €2.5M pre-money.** The plan needs €649k, a €464k cash
+trough in Y4 plus a 40% buffer, so the pre-seed clears the trough itself with
 €136k to spare. That is what asking for €600k rather than €400k buys: the seed
 becomes optional. It brings a second market forward; it is not the thing
 standing between the company and running out of cash.
@@ -49,7 +49,7 @@ standing between the company and running out of cash.
 **One assumption carries the plan**: that niche-sport fans churn 45% slower than
 the Patreon benchmark. Nothing in the product proves it and no further
 engineering will. Three months of real subscription data from one anchor athlete
-answers it, which is why that — not a feature — is the pre-seed gate.
+answers it, which is why that, not a feature, is the pre-seed gate.
 
 ---
 
@@ -86,9 +86,29 @@ lifestyle creator does today.
 | Year 5 | Self-funding | EBITDA positive, without a Series A |
 | Year 7 | Category position in Europe | 22,000 athletes across three or more markets, €10.70M net revenue |
 
+**Social impact is the business model, not a programme attached to it.** The
+commercial objective and the social one point the same way: the largest
+single source of growth in the model is athletes who currently earn nothing
+beginning to earn, though revenue also grows as athletes already monetising
+gain fans. That alignment
+is worth stating plainly, because it is what keeps the ethical position stable
+under commercial pressure. A model that made money by extracting more from
+already-monetised stars would face a trade-off here. This one does not.
+
+Three design decisions carry it, and each is argued where it is made rather
+than asserted here. Matching scores **measured engagement rather than name
+recognition** (Appendix K, which documents the scoring), which is
+structurally fairer to
+under-monetised segments, women's sport most of all. Admission verifies that a
+person **actually competes**, not that they are already popular (§5). And the
+plan commits to reporting athlete earnings as a headline figure alongside
+revenue, so the claim stays falsifiable. The UN Sustainable Development Goals
+this maps to, principally SDG 8 and SDG 5, are set out with the equality and
+non-discrimination commitments in §6.
+
 ## 2.3 The entrepreneurial team
 
-**Jad Zoghaib — founder.** The venture sits at the intersection of three things
+**Jad Zoghaib, founder.** The venture sits at the intersection of three things
 he has done: competitive sport, financial modelling of early-stage ventures, and
 building data products.
 
@@ -96,13 +116,13 @@ building data products.
   international tournament experience. He is not researching this market from
   the outside; he is in the segment the plan describes, and the athlete
   relationships that make the primary research in §3.1.4 possible are his own.
-- **Four years in management consulting** across MENA — strategy at Alamiya
+- **Four years in management consulting** across MENA, strategy at Alamiya
   Filmed Entertainment in Dubai, and consulting at Euromena and PFC-International
   in Beirut. The directly transferable work: feasibility studies for industrial
   ventures in the $5–15M range, DCF modelling with NPV, IRR and payback across
   scenarios, an OpEx reorganisation for a Saudi telecom that delivered SAR 650M
   of capital optimisation, and end-to-end process mapping of the filmmaking
-  lifecycle as a process-mining initiative — the same discipline applied to the
+  lifecycle as a process-mining initiative, the same discipline applied to the
   process map in §5.1.
 - **MSc in Business Analytics, ESADE** (9.1/10), with a BSc in Economics from
   the Lebanese American University. Python, SQL, AWS and the modelling stack
@@ -134,7 +154,7 @@ Three customers, one of whom pays for two different things.
 | **The sponsor** | Athletes matched on evidence, and proof the campaign was delivered | 10% of deal value, plus SaaS |
 
 The athlete is the constraint. Fans and sponsors follow supply, and supply in
-this market is not scarce — it is unserved.
+this market is not scarce; it is unserved.
 
 ### 3.1.2 Market size
 
@@ -142,7 +162,7 @@ this market is not scarce — it is unserved.
 
 The funnel narrows from the EU-27 and UK population to a **TAM of 138,000
 athletes** with 5,000 or more followers in niche sports, a **SAM of 55,000**
-across six launch markets, and a Y7 target of **22,000** — 40% of the
+across six launch markets, and a Y7 target of **22,000**, 40% of the
 serviceable market after seven years.
 
 > [!note] The softest number in the plan, named as such
@@ -174,7 +194,7 @@ Two strands of primary research: an expert interview inside Olympic
 broadcasting, and conversations with athletes in the target segment. Full
 method, limitations and findings follow in **§3.1.5**.
 
-**Expert — Íñigo Cristóbal Losada**, AI Lead at olympics.com after eleven years
+**Expert, Íñigo Cristóbal Losada**, AI Lead at olympics.com after eleven years
 at Olympic Broadcasting Services, where he was Broadcaster Services Manager
 through Tokyo 2020 and Beijing 2022. He liked the idea, and gave three pieces of
 advice. Two changed the plan.
@@ -186,7 +206,7 @@ advice. Two changed the plan.
 > an athlete.
 >
 > **The admission gate exists because of that conversation.** What was built as
-> a result — and is live in the demo — is an application flow with automated
+> a result, and is live in the demo, is an application flow with automated
 > proof-checking, a human review queue, versioned marketability scoring, and
 > club nomination as a second route. Nothing self-verifies.
 
@@ -198,8 +218,8 @@ Accelerator serves elite athletes transitioning *out* of sport, which makes it
 adjacent rather than competitive.
 
 The full method, the athlete findings, the limitations and the research roadmap
-follow in §3.1.5. In summary, the **athlete** conversations — rugby league
-players in Lebanon and one competing at Asian level in CrossFit — produced four
+follow in §3.1.5. In summary, the **athlete** conversations, rugby league
+players in Lebanon and one competing at Asian level in CrossFit, produced four
 findings:
 
 1. **Current earnings are zero.** Not low. Nothing.
@@ -257,7 +277,7 @@ pricing sets our unit economics (§5.10).
 
 **Substitutes and new entrants.** The realistic substitute is the athlete doing
 it themselves on Instagram and a bank transfer. A funded entrant is the real
-risk (R4), and the defence is not the code — it is the accumulated scoring
+risk (R4), and the defence is not the code; it is the accumulated scoring
 history and the athlete relationships, which take time nobody can buy.
 
 ### 3.2.3 The offering
@@ -300,7 +320,7 @@ sports that never had any.
 The product exists, which is what makes the launch cost small. Total capital
 required is **€649k**: a €464k cash trough in Y4 plus a 40% buffer. Against
 that, **€80k** of founder time and direct cost is already spent. The gap between
-today and first revenue is one entity and one processor — there is no payment,
+today and first revenue is one entity and one processor: there is no payment,
 tier-price or payout entity of any kind, and the €9.99 on the membership card is
 a label rendered by the client, not a price.
 
@@ -326,7 +346,7 @@ Two products on one platform: the athlete's fan-facing page with paid tiers, and
 the sponsor's matching and measurement console. The sequencing is deliberate and
 matches the expert advice in §3.1.4: **fan monetisation ships first**, because
 it is the revenue leader and the assumption that needs testing; the sponsorship
-engine — already built — compounds behind it.
+engine, already built, compounds behind it.
 
 ## 4.2 Pricing strategy
 
@@ -361,7 +381,7 @@ acquisition is a sport in a country, entered through people already in it. Cost
 per athlete is modelled at €16–36 in niche sports and €40–88 in popular ones.
 
 **Fan-side.** We do not acquire fans. Athletes bring their own audiences, which
-is why the model carries no fan acquisition cost — disclosed in Appendix G as
+is why the model carries no fan acquisition cost, disclosed in Appendix G as
 understating the risk rather than presented as efficiency.
 
 **Sponsor-side.** Outbound and evidence-led: the pitch is a shortlist with the
@@ -387,6 +407,71 @@ arithmetic shown, not a media pack.
 | of which paying SaaS | 1 | 39 | 180 | 400 | 720 |
 | **Net revenue** | **€0.02M** | **€0.53M** | **€3.43M** | **€10.70M** | **€25.38M** |
 
+## 4.6 Sales plan
+
+The forecast above is the commitment. This is the activity that reaches it.
+
+A two sided marketplace sells twice, and the two motions have different
+economics, different owners and different failure modes. Supply is acquired in
+volume at low unit cost and gated on quality. Demand is acquired one account at
+a time at a cost that rises as the addressable pool of large sponsors thins.
+
+### Supply: the funnel replaces churn before it adds growth
+
+The number that matters is not net growth. Athletes leave, and by Y7 the plan
+loses **3,200 a year**, so showing
+6,000 net additions requires
+**9,200 gross**. Sizing the funnel from net growth
+would under-book it by a third. Every figure below is gross.
+
+Athletes arrive either directly or through a club, and the two convert very
+differently. **20% of direct applicants are admitted
+against 45% of those a club nominates**, because a club
+has already done the part of verification that is hardest to automate: it knows
+whether the person actually plays. The blended rate in the table is the mix of
+those two moving as the club channel grows, weighted by share of
+applications rather than of admissions.
+
+| | Athletes lost | Gross adds needed | Applications | of which club-nominated | Blended admit rate | Headcount |
+|---|---|---|---|---|---|---|
+| **Y1** | 0 | 400 | 2,000 | 0 | 20.0% | 1.5 |
+| **Y3** | 294 | 2,094 | 8,375 | 1,675 | 25.0% | 3.5 |
+| **Y5** | 1,296 | 5,796 | 20,337 | 6,915 | 28.5% | 10 |
+| **Y7** | 3,200 | 9,200 | 30,164 | 12,669 | 30.5% | 22 |
+| **Y10** | 6,229 | 12,229 | 38,516 | 18,102 | 31.8% | 38 |
+
+That application column is the same series the operations plan sizes review
+capacity against in §5, read from the same model rather than derived twice.
+
+> [!warning] Year 1 is the hardest year in the plan, and the table shows why
+> 2,000 applications must be sourced, reviewed and
+> admitted with **1.5 full time people and no club channel yet**.
+> Every later year has leverage Y1 does not: a partially built club pipeline, a
+> product with athletes already visible in it, and staff. The pre-seed is sized
+> to buy exactly this year, and if the plan fails it most likely fails here
+> rather than at any of the larger numbers further right.
+
+### Demand: sponsors, sold one at a time
+
+Sponsor acquisition is outbound and account based from the start. There is no
+self serve motion, because a brief that produces a good match needs a
+conversation about what the campaign is actually for.
+
+The plan carries **25 sponsors in Y1 rising to
+2,000 by Y7**, of which the share paying for SaaS rather than
+transacting only moves from 10% to
+20%. Acquisition cost rises from
+€900 to €1,900 per sponsor across the
+same period, which is the ordinary pattern: the most reachable brands are
+acquired first.
+
+### Who sells
+
+Founder led in Y1, at 1.5 FTE. The **BD and partnerships hire
+arrives in Y2** (§6), which is also when the club channel opens, and those two
+facts are the same decision: the hire exists to open club and sponsor accounts,
+and the club channel is what makes one conversation worth a roster. By Y3 the
+channel carries 20% of supply.
 ---
 
 # 5. Operations plan
@@ -406,7 +491,7 @@ arithmetic shown, not a media pack.
 
 Every figure in this plan is generated by a Python model and cross-checked
 against an Excel workbook that reproduces it independently. **A consistency
-guard checks 282 prose claims across 14 documents** against the model and fails
+guard checks 294 prose claims across 15 documents** against the model and fails
 the build if any figure drifts; a second guard evaluates all 2,520 workbook
 formulas and requires every variance against the Python model to be zero.
 
@@ -463,7 +548,7 @@ check: the **balance check row is zero in every year**, which the verification
 script re-computes from the formulas rather than reading a cached value.
 
 Two lines are worth a comment. **Net intangible assets** are capitalised
-development — 30% of people cost, amortised over three years — which is the
+development, 30% of people cost, amortised over three years, which is the
 honest treatment for a software business whose productive asset is its codebase
 rather than equipment. The **athlete payout float** is money collected from fans
 and not yet settled to athletes; it is a working-capital benefit and a trust
@@ -521,26 +606,47 @@ rate is already in the model and is worth €1.57M across Y6–Y9.
 **Break-even is Y5 on EBITDA** and Y5 on free cash flow. The single most
 sensitive input is fan churn.
 
-| Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Capital need |
-|---|---|---|---|---|
-| **Conservative** | Fans/athlete −30%, monetise rate −25% | ~€8.4M | ~€1.9M | ~€1.26M |
-| **Base** | As modelled | €10.70M | €3.12M | €649k |
-| **Growth-optimised** | Hire 12mo ahead, 3 markets from Y2 | ~€39M | ~€9M | €3–5M |
+Each scenario below is the whole model re-run against changed drivers, not an
+adjustment applied to the base result. The three levers are the plan's own
+stated uncertainties: how many fans an athlete converts, what share of athletes
+monetise at all, and whether niche-sport churn really beats benchmark. Capital
+need is the cash trough plus the same 40% buffer used in §3.4, so the base
+column reproduces the headline ask rather than a second number meaning
+something subtly different.
 
-> [!danger] The model understates its own central risk, by construction
-> The plan assumes niche fans churn 45% slower than benchmark. **At benchmark
-> churn, holding the same Y10 fan base needs 0.79M gross adds a year instead of
-> 0.64M** — a quarter more acquisition, every year, forever. Because the model
-> charges nothing for fan acquisition, that burden does not appear as a cost.
-> Being wrong about churn changes how hard the plan is to hold, not the
-> destination, and that is a weaker claim than it first appears.
+| Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Cash trough | Capital need |
+|---|---|---|---|---|---|
+| **Pessimistic** | Fans/athlete −30%, monetise −25%, **niche churn at benchmark** | €8.45M | €1.97M | €865k | €1.21M |
+| **Base** | As modelled | €10.70M | €3.12M | €464k | €649k |
+| **Optimistic** | Fans/athlete +25%, monetise +20% | €12.59M | €4.08M | €347k | €485k |
+
+**The downside is survivable and the upside is unspectacular, which is the
+honest shape of this business.** Losing a third of the fan thesis costs 21% of
+Y7 revenue and roughly doubles the capital requirement, to €1.21M against a
+€600k raise. That is a bridge round, not an extinction event. The optimistic
+case adds 18% to revenue, because the constraint is athlete supply rather than
+fan yield, and no fan assumption relieves it.
+
+All three hold market count constant. Opening a second market earlier is a real
+upside the model does not price, and it is deliberately excluded here: it needs
+capital the plan has not raised, and a sensitivity table is the wrong place to
+argue for it. That case is §10.
+
+> [!danger] The pessimistic case now carries the risk the model used to hide
+> The plan assumes niche fans churn 45% slower than benchmark, and that
+> assumption is the single largest source of value in it. **At benchmark churn,
+> holding the same Y10 fan base needs 0.79M gross adds a year instead of
+> 0.64M**, a quarter more acquisition every year, forever. Because the model
+> charges nothing for fan acquisition, that burden still does not appear as a
+> cost anywhere in the P&L. The pessimistic column above removes the churn
+> advantage entirely, which is why it is the column to read first.
 
 ## 7.7 Valuation
 
 ![Figure 11 — Two methods that disagree, for a reason.](attachments/charts/g10-valuation.png)
 
 The DCF says **€8.37M** today; the blended exit multiple says €165.0M at Y10.
-This is not an error in either — it is the standard failure of a
+This is not an error in either; it is the standard failure of a
 perpetuity-growth DCF applied to a company that has not finished growing. The
 terminal value assumes growth collapses to 3% the day after Y10, from a year
 that still grew 27%.
@@ -580,15 +686,7 @@ register, with mitigations, in Appendix G.
 
 # 10. Growth and business development strategy
 
-The growth strategy is set out in full at **§8.3** above, where it sits directly
-beneath the corporate and intellectual property decisions that constrain it.
-In summary, growth moves along three axes and only one moves at a time:
-**market** (Spain through the pre-seed gate, a second market chosen for
-sport-mix similarity rather than size, EU-wide from the Series A);
-**product** (fan monetisation deepens before sponsorship widens); and
-**channel** (the club channel is the growth strategy rather than a channel
-within it, because one club conversation brings a roster of 20 to 40 athletes
-with the verification problem already solved).
+<!-- INCLUDE: 16-growth-strategy.md shift=1 renumber=10 -->
 
 # 11. Conclusions
 
@@ -606,8 +704,8 @@ next round arriving on schedule is a materially stronger one to raise against.
 
 **The product is not the risk.** It is built, deployed and demonstrable, and
 every figure in this document is generated by a model that is checked against an
-independent implementation. The risk is a single assumption — that fans of
-semi-professional athletes will pay — and the plan is deliberately arranged so
+independent implementation. The risk is a single assumption, that fans of
+semi-professional athletes will pay, and the plan is deliberately arranged so
 that assumption is tested for €80k and one year rather than €2.6M and four.
 
 **What would change my mind.** If three months of subscription data from an
@@ -639,8 +737,8 @@ so that the uncertainty is cheap to resolve and everything else is already done.
 
 - Regulation (EU) 2016/679 (GDPR), Articles 13 and 37.
 - Council Directive (EU) 2021/514 (DAC7), platform operator reporting.
-- Council Implementing Regulation (EU) 282/2011, Article 9a — deemed supplier.
-- Directive 96/9/EC — *sui generis* database right.
+- Council Implementing Regulation (EU) 282/2011, Article 9a, deemed supplier.
+- Directive 96/9/EC, *sui generis* database right.
 - Ley 28/2022 de fomento del ecosistema de las empresas emergentes
   (*Ley de Startups*).
 - Regulation (EU) 2022/2065 (Digital Services Act).

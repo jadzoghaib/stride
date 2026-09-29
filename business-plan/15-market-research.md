@@ -41,8 +41,8 @@ product decision. Both happened.
 > Be precise about what the index does and does not contain: **neither Lebanon
 > nor rugby league is in it.** It covers 34 countries and 21 sports, and an
 > examiner checking against [08](08-sport-index.md) would find both missing.
-> What transfers is the mechanism, not a cell in the matrix — where no agent
-> layer exists, no route runs from audience to income — and the index is the
+> What transfers is the mechanism, not a cell in the matrix, where no agent
+> layer exists, no route runs from audience to income, and the index is the
 > evidence that this condition is set by a sport's economics rather than by
 > its geography.
 >
@@ -98,7 +98,7 @@ anyone can register as an athlete.
 > What was built as a result, and is live in the demo today: an application
 > flow with automated proof-checking, a human review queue, versioned
 > marketability scoring, and club nomination as a second admission route.
-> **Nothing self-verifies** — a club scoring above the verification bar still
+> **Nothing self-verifies**, a club scoring above the verification bar still
 > waits for a person to open its roster page, and a rejected proof cannot be
 > cleared by re-submitting the form. The full model is in
 > [11](11-admission-and-matching.md).
@@ -122,7 +122,7 @@ run with Alibaba.com, supports Olympians, Paralympians and elite athletes
 fundamentals, financial planning, branding and marketing, plus mentoring, with
 prizes including promotional packages and Alibaba.com credit.
 
-**Read carefully, this is adjacent rather than competitive**, and the distinction
+**Read carefully: this is adjacent rather than competitive**, and the distinction
 matters:
 
 | | Athlete365 Business Accelerator | Stride |
@@ -137,7 +137,7 @@ the top of the sport. That the programme teaches entrepreneurship to retiring
 elite athletes confirms it is not addressing the athlete this plan targets.
 
 **As a partnership**, the relevant asset is credibility and reach into national
-federations, which is exactly the channel [14.3](14-legal-and-growth.md) plans
+federations, which is exactly the channel [16.3](16-growth-strategy.md) plans
 to open at Y3. It is listed as an opportunity, not as a dependency.
 
 ---
@@ -174,7 +174,7 @@ relationship, because no platform exists to carry it and no mechanism exists for
 a brand to find him through it.
 
 This is the disintermediation thesis observed from the supply side: the
-sponsorship market is not competitive here, it is **absent**.
+sponsorship market is not competitive here; it is **absent**.
 
 ### Finding 4 — The suppression loop
 
@@ -213,7 +213,7 @@ that the mechanism for expansion is exactly the one the product supplies.
 **Not supported, and not claimed:**
 
 - **Will fans actually pay?** No interview answers this. It is the assumption
-  the whole plan rests on, it is named as such in [07](07-open-questions.md) as
+  the whole plan rests on; it is named as such in [07](07-open-questions.md) as
   risk R1, and only three months of real subscription data from one anchor
   athlete resolves it. That is the pre-seed gate, and it is a gate precisely
   because the research does not clear it.

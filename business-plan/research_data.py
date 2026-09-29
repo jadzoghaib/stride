@@ -96,12 +96,15 @@ ROWS: list[tuple] = [
      "Medium", "Actual payout frequency once athletes are onboarded."),
 
     ("— MARKET SIZING —",),
-    ("Sport participation by country", "", "SOURCED",
+    # Six of 34 measured is not a sourced figure, whatever the six are worth.
+    # The row said so in its own benchmark text while claiming SOURCED/High,
+    # which is the kind of disagreement this table exists to prevent.
+    ("Sport participation by country", "", "ESTIMATE",
      "Eurobarometer 525, share who NEVER exercise: Finland 8%, Sweden 12%, Denmark 20%, "
      "Poland 65%, Greece 68%, Portugal 73%, EU-27 average 45%. Six of the 34 countries in the "
      "index are measured; the other 28 are estimates placed inside that distribution.",
      "Special Eurobarometer 525, Sport and Physical Activity, September 2022",
-     "High", "Federation licence counts — published annually and free (CSD in Spain)."),
+     "Medium", "Federation licence counts — published annually and free (CSD in Spain)."),
     ("Padel market size", "", "SOURCED",
      "Spain has ~6.0M active players (12.7% of the population), 109,040 federation licences and "
      "17,300+ courts; globally 35M+ players and 77,000+ courts. This is the clearest case for "

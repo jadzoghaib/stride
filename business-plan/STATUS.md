@@ -1,7 +1,7 @@
 # Stride — MSc Business Plan · status
 
 *ESADE MSc Final Project, Business Plan track, October 2026 session.
-Last updated 9 September 2026.*
+Last updated 29 September 2026.*
 
 ---
 
@@ -9,16 +9,16 @@ Last updated 9 September 2026.*
 
 | What | Where |
 |---|---|
-| **The submission** | `business-plan/Stride_Business_Plan.docx` — 34-page body + appendices, 91 total |
+| **The submission** | `business-plan/Stride_Business_Plan.docx` — 39-page body, 105 total, TOC populated |
 | Same, without Word | `business-plan/Stride_Business_Plan.pdf` |
 | **The financial model** | `business-plan/Stride_Financial_Model.xlsx` — 18 sheets, 2,520 formulas |
 | The body's source | `business-plan/esade-body.md` |
-| The exhibits | `business-plan/attachments/charts/` — 12 PNGs |
+| The exhibits | `business-plan/attachments/charts/` — 12 PNGs, and `attachments/ui/` — 6 screens |
 | School material | `Desktop\Business Track MSc Thesis\` (outside this repo) |
 
-**Two things on opening.** In Word, press **F9** on the Contents page — the table
-of contents is a field and starts empty. In Excel, go to the **Check** sheet
-first: every VARIANCE row must read zero.
+**One thing on opening.** In Excel, go to the **Check** sheet first: every
+VARIANCE row must read zero. The Word table of contents is already populated
+(it is a field, so it needs F9 only if you edit headings after this).
 
 ---
 
@@ -43,6 +43,8 @@ Nothing is hand-typed. Rebuild after any change to the model:
 uv run python business-plan/model.py --write                   # the MODEL: tables
 uv run python business-plan/graph_data.py                      # CSVs from model.py
 uv run --with matplotlib python business-plan/make_charts.py   # 12 exhibits
+uv run --with playwright python business-plan/make_ui_shots.py  # 6 UI screens
+uv run --with playwright python business-plan/make_appendices.py # appendices L, M
 uv run --with python-docx python business-plan/build_docx.py   # the .docx
 uv run python business-plan/build_workbook.py                  # the .xlsx
 ```
@@ -50,7 +52,7 @@ uv run python business-plan/build_workbook.py                  # the .xlsx
 Then check it:
 
 ```bash
-uv run python scripts/doc_consistency.py    # 282 prose claims against the model
+uv run python scripts/doc_consistency.py    # 294 prose claims against the model
 uv run python scripts/verify_workbook.py    # structure: refs, cycles, parsing
 uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 ```
@@ -58,7 +60,8 @@ uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 `esade-body.md` carries Operations, HR, Legal/Growth and the primary research
 **in the body** via `<!-- INCLUDE: -->`, not as appendices — the rubric weights
 Operations and HR at 15% each, and an examiner grades what is in front of them.
-Only `01-` to `11-` are appendices.
+Appendices are `01-` to `11-`, plus the two generated ones, `17-evidence-base.md`
+and `18-product-walkthrough.md`.
 
 ---
 
@@ -72,6 +75,24 @@ Only `01-` to `11-` are appendices.
 - A deployed demo at **stride-demo.onrender.com** (takes ~30s to wake)
 
 ---
+
+## Added 29 September
+
+- **§4.6 Sales plan**, generated from the model's own funnel. The school's
+  checklist lists it separately from the sales forecast; only the forecast existed
+- **§10 Growth** is now a real section. It was a pointer at §8.3, because Legal
+  and Growth shared one file and spliced in together. `16-growth-strategy.md`
+  splits them, as the outline does
+- **§7.6 scenarios are computed**, not typed. `model.scenario_table()` re-runs
+  the whole model under changed drivers; the pessimistic case removes the niche
+  churn advantage entirely. Six new pins guard the table
+- **Appendix L** — the evidence base, 32 assumptions classified
+  SOURCED/BENCHMARKED/DERIVED/ESTIMATE, generated from `research_data.py`
+- **Appendix M** — six screens of the deployed demo, captured by
+  `make_ui_shots.py` against the live site
+- **Social impact** in §2.2, for the evaluation form's learning objectives
+- **53 em-dashes removed** from prose. The remainder are structural: table
+  cells, figure captions, appendix labels
 
 ## What is not done
 
