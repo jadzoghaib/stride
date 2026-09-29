@@ -220,9 +220,10 @@ that the mechanism for expansion is exactly the one the product supplies.
 - **Sponsor-side willingness to pay.** No sponsor or brand-side interviews have
   been conducted. This is the largest hole in the research and is acknowledged
   rather than papered over.
-- **Spanish market specifics.** The interviews are Lebanese; the launch market
-  is Spain. The structural finding transfers (§15.1); the pricing and budget
-  figures do not, and none of them rests on this research.
+- **Spanish market specifics.** Part of the sample competes in Spain, but five
+  athletes recruited through one network cannot describe a market. The
+  structural finding transfers (§15.1); the pricing and budget figures do not,
+  and none of them rests on this research.
 
 ---
 
