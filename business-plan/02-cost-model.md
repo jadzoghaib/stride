@@ -33,7 +33,7 @@ Three responses, in order of impact:
 3. **Renegotiate at volume.** Above ~€5M/yr processed, interchange-plus pricing is
    available. Not modelled: upside.
 
-At Y7 the payment rail costs **€2.55M against €10.70M of revenue**, 24% of
+At Y7 the payment rail costs **€2.79M against €10.16M of revenue**, 27% of
 revenue, our largest single cost line, larger than all salaries combined
 (€1.54M). The share rose when VAT entered the model: the processor charges on
 the price a fan pays, while the revenue it is measured against is net of the

@@ -123,7 +123,7 @@ other.
 | Net revenue | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Fan take (15%) | €21k | €98k | €322k | €811k | €1.69M | €3.02M | €4.81M | €6.82M | €8.93M | €11.07M |
-| Sponsorship take (10%) | €3k | €15k | €81k | €319k | €907k | €2.00M | €3.43M | €5.07M | €6.52M | €8.74M |
+| Sponsorship take (blended by plan) | €3k | €15k | €81k | €319k | €907k | €2.00M | €3.43M | €5.07M | €6.52M | €8.74M |
 | Sponsor SaaS | €1k | €21k | €122k | €331k | €691k | €1.21M | €1.92M | €2.68M | €3.39M | €4.10M |
 | **Total net revenue** | €25k | €133k | €525k | €1.46M | €3.29M | €6.22M | €10.16M | €14.57M | €18.84M | €23.91M |
 <!-- /MODEL:revenue -->
@@ -202,7 +202,7 @@ parent (~85% at a 20% take on far larger tickets).
 | First EBITDA-positive year | Y5 |
 <!-- /MODEL:funding -->
 
-**€392k is a small number for a plan that reaches €10.7M of revenue by Y7,
+**€392k is a small number for a plan that reaches €10.16M of revenue by Y7,
 and that should be interrogated rather than celebrated.** It is small because
 the model hires behind revenue rather than ahead of it, and because fan
 acquisition is free. A growth-optimised version: hiring 12 months earlier,
@@ -219,7 +219,7 @@ be wrong are **fans per athlete** and **share of athletes who monetise**.
 | Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Capital need |
 |---|---|---|---|---|
 | **Conservative** | Fans/athlete −30%, monetise rate −25% | ~€8.4M | ~€1.9M | ~€1.26M |
-| **Base** | As modelled | €10.16M | €3.25M | €649k |
+| **Base** | As modelled | €10.16M | €3.25M | €392k |
 | **Growth-optimised** | Hire 12mo ahead, 3 markets from Y2 | ~€39M | ~€9M | €3–5M |
 
 To run these, edit `Assumptions` in `model.py` and rerun. The conservative case

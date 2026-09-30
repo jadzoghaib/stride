@@ -80,7 +80,7 @@ transactions.**
 | **Review FTE required** | **0.02** | **0.08** | **0.18** | **0.26** |
 
 At four minutes per review, the entire manual burden of the business peaks at
-roughly **a quarter of one full-time person at Y7**, against 22 FTE total. The
+roughly **a quarter of one full-time person at Y7**, against 13 FTE total. The
 admission gate is cheap. It is the *design* of the gate, not its cost, that
 carries the risk.
 

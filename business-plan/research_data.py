@@ -31,7 +31,7 @@ ROWS: list[tuple] = [
     ("Sponsorship commission, Scout Pro", "take_sp_pro", "BENCHMARKED",
      "7% against a 10% base. A sponsor paying EUR 2,988 a year for the tooling is already "
      "paying for the relationship, and charging them the full headline rate on every deal as "
-     "well is charging twice for it. Still comfortably inside the 10-20% an agent takes.",
+     "well is charging twice for it. Below the 10-20% an agent takes, which is the point: the sponsor who commits most pays least on each deal.",
      "Priced against the agent range; the discount itself is a pricing decision",
      "High", "Nothing to improve. This is a decision, not a measurement."),
     ("Sponsorship commission, Scout Agency", "take_sp_agency", "BENCHMARKED",

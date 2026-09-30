@@ -29,11 +29,11 @@ four people until fan revenue is proven**, because the pre-seed gate tests an
 assumption, and testing an assumption does not need an organisation.
 
 > [!warning] This ramp is what a €400k raise buys, and the model flatters it
-> An earlier version of this plan reached 22 FTE by Y7 and needed €600k to
-> fund it. Moving the ramp out by roughly eighteen months takes the cash
-> trough from €508k to €280k without changing the athlete, fan or sponsor
-> plan at all, because payroll is the cost that arrives earliest and scales
-> least with revenue.
+> An earlier version of this plan reached 22 FTE by Y7 and asked for €600k.
+> With the tiered commission that ramp put the cash trough at €508k. Moving
+> it out by roughly eighteen months takes the trough to €280k without
+> changing the athlete, fan or sponsor plan at all, because payroll is the
+> cost that arrives earliest and scales least with revenue.
 >
 > **The model does not penalise under-hiring.** Athletes, fans and sponsors
 > are inputs to it, so a smaller team costs less and produces exactly the same
@@ -171,7 +171,7 @@ because a specific bottleneck arrives at a specific time; none is a
 | **Founder salary** | €0 in Y1, rising to €45k. Deliberately below market; the return is equity, and the opportunity cost is disclosed in [04](04-capital-and-valuation.md) |
 
 > [!note] Why below-median base with real equity
-> The plan's whole argument is that a small team can reach €10.7M of revenue.
+> The plan's whole argument is that a small team can reach €10.16M of revenue.
 > If that is true, equity is worth more than the salary gap, and if a candidate
 > does not believe it, they are the wrong hire for a company whose central
 > claim is exactly that.
@@ -189,7 +189,7 @@ alternatives considered are in [14](14-legal-and-growth.md).
 | Stage | Board | Founder control |
 |---|---|---|
 | Pre-incorporation | Founder only | 100% |
-| **Pre-seed** (€600k) | Founder + 1 investor observer | 84% held after the 2% advisory grant |
+| **Pre-seed** (€400k) | Founder + 1 investor observer | 84% held after the 2% advisory grant |
 | **Seed** (€2.0M, optional) | Founder + 1 investor director + 1 independent | 70% |
 | **Series A** (€8.0M) | Founder + 2 investor directors + 1 independent | 58% |
 | Post-ESOP | As above | **~53%** |

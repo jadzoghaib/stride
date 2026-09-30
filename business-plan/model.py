@@ -424,7 +424,10 @@ def segment_year(seg: Segment, athlete_count: float, prev_athletes: float,
         capacity_bound=fans["capacity_bound"], fan_shortfall=fans["shortfall"],
         athlete_gross_adds=athlete_gross_adds, athletes_lost=athletes_lost,
         deals=deals, fan_gmv=fan_gmv, sponsorship_gmv=sponsorship_gmv,
-        revenue=fan_gmv * A.take_fan + sponsorship_gmv * A.take_sponsorship,
+        # Tiered, like the consolidated line. A flat rate here was harmless
+        # because nothing downstream reads this field, and that is exactly why
+        # it would have gone on disagreeing with the real one indefinitely.
+        revenue=fan_gmv * A.take_fan + sponsorship_gmv * effective_take(i_),
     )
 
 
@@ -794,7 +797,7 @@ def render(rows: list[dict]) -> dict[str, str]:
 
     revenue = table(["Net revenue"] + ys, [
         line(f"Fan take ({A.take_fan:.0%})", "rev_fan"),
-        line(f"Sponsorship take ({A.take_sponsorship:.0%})", "rev_sponsorship"),
+        line("Sponsorship take (blended by plan)", "rev_sponsorship"),
         line("Sponsor SaaS", "rev_saas"),
         line("**Total net revenue**", "revenue"),
     ])

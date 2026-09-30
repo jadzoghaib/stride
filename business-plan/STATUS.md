@@ -125,8 +125,11 @@ and `18-product-walkthrough.md`.
 
 ## Decisions worth not relitigating
 
-- **€600k pre-seed, not €400k.** It clears the €464k Y4 trough on its own, which
-  makes the seed a growth option rather than a rescue.
+- **€400k pre-seed.** It clears the €280k Y3 trough and the 40% buffer on top
+  of it, which makes the seed a growth option rather than a rescue. The plan
+  asked €600k until 30 September; moving the hiring ramp out closed the gap
+  from the cost side, and scaling the plan down was tried first and does not
+  work.
 - **The financial model stays ours** rather than being retrofitted into the
   school's template, which says of itself that it is a guide and not a
   fill-in-the-blanks. The three concepts it teaches that were missing have been

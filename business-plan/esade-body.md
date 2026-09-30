@@ -42,7 +42,7 @@ because the payment rail is real and no amount of engineering removes it.
 
 **The ask is €400k at €2.5M pre-money.** The plan needs €392k, a €280k cash
 trough in Y4 plus a 40% buffer, so the pre-seed clears the trough itself with
-€120k to spare. That is what asking for €600k rather than €400k buys: the seed
+€120k to spare. That is what the raise buys: the seed
 becomes optional. It brings a second market forward; it is not the thing
 standing between the company and running out of cash.
 
@@ -84,7 +84,7 @@ lifestyle creator does today.
 | Year 1 | Supply density in one market | 400 active athletes in Spain |
 | Year 3 | A functioning two-sided market | 3,000 athletes, 39 sponsors paying SaaS, €0.53M net revenue |
 | Year 5 | Self-funding | EBITDA positive, without a Series A |
-| Year 7 | Category position in Europe | 22,000 athletes across three or more markets, €10.70M net revenue |
+| Year 7 | Category position in Europe | 22,000 athletes across three or more markets, €10.16M net revenue |
 
 **Social impact is the business model, not a programme attached to it.** The
 commercial objective and the social one point the same way: the largest
@@ -318,7 +318,7 @@ sports that never had any.
 ## 3.4 Costs and investment required
 
 The product exists, which is what makes the launch cost small. Total capital
-required is **€649k**: a €464k cash trough in Y4 plus a 40% buffer. Against
+required is **€392k**: a €280k cash trough in Y3 plus a 40% buffer. Against
 that, **€80k** of founder time and direct cost is already spent. The gap between
 today and first revenue is one entity and one processor: there is no payment,
 tier-price or payout entity of any kind, and the €9.99 on the membership card is
@@ -552,7 +552,7 @@ negotiation, not in the AWS bill.
 | Athlete payout float | €8k | €144k | €989k | €3.23M |
 | Trade payables | €9k | €47k | €168k | €359k |
 | **Total Liabilities** | **€17k** | **€191k** | **€1.16M** | **€3.59M** |
-| Paid-in capital | €600k | €600k | €2.60M | €10.60M |
+| Paid-in capital | €400k | €400k | €2.40M | €10.40M |
 | Retained earnings | €-101k | €-552k | €-642k | €2.88M |
 | **Total Equity** | **€499k** | **€48k** | **€1.96M** | **€13.48M** |
 | **BALANCE CHECK** | **0** | **0** | **0** | **0** |
@@ -579,7 +579,7 @@ counted as cash.
 | **Operating Cash Flow** | **−€79k** | **−€118k** | **€794k** | **€3.90M** |
 | Capital expenditure | −€17k | −€63k | −€198k | −€273k |
 | **Free Cash Flow** | **−€96k** | **−€181k** | **€596k** | **€3.62M** |
-| Equity raised | €600k | 0 | 0 | 0 |
+| Equity raised | €400k | 0 | 0 | 0 |
 | **Closing Cash** | **€504k** | **€161k** | **€2.73M** | **€15.93M** |
 
 Free cash flow turns positive in **Y5**, one year after the trough. The working
@@ -593,13 +593,13 @@ treats it as both.
 
 ![Figure 10: The hole, and the buffer over it. Y1 to Y5, where the trough lives.](attachments/charts/g8-cash-and-capital.png)
 
-The deepest the cash ever goes is **€464k, in Y4**. A **€600k pre-seed covers
+The deepest the cash ever goes is **€280k, in Y3**. A **€400k pre-seed covers
 that with €136k to spare**, and free cash flow turns positive in Y5.
 
 | Stage | Amount | Pre-money | Gate |
 |---|---|---|---|
 | Internal | €80k + time |  | Product exists ✓ |
-| **Pre-seed** | **€600k** | **€2.5M** | 400 athletes · €10k MRR · anchor athlete public · payments live · **3 months fan churn** |
+| **Pre-seed** | **€400k** | **€2.5M** | 400 athletes · €10k MRR · anchor athlete public · payments live · **3 months fan churn** |
 | Seed *(optional)* | €2.0M | €10M | €80k MRR · churn <8%/mo · CAC payback <9mo · 2nd market |
 | Series A | €8.0M | €40M | €300k MRR · NRR >110% · sponsorship >25% of revenue |
 
@@ -609,10 +609,10 @@ that with €136k to spare**, and free cash flow turns positive in Y5.
 > That is a materially stronger position to raise from.
 
 **Non-dilutive capital first.** A realistic ENISA and CDTI Neotec stack of
-€300–500k covers most of the €464k trough on its own. The *Ley de Startups* 15%
+€300–500k covers most of the €280k trough on its own. The *Ley de Startups* 15%
 rate is already in the model and is worth €1.67M across Y6–Y9.
 
-**Dilution.** The founder holds 79% after the pre-seed and 2% advisory grant,
+**Dilution.** The founder holds 84% after the pre-seed and 2% advisory grant,
 66% after the seed, 55% after the Series A, and **~49%** after the 10% ESOP.
 
 ## 7.6 Break-even and sensitivity
@@ -636,8 +636,8 @@ something subtly different.
 
 **The downside is survivable and the upside is unspectacular, which is the
 honest shape of this business.** Losing a third of the fan thesis costs 21% of
-Y7 revenue and roughly doubles the capital requirement, to €1.21M against a
-€600k raise. That is a bridge round, not an extinction event. The optimistic
+Y7 revenue and roughly doubles the capital requirement, to €754k against a
+€400k raise. That is a bridge round, not an extinction event. The optimistic
 case adds 18% to revenue, because the constraint is athlete supply rather than
 fan yield, and no fan assumption relieves it.
 
@@ -710,7 +710,7 @@ a pricing failure to be competed away; it is missing infrastructure, confirmed
 by athletes who earn nothing from audiences they already have and by an expert
 with a decade inside Olympic broadcasting.
 
-**The plan is modest by design, and that is its strength.** €600k of pre-seed
+**The plan is modest by design, and that is its strength.** €400k of pre-seed
 capital funds a company to profitability in Year 5. The pre-seed clears the
 worst point in the cash curve on its own, which makes every subsequent round a
 growth option rather than a rescue. A plan whose survival does not depend on the

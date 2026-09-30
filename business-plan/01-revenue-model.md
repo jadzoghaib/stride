@@ -101,7 +101,7 @@ mystery:
 | | Y1 | Y2 | Y3 | Y7 | Y10 |
 |---|---|---|---|---|---|
 | Blended ARPU per month | €199 | €229 | €260 | €400 | €475 |
-| Implied mix | 33% Starter, 67% Pro | 13% Starter, 87% Pro | 1% Agency, rest Pro | 20% Agency, rest Pro | 30% Agency, rest Pro |
+| Implied mix | 33% Starter, 67% Pro | 13% Starter, 87% Pro | 1.5% Agency, rest Pro | 20.1% Agency, rest Pro | 30.1% Agency, rest Pro |
 
 Sponsors enter on Starter, graduate to Pro as they run more campaigns, and the
 Agency share grows to roughly a third by Y10 as agencies rather than single
@@ -267,7 +267,7 @@ rather than one:
 | 10% | €8.56M | €1.78M | Patreon's published, all-in rate |
 
 Read the bottom row before the top one. **Matching Patreon costs €1.60M of Y7
-revenue and €1.48M of EBITDA: EBITDA falls 45%, from €3.11M to €1.64M.** The
+revenue and €1.48M of EBITDA: EBITDA falls 45%, from €3.25M to €1.78M.** The
 same five points that look like upside going up are what a price war costs
 going down, and the downside lands harder because the cost base does not shrink
 with the take.
@@ -326,7 +326,7 @@ rather than cited.*
 | Fan take | €21k (84%) | €322k (60%) | €1.69M (49%) | €4.81M (45%) |
 | Sponsorship take | €3k (11%) | €91k (17%) | €1.04M (30%) | €3.43M (37%) |
 | Sponsor SaaS | €1k (5%) | €122k (23%) | €0.69M (20%) | €1.92M (18%) |
-| **Total** | **€25k** | **€0.53M** | **€3.43M** | **€10.70M** |
+| **Total** | **€25k** | **€0.53M** | **€3.29M** | **€10.16M** |
 
 The mix shifts deliberately. Fans fund the early years because they can be
 acquired at near-zero cost: **athletes bring their own audience**. Sponsorship
