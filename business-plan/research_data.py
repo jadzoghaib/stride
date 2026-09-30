@@ -228,7 +228,7 @@ ROWS: list[tuple] = [
      "is stated rather than buried because it is the largest single judgement in the valuation. "
      "Damodaran publishes no dataset for venture-stage rates, so the premium itself is "
      "convention (20-35% is the usual range) and not a sourced figure. The sensitivity grid "
-     "runs 18-30% because this is arguable rather than knowable.",
+     "runs 20-30% because this is arguable rather than knowable.",
      "Aswath Damodaran, NYU Stern, Cost of Capital by Industry (Europe), updated 5 January 2026",
      "Medium", "An actual term sheet prices this for you."),
     ("Exit revenue multiple", "exit_mult", "BENCHMARKED",

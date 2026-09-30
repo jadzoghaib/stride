@@ -221,7 +221,7 @@ matter more than the line item:
 |---|---|---|---|
 | Y1 CAC | €17 | ~€0 | €900 |
 | Y7 CAC | €61 | ~€0 | €1,900 |
-| Applications behind one athlete | 5.0x in Y1, 3.3x in Y7 | :  | :  |
+| Applications behind one athlete | 5.0x in Y1, 3.3x in Y7 |  |  |
 | Channel | Clubs, federations, ambassador referral | **Brought by the athlete** | Outbound, events, agency partnerships |
 <!-- /MODEL:cac -->
 

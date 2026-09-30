@@ -299,6 +299,19 @@ class Assumptions:
                 + self.wacc_country_premium
                 + self.wacc_stage_premium)
 
+    @wacc.setter
+    def wacc(self, value: float) -> None:
+        """Move the rate by moving the judgement, which is what a sensitivity
+        grid is actually asking about.
+
+        The mature base and the country premium are published facts about the
+        market; they do not flex because someone wants to see a different
+        number. The stage premium is the assertion, so it absorbs the change
+        and the decomposition stays true at every point on the grid.
+        """
+        self.wacc_stage_premium = (value - self.wacc_mature_base
+                                   - self.wacc_country_premium)
+
 
 #: Sponsor plan list prices, in euros per month. Named here because the tier
 #: mix is derived from them and the plan quotes them in three places.
@@ -923,7 +936,9 @@ def render(rows: list[dict]) -> dict[str, str]:
         ["Y7 CAC", f"€{blended_cac(rows[6]):,.0f}", "~€0", f"€{A.sponsor_cac_eur[6]:,}"],
         ["Applications behind one athlete",
          f"{1 / rows[0]['admit_rate']:.1f}x in Y1, {1 / rows[6]['admit_rate']:.1f}x in Y7",
-         ": ", ": "],
+         # Empty, not a stray colon: the em-dash sweep turned the two
+         # not-applicable cells into bare punctuation.
+         "", ""],
         ["Channel", "Clubs, federations, ambassador referral",
          "**Brought by the athlete**", "Outbound, events, agency partnerships"],
     ])
