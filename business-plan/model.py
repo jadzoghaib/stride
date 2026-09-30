@@ -266,10 +266,38 @@ class Assumptions:
     tax_low: float = 0.15
     tax_high: float = 0.25
     tax_low_years: int = 4
-    wacc: float = 0.25
+    #: The discount rate, decomposed. Two published components and one
+    #: judgement, so a reader can see which is which rather than being handed
+    #: a round number. See `wacc` below, which is their sum.
+    #:
+    #: Damodaran, NYU Stern, Cost of Capital by Industry (Europe), 5 Jan 2026:
+    #: Software (Internet) at 6.01% in euros across 23 listed firms.
+    wacc_mature_base: float = 0.0601
+    #: Damodaran, country risk premiums, 5 Jan 2026. The sector figure above is
+    #: pan-European; the company is Spanish.
+    wacc_country_premium: float = 0.0155
+    #: NOT SOURCED. A pre-revenue company with one product, no operating
+    #: history and no liquid market in its shares does not finance itself at a
+    #: listed company's cost of capital. Convention puts early-stage venture at
+    #: 20-35% all-in and this sits mid-range. It is the largest single
+    #: judgement in the valuation, which is why it is a line of its own.
+    wacc_stage_premium: float = 0.1744
     terminal_growth: float = 0.03
     risk_free: float = 0.032       # Spanish 10Y, mid-2026
     founder_alt_return: float = 0.07
+
+
+
+    @property
+    def wacc(self) -> float:
+        """The discount rate, as the sum of its parts.
+
+        A property rather than a field so that the three components and the
+        rate cannot disagree: there is no cell to leave stale.
+        """
+        return (self.wacc_mature_base
+                + self.wacc_country_premium
+                + self.wacc_stage_premium)
 
 
 #: Sponsor plan list prices, in euros per month. Named here because the tier

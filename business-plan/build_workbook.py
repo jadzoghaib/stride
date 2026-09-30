@@ -346,8 +346,19 @@ def build() -> pathlib.Path:
     A_ROW = {}
 
     def put(label, unit, values, fmt=NUM, key=None, hard=False, const=False, note="",
-            derive_note=""):
+            derive_note="", formula=None):
         nonlocal r
+        # A row that computes rather than states. Used where the research
+        # establishes a figure and the input should depend on it, which is the
+        # opposite of a typed constant that merely agrees with a paragraph
+        # somewhere else.
+        if formula is not None:
+            A_ROW[key or label] = r
+            r = row(a, r, label, unit, formula=formula, fmt=fmt, bold=True)
+            if note:
+                c = a.cell(r - 1, FIRST + N + 1, note)
+                c.font = Font(size=8, italic=True, color="6B7480", name="Calibri")
+            return
         # An input that repeats a number already on `model.A` instead of reading
         # it is a divergence waiting to happen: retune the Python and the
         # workbook goes on costing the old plan, silently, because both files
@@ -492,8 +503,30 @@ def build() -> pathlib.Path:
     r += 1
 
     r = section(a, r, "VALUATION")
-    put("WACC / discount rate", "%", [A.wacc] * N, PCT, "wacc", const=True,
-        note="Early-stage venture hurdle")
+    # The discount rate is derived here rather than typed, because the research
+    # establishes it and the input should depend on the research rather than
+    # the other way round. Two sourced components and one judgement: putting
+    # the judgement on its own row is the point, since it is seventeen of the
+    # twenty-five points.
+    put("  Mature listed software, Europe, in EUR", "%", [A.wacc_mature_base] * N,
+        PCT, "wacc_base", hard=True, const=True,
+        note="Damodaran, NYU Stern, Cost of Capital by Industry (Europe), "
+             "5 Jan 2026. 23 listed firms")
+    put("  Spain country risk premium", "%", [A.wacc_country_premium] * N,
+        PCT, "wacc_country", hard=True, const=True,
+        note="Damodaran, country risk premiums, 5 Jan 2026. The sector figure "
+             "above is pan-European; the company is Spanish")
+    put("  Size and stage premium", "%", [A.wacc_stage_premium] * N,
+        PCT, "wacc_stage", const=True,
+        note="NOT SOURCED. A pre-revenue company with one product and no "
+             "operating history does not finance itself at a listed company's "
+             "cost of capital. Convention puts early-stage venture at 20-35% "
+             "all-in. The largest single judgement in the valuation")
+    put("WACC / discount rate", "%", None, PCT, "wacc_total",
+        formula=(f"={{c}}{A_ROW['wacc_base']}+{{c}}{A_ROW['wacc_country']}"
+                 f"+{{c}}{A_ROW['wacc_stage']}"),
+        note="The sum of the three rows above. Trace precedents from here to "
+             "see which parts are published and which is judgement")
     put("Terminal growth", "%", [A.terminal_growth] * N, PCT, "tg", const=True)
     put("Exit revenue multiple", "x", [6.5] * N, '0.0', "exit_mult", const=True,
         note="Blended marketplace + SaaS comparables")
@@ -1252,7 +1285,7 @@ def build() -> pathlib.Path:
     r = row(va, r, "Free cash flow", "EUR", formula=f"=CashFlow!{{c}}{F['FREE CASH FLOW']}",
             fmt=MONEY, font=LINK)
     r = row(va, r, "Discount factor", "1/(1+WACC)^t",
-            formula=f"=1/(1+Assumptions!$C${A_ROW['wacc']})^{{k}}", fmt='0.000')
+            formula=f"=1/(1+Assumptions!$C${A_ROW['wacc_total']})^{{k}}", fmt='0.000')
     r = row(va, r, "Discounted FCF", "EUR", formula="={c}4*{c}5", fmt=MONEY, bold=True)
     r += 1
     lastc = COLS[-1]
@@ -1273,12 +1306,12 @@ def build() -> pathlib.Path:
         ("PV of explicit forecast", f"=SUM(C6:{lastc}6)"),
         ("Terminal value at Y10",
          f"={lastc}4*(1+Assumptions!$C${A_ROW['tg']})"
-         f"/(Assumptions!$C${A_ROW['wacc']}-Assumptions!$C${A_ROW['tg']})"),
+         f"/(Assumptions!$C${A_ROW['wacc_total']}-Assumptions!$C${A_ROW['tg']})"),
         ("PV of terminal value", "=C{Terminal value at Y10}*" + f"{lastc}5"),
         ("ENTERPRISE VALUE (DCF)", "=C{PV of explicit forecast}+C{PV of terminal value}"),
         ("", None),
         ("RETURN METRICS", None),
-        ("NPV of FCF at WACC", f"=NPV(Assumptions!$C${A_ROW['wacc']},C4:{lastc}4)"),
+        ("NPV of FCF at WACC", f"=NPV(Assumptions!$C${A_ROW['wacc_total']},C4:{lastc}4)"),
         ("IRR of the plan", f"=IRR(C4:{lastc}4)"),
         ("IRR incl. terminal value", f"=IRR(C{tv_series_row}:{lastc}{tv_series_row},0.3)"),
         ("", None),

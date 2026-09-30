@@ -121,6 +121,40 @@ Two methods, because they answer different questions and disagree for a reason.
 | PV of explicit FCF, Y1–Y10 | €4.25M |
 | Terminal value (g=3%) | €40.46M |
 | PV of terminal value | €4.34M |
+### Where the 25% comes from
+
+It is three components, and only two of them are published. The workbook
+derives it the same way, on the Assumptions sheet, so tracing precedents from
+the discount rate lands on these rows rather than on a typed constant.
+
+| | Rate | Source |
+|---|---|---|
+| Mature listed software, Europe, in euros | 6.01% | Damodaran, NYU Stern, 5 Jan 2026, 23 firms |
+| Spain country risk premium | 1.55% | Damodaran, country risk premiums, 5 Jan 2026 |
+| **= a mature Spanish software company** | **7.56%** | |
+| Size and stage premium | 17.44% | **Judgement. Not sourced** |
+| **= discount rate used** | **25.00%** | |
+
+**Seventeen of the twenty-five points are asserted.** A pre-revenue company
+with one product, no operating history and no liquid market in its shares does
+not finance itself at a listed company's cost of capital, and convention puts
+early-stage venture at 20 to 35% all-in. That is the whole of the argument, and
+it is why the sensitivity below runs 18 to 30%.
+
+> [!warning] The honest objection, which points the other way
+> Venture capital target rates for seed-stage companies are conventionally 50
+> to 70%, not 25%. Those rates are applied to success-case projections across
+> a portfolio in which most companies fail, so they carry mortality risk in the
+> discount rate. Standard practice puts that risk in the cash flows instead, as
+> probability-weighted expected values.
+>
+> **This plan does neither.** The cash flows are a base case with no failure
+> probability in them, and the rate is well below venture convention. A
+> reviewer is entitled to say the DCF therefore understates risk, and the
+> answer is that the DCF is presented as a floor rather than the headline: the
+> valuation range comes from exit multiples, and the pessimistic scenario
+> models the downside where it belongs, in the cash flows.
+
 | **Enterprise value (WACC 25%)** | **€8.60M** |
 <!-- /MODEL:valuation -->
 
