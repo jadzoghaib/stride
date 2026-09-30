@@ -492,7 +492,11 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("04-capital-and-valuation.md", "cumulative need to end of Y2",
      r"cumulative need of\s+€(\d+)k to the end of Y2", -CUM_FCF[1] / 1e3, 0.5),
     ("04-capital-and-valuation.md", "equity tranche plus the ENISA loan",
-     r"Together they are €(\d+)k", (model.ROUNDS[0]["amount"] + 75_000) / 1e3, 0.5),
+r"Together they are €(\d+)k",
+     # By stage, not by position. grant_years() documents a silent
+     # divergence caused by indexing ROUNDS[0] when a round was inserted.
+     (next(r["amount"] for r in model.ROUNDS if r["stage"] == "Pre-seed")
+      + 75_000) / 1e3, 0.5),
 
     ("esade-body.md", "capital the plan needs",
      r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 0.5),
@@ -820,6 +824,13 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # The document describes the guard that checks it, so the guard checks that
     # description too. Self-referential on purpose: this count is exactly the
     # kind of figure that goes stale the moment anyone adds a claim.
+    # Pinned in every document that states it. It was pinned in one, so the
+    # other two could drift to a different number and nothing would notice.
+    *[(doc, "number of pinned claims",
+       r"(\d+) prose\s+claims", lambda: len(CLAIMS), 0.1)
+      for doc in ("esade-body.md", "STATUS.md")],
+    ("esade-body.md", "number of documents checked",
+     r"prose claims across (\d+) documents", lambda: len({c[0] for c in CLAIMS}), 0.1),
     ("stride-business-plan-draft.md", "number of pinned claims",
      r"checks \*\*(\d+) prose\s+claims", lambda: len(CLAIMS), 0.1),
     ("stride-business-plan-draft.md", "number of documents checked",

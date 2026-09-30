@@ -91,13 +91,13 @@ have spent €80k and a year, not €2.6M and four.
 The honest version of the question is whether a first-time founder in their
 twenties raises this in Spain. Three things say yes, and one says be careful.
 
-**The ask is small and the price is below market.** European pre-seed pre-money
+**The ask is small and the price is unremarkable.** European pre-seed pre-money
 valuations had a median of **€3.3M in 2024**, up from €1.7M the year before,
-with the usual band €2M to €4M. This plan asks **€150k at
-€2.5M pre-money**, which is under that median, and typical
-European pre-seed *round sizes* now run €500k to €3M, so the first tranche is
-below the normal range on both axes. Nothing here requires an investor to
-stretch.
+with the usual band €2M to €4M. This plan asks **€150k at €2.5M pre-money**:
+the price sits **inside that band and below the median**, and the round itself
+is **below** the €500k to €3M that European pre-seed rounds now typically raise.
+So the valuation is ordinary and the cheque is small, which is the combination
+that makes a first round easy to say yes to.
 
 **ENISA Jóvenes Emprendedores fits this founder exactly.** It lends up to
 **€75,000** as a participative loan that is **not convertible into equity**,
