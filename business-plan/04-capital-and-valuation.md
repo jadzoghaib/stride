@@ -118,14 +118,34 @@ raised on a deployed application with connected analytics, an admission gate
 and explainable matching, which is the single strongest asset a first-time
 founder can bring to that conversation. Appendix M shows the screens.
 
-> [!warning] What is aggressive, stated rather than buried
-> The later rounds are priced optimistically: a Seed at €10M pre-money and a
-> Series A at €40M. Those are at the top of what Spanish companies achieve at
-> those stages, and they are assumptions about a future that has to be earned,
-> not commitments anyone has made. They matter less than they look, because
-> both are gated on metrics in the table above and the plan reaches break-even
-> in Y5 without either. The pre-seed is the only round the plan actually
-> depends on.
+### The later rounds, as multiples rather than as numbers
+
+€10M and €40M look like large numbers. The question an investor asks is not how
+large they are but what they are a multiple **of**, and each round here is gated
+on a revenue milestone, so both can be stated that way.
+
+| Round | Pre-money | Gate | Implied multiple | European benchmark |
+|---|---|---|---|---|
+| **Seed** | €10M | €80k MRR = €0.96M ARR | **10.4x ARR** | Marketplaces 4x to 10x net revenue |
+| **Series A** | €40M | €300k MRR = €3.6M ARR | **11.1x ARR** | European Series A median ~13x ARR |
+
+Against the revenue the model actually produces in those years rather than the
+gate, the multiples are lower still: **6.8x**
+at the Seed and **6.4x** at the Series A.
+
+**So the prices are conservative on the measure that matters and only look
+aggressive in absolute terms.** The median European Series A sits near $28M
+pre-money against roughly $2.3M of ARR; SaaS specifically is nearer $45M against
+$2.5M. This plan asks €40M against €3.6M, which is more revenue for a similar
+price. European rounds already price 30 to 50% below US equivalents on identical
+metrics, and these numbers sit inside that discount rather than arguing with it.
+
+> [!warning] What that still does not settle
+> A multiple is only conservative if the revenue behind it arrives. Both rounds
+> are gated on metrics in the table above, neither is a commitment anyone has
+> made, and the plan reaches break-even in Y5 without either of them. **The
+> pre-seed is the only round this plan depends on.** Everything after it is a
+> description of what good would look like, priced sensibly, and nothing more.
 
 ---
 
