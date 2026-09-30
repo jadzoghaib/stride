@@ -238,9 +238,10 @@ That last row is a hard filter, not a preference. See
 | Round | Raised | Pre-money | Post-money | New investor % | Founder(s) after |
 |---|---|---|---|---|---|
 | Internal |  | | | | 100% |
-| Pre-seed | €400k | €2.5M | €2.6M | 5.7% | 92% (after 2% advisory) |
-| Seed *(optional)* | €2.0M | €10M | €12M | 16.7% | 73% |
-| Series A | €8.0M | €40M | €48M | 16.7% | 61% |
+| Pre-seed | €150k | €2.5M | €2.6M | 5.7% | 92% |
+| Pre-seed extension | €250k | €5M | €5.2M | 4.8% | 88% (after 2% advisory) |
+| Seed *(optional)* | €2M | €10M | €12M | 16.7% | 73% |
+| Series A | €8M | €40M | €48M | 16.7% | 61% |
 | ESOP (cumulative) |  | | | 10% | **~55%** |
 
 Retaining ~55% through Series A is a good outcome, and it depends on the
