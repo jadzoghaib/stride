@@ -136,7 +136,7 @@ the top of the sport. That the programme teaches entrepreneurship to retiring
 elite athletes confirms it is not addressing the athlete this plan targets.
 
 **As a partnership**, the relevant asset is credibility and reach into national
-federations, which is exactly the channel [16.3](16-growth-strategy.md) plans
+federations, which is exactly the channel [16.4](16-growth-strategy.md) plans
 to open at Y3. It is listed as an opportunity, not as a dependency.
 
 ---

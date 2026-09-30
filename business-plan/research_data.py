@@ -201,10 +201,15 @@ ROWS: list[tuple] = [
      "Spanish 10Y government bond yield",
      "High", "Refresh at the date of any raise."),
     ("WACC / discount rate", "wacc", "BENCHMARKED",
-     "25%. The conventional range for pre-revenue to early-revenue venture is 20-35% and we sit "
-     "mid-range. The sensitivity grid runs 18-30% precisely because this is arguable rather "
-     "than knowable.",
-     "Standard venture valuation practice",
+     "25%, against a published mature-company anchor of 6.01%. Damodaran's European cost of "
+     "capital dataset puts Software (Internet) at 6.01% in euros across 23 listed firms, and "
+     "the European market ex-financials at 6.59%. Those are costs of capital for mature listed "
+     "companies; this is a pre-revenue venture, and the 19-point gap is the stage premium. It "
+     "is stated rather than buried because it is the largest single judgement in the valuation. "
+     "Damodaran publishes no dataset for venture-stage rates, so the premium itself is "
+     "convention (20-35% is the usual range) and not a sourced figure. The sensitivity grid "
+     "runs 18-30% because this is arguable rather than knowable.",
+     "Aswath Damodaran, NYU Stern, Cost of Capital by Industry (Europe), updated 5 January 2026",
      "Medium", "An actual term sheet prices this for you."),
     ("Exit revenue multiple", "exit_mult", "BENCHMARKED",
      "6.5x blended. Marketplace comparables trade around 4x revenue and high-growth SaaS around "

@@ -158,6 +158,17 @@ NO_VAT_Y7 = NO_VAT[6]
 SCEN = {r["scenario"]: r for r in model.scenario_table()}
 
 
+#: The blended cost of acquiring one athlete, at the Y1 and Y10 segment mix.
+#: 16.2 quotes both ends to show the mix shift is what moves it.
+def _weighted_cac(i: int) -> float:
+    ns = model.A.niche_share[i]
+    return ns * model.A.segments[0].cac_eur[i] + (1 - ns) * model.A.segments[1].cac_eur[i]
+
+
+NICHE_CAC_Y1 = _weighted_cac(0)
+NICHE_CAC_Y10 = _weighted_cac(9)
+
+
 def peak_funding() -> float:
     cum = trough = 0.0
     for r in ROWS:
@@ -385,6 +396,19 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
 
     ("14-legal-and-growth.md", "what the startup tax rate is worth",
      r"worth €([\d.]+)M across Y6–Y9", startup_tax_saving() / 1e6, 0.005),
+    # -- 16.2 the segment progression --------------------------------------
+    # The mix shift is the plan's largest strategic claim about its own future,
+    # so every number stating it is read from niche_share and the two segments'
+    # CAC rather than typed.
+    ("16-growth-strategy.md", "niche share in Y1",
+     r"\*\*(\d+)% niche in Y1", model.A.niche_share[0] * 100, 0.5),
+    ("16-growth-strategy.md", "niche share by Y10",
+     r"niche in Y1 to (\d+)% by Y10", model.A.niche_share[9] * 100, 0.5),
+    ("16-growth-strategy.md", "weighted athlete CAC in Y1",
+     r"\*\*€(\d+) to €\d+\*\*", NICHE_CAC_Y1, 0.5),
+    ("16-growth-strategy.md", "weighted athlete CAC by Y10",
+     r"\*\*€\d+ to €(\d+)\*\*", NICHE_CAC_Y10, 0.5),
+
     # Follows the growth strategy out of the legal document: the ESADE outline
     # separates legal aspects from company growth, so they are now two files.
     ("16-growth-strategy.md", "Y10 EBITDA",
