@@ -176,6 +176,15 @@ def _gmv_per_sponsor(i: int) -> float:
     return ROWS[i]["sponsorship_gmv"] / model.A.sponsors[i]
 
 
+#: Cumulative free cash flow, year by year. The raiseability argument in 04
+#: quotes the first two, and they are the same series the funding table uses.
+CUM_FCF = []
+_c = 0.0
+for _r in ROWS:
+    _c += _r["fcf"]
+    CUM_FCF.append(_c)
+
+
 def peak_funding() -> float:
     cum = trough = 0.0
     for r in ROWS:
@@ -474,6 +483,16 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"average sponsor runs €([\d,]+) of deals", _gmv_per_sponsor(6), 0.5),
     ("01-revenue-model.md", "Y7 commission per sponsor",
      r"commission alone is €([\d,]+)", _gmv_per_sponsor(6) * model.A.take_sponsorship, 0.5),
+
+    # -- 04 the raiseability section --------------------------------------
+    # Figures a reader will check against the cash flow, so they are read from
+    # it rather than restated.
+    ("04-capital-and-valuation.md", "Y1 cash need in the raiseability section",
+     r"Y1 cash need of\s+€(\d+)k", -CUM_FCF[0] / 1e3, 0.5),
+    ("04-capital-and-valuation.md", "cumulative need to end of Y2",
+     r"cumulative need of\s+€(\d+)k to the end of Y2", -CUM_FCF[1] / 1e3, 0.5),
+    ("04-capital-and-valuation.md", "equity tranche plus the ENISA loan",
+     r"Together they are €(\d+)k", (model.ROUNDS[0]["amount"] + 75_000) / 1e3, 0.5),
 
     ("esade-body.md", "capital the plan needs",
      r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 0.5),

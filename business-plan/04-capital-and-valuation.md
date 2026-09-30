@@ -86,6 +86,49 @@ have spent €80k and a year, not €2.6M and four.
 
 ---
 
+## Is this raiseable, by this founder, in this market
+
+The honest version of the question is whether a first-time founder in their
+twenties raises this in Spain. Three things say yes, and one says be careful.
+
+**The ask is small and the price is below market.** European pre-seed pre-money
+valuations had a median of **€3.3M in 2024**, up from €1.7M the year before,
+with the usual band €2M to €4M. This plan asks **€150k at
+€2.5M pre-money**, which is under that median, and typical
+European pre-seed *round sizes* now run €500k to €3M, so the first tranche is
+below the normal range on both axes. Nothing here requires an investor to
+stretch.
+
+**ENISA Jóvenes Emprendedores fits this founder exactly.** It lends up to
+**€75,000** as a participative loan that is **not convertible into equity**,
+with no personal guarantees, to companies whose majority shareholders are
+**under 40** and which have fewer than two closed financial years. Both
+conditions hold. The loan runs up to seven years with up to five years of
+grace, at Euribor plus 3.25% on the first tranche.
+
+Against a **Y1 cash need of €73k**, that is close to the whole of the
+first year at no equity cost. The two are complementary rather than
+alternatives: ENISA asks for an own-funds ratio of roughly 50%, so the
+€150k equity tranche is what makes the €75k loan available.
+Together they are €225k against a cumulative need of
+€203k to the end of Y2.
+
+**The product exists.** Most pre-seed rounds are raised on a deck. This one is
+raised on a deployed application with connected analytics, an admission gate
+and explainable matching, which is the single strongest asset a first-time
+founder can bring to that conversation. Appendix M shows the screens.
+
+> [!warning] What is aggressive, stated rather than buried
+> The later rounds are priced optimistically: a Seed at €10M pre-money and a
+> Series A at €40M. Those are at the top of what Spanish companies achieve at
+> those stages, and they are assumptions about a future that has to be earned,
+> not commitments anyone has made. They matter less than they look, because
+> both are gated on metrics in the table above and the plan reaches break-even
+> in Y5 without either. The pre-seed is the only round the plan actually
+> depends on.
+
+---
+
 ## Spanish instruments: non-dilutive capital first
 
 Spain has unusually good public financing for early-stage technology companies.
