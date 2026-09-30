@@ -35,7 +35,7 @@ def evidence() -> str:
     n = len(entries)
 
     out = [
-        "# 17 — Evidence Base: Where Every Assumption Comes From",
+        "# 17: Evidence Base: Where Every Assumption Comes From",
         "",
         "*Generated from `research_data.py`, which also produces the Research",
         "sheet of the financial model. Every driver the model runs on appears",
@@ -115,7 +115,7 @@ def evidence() -> str:
 
 def walkthrough() -> str:
     out = [
-        "# 18 — Product Walkthrough: The Deployed Demo",
+        "# 18: Product Walkthrough: The Deployed Demo",
         "",
         "*Screens captured from the running application at "
         "[stride-demo.onrender.com](https://stride-demo.onrender.com), not "
@@ -149,7 +149,7 @@ def walkthrough() -> str:
         out += [
             f"## 18.{i} {title}",
             "",
-            f"![{title} — {path}](attachments/ui/{name}.png)",
+            f"![{title}: {path}](attachments/ui/{name}.png)",
             "",
             f"{caption} Route `{path}`, viewed {who}.",
             "",

@@ -13,14 +13,14 @@ METHOD:
 
 `key` links the row to the Assumptions sheet, so the workbook shows the LIVE
 value beside the evidence that justified it. Change the assumption and this tab
-shows the new number against the old reasoning — which is the point.
+shows the new number against the old reasoning, which is the point.
 """
 
 from __future__ import annotations
 
 # (label, assumptions_key, method, benchmark, source, confidence, what_would_improve_it)
 ROWS: list[tuple] = [
-    ("— PRICING & TAKE RATE —",),
+    (": PRICING & TAKE RATE: ",),
     ("Take rate on fan revenue", "take_fan", "BENCHMARKED",
      "Passes charges 10% but adds $0.30/txn and a $29/month creator fee; OnlyFans, Fansly and "
      "Fanfix are all 20%; Patreon 8-12%. A flat 15% with no monthly fee pays an athlete more "
@@ -36,7 +36,7 @@ ROWS: list[tuple] = [
     ("Suggested tiers 4.99 / 9.99 / 24.99", "", "BENCHMARKED",
      "Patreon's typical patronage is quoted at $8-12/month, so the EUR 9.99 anchor sits inside "
      "the observed band. EUR 4.99 retains only 54% of our take after payment fees, against 71% "
-     "at EUR 9.99 — which is why the floor matters more than the take rate.",
+     "at EUR 9.99: which is why the floor matters more than the take rate.",
      "Patreon 2024 Transparency Report; independent audits of ~1,200 creators",
      "Medium", "Our own tier mix after P1."),
     ("Season pass / annual billing", "", "SOURCED",
@@ -45,7 +45,7 @@ ROWS: list[tuple] = [
      "Patreon 2024 Transparency Report",
      "High", "Already strong. Confirm on our own cohorts."),
 
-    ("— FAN ECONOMICS —",),
+    (": FAN ECONOMICS: ",),
     ("Fan ARPU per month", "niche_arpu", "BENCHMARKED",
      "Patreon's average monthly support rose from $5.40 to $6.10 during 2024, with typical "
      "patronage quoted at $8-12. Our EUR 8.00-9.50 sits in the upper-middle of that range.",
@@ -60,12 +60,12 @@ ROWS: list[tuple] = [
             "it. Until then the conservative case should be treated as the plan."),
     ("Paying fans per monetising athlete", "niche_fpa", "DERIVED",
      "20 rising to 48 over ten years. Cross-check: Patreon creators average $350/month and our "
-     "modelled niche athlete at maturity earns about EUR 313/month — closely aligned, which is "
+     "modelled niche athlete at maturity earns about EUR 313/month, closely aligned, which is "
      "reassuring for an assumption built bottom-up rather than from a comparable.",
      "Patreon 2024 Transparency Report (creator average $350/month)",
      "Medium", "Observed fans per athlete, banded by follower count."),
     ("Share of athletes who monetise", "niche_monetise", "ESTIMATE",
-     "28% rising to 50% for niche sports. No direct comparable exists — neither Patreon nor "
+     "28% rising to 50% for niche sports. No direct comparable exists: neither Patreon nor "
      "OnlyFans publishes activation rates for creators who sign up but never charge.",
      "None found",
      "Low", "Our own activation funnel, available from P1 onward."),
@@ -73,10 +73,10 @@ ROWS: list[tuple] = [
      "An athlete can recruit 30-69 new paying fans a year depending on segment. This ceiling "
      "is what makes churn bite in the model: without it, higher churn perversely RAISED "
      "revenue, because the year-end target was reachable at any churn rate.",
-     "None — introduced to fix a modelling flaw found by stress testing",
+     "None: introduced to fix a modelling flaw found by stress testing",
      "Low", "Observed gross adds per athlete per year."),
 
-    ("— PAYMENT RAILS —",),
+    (": PAYMENT RAILS: ",),
     ("PSP percentage fee", "psp_pct", "SOURCED",
      "Stripe for a Spanish entity: 1.5% + EUR 0.25 on EEA domestic cards, 2.5% on UK cards, "
      "3.25% on non-EEA. 1.9% is the blend for a mostly-European fan base. CORRECTION: an "
@@ -95,7 +95,7 @@ ROWS: list[tuple] = [
      "Stripe Connect pricing, 2026",
      "Medium", "Actual payout frequency once athletes are onboarded."),
 
-    ("— MARKET SIZING —",),
+    (": MARKET SIZING: ",),
     # Six of 34 measured is not a sourced figure, whatever the six are worth.
     # The row said so in its own benchmark text while claiming SOURCED/High,
     # which is the kind of disagreement this table exists to prevent.
@@ -104,11 +104,11 @@ ROWS: list[tuple] = [
      "Poland 65%, Greece 68%, Portugal 73%, EU-27 average 45%. Six of the 34 countries in the "
      "index are measured; the other 28 are estimates placed inside that distribution.",
      "Special Eurobarometer 525, Sport and Physical Activity, September 2022",
-     "Medium", "Federation licence counts — published annually and free (CSD in Spain)."),
+     "Medium", "Federation licence counts, published annually and free (CSD in Spain)."),
     ("Padel market size", "", "SOURCED",
      "Spain has ~6.0M active players (12.7% of the population), 109,040 federation licences and "
      "17,300+ courts; globally 35M+ players and 77,000+ courts. This is the clearest case for "
-     "weighting a sport regionally rather than globally — padel scores 77.7 in Spain and 45.1 "
+     "weighting a sport regionally rather than globally, padel scores 77.7 in Spain and 45.1 "
      "worldwide.",
      "FIP World Padel Report 2025",
      "High", "Annual FIP refresh."),
@@ -116,17 +116,17 @@ ROWS: list[tuple] = [
      "The weakest layer of the sport index, and it drives both the `demand` and `appetite` "
      "signals. Commercial audience panels (Nielsen Sports, YouGov) cost more than the entire "
      "Y1-Y2 analytics budget.",
-     "None — reasoned estimates only",
+     "None: reasoned estimates only",
      "Low", "Our own engagement data per sport per country once connectors are live. This is "
             "what makes the index self-improving rather than something anyone could copy."),
     ("Athlete count trajectory", "athletes", "ESTIMATE",
      "400 rising to 40,000 over ten years. This is the PLAN, not a benchmark: marketing spend "
      "is derived from it at segment CAC, not the other way round. Everything in the model "
      "scales off this line.",
-     "None — it is a target",
+     "None: it is a target",
      "Low", "The pre-seed gate tests it directly: 400 athletes and EUR 10k MRR."),
 
-    ("— COSTS —",),
+    (": COSTS: ",),
     ("Athlete CAC", "niche_cac", "ESTIMATE",
      "EUR 16-36 for niche, EUR 40-88 for popular. The gap reflects displacing an existing agent "
      "relationship versus reaching someone with no representation at all. No published "
@@ -139,21 +139,21 @@ ROWS: list[tuple] = [
      "scripts/admission_stress.py run over the admission policy itself, so retuning a threshold "
      "moves this figure. The sweep asserts the model and the policy stay in step and fails if "
      "they drift.",
-     "scripts/admission_stress.py, section 7 — over a modelled applicant mix",
+     "scripts/admission_stress.py, section 7, over a modelled applicant mix",
      "Medium", "Real intake data. The mix the sweep assumes is the soft part, not the arithmetic."),
     ("Admission rate, club-nominated", "admit_club", "ESTIMATE",
      "45% admitted against 20% direct. A verified club's nomination confers a credibility floor "
      "of 0.75 x its own legitimacy score, which carries a completed application over the admit "
-     "line that would otherwise have gone to review. It cannot carry an empty one — no club can "
-     "supply someone else's date of birth — so the uplift is real but bounded.",
-     "None — the mechanism is built and tested, the conversion is not yet measured",
+     "line that would otherwise have gone to review. It cannot carry an empty one: no club can "
+     "supply someone else's date of birth, so the uplift is real but bounded.",
+     "None: the mechanism is built and tested, the conversion is not yet measured",
      "Low", "The first federation partnership: nominated applicants are tagged, so this is "
             "measurable from day one of it."),
     ("Athlete verification cost", "review_min", "DERIVED",
      "Four minutes per manual review, priced at the same loaded salary the People line uses, "
      "over 1,700 productive hours. Peaks at EUR 47k and 0.64 reviewer-FTE in Y10, which is the "
      "finding rather than the cost: verification is not a money problem at this scale. The "
-     "reason to automate it is latency — an athlete sitting in the queue is not listed, not "
+     "reason to automate it is latency: an athlete sitting in the queue is not listed, not "
      "matchable and not earning.",
      "Derived from the sweep's review volume and the model's own salary line",
      "Medium", "Timing real reviews. Four minutes is an estimate of a mechanical task."),
@@ -161,13 +161,13 @@ ROWS: list[tuple] = [
      "Deliberately NOT multiplied by the admission funnel. Segment CAC is defined as the cost of "
      "landing one athlete ON the platform, so scaling it by 1/admission-rate would charge the "
      "same money twice. The Costs sheet carries a memo line showing what that CAC works out to "
-     "per application (EUR 3.40 in Y1 rising to EUR 22) — the figure to hold against what a "
+     "per application (EUR 3.40 in Y1 rising to EUR 22), the figure to hold against what a "
      "channel actually charges per name reached.",
-     "None — this is a definitional choice, made explicit so it is not silently reversed",
+     "None: this is a definitional choice, made explicit so it is not silently reversed",
      "Low", "Channel-level spend against applications, which the funnel now records."),
     ("Loaded salary, Spain", "salary", "BENCHMARKED",
      "EUR 38k-76k loaded. Spanish employer social security adds roughly 31% on top of gross, so "
-     "a senior engineer at ~EUR 55k gross costs ~EUR 72k — around half the London equivalent, "
+     "a senior engineer at ~EUR 55k gross costs ~EUR 72k, around half the London equivalent, "
      "which is a real argument for being in Spain rather than an accident of geography.",
      "Spanish Seguridad Social employer contribution rates",
      "Medium", "Actual offers accepted."),
@@ -179,7 +179,7 @@ ROWS: list[tuple] = [
      "Medium", "Actual bills; commit to Savings Plans once usage is stable."),
     ("Media egress", "egress", "SOURCED",
      "EUR 0.008/GB behind a zero-egress object store versus EUR 0.075/GB at CloudFront list "
-     "price. At Y10 volumes that single architectural choice is worth over EUR 1M a year — the "
+     "price. At Y10 volumes that single architectural choice is worth over EUR 1M a year, the "
      "largest cost decision in the plan that is settled by engineering rather than negotiation.",
      "Cloudflare R2 and Backblaze B2 pricing; AWS CloudFront list price",
      "High", "Nothing. Both are published."),
@@ -189,7 +189,7 @@ ROWS: list[tuple] = [
      "None cited",
      "Low", "Vendor quotes once P2 scope is fixed."),
 
-    ("— TAX, CAPITAL & VALUATION —",),
+    (": TAX, CAPITAL & VALUATION: ",),
     ("Corporate tax rates", "tax_low", "SOURCED",
      "15% for the first four profitable years under the Spanish Startup Law, then the 25% "
      "standard rate. Modelled with loss carryforward against the Y1-Y4 losses.",
@@ -215,17 +215,17 @@ ROWS: list[tuple] = [
      "3%, approximating long-run nominal GDP. Ten explicit forecast years were chosen partly so "
      "this assumption carries less of the valuation than it would at Y7.",
      "Standard DCF convention",
-     "Medium", "Nothing — it is a convention, and the grid shows its effect."),
+     "Medium", "Nothing: it is a convention, and the grid shows its effect."),
 
-    ("— COMPLIANCE —",),
+    (": COMPLIANCE: ",),
     ("Payout age floor", "", "SOURCED",
      "Stripe Express and Custom Connect require 18. Standard Connect allows 13+, but a legal "
      "guardian must own the account and hold the bank account the money lands in.",
      "Stripe Connect documentation",
-     "High", "Nothing — it is a hard platform rule."),
+     "High", "Nothing: it is a hard platform rule."),
     ("Digital consent age, Spain", "", "SOURCED",
      "14 today under LOPDGDD Art. 7. A draft Organic Law on the Protection of Minors in Digital "
-     "Environments would raise it to 16 and make age verification mandatory — which is why 16 "
+     "Environments would raise it to 16 and make age verification mandatory, which is why 16 "
      "is the forward-compatible floor for an account.",
      "LOPDGDD Art. 7; draft Organic Law, Council of Ministers, March 2025",
      "High", "Track the bill through Parliament."),

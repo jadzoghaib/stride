@@ -136,7 +136,7 @@ def g2() -> None:
 
     ax.scatter([1], [niche[0]], s=320, facecolors="none", edgecolors=ROSE,
                linewidths=1.6, zorder=4)
-    ax.annotate("the arbitrage —\na national champion\nearning nothing",
+    ax.annotate("the arbitrage: \na national champion\nearning nothing",
                 xy=(1.6, niche[0]), xytext=(4.2, 14_000), fontsize=7.5,
                 color=ROSE, arrowprops=dict(arrowstyle="->", color=ROSE, lw=1))
 
@@ -147,7 +147,7 @@ def g2() -> None:
     ax.set_axisbelow(True)
     ax.legend(loc="upper right")
     title(ax, "The decoupling",
-          "ILLUSTRATIVE — the argument of §2.3 drawn, not a measurement. "
+          "ILLUSTRATIVE: the argument of §2.3 drawn, not a measurement. "
           "In one sport the axes are the same line; in the other they are unrelated.")
     save(fig, "g2-decoupling.png",
          "Illustrative. Nothing in the repository measures athlete income; a real "
@@ -157,7 +157,7 @@ def g2() -> None:
 # ── G3 · the market funnel ──────────────────────────────────────────────────
 def g3() -> None:
     d = rows("g3-market-funnel.csv")
-    labels = [r["step"].replace(" -- ", " — ") for r in d][::-1]
+    labels = [r["step"].replace(" -- ", ", ") for r in d][::-1]
     vals = [int(r["people"]) for r in d][::-1]
     colours = [AMBER if i < 2 else SAND for i in range(len(vals))]
 
@@ -172,7 +172,7 @@ def g3() -> None:
     ax.set_axisbelow(True)
     ax.tick_params(axis="y", labelsize=7.5)
     title(ax, "From 520 million people to the athletes we can serve",
-          "Logarithmic — four orders of magnitude. The last two bars are the plan.")
+          "Logarithmic: four orders of magnitude. The last two bars are the plan.")
     save(fig, "g3-market-funnel.png", "Source: g3-market-funnel.csv")
 
 
@@ -261,7 +261,7 @@ def g5() -> None:
     ax.legend(loc="center right", fontsize=7)
     title(ax, "Nobody occupies all three",
           "Patreon sits on our exact point on these two axes, nudged apart here "
-          "to stay visible — and it has no sponsor side and no sport context. "
+          "to stay visible: and it has no sponsor side and no sport context. "
           "The gap is the combination, not either axis alone.")
     save(fig, "g5-competitive-map.png", "Source: g5-competitive-map.csv")
 
@@ -479,7 +479,7 @@ def read_risks() -> list[tuple[str, int, int]]:
         if m:
             out.append((m.group(1), int(m.group(3)), int(m.group(4))))
     if not out:
-        raise SystemExit("no risks parsed from the register — has the table changed?")
+        raise SystemExit("no risks parsed from the register, has the table changed?")
     return out
 
 

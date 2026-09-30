@@ -1,4 +1,4 @@
-# 03 — Seven-Year Financial Model
+# 03: Seven-Year Financial Model
 
 Every table here is emitted by [`model.py`](model.py). Y1 = 2027, EUR.
 
@@ -41,7 +41,7 @@ show:
 
 **Revenue accrues on the average fan count, not the year-end count.** Charging
 twelve months at the December number overstates revenue by roughly a third
-during fast growth — the previous version of this model did exactly that.
+during fast growth: the previous version of this model did exactly that.
 
 **Gross adds dwarf net adds.** At 9%/month a cohort retains 32% over a year, so
 most of next year's fans are replacements for this year's. In Y7 we acquire
@@ -68,17 +68,17 @@ in kind rather than in size. Sports are assigned by
 
 | Segment | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
-| **Niche — athletes** | 380 | 1,656 | 4,400 | 8,840 | 14,500 | 19,000 | 23,400 |
-| **Niche — paying fans** | 2,128 | 11,658 | 40,700 | 101,483 | 191,400 | 279,680 | 381,888 |
-| **Niche — net revenue** | €43k | €250k | €912k | €2.37M | €4.64M | €6.96M | €9.68M |
-| **Popular — athletes** | 20 | 144 | 1,100 | 4,160 | 10,500 | 19,000 | 28,600 |
-| **Popular — paying fans** | 73 | 710 | 7,040 | 33,488 | 103,740 | 218,120 | 377,520 |
-| **Popular — net revenue** | €2k | €22k | €231k | €1.21M | €3.99M | €8.88M | €15.58M |
+| **Niche: athletes** | 380 | 1,656 | 4,400 | 8,840 | 14,500 | 19,000 | 23,400 |
+| **Niche: paying fans** | 2,128 | 11,658 | 40,700 | 101,483 | 191,400 | 279,680 | 381,888 |
+| **Niche: net revenue** | €43k | €250k | €912k | €2.37M | €4.64M | €6.96M | €9.68M |
+| **Popular: athletes** | 20 | 144 | 1,100 | 4,160 | 10,500 | 19,000 | 28,600 |
+| **Popular: paying fans** | 73 | 710 | 7,040 | 33,488 | 103,740 | 218,120 | 377,520 |
+| **Popular: net revenue** | €2k | €22k | €231k | €1.21M | €3.99M | €8.88M | €15.58M |
 | Niche share of athletes | 95% | 92% | 80% | 68% | 58% | 50% | 45% |
 | **Niche share of revenue** | **95%** | **92%** | **80%** | **66%** | **54%** | **44%** | **38%** |
 
 **Niche funds the company; popular scales it.** Niche sports carry 95% of
-revenue through Y2 — the entire period before the first external raise — and
+revenue through Y2: the entire period before the first external raise, and
 fall to 38% by Y7 despite still being 45% of athletes, because popular-sport
 deals are 2.4× larger. Neither segment alone produces this plan: without niche
 there is no Y1, and without popular the Y7 number is a third smaller.
@@ -93,7 +93,7 @@ athletes × share who monetise × paying fans per monetising athlete
 
 The defensible input is the last term: **34 paying fans per niche athlete at
 maturity.** A trail runner with 20,000 followers converting 0.17% of them is not
-heroic — OnlyFans creators routinely convert 1–3% of smaller followings and
+heroic: OnlyFans creators routinely convert 1–3% of smaller followings and
 Patreon's benchmark is ~2%. The model sits an order of magnitude below both,
 because sport fandom is less parasocial than the categories those platforms
 serve. In the popular segment it is lower still as a share of following, which
@@ -157,7 +157,7 @@ curve that stays above 50% through Y7 is what a Series B buyer wants to see.
 | **Free cash flow** | €-96k | €-162k | €-181k | €-25k | €596k | €1.87M | €3.33M | €5.30M | €7.23M | €8.87M |
 <!-- /MODEL:pl -->
 
-Free cash flow is EBITDA less tax, working capital movement and capex — not
+Free cash flow is EBITDA less tax, working capital movement and capex, not
 EBITDA less tax, which is what the table implied while those two rows were
 missing. **Working capital is negative in every year, meaning it releases cash
 rather than consuming it**: fan GMV is held about fifteen days before athletes
@@ -205,9 +205,8 @@ parent (~85% at a 20% take on far larger tickets).
 **€649k is a small number for a plan that reaches €10.7M of revenue by Y7,
 and that should be interrogated rather than celebrated.** It is small because
 the model hires behind revenue rather than ahead of it, and because fan
-acquisition is free. A growth-optimised version — hiring 12 months earlier,
-buying athlete acquisition harder, entering three markets simultaneously —
-would burn €3–5M and reach Y7 revenue a year or two sooner. That is a strategy
+acquisition is free. A growth-optimised version: hiring 12 months earlier,
+buying athlete acquisition harder, entering three markets simultaneously, would burn €3–5M and reach Y7 revenue a year or two sooner. That is a strategy
 choice, not a modelling error. See [scenarios](#scenarios).
 
 ---
@@ -224,7 +223,7 @@ be wrong are **fans per athlete** and **share of athletes who monetise**.
 | **Growth-optimised** | Hire 12mo ahead, 3 markets from Y2 | ~€39M | ~€9M | €3–5M |
 
 To run these, edit `Assumptions` in `model.py` and rerun. The conservative case
-**still reaches profitability in Y5, the same year as the base case** — the
+**still reaches profitability in Y5, the same year as the base case**, the
 robustness test that matters, and a stronger result than the old "later, at Y5
 rather than Y4". Carrying VAT moved the base case back a year; it did not move
 the conservative one, because that case is already thin enough in Y4 that the
@@ -239,13 +238,13 @@ Named so nobody thinks they were forgotten:
 | Excluded | Why |
 |---|---|
 | Managed matchmaking and market-intelligence revenue | Real, but later-stage; the plan should not depend on them |
-| Reserved-instance / Savings Plan discounts | 25–40% on compute — upside, not plan |
+| Reserved-instance / Savings Plan discounts | 25–40% on compute: upside, not plan |
 | Processor renegotiation below 2.9% | Available at volume, treated as upside |
 | Grant income (Neotec, ENISA) | Non-dilutive but uncertain; see [04](04-capital-and-valuation.md) |
-| Working capital timing | Payout float is favourable (we hold fan money before paying athletes) — a real cash benefit, unmodelled |
+| Working capital timing | Payout float is favourable (we hold fan money before paying athletes), a real cash benefit, unmodelled |
 | FX | EUR-only until the UK or US entry |
 | Cohort *quality* drift | Later cohorts may convert worse than early ones; not modelled |
 
 Athlete and fan churn are now modelled explicitly. The remaining weakness is
-that all cohorts are assumed to behave alike — in practice the athletes who join
+that all cohorts are assumed to behave alike, in practice the athletes who join
 in Y6 are unlikely to convert as well as the hand-picked ones in Y1.

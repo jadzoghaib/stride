@@ -23,7 +23,7 @@ matching with explainable ranking, offers, deals and delivery measurement. All
 of it is deployed, with an audit log, a resilience drill, and a test suite that
 runs on two databases in continuous integration. Appendix M shows the screens.
 
-![Figure 1 — Net revenue and EBITDA, Y1 to Y7. The company is loss-making for four years, and the losses are small.](attachments/charts/g1-revenue-ebitda.png)
+![Figure 1: Net revenue and EBITDA, Y1 to Y7. The company is loss-making for four years, and the losses are small.](attachments/charts/g1-revenue-ebitda.png)
 
 <!-- MODEL:summary -->
 |  | Y3 | Y7 |
@@ -158,7 +158,7 @@ this market is not scarce; it is unserved.
 
 ### 3.1.2 Market size
 
-![Figure 2 — From 520 million people to the athletes the plan can serve. Logarithmic; four orders of magnitude.](attachments/charts/g3-market-funnel.png)
+![Figure 2: From 520 million people to the athletes the plan can serve. Logarithmic; four orders of magnitude.](attachments/charts/g3-market-funnel.png)
 
 The funnel narrows from the EU-27 and UK population to a **TAM of 138,000
 athletes** with 5,000 or more followers in niche sports, a **SAM of 55,000**
@@ -175,13 +175,13 @@ serviceable market after seven years.
 The segmentation that decides strategy is **agent density**, not sport or
 country.
 
-![Figure 3 — 714 country by sport pairs scored on opportunity against agent density. The wedge is the left edge.](attachments/charts/g4-sport-index.png)
+![Figure 3: 714 country by sport pairs scored on opportunity against agent density. The wedge is the left edge.](attachments/charts/g4-sport-index.png)
 
 |  | Popular sports | Niche sports |
 |---|---|---|
 | Does an agent exist? | Yes, for the top. The tail is ignored | **No** |
 | The athlete's alternative | An agent taking 10–20%, if one will take them | **Nothing** |
-| What we sell | Disintermediation — 10%, matched on evidence | Market creation — monetise at all |
+| What we sell | Disintermediation: 10%, matched on evidence | Market creation: monetise at all |
 | Customer acquisition cost | Higher: an incumbent relationship to beat | Lower: no incumbent |
 
 **We start where there is no incumbent.** The sport index scores 714 country ×
@@ -245,7 +245,7 @@ direction is understatement.
 
 ### 3.2.1 The need
 
-![Figure 4 — The decoupling. Illustrative, not a measurement.](attachments/charts/g2-decoupling.png)
+![Figure 4: The decoupling. Illustrative, not a measurement.](attachments/charts/g2-decoupling.png)
 
 In a popular sport, sporting rank and sponsorship income are close to the same
 line. In a niche sport they are unrelated: a national champion can earn nothing.
@@ -262,7 +262,7 @@ and a subscription is discretionary.
 
 ### 3.2.2 The sector, and the competition
 
-![Figure 5 — Nobody occupies all three. Patreon matches us on both axes and has neither a sponsor side nor sport context.](attachments/charts/g5-competitive-map.png)
+![Figure 5: Nobody occupies all three. Patreon matches us on both axes and has neither a sponsor side nor sport context.](attachments/charts/g5-competitive-map.png)
 
 | Player | Fan monetisation | Long tail | Why they are not us |
 |---|---|---|---|
@@ -326,7 +326,7 @@ a label rendered by the client, not a price.
 
 ## 3.5 Revenue sources
 
-![Figure 6 — The business changes shape. Fan revenue leads throughout; the other two compound behind it.](attachments/charts/g6-revenue-mix.png)
+![Figure 6: The business changes shape. Fan revenue leads throughout; the other two compound behind it.](attachments/charts/g6-revenue-mix.png)
 
 | Stream | Basis | Y7 |
 |---|---|---|
@@ -352,7 +352,7 @@ engine, already built, compounds behind it.
 
 **15% of fan revenue, 10% of sponsorship, no monthly athlete fee.**
 
-![Figure 7 — The take-rate corridor. Both ends are real competitor rates.](attachments/charts/g9-take-rate-corridor.png)
+![Figure 7: The take-rate corridor. Both ends are real competitor rates.](attachments/charts/g9-take-rate-corridor.png)
 
 The corridor is bounded by published competitor economics: Patreon's all-in 10%
 and OnlyFans' 20%, derived from filed accounts. At 15% we sit between them and
@@ -366,7 +366,7 @@ which is the whole long tail.
 > same rate as the one earning €5,000. A subscription fee would have been
 > regressive.
 
-![Figure 8 — Why niche first, in two lines: acquisition cost and the share of athletes who monetise, niche against popular.](attachments/charts/g7-unit-economics.png)
+![Figure 8: Why niche first, in two lines: acquisition cost and the share of athletes who monetise, niche against popular.](attachments/charts/g7-unit-economics.png)
 
 Niche athletes cost less to acquire and a larger share of them monetise. That
 is the whole reason the plan starts there rather than in football, and it is
@@ -499,12 +499,12 @@ The assumptions that matter most:
 
 | Assumption | Value | Confidence |
 |---|---|---|
-| Fan monthly churn, niche | 9% (45% slower than Patreon benchmark) | **Low — this is R1** |
+| Fan monthly churn, niche | 9% (45% slower than Patreon benchmark) | **Low: this is R1** |
 | Fans per monetising athlete | 20 → 41 over ten years | Low |
 | Athletes who monetise | 28% → 55% (niche) | Medium |
 | Fan ARPU | €8.00 → €9.50/month, VAT inclusive | Medium |
 | Take rate, fan / sponsorship | 15% / 10% | Set by us |
-| Payment processing | 1.9% + €0.25 | High — published |
+| Payment processing | 1.9% + €0.25 | High: published |
 | VAT on fan subscriptions | 21% blended | Medium |
 | WACC | 25% | Standard for stage |
 
@@ -521,7 +521,7 @@ The assumptions that matter most:
 Growth decelerates from +442% in Y2 to +64% in Y7, which is the shape a
 marketplace should have. Gross margin climbs from 64% in Y3 to 71% by Y10.
 
-![Figure 9 — What cost of revenue is made of. The dashed line is the infrastructure we chose not to buy.](attachments/charts/g11-cogs-composition.png)
+![Figure 9: What cost of revenue is made of. The dashed line is the infrastructure we chose not to buy.](attachments/charts/g11-cogs-composition.png)
 
 **Payment processing is 24% of Y7 revenue and nearly eight times infrastructure.**
 Any optimisation effort belongs in tier pricing, annual billing and processor
@@ -577,14 +577,14 @@ treats it as both.
 
 ## 7.5 Cash position and financing
 
-![Figure 10 — The hole, and the buffer over it. Y1 to Y5, where the trough lives.](attachments/charts/g8-cash-and-capital.png)
+![Figure 10: The hole, and the buffer over it. Y1 to Y5, where the trough lives.](attachments/charts/g8-cash-and-capital.png)
 
 The deepest the cash ever goes is **€464k, in Y4**. A **€600k pre-seed covers
 that with €136k to spare**, and free cash flow turns positive in Y5.
 
 | Stage | Amount | Pre-money | Gate |
 |---|---|---|---|
-| Internal | €80k + time | — | Product exists ✓ |
+| Internal | €80k + time |  | Product exists ✓ |
 | **Pre-seed** | **€600k** | **€2.5M** | 400 athletes · €10k MRR · anchor athlete public · payments live · **3 months fan churn** |
 | Seed *(optional)* | €2.0M | €10M | €80k MRR · churn <8%/mo · CAC payback <9mo · 2nd market |
 | Series A | €8.0M | €40M | €300k MRR · NRR >110% · sponsorship >25% of revenue |
@@ -643,7 +643,7 @@ argue for it. That case is §10.
 
 ## 7.7 Valuation
 
-![Figure 11 — Two methods that disagree, for a reason.](attachments/charts/g10-valuation.png)
+![Figure 11: Two methods that disagree, for a reason.](attachments/charts/g10-valuation.png)
 
 The DCF says **€8.37M** today; the blended exit multiple says €165.0M at Y10.
 This is not an error in either; it is the standard failure of a
@@ -663,14 +663,14 @@ no-growth-after-Y10 assumption.
 
 # 9. Critical risks and contingency plans
 
-![Figure 12 — The risk map, parsed from the register itself.](attachments/charts/g12-risk-map.png)
+![Figure 12: The risk map, parsed from the register itself.](attachments/charts/g12-risk-map.png)
 
 Eleven risks scored probability × impact, both 1–5. Three clear a score of 12,
 and **nothing is rated more likely than 3**.
 
 | # | Risk | Score | Contingency |
 |---|---|---|---|
-| **R1** | **Fans do not pay for niche athletes — the thesis fails** | **15** | P1 is built specifically to test this for €80k, not €2.6M. If false, the sponsorship marketplace remains a smaller, viable business |
+| **R1** | **Fans do not pay for niche athletes, the thesis fails** | **15** | P1 is built specifically to test this for €80k, not €2.6M. If false, the sponsorship marketplace remains a smaller, viable business |
 | **R2** | Churn is at benchmark, not 45% better | 12 | Measure early, on one athlete, before the seed. The model understates this |
 | **R3** | Athlete acquisition slower than modelled | 12 | Club and federation channels are multiplicative: one conversation is 20–40 athletes |
 | R5 | Regulatory: DAC7, age assurance, startup law changes | 9 | Compliance built in; DAC7 reporting is a data export, not a rebuild |

@@ -18,8 +18,6 @@ from __future__ import annotations
 import pathlib
 import sys
 
-from playwright.sync_api import sync_playwright
-
 BASE = "https://stride-demo.onrender.com"
 OUT = pathlib.Path(__file__).parent / "attachments" / "ui"
 PASSWORD = "stride123"
@@ -66,6 +64,12 @@ def sign_in(page, email: str) -> None:
 
 
 def main() -> int:
+    # Imported here, not at module scope. make_appendices reads SHOTS from this
+    # file, and an import-time dependency on Playwright made generating the
+    # appendix require a working browser stack, which on this machine
+    # Application Control intermittently blocks.
+    from playwright.sync_api import sync_playwright
+
     OUT.mkdir(parents=True, exist_ok=True)
     written = []
     with sync_playwright() as p:

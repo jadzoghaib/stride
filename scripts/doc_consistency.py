@@ -622,7 +622,10 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"\| Series A \| €8\.0M \| €40M \| €48M \| 16\.7% \| (\d+)% \|",
      DILUTION["Series A"]["held"] * 100, 0.5),
     ("04-capital-and-valuation.md", "founders held after the ESOP",
-     r"\| ESOP \(cumulative\) \| — \| — \| — \| 10% \| \*\*~(\d+)%\*\* \|",
+     # The three empty columns were em-dashes until the document dropped them;
+     # matched as "whatever is between the pipes" so the pin survives a
+     # formatting decision it has no stake in.
+     r"\| ESOP \(cumulative\) \|[^|]*\|[^|]*\|[^|]*\| 10% \| \*\*~(\d+)%\*\* \|",
      DILUTION["ESOP (cumulative)"]["held"] * 100, 0.5),
     ("04-capital-and-valuation.md", "equity retained through the Series A",
      r"Retaining ~(\d+)% through Series A",
@@ -698,11 +701,11 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("README.md", "the trough the egress difference is compared to",
      r"this plan's entire €(\d+)k cash trough", peak_funding() / 1e3, 1.0),
     ("02-cost-model.md", "the egress difference across the plan",
-     r"— €([\d.]+)M across the ten\s+years", egress_cumulative() / 1e6, 0.05),
+     r", €([\d.]+)M across the ten\s+years", egress_cumulative() / 1e6, 0.05),
     ("README.md", "the Y7 egress difference",
      r"costs \*\*€(\d+)k more in Y7\*\*", egress_delta(7) / 1e3, 1.0),
     ("README.md", "the egress difference across the plan",
-     r"more in Y7\*\* — and €([\d.]+)M", egress_cumulative() / 1e6, 0.05),
+     r"more in Y7\*\*, and €([\d.]+)M", egress_cumulative() / 1e6, 0.05),
     ("stride-business-plan-draft.md", "the Y7 egress difference",
      r"is \*\*€(\d+)k a year at Y7\*\*", egress_delta(7) / 1e3, 1.0),
     ("stride-business-plan-draft.md", "the egress difference across the plan",

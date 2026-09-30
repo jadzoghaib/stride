@@ -1,4 +1,4 @@
-"""Stride Sport Opportunity Index — every sport, every country in scope.
+"""Stride Sport Opportunity Index: every sport, every country in scope.
 
     python business-plan/sport_index.py                    # top opportunities, all countries
     python business-plan/sport_index.py --country Spain     # one country ranked
@@ -9,16 +9,16 @@
 
 Four signals, from sport_data.py:
 
-    supply     participants per capita     — how many athletes exist to sign
-    demand     followers per capita        — how many people might pay
-    gap        1 − agent density           — how much value is still unclaimed
+    supply     participants per capita: how many athletes exist to sign
+    demand     followers per capita: how many people might pay
+    gap        1 − agent density: how much value is still unclaimed
     appetite   participation / (participation + fandom)
 
 `appetite` does the real work. It asks whether the fans of a sport also DO the
 sport. A trail runner's audience is other trail runners, who want training
 knowledge and will pay for it. A football fan watches and does not want a
-training plan. Participatory sports already have the content habit — athletes
-publish training logs for free on platforms that pay them nothing — so the
+training plan. Participatory sports already have the content habit, athletes
+publish training logs for free on platforms that pay them nothing, so the
 paywall is the only missing piece.
 
 There is no launch sport. The index is CONTEXT, not a gate: it tells an athlete
@@ -43,7 +43,7 @@ POPULAR_THRESHOLD = 0.45   # agent density above which an incumbent exists
 # A fixed cap made running saturate in every country and buried everything else.
 _RANGE: dict[str, tuple[float, float]] = {}
 
-# appetite bands — these drive the athlete-facing content guidance
+# appetite bands: these drive the athlete-facing content guidance
 PRACTITIONER = 0.55
 MIXED = 0.30
 
@@ -57,7 +57,7 @@ def _sport(name: str):
 
 def _calibrate() -> None:
     """Learn the matrix's own min/max once, so normalisation is self-calibrating
-    rather than hand-tuned — change the data and the scale follows."""
+    rather than hand-tuned: change the data and the scale follows."""
     if _RANGE:
         return
     parts, fans = [], []
@@ -133,7 +133,7 @@ GUIDANCE = {
                     "Q&A on programming and recovery"],
         "monetise": "Subscription-led. Anchor the €9.99 tier; a season pass sells well "
                     "because training is seasonal.",
-        "avoid": "Pure lifestyle content — it competes with everyone and converts worst here.",
+        "avoid": "Pure lifestyle content: it competes with everyone and converts worst here.",
     },
     "mixed": {
         "headline": "Your followers are split between doing and watching.",
@@ -143,7 +143,7 @@ GUIDANCE = {
                     "Competition narrative and results for the watchers",
                     "Behind-the-scenes around events", "Occasional deep technical pieces"],
         "monetise": "Subscription for the base, one-off unlocks around competition moments.",
-        "avoid": "One undifferentiated feed — it under-serves both halves.",
+        "avoid": "One undifferentiated feed: it under-serves both halves.",
     },
     "spectator": {
         "headline": "Your followers watch your sport; they do not play it.",
@@ -152,7 +152,7 @@ GUIDANCE = {
                     "Reactions and commentary", "Club and teammate content"],
         "monetise": "Access-led. Tips and one-off unlocks around fixtures outperform "
                     "subscriptions; sponsorship is usually the larger engine.",
-        "avoid": "Training plans — this audience does not want them, and low conversion "
+        "avoid": "Training plans: this audience does not want them, and low conversion "
                  "on them will read as low demand when it is a content mismatch.",
     },
 }
@@ -160,7 +160,7 @@ GUIDANCE = {
 
 # ── Sponsor-facing: tiered visibility ────────────────────────────────────────
 # Lower tiers see the normalised (sport-relative) figure only; the top tier also
-# sees the raw absolute. Normalisation must never hide its basis — the product's
+# sees the raw absolute. Normalisation must never hide its basis, the product's
 # whole claim is that a score decomposes.
 
 TIER_VISIBILITY = {
@@ -205,7 +205,7 @@ def main() -> None:
         s = signals(country, sport)
         kind = audience_type(s["appetite"])
         g = GUIDANCE[kind]
-        print(f"\n## {sport} in {country} — audience profile\n")
+        print(f"\n## {sport} in {country}: audience profile\n")
         print(f"**{g['headline']}** ({kind}, appetite {s['appetite']:.2f})\n")
         print(g["why"] + "\n")
         print("**Publish**")
@@ -218,7 +218,7 @@ def main() -> None:
     if "--sponsor" in argv:
         country, sport = argv[argv.index("--sponsor") + 1], argv[argv.index("--sponsor") + 2]
         s = signals(country, sport)
-        print(f"\n## {sport} in {country} — what each sponsor tier sees\n")
+        print(f"\n## {sport} in {country}: what each sponsor tier sees\n")
         rows = []
         for tier, v in TIER_VISIBILITY.items():
             shown = ["sport-relative percentile"]
@@ -239,7 +239,7 @@ def main() -> None:
         country = argv[argv.index("--country") + 1]
         rows = sorted(((sport, score(country, sport)) for sport, *_ in SPORTS),
                       key=lambda r: -r[1])
-        print(f"\n## {country} — sports ranked\n")
+        print(f"\n## {country}: sports ranked\n")
         print(table(["Sport", "Score", "Segment", "Audience"],
                     [[s, f"{v:.1f}", segment(s), audience_type(signals(country, s)['appetite'])]
                      for s, v in rows]))
@@ -248,7 +248,7 @@ def main() -> None:
     if "--sport" in argv:
         sport = argv[argv.index("--sport") + 1]
         rows = sorted(((c, score(c, sport)) for c, *_ in COUNTRIES), key=lambda r: -r[1])
-        print(f"\n## {sport} — countries ranked\n")
+        print(f"\n## {sport}: countries ranked\n")
         print(table(["Country", "Score", "Confidence"],
                     [[c, f"{v:.1f}", country_row(c)[4]] for c, v in rows[:15]]))
         return

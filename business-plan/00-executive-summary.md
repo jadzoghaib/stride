@@ -1,9 +1,9 @@
-# 00 — Executive Summary
+# 00: Executive Summary
 
 **Stride is a creator platform with a sponsorship feature.**
 
 Athletes are creators with a second payer. OnlyFans proved that direct fan
-monetisation beats ad-share; no one has built it for athletes — who, unlike
+monetisation beats ad-share; no one has built it for athletes, who, unlike
 lifestyle creators, also have sponsors, clubs, and a competitive record that
 makes their audience measurable. Fan revenue leads and funds the early years.
 Sponsorship compounds behind it, and the analytics engine earns its keep by
@@ -20,7 +20,7 @@ already exists.**
 |---|---|---|
 | Does an agent exist? | Yes, for the top. The tail is ignored | **No** |
 | The athlete's alternative | An agent taking 10–20%, if one will take them | **Nothing** |
-| What we sell | Disintermediation — 10%, matched on evidence | Market creation — monetise at all |
+| What we sell | Disintermediation: 10%, matched on evidence | Market creation: monetise at all |
 | CAC | Higher: an incumbent relationship to beat | Lower: no incumbent |
 
 We start where there is no incumbent. A trail runner with 25,000 followers has
@@ -30,7 +30,7 @@ not generalise downward.
 
 ## Why now
 
-**TEKTA launched on 19 August 2026** — Publicis Sports, 3 Arts, Travis Kelce.
+**TEKTA launched on 19 August 2026**, Publicis Sports, 3 Arts, Travis Kelce.
 A major agency has just validated that athlete monetisation is a category worth
 building for.
 
@@ -44,19 +44,19 @@ marketplace one. Their economics exclude precisely the athlete we start with.
 
 A working product, not a prototype: connected platform analytics, versioned
 marketability scoring, an admission gate, campaign matching with explainable
-ranking, offers, deals, and delivery measurement — end to end, with an audit
+ranking, offers, deals, and delivery measurement, end to end, with an audit
 log, a resilience drill, and a test suite that runs on two databases in CI.
 
 **The demo shows the sponsorship engine.** Fan monetisation is the revenue
 leader and the next build; what you can click today is the half that proves the
-analytics are real. That ordering is deliberate — the matching engine is what
+analytics are real. That ordering is deliberate: the matching engine is what
 makes an athlete's audience legible to a sponsor, and the same measurement is
 what will price a subscription.
 
 Three things in it are worth two minutes of a technical diligence call:
 
 - **Every match score decomposes.** A ranked athlete shows all eight components,
-  each weighted, with the arithmetic visible — `audience fit 72 × 32% = 23.1`.
+  each weighted, with the arithmetic visible, `audience fit 72 × 32% = 23.1`.
 - **Missing data is `null`, never `0`.** An unmeasured campaign reads as
   unmeasured, not as free. A dimension we could not measure is excluded from the
   score rather than counted as zero.
@@ -93,7 +93,7 @@ seasons create renewal moments.
 Being wrong about it does not dent the revenue line, and we would rather explain
 that than have it found. This is a **target-driven model**: fan counts per
 athlete are the plan, and the model solves backwards for the acquisition needed
-to hit them. Churn therefore changes the *burden*, not the destination — at
+to hit them. Churn therefore changes the *burden*, not the destination, at
 benchmark churn, holding the same Y10 fan base needs **0.79M gross adds a year
 instead of 0.64M**, a quarter more acquisition, every year, forever.
 
@@ -103,7 +103,7 @@ decides how hard the plan is to hold, not a line item.
 
 Nothing in the product proves it today, and no amount of further engineering
 will. Three months of real subscription data from one anchor athlete answers it
-definitively — which is why that, and not a feature, is the pre-seed gate.
+definitively: which is why that, and not a feature, is the pre-seed gate.
 
 ## The ask
 
@@ -114,7 +114,7 @@ anchor athlete public, payments processing real money, and **fan churn measured
 for three months.** Use of funds: two hires, Spain go-to-market, the club
 channel.
 
-The plan needs €649k — the **€464k cash trough in Y4** plus a 40% buffer — and
+The plan needs €649k: the **€464k cash trough in Y4** plus a 40% buffer, and
 the pre-seed clears the trough itself with €136k to spare. That is what asking
 for €600k rather than €400k buys: **the seed becomes optional.** It brings a
 second market forward; it is not the thing standing between the company and
@@ -129,7 +129,7 @@ say so than be asked.
 
 - **15% flat, no athlete fee** forfeits €1.6M of Y7 revenue against a 20% take.
   Bought: a pricing argument that survives contact with the exact athlete we
-  target — we beat the nearest comparable for anyone under €1,380/month, which
+  target: we beat the nearest comparable for anyone under €1,380/month, which
   is the whole long tail.
 - **18+ for fan subscriptions** forfeits the 16–17 cohort's fan revenue for a
   year or two. Bought: distance from the risk that has produced litigation

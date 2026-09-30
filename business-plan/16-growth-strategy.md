@@ -1,4 +1,4 @@
-# 16 — Growth and Business Development Strategy
+# 16: Growth and Business Development Strategy
 
 *ESADE outline §12. Sequenced from the same model that produces the financial
 plan: each trigger below is a figure the plan already commits to, not a
@@ -12,11 +12,11 @@ product and channel develop continuously alongside it. Y2 opens the club
 channel and the seed opens Portugal, and those are deliberately different
 kinds of move.
 
-## 16.1 Axis 1 — Market
+## 16.1 Axis 1: Market
 
 | Stage | Markets | Trigger to move |
 |---|---|---|
-| Pre-seed | **Spain only** | — |
+| Pre-seed | **Spain only** |  |
 | Seed | +1 market (Portugal) | 3 months of fan churn data; €80k recurring MRR |
 | Series A | +3–4 markets (Italy first), EU-wide | Unit economics stable across 3 markets |
 | Y8+ | Selective non-EU | Regulatory review per market |
@@ -26,13 +26,13 @@ index in [08](08-sport-index.md) scores 714 country × sport pairs, and the righ
 second market is the one whose niche-sport profile most resembles Spain's, so the
 admission model and the scoring weights transfer without recalibration.
 
-## 16.2 Axis 2 — Product
+## 16.2 Axis 2: Product
 
 Fan monetisation deepens before sponsorship widens. The sequence is in
 [12.11](12-operations-plan.md): tiers and billing, then one-off unlocks, then
 video, then events and the club revenue split.
 
-## 16.3 Axis 3 — Channel
+## 16.3 Axis 3: Channel
 
 | Channel | Role | When |
 |---|---|---|

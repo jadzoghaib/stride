@@ -1,4 +1,4 @@
-# Stride — MSc Business Plan · status
+# Stride: MSc Business Plan · status
 
 *ESADE MSc Final Project, Business Plan track, October 2026 session.
 Last updated 29 September 2026.*
@@ -9,11 +9,11 @@ Last updated 29 September 2026.*
 
 | What | Where |
 |---|---|
-| **The submission** | `business-plan/Stride_Business_Plan.docx` — 39-page body, 105 total, TOC populated |
+| **The submission** | `business-plan/Stride_Business_Plan.docx`, 39-page body, 105 total, TOC populated |
 | Same, without Word | `business-plan/Stride_Business_Plan.pdf` |
-| **The financial model** | `business-plan/Stride_Financial_Model.xlsx` — 18 sheets, 2,520 formulas |
+| **The financial model** | `business-plan/Stride_Financial_Model.xlsx`, 18 sheets, 2,520 formulas |
 | The body's source | `business-plan/esade-body.md` |
-| The exhibits | `business-plan/attachments/charts/` — 12 PNGs, and `attachments/ui/` — 6 screens |
+| The exhibits | `business-plan/attachments/charts/`, 12 PNGs, and `attachments/ui/`: 6 screens |
 | School material | `Desktop\Business Track MSc Thesis\` (outside this repo) |
 
 **One thing on opening.** In Excel, go to the **Check** sheet first: every
@@ -58,7 +58,7 @@ uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 ```
 
 `esade-body.md` carries Operations, HR, Legal/Growth and the primary research
-**in the body** via `<!-- INCLUDE: -->`, not as appendices — the rubric weights
+**in the body** via `<!-- INCLUDE: -->`, not as appendices: the rubric weights
 Operations and HR at 15% each, and an examiner grades what is in front of them.
 Appendices are `01-` to `11-`, plus the two generated ones, `17-evidence-base.md`
 and `18-product-walkthrough.md`.
@@ -86,9 +86,9 @@ and `18-product-walkthrough.md`.
 - **§7.6 scenarios are computed**, not typed. `model.scenario_table()` re-runs
   the whole model under changed drivers; the pessimistic case removes the niche
   churn advantage entirely. Six new pins guard the table
-- **Appendix L** — the evidence base, 32 assumptions classified
+- **Appendix L**: the evidence base, 32 assumptions classified
   SOURCED/BENCHMARKED/DERIVED/ESTIMATE, generated from `research_data.py`
-- **Appendix M** — six screens of the deployed demo, captured by
+- **Appendix M**: six screens of the deployed demo, captured by
   `make_ui_shots.py` against the live site
 - **Social impact** in §2.2, for the evaluation form's learning objectives
 - **53 em-dashes removed** from prose. The remainder are structural: table
@@ -99,9 +99,9 @@ and `18-product-walkthrough.md`.
 | Item | Note |
 |---|---|
 | **Slide deck** | 30% of the grade. Deliberately left until the plan is validated |
-| **Sponsor-side interviews** | The largest hole in the research. No brand-side conversations exist — the only completely untested side of the marketplace |
+| **Sponsor-side interviews** | The largest hole in the research. No brand-side conversations exist: the only completely untested side of the marketplace |
 | Trade mark clearance | "Stride" has existing marks in apparel and fitness software. A search comes before any brand spend |
-| Loose tolerances | ~100 of the guard's pins are looser than half their printed place. Some deliberately, some not — a judgement pass, not a mechanical one |
+| Loose tolerances | ~100 of the guard's pins are looser than half their printed place. Some deliberately, some not: a judgement pass, not a mechanical one |
 
 ---
 
@@ -122,13 +122,13 @@ and `18-product-walkthrough.md`.
 
 Every figure written in prose is pinned to the model, and **the rule for a new
 pin is half the last printed place**. Anything looser reports "checked" and
-checks nothing — proven in the wild, when a 0.05 tolerance on a two-decimal
+checks nothing: proven in the wild, when a 0.05 tolerance on a two-decimal
 figure let four stale EBITDA cells pass the very check added to catch them.
 
 The rule is not yet retrofitted. Roughly a hundred older pins are looser than
 that, some deliberately (a rounded crossover like €1,380/month is not claiming
 euro precision) and some not. Until that pass is done, **a green guard means
-every pinned figure is within its own stated tolerance — not that every figure
+every pinned figure is within its own stated tolerance, not that every figure
 is exact.**
 
 When adding a claim, pin it in `scripts/doc_consistency.py` on the way in, not
