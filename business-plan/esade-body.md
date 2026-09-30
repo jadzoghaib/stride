@@ -340,7 +340,10 @@ the free plan. The subscription buys tooling rather than a commission waiver:
 the free tier runs one campaign and sees the top five matches, Scout Pro at
 €249 a month adds full matching, evidence views and pipeline, and Scout Agency
 at €999 adds multi-seat and API access. Only 10% of sponsors subscribe in Y1,
-rising to 20%, so most sponsor revenue is commission throughout.
+rising to 20%. Subscription is briefly the larger of the two in Y2 and Y3,
+while deal volume is still small and the tool is being sold ahead of the
+marketplace; from Y4 commission leads, and by Y7 it is roughly double the
+subscription line.
 
 Full derivation, tier design and the take-rate argument in **Appendix A**.
 
