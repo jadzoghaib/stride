@@ -1,7 +1,7 @@
 # Stride: MSc Business Plan · status
 
 *ESADE MSc Final Project, Business Plan track, October 2026 session.
-Last updated 29 September 2026.*
+Last updated 30 September 2026.*
 
 ---
 
@@ -9,9 +9,9 @@ Last updated 29 September 2026.*
 
 | What | Where |
 |---|---|
-| **The submission** | `business-plan/Stride_Business_Plan.docx`, 40-page body, 107 total, TOC populated |
+| **The submission** | `business-plan/Stride_Business_Plan.docx`, 40-page body, 108 total, TOC populated |
 | Same, without Word | `business-plan/Stride_Business_Plan.pdf` |
-| **The financial model** | `business-plan/Stride_Financial_Model.xlsx`, 18 sheets, 2,520 formulas |
+| **The financial model** | `business-plan/Stride_Financial_Model.xlsx`, 18 sheets, 2,617 formulas |
 | The body's source | `business-plan/esade-body.md` |
 | The exhibits | `business-plan/attachments/charts/`, 12 PNGs, and `attachments/ui/`: 6 screens |
 | School material | `Desktop\Business Track MSc Thesis\` (outside this repo) |
@@ -94,6 +94,23 @@ and `18-product-walkthrough.md`.
 - **Social impact** in §2.2, for the evaluation form's learning objectives
 - **53 em-dashes removed** from prose. The remainder are structural: table
   cells, figure captions, appendix labels
+
+## Changed 30 September
+
+- **Scout Starter at €99/mo**, a fourth sponsor tier. The plan listed €249 as
+  its cheapest paid plan while the model booked €199 per subscriber in Y1,
+  which no mix of €249 and €999 can produce
+- **Sponsorship commission tiered 10 / 7 / 5** by plan. The blended rate falls
+  from 9.60% in Y1 to 8.56% by Y10
+- **Pre-seed cut to €400k** from €600k, by moving the hiring ramp out about
+  eighteen months rather than building less. Scaling the plan down was tried
+  first and does not work: halving the athlete trajectory leaves the trough
+  within €15k of where it was, because cutting growth cuts income and
+  outgoings in the same proportion. Trough €280k, requirement €392k
+- **WACC cited to Damodaran**, NYU Stern European cost of capital, 5 January
+  2026: Software (Internet) at 6.01% in euros, with the 19-point gap to our
+  25% stated as a stage premium rather than hidden
+- **Zero em-dashes** in the document and the workbook
 
 ## What is not done
 
