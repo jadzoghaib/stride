@@ -1,4 +1,4 @@
-"""Raw comparable-platform data. Sourced facts only — no interpretation here.
+"""Raw comparable-platform data. Sourced facts only: no interpretation here.
 
 This module is the bottom of the evidence chain:
 
@@ -8,7 +8,7 @@ This module is the bottom of the evidence chain:
 Nothing in this file is an estimate. Every figure is a published number with a
 citation, so it can be checked and refreshed independently of anything we
 concluded from it. Where a derived ratio disagrees with a platform's own
-reported average, both are carried — the disagreement is usually definitional
+reported average, both are carried: the disagreement is usually definitional
 (accounts vs active creators, gross vs net, memberships vs members) and hiding
 it would make the model look more certain than it is.
 """
@@ -18,7 +18,7 @@ from __future__ import annotations
 # ── Platform economics ───────────────────────────────────────────────────────
 # (metric, value, unit, platform, period, source)
 PLATFORM_FACTS: list[tuple] = [
-    # OnlyFans — FY2024 (year to 30 Nov 2024). These are not press estimates:
+    # OnlyFans: FY2024 (year to 30 Nov 2024). These are not press estimates:
     # the parent, Fenix International Limited (company no. 10354575), files at
     # Companies House, and the trade press reported off those filed accounts.
     # The registry is cited first because it outlives the article.
@@ -27,15 +27,15 @@ PLATFORM_FACTS: list[tuple] = [
     ("Net revenue", 1_410_000_000, "USD", "OnlyFans", "FY2024",
      "Fenix International Ltd filed accounts (Companies House 10354575)"),
     ("Paid to creators", 5_800_000_000, "USD", "OnlyFans", "FY2024",
-     "Fenix International Ltd filed accounts — 80.3% of gross"),
+     "Fenix International Ltd filed accounts, 80.3% of gross"),
     ("Creator accounts", 4_634_000, "count", "OnlyFans", "FY2024",
-     "Variety — +13% YoY"),
+     "Variety: +13% YoY"),
     ("Fan accounts", 377_500_000, "count", "OnlyFans", "FY2024",
-     "Variety — +24% YoY"),
+     "Variety: +24% YoY"),
     ("Reported average creator earnings", 131, "USD/month", "OnlyFans", "FY2024",
-     "Sci-Tech Today / ElectroIQ — after platform fees"),
+     "Sci-Tech Today / ElectroIQ: after platform fees"),
     ("Revenue concentration", 0.76, "share to top 0.1%", "OnlyFans", "2025",
-     "ElectroIQ — power-law distribution"),
+     "ElectroIQ: power-law distribution"),
 
     # Patreon
     ("Creators with >=1 paying member", 286_287, "count", "Patreon", "Feb 2026",
@@ -57,11 +57,11 @@ PLATFORM_FACTS: list[tuple] = [
     ("Monthly churn (high)", 0.15, "share", "Patreon", "2024",
      "Patreon 2024 Transparency Report"),
     ("Annual-plan churn multiplier", 0.333, "x monthly churn", "Patreon", "2024",
-     "Patreon 2024 Transparency Report — annual patrons churn at 1/3 the rate"),
+     "Patreon 2024 Transparency Report: annual patrons churn at 1/3 the rate"),
     ("Creators with >2,000 patrons", 0.003, "share", "Patreon", "2026",
-     "Graphtreon — power-law distribution"),
+     "Graphtreon: power-law distribution"),
 
-    # TEKTA — Publicis Sports + 3 Arts Sports + Travis Kelce, launched Aug 2026.
+    # TEKTA: Publicis Sports + 3 Arts Sports + Travis Kelce, launched Aug 2026.
     # An agency, not a platform: the network is addressable supply it can broker,
     # not a user base. Included to size the NIL comparable, not to model it.
     ("Division I athletes in network", 45_000, "count", "TEKTA", "Aug 2026",
@@ -69,13 +69,13 @@ PLATFORM_FACTS: list[tuple] = [
     ("Power Four universities", 68, "count", "TEKTA", "Aug 2026",
      "Publicis Groupe press release"),
     ("Claimed speed-to-market gain", 0.60, "share faster", "TEKTA", "Aug 2026",
-     "Publicis — stated 50-70% vs a traditional agency process"),
+     "Publicis: stated 50-70% vs a traditional agency process"),
 ]
 
 # ── Take rates: what each platform actually costs a creator ──────────────────
 # (platform, headline_take, per_txn_usd, monthly_fee_usd, source)
 TAKE_RATES: list[tuple] = [
-    # Not a claim — arithmetic on the filed accounts above:
+    # Not a claim: arithmetic on the filed accounts above:
     # 1.41bn net revenue / 7.22bn gross fan payments = 19.5%.
     ("OnlyFans", 0.20, 0.00, 0.00, "Derived: 1.41bn / 7.22bn = 19.5% (filed accounts)"),
     # Neither platform publishes its take rate. Checked 2026-09-05: Fanfix's
@@ -93,7 +93,7 @@ TAKE_RATES: list[tuple] = [
     # fees, and applicable taxes". So 10% is all-in, not a midpoint of a range.
     ("Patreon", 0.10, 0.00, 0.00, "Published: 10% all-in, processing included"),
     ("Passes", 0.10, 0.30, 29.00, "Sacra; Passes rebrand release Apr 2026"),
-    ("Stride (proposed)", 0.15, 0.00, 0.00, "Our decision — see MarketModel"),
+    ("Stride (proposed)", 0.15, 0.00, 0.00, "Our decision, see MarketModel"),
 ]
 
 # ── Intermediaries the athlete already pays ─────────────────────────────────
@@ -103,13 +103,13 @@ INTERMEDIARY_RATES: list[tuple] = [
     # structural reason marketing commissions run several times the rate a
     # union permits on a playing contract. The range is widely reported and
     # not published by any governing body; treat it as an estimate.
-    ("Sports agent — endorsement", 0.10, 0.20, "Unregulated; widely reported, no primary source"),
+    ("Sports agent: endorsement", 0.10, 0.20, "Unregulated; widely reported, no primary source"),
     # Capped by the governing bodies, and the caps are public documents.
     # NBPA: 2% where the player earns the CBA minimum, 4% above it.
     # FIFA FFAR art. 15: 5% at or below USD 200k annual remuneration, 3% above,
     # for representing the player.
-    ("Sports agent — playing contract", 0.02, 0.05, "NBPA reg. 4.B (Sept 2025); FIFA FFAR art. 15"),
-    ("OnlyFans management agency", 0.20, 0.50, "Aruna Talent rate guide 2026 — on top of the 20%"),
+    ("Sports agent: playing contract", 0.02, 0.05, "NBPA reg. 4.B (Sept 2025); FIFA FFAR art. 15"),
+    ("OnlyFans management agency", 0.20, 0.50, "Aruna Talent rate guide 2026, on top of the 20%"),
 ]
 
 # ── Market size inputs ──────────────────────────────────────────────────────

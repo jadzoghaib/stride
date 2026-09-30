@@ -1,4 +1,4 @@
-# 02 — Cost Model
+# 02: Cost Model
 
 Two costs decide whether this business works. Neither is engineering salary.
 
@@ -7,7 +7,7 @@ Two costs decide whether this business works. Neither is engineering salary.
 ## The fixed-fee problem
 
 Stripe charges a Spanish entity **1.5% + €0.25** on EEA cards, 2.5% on UK cards and 3.25%
-on non-EEA — blended to **1.9% + €0.25** here. On small subscriptions the fixed component is
+on non-EEA: blended to **1.9% + €0.25** here. On small subscriptions the fixed component is
 most of the cost, and it lands on our commission, not on the athlete's share.
 
 <!-- MODEL:unit_economics -->
@@ -20,20 +20,20 @@ most of the cost, and it lands on our commission, not on the athlete's share.
 <!-- /MODEL:unit_economics -->
 
 **Read that first row again.** At a €4.99 tier, nearly half our commission goes to the
-payment processor — almost all of it the fixed €0.25, not the percentage. The tier floor
+payment processor: almost all of it the fixed €0.25, not the percentage. The tier floor
 matters more than any rate negotiation.
 
 Three responses, in order of impact:
 
 1. **Anchor the default tier at €9.99.** Costs nothing, worth 20 points of
-   retained take — 44% survives the fee at €4.99 against 64% at €9.99.
-2. **Push annual billing.** One fixed fee instead of twelve — worth ~€2.75 per subscriber
+   retained take: 44% survives the fee at €4.99 against 64% at €9.99.
+2. **Push annual billing.** One fixed fee instead of twelve, worth ~€2.75 per subscriber
    per year. Patreon reports annual patrons churn at **one third** the rate of monthly ones,
    so the retention gain is larger than the fee saving.
 3. **Renegotiate at volume.** Above ~€5M/yr processed, interchange-plus pricing is
-   available. Not modelled — upside.
+   available. Not modelled: upside.
 
-At Y7 the payment rail costs **€2.55M against €10.70M of revenue** — 24% of
+At Y7 the payment rail costs **€2.55M against €10.70M of revenue**, 24% of
 revenue, our largest single cost line, larger than all salaries combined
 (€1.54M). The share rose when VAT entered the model: the processor charges on
 the price a fan pays, while the revenue it is measured against is net of the
@@ -61,22 +61,22 @@ the year, Y7 moves ~6.0 PB. At CloudFront list (~€0.075/GB after volume tiers)
 **the bandwidth alone is €450k**; behind an object store with free egress
 (Cloudflare R2, Backblaze B2 + Bunny) the same bytes cost **€48k**. The table
 rows above are larger than both because they add the €288k of AWS compute and
-storage that neither choice avoids — it is the difference between the rows, not
+storage that neither choice avoids: it is the difference between the rows, not
 the rows themselves, that the egress decision moves.
 
 > [!note] Average fans, not December's
 > Bandwidth is billed for the months a fan is actually subscribed, so the
 > driver is the **average** count through the year, not the year-end one. The
 > model charged twelve months at the December figure until this was corrected,
-> which overstated infrastructure in every year of the plan — the same error
+> which overstated infrastructure in every year of the plan, the same error
 > its own cohort model documents on the revenue side and had already fixed
 > there.
 
 **€402k a year is most of this plan's entire €464k cash trough, spent annually
-and decided by one architectural choice** — €3.1M across the ten years.
+and decided by one architectural choice**, €3.1M across the ten years.
 
-The recommendation is AWS for compute and database — where its managed services
-genuinely earn their premium — and a zero-egress provider for media delivery.
+The recommendation is AWS for compute and database, where its managed services
+genuinely earn their premium, and a zero-egress provider for media delivery.
 Hybrid, deliberately.
 
 ---
@@ -86,7 +86,7 @@ Hybrid, deliberately.
 Compute and data stay on AWS. The plan below is what the current architecture
 maps onto (`infra/k8s/stride.yaml` already describes this shape).
 
-### Stage 1 — Y1–Y2 (validation → launch, ≤ 10k MAU)
+### Stage 1: Y1–Y2 (validation → launch, ≤ 10k MAU)
 
 | Service | Configuration | Monthly |
 |---|---|---|
@@ -100,7 +100,7 @@ maps onto (`infra/k8s/stride.yaml` already describes this shape).
 | SES | transactional email | €5 |
 | **Total** | | **≈ €146–650/mo** |
 
-### Stage 2 — Y3–Y5 (growth, ≤ 250k MAU)
+### Stage 2: Y3–Y5 (growth, ≤ 250k MAU)
 
 | Service | Configuration | Monthly |
 |---|---|---|
@@ -114,7 +114,7 @@ maps onto (`infra/k8s/stride.yaml` already describes this shape).
 | WAF + Shield Standard | | €60 |
 | **Total** | | **€2,100–11,000/mo** |
 
-### Stage 3 — Y6–Y7 (scale)
+### Stage 3: Y6–Y7 (scale)
 
 | Service | Monthly |
 |---|---|
@@ -129,7 +129,7 @@ maps onto (`infra/k8s/stride.yaml` already describes this shape).
 | **Total** | **≈ €24,000/mo** |
 
 **Reserved capacity and Savings Plans are not modelled.** Committing to 1-year
-compute typically saves 25–40% on the Fargate/EKS/RDS lines — worth roughly
+compute typically saves 25–40% on the Fargate/EKS/RDS lines, worth roughly
 €60–90k/yr by Y7. Treated as upside, not as plan.
 
 ---
@@ -141,7 +141,7 @@ figure below is loaded cost.
 
 | Role | Gross | Loaded | First hired |
 |---|---|---|---|
-| Founder / CEO | €0 → €45k | €0 → €59k | Y1 (unpaid — see opportunity cost) |
+| Founder / CEO | €0 → €45k | €0 → €59k | Y1 (unpaid: see opportunity cost) |
 | Senior engineer | €55k | €72k | Y2 |
 | BD / partnerships | €38k + commission | €50k+ | Y2 |
 | Athlete success | €30k | €39k | Y3 |
@@ -157,7 +157,7 @@ figure below is loaded cost.
 **Spain is a structural cost advantage.** A senior engineer at €72k loaded costs
 roughly half the equivalent in London or Amsterdam and a third of the Bay Area,
 against a talent pool that is deep in Barcelona and Madrid. On a €23M-revenue
-plan that is worth several million euros cumulatively — and it is a legitimate
+plan that is worth several million euros cumulatively, and it is a legitimate
 argument to an investor for why the company is in Spain rather than an accident
 of where the founder studied.
 
@@ -179,14 +179,14 @@ app-review lead time, and an annual security review.
 
 Moderation is modelled at €22 per 1,000 items at 12 items per athlete per month.
 It is a hybrid: automated classification first, human review on flags. **The
-cost is not the issue — the liability is.** Paid content plus a population that
+cost is not the issue: the liability is.** Paid content plus a population that
 includes minors is the combination that has ended platforms, usually via card
 schemes rather than regulators.
 
 Verification is the same obligation on the supply side: vetting *who* is on the
 platform rather than *what* they post, which is why it sits beside moderation in
 cost of sales rather than in overhead. It is priced off the funnel the admission
-gate creates — an athlete is the survivor of several applications, and a share of
+gate creates: an athlete is the survivor of several applications, and a share of
 those applications need a human to open a link
 ([11](11-admission-and-matching.md)).
 
@@ -199,7 +199,7 @@ those applications need a human to open a link
 
 **The euros are not the point and the model says so.** Verification peaks at
 €25k a year and 0.33 of one person, and the whole discounted stream is worth
-€63k against a €22.5M enterprise value — 0.28%. Two things follow, and they
+€63k against a €22.5M enterprise value, 0.28%. Two things follow, and they
 matter more than the line item:
 
 - **The admission rate is a real driver of marketing efficiency.** It climbs
@@ -221,17 +221,17 @@ matter more than the line item:
 |---|---|---|---|
 | Y1 CAC | €17 | ~€0 | €900 |
 | Y7 CAC | €61 | ~€0 | €1,900 |
-| Applications behind one athlete | 5.0x in Y1, 3.3x in Y7 | — | — |
+| Applications behind one athlete | 5.0x in Y1, 3.3x in Y7 | | |
 | Channel | Clubs, federations, ambassador referral | **Brought by the athlete** | Outbound, events, agency partnerships |
 <!-- /MODEL:cac -->
 
 **Fan CAC is approximately zero, and that is the whole economic argument for
-this model.** We do not buy the audience — the athlete already has it on
+this model.** We do not buy the audience, the athlete already has it on
 Instagram and TikTok. Stride converts an existing following into a paying one.
 That is why fan revenue can lead in Y1 while sponsorship is still cold.
 
 The corollary: **athlete CAC is the only acquisition cost that matters**, and
-club partnerships are the cheapest route to it — one conversation, a whole
+club partnerships are the cheapest route to it, one conversation, a whole
 roster.
 
 ---
@@ -254,5 +254,5 @@ roster.
 <!-- /MODEL:costs_y7 -->
 
 Infrastructure is 3.1% of revenue. **Payments are nearly eight times larger.** Any
-optimisation effort belongs there — tier pricing, annual billing, processor
-negotiation — not in the AWS bill.
+optimisation effort belongs there: tier pricing, annual billing, processor
+negotiation, not in the AWS bill.

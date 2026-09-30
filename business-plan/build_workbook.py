@@ -1,17 +1,17 @@
-"""Generate Stride_Financial_Model.xlsx — a live, formula-driven model.
+"""Generate Stride_Financial_Model.xlsx, a live, formula-driven model.
 
     uv run python business-plan/build_workbook.py
 
 DESIGN PRINCIPLE: **the workbook contains the logic, not the answers.** Every
 cell outside the Assumptions sheet is an Excel formula referring to other cells,
-so changing one input on Assumptions recalculates the whole model — including
+so changing one input on Assumptions recalculates the whole model, including
 the three statements and the valuation. Pasting computed values would produce a
 report; this produces a model you can interrogate.
 
 Colour convention, stated on the README sheet and used consistently:
 
     BLUE   an input. Change these.
-    BLACK  a formula. Do not overtype — you would break the chain.
+    BLACK  a formula. Do not overtype: you would break the chain.
     GREEN  a reference to another sheet.
 
 Sheets, in dependency order:
@@ -58,7 +58,7 @@ COLS = [get_column_letter(FIRST + k) for k in range(N)]
 #
 #   LIGHT BLUE    an input you may change
 #   LIGHT AMBER   sourced external fact (Stripe pricing, Spanish tax law, AWS
-#                 list price, Eurobarometer) — change only if the source changed
+#                 list price, Eurobarometer), change only if the source changed
 #   WHITE         a formula computed on this sheet
 #   LIGHT GREEN   a formula pulling from another sheet
 #   LIGHT GREY    a subtotal or total
@@ -93,7 +93,7 @@ TOPLINE = Border(top=Side(style="medium", color="14181F"))
 EDGE = Border(left=Side(style="thin", color="D8DEE7"), right=Side(style="thin", color="D8DEE7"),
               top=Side(style="thin", color="D8DEE7"), bottom=Side(style="thin", color="D8DEE7"))
 
-LEGEND = [("Input — change me", FILL_INPUT, FONT_INPUT),
+LEGEND = [("Input: change me", FILL_INPUT, FONT_INPUT),
           ("Sourced fact", FILL_HARD, FONT_HARD),
           ("Formula (this sheet)", FILL_CALC, FONT_CALC),
           ("Formula (other sheet)", FILL_LINK, FONT_LINK),
@@ -170,7 +170,7 @@ def row(ws, r, label, unit="", *, values=None, formula=None, first=None, fmt=MON
             # `first` exists because an accumulating row written as
             # `=IF(k=1, seed, prev + x)` still NAMES its own cell in the branch
             # that never runs, and Excel's dependency graph does not care which
-            # branch is taken — it reports a circular reference and stops
+            # branch is taken: it reports a circular reference and stops
             # calculating. Six rows shipped that way. Giving year one its own
             # formula removes the back-reference instead of hiding it.
             src = first if (k == 0 and first is not None) else formula
@@ -204,13 +204,13 @@ def row(ws, r, label, unit="", *, values=None, formula=None, first=None, fmt=MON
 # so `=P&L!C21` is a syntax error rather than a reference, and CashFlow,
 # BalanceSheet and Check all opened as #NAME?. openpyxl stores the bad string
 # happily and a reference-resolution check passes it, which is exactly how forty
-# of them shipped — the file only fails when Excel itself parses it. Applied at
+# of them shipped: the file only fails when Excel itself parses it. Applied at
 # the single point a formula is written, so no future reference can miss it.
 _NEEDS_QUOTES = ("P&L",)
 
 # Funding rows, declared once because CashFlow references the equity row before
 # the Funding sheet is built. The builder asserts the rows land here, so the
-# declaration cannot quietly stop being true — the previous version hand-counted
+# declaration cannot quietly stop being true, the previous version hand-counted
 # them, was off by one throughout, and made every Funding formula circular while
 # CashFlow booked a pre-money valuation as cash received.
 FUNDING_ROWS = {
@@ -240,6 +240,48 @@ def section(ws, r, text):
     return r + 1
 
 
+#: The tab order, the README's contents, and the hyperlink targets, from one
+#: list. Section headings are entries with no sheet name. The core statement
+#: flow runs front to back; research and modelling sit at the end as an
+#: appendix, because they are evidence for the inputs rather than steps in the
+#: build.
+SHEET_GUIDE: list[tuple[str, str, str]] = [
+    ("INPUTS", "", ""),
+    ("Assumptions", "Assumptions", "Every input and assumption taken into consideration"),
+    ("", "", ""),
+    ("BUILD-UP", "", ""),
+    ("Drivers", "Drivers", "Athletes and fans, including monthly cohort churn"),
+    ("Revenue", "Revenue", "GMV and net revenue, stream by stream"),
+    ("Costs", "Costs", "COGS and operating costs, line by line"),
+    ("WorkingCap", "WorkingCap", "Receivables, payables, athlete float, capex, D&A"),
+    ("", "", ""),
+    ("THE THREE FINANCIAL STATEMENTS", "", ""),
+    ("P&L", "P&L", "Income statement"),
+    ("CashFlow", "CashFlow", "Cash flow statement, indirect method, tying to closing cash"),
+    ("BalanceSheet", "BalanceSheet", "Balance sheet, with an explicit check row so it must balance"),
+    ("", "", ""),
+    ("VALUATION AND FUNDING", "", ""),
+    ("Valuation", "Valuation", "DCF, NPV, IRR, exit multiples, sensitivity"),
+    ("Funding", "Funding", "Funding rounds, dilution, ownership shares"),
+    ("", "", ""),
+    ("OPERATING PLANS", "", ""),
+    ("HiringPlan", "HiringPlan", "Headcount by role, at Spanish loaded salaries"),
+    ("CAC_CLV", "CAC_CLV", "Acquisition cost against lifetime value"),
+    ("KPIs", "KPIs", "Scale, quality of revenue, efficiency"),
+    ("", "", ""),
+    ("CONTROL", "", ""),
+    ("Check", "Check", "Internal quality checks. Every variance row must read zero"),
+    ("", "", ""),
+    ("APPENDIX: RESEARCH AND MODELLING", "", ""),
+    ("Comparables", "Comparables", "Published facts about Patreon, Passes and agents. The benchmarking source"),
+    ("MarketModel", "MarketModel", "Modelled assumptions, per market dynamics"),
+    ("Research", "Research", "Where each baseline assumption came from, and how confident it is"),
+]
+
+#: Tab order, taken from the same list so the two cannot disagree.
+TAB_ORDER = ["README"] + [s for _, s, _ in SHEET_GUIDE if s]
+
+
 def build() -> pathlib.Path:
     wb = Workbook()
     wb.remove(wb.active)
@@ -247,85 +289,59 @@ def build() -> pathlib.Path:
     rows = M.build()
 
     # ══ README ══════════════════════════════════════════════════════════════
+    # Laid out as the author designed it: a title, a colour key, and a linked
+    # index. Deliberately short. The previous version explained the modelling
+    # philosophy on the first sheet, which is the wrong place for it.
     rd = wb.create_sheet("README")
-    rd.column_dimensions["A"].width = 100
-    lines = [
-        ("Stride — Financial Model", TITLE),
-        ("", None),
-        ("10-year operating model, three statements, and a valuation. EUR. Y1 = 2027.", BOLD),
-        ("", None),
-        ("HOW TO USE", BOLD),
-        ("Change any BLUE cell on the Assumptions sheet. Everything else recalculates.", None),
-        ("Every non-input cell is a formula, so you can trace any number back to the inputs", None),
-        ("that produced it — select a cell and use Formulas > Trace Precedents.", None),
-        ("", None),
-        ("COLOURS — the fill tells you what a cell is", BOLD),
-        ("  LIGHT BLUE    an input. Change these. Blue is our estimate or plan.", None),
-        ("  LIGHT AMBER   a sourced fact — Stripe pricing, Spanish tax law, AWS list,", None),
-        ("                Eurobarometer. Change only if the source changed.", None),
-        ("  WHITE         a formula computed on this sheet.", None),
-        ("  LIGHT GREEN   a formula pulling a value from another sheet.", None),
-        ("  LIGHT GREY    a subtotal or total.", None),
-        ("  LIGHT RED     a check that must read zero.", None),
-        ("", None),
-        ("A global assumption is entered once, in the Y1 column, and later years link", None),
-        ("back to it in green — so you change one cell and the whole row follows. Where", None),
-        ("a row genuinely varies year by year, every cell is blue.", None),
-        ("", None),
-        ("The workbook is set to recalculate on open, so every figure you see was", None),
-        ("computed from the inputs rather than pasted.", None),
-        ("", None),
-        ("SHEETS", BOLD),
-        ("  Assumptions    every input, grouped, with units and provenance", None),
-        ("  Comparables    published facts about OnlyFans, Patreon, Passes and agents", None),
-        ("  MarketModel    turns those facts into our assumptions, step by step", None),
-        ("  Research       how each assumption was baselined, with sources", None),
-        ("  Drivers        athletes and fans, including monthly cohort churn", None),
-        ("  Revenue        GMV and net revenue, stream by stream", None),
-        ("  Costs          COGS and operating costs, line by line", None),
-        ("  P&L            income statement", None),
-        ("  WorkingCap     receivables, payables, athlete float, capex, D&A", None),
-        ("  CashFlow       indirect method, tying to closing cash", None),
-        ("  BalanceSheet   with an explicit balance check row", None),
-        ("  Valuation      DCF, NPV, IRR, exit multiples, sensitivity", None),
-        ("  Funding        rounds, dilution, ownership", None),
-        ("  HiringPlan     headcount by role, reconciled to the model", None),
-        ("  CAC_CLV        acquisition cost against lifetime value", None),
-        ("  KPIs           scale, quality of revenue, efficiency", None),
-        ("  Check          the Python model's figures, to verify the formulas agree", None),
-        ("", None),
-        ("WHY TEN YEARS", BOLD),
-        ("At Y7 the business is still compounding above 50%, so a terminal value placed", None),
-        ("there does most of the valuation work and does it badly. Ten years lets growth", None),
-        ("decelerate inside the explicit forecast, where it can be argued with.", None),
-        ("", None),
-        ("EVIDENCE CHAIN", BOLD),
-        ("  Comparables (published facts) -> MarketModel (derives ours) -> Assumptions", None),
-        ("  -> Drivers -> Revenue and Costs -> statements -> Valuation.", None),
-        ("  From Assumptions rightwards, every link is a formula you can follow with", None),
-        ("  Trace Precedents. The first arrow is checked rather than linked: MarketModel", None),
-        ("  derives each figure from the published ones, and Assumptions carries the", None),
-        ("  result rounded for reading -- 37 fans per athlete, not 37.026. Linking the", None),
-        ("  cells would put the workbook a hair off the Python everywhere, which the", None),
-        ("  Check sheet exists to forbid, so scripts/doc_consistency.py asserts the", None),
-        ("  derivation still rounds to those literals instead. Refresh a comparable far", None),
-        ("  enough to change one of them at the precision it is written and that check", None),
-        ("  fails. A refresh too small to change any displayed figure passes, which is", None),
-        ("  the same statement, not a loophole in it.", None),
-        ("", None),
-        ("MODEL SHAPE", BOLD),
-        ("This is a target-driven model: athlete counts are the plan, and marketing spend", None),
-        ("is derived from them at segment CAC. It is not a driver-driven model in which", None),
-        ("spend produces athletes. That is the normal shape for a plan, but it means the", None),
-        ("athlete trajectory is an assumption to defend, not an output to trust.", None),
+    rd.column_dimensions["A"].width = 34
+    rd.column_dimensions["B"].width = 86
+    rd.sheet_view.showGridLines = False
+
+    rd["A1"] = "Stride: Financial Model"
+    rd["A1"].font = TITLE
+    rd["A3"] = "10-year operating model, three statements, and a valuation. EUR. Y1 = 2027."
+    rd["A3"].font = BOLD
+
+    rd["A5"] = "COLOUR CODE"
+    rd["A5"].font = BOLD
+    key = [
+        ("  LIGHT BLUE", "Estimated input", FILL_INPUT),
+        ("  LIGHT YELLOW", "Sourced input (Stripe pricing, Spanish tax law, AWS list)", FILL_HARD),
+        ("  WHITE", "Computed formula", None),
+        ("  LIGHT GREEN", "Dependent value, pulled from another sheet", FILL_LINK),
+        ("  LIGHT GREY", "Total or subtotal", FILL_TOTAL),
+        ("  LIGHT RED", "A check that must read zero", FILL_CHECK),
     ]
-    for i, (text, font) in enumerate(lines, start=1):
-        c = rd.cell(i, 1, text)
-        if font:
-            c.font = font
+    r = 6
+    for label, meaning, fill in key:
+        rd.cell(r, 1, label).font = Font(bold=True, size=10)
+        if fill is not None:
+            rd.cell(r, 1).fill = fill
+        rd.cell(r, 2, meaning)
+        r += 1
+
+    r += 1
+    rd.cell(r, 1, "SHEETS").font = BOLD
+    r += 1
+    # `target`, not `sheet`: this module defines a sheet() helper, and shadowing
+    # it here breaks every sheet built after the README.
+    for label, target, description in SHEET_GUIDE:
+        if not label:
+            r += 1
+            continue
+        cell = rd.cell(r, 1, label)
+        if target:
+            # An index nobody can click is a list. Every row gets its link,
+            # not the eight it was practical to add by hand.
+            cell.hyperlink = f"#'{target}'!A1"
+            cell.font = Font(size=11, color="1F4E9C", underline="single")
+            rd.cell(r, 2, description)
+        else:
+            cell.font = Font(bold=True, size=9, color="8A5200")
+        r += 1
 
     # ══ ASSUMPTIONS ═════════════════════════════════════════════════════════
-    a = sheet(wb, "Assumptions", "Assumptions — every input lives here")
+    a = sheet(wb, "Assumptions", "Assumptions, every input lives here")
     r = 4
     A_ROW = {}
 
@@ -341,7 +357,7 @@ def build() -> pathlib.Path:
             if isinstance(expected, (int, float)) and not isinstance(expected, bool):
                 assert all(abs(v - expected) < 1e-9 for v in values), (
                     f"Assumptions row {label!r} writes {values[0]} but model.A.{key} "
-                    f"is {expected} — the workbook and the Python have diverged")
+                    f"is {expected}: the workbook and the Python have diverged")
             elif isinstance(expected, list):
                 assert all(abs(a - b) < 1e-9 for a, b in zip(values, expected)), (
                     f"Assumptions row {label!r} does not match model.A.{key}")
@@ -352,17 +368,17 @@ def build() -> pathlib.Path:
             c.font = Font(size=8, italic=True,
                           color="1E7A3C" if derive_note else "6B7480", name="Calibri")
 
-    r = section(a, r, "MARKET — the plan's shape")
+    r = section(a, r, "MARKET: the plan's shape")
     put("Active athletes (year end)", "count", A.athletes, NUM, "athletes")
     put("Niche share of athletes", "%", A.niche_share, PCT, "niche_share")
     put("Athletes needed for full SaaS value", "count", [A.athletes_for_full_saas_value] * N,
         NUM, "saas_floor", const=True,
-        note="Below this, sponsor conversion scales with supply — a matching product "
+        note="Below this, sponsor conversion scales with supply, a matching product "
              "is worth nothing against an empty directory")
     r += 1
 
     for seg, tag in ((M.NICHE, "niche"), (M.POPULAR, "popular")):
-        r = section(a, r, f"SEGMENT — {tag.upper()}")
+        r = section(a, r, f"SEGMENT: {tag.upper()}")
         put(f"Monetising athletes ({tag})", "% of segment", seg.monetise_rate, PCT, f"{tag}_monetise")
         put(f"Paying fans per monetising athlete ({tag})", "count", seg.fans_per_athlete, NUM, f"{tag}_fpa",
             derive_note="derived on MarketModel from Patreon members-per-creator")
@@ -388,9 +404,9 @@ def build() -> pathlib.Path:
     r += 1
 
     r = section(a, r, "TAKE RATES & PAYMENT RAILS")
-    put("Take rate — fan revenue", "%", [A.take_fan] * N, PCT, "take_fan", const=True,
+    put("Take rate: fan revenue", "%", [A.take_fan] * N, PCT, "take_fan", const=True,
         note="Our pricing decision. OnlyFans/Fansly/Fanfix 20%, Passes 10% + $29/mo")
-    put("Take rate — sponsorship", "%", [A.take_sponsorship] * N, PCT, "take_sp", const=True,
+    put("Take rate: sponsorship", "%", [A.take_sponsorship] * N, PCT, "take_sp", const=True,
         note="Agents take 10-20% of an endorsement")
     put("VAT on fan subscriptions", "%", [A.vat_rate_fan] * N, PCT, "vat_fan", const=True,
         note="Spain's rate. Fan prices are displayed VAT-inclusive, so the take "
@@ -414,7 +430,7 @@ def build() -> pathlib.Path:
     put("Egress cost per GB (zero-egress CDN)", "EUR", [A.egress_eur_per_gb] * N, '0.000', "egress", hard=True, const=True,
         note="Cloudflare R2 / Backblaze B2 list")
     put("Egress cost per GB (CloudFront list)", "EUR", [A.egress_eur_per_gb_naive] * N, '0.000', "egress_naive", hard=True, const=True,
-        note="AWS CloudFront list price — the EUR 1.1M/yr trap")
+        note="AWS CloudFront list price: the EUR 1.1M/yr trap")
     put("Moderation cost per 1,000 items", "EUR", [A.moderation_eur_per_1k_items] * N, MONEY2, "mod_rate", const=True)
     put("Items per athlete per month", "count", [A.items_per_athlete_month] * N, '0.0', "items", const=True)
     r += 1
@@ -428,31 +444,31 @@ def build() -> pathlib.Path:
 
     r = section(a, r, "WORKING CAPITAL, CAPEX & TAX")
     put("Athlete payout float", "days", [A.float_days] * N, NUM, "float_days", const=True,
-        note="We hold fan money before paying athletes — a cash benefit")
+        note="We hold fan money before paying athletes, a cash benefit")
     put("Sponsor receivable days", "days", [A.ar_days] * N, NUM, "ar_days", const=True)
     put("Trade payable days", "days", [A.ap_days] * N, NUM, "ap_days", const=True)
     put("Capitalised development", "% of people cost", [A.capex_pct] * N, PCT, "capex_pct",
         const=True)
     put("Amortisation period", "years", [A.amort_years] * N, '0', "amort_years", const=True)
-    put("Corporate tax — startup rate", "%", [A.tax_low] * N, PCT, "tax_low", hard=True, const=True,
+    put("Corporate tax: startup rate", "%", [A.tax_low] * N, PCT, "tax_low", hard=True, const=True,
         note="Spanish Startup Law, first 4 profitable years")
-    put("Corporate tax — standard rate", "%", [A.tax_high] * N, PCT, "tax_high", hard=True, const=True,
+    put("Corporate tax: standard rate", "%", [A.tax_high] * N, PCT, "tax_high", hard=True, const=True,
         note="Spanish corporate income tax")
     put("Years at startup rate (from first profit)", "years", [A.tax_low_years] * N, '0',
         "tax_low_years", hard=True, const=True)
     r += 1
 
-    r = section(a, r, "ADMISSION — the gate between an applicant and an athlete")
-    put("Admission rate — direct applicants", "% admitted", [A.admission_rate_direct] * N, PCT,
+    r = section(a, r, "ADMISSION: the gate between an applicant and an athlete")
+    put("Admission rate: direct applicants", "% admitted", [A.admission_rate_direct] * N, PCT,
         "admit_direct", const=True,
         derive_note="ops-load output of scripts/admission_stress.py")
-    put("Review rate — direct applicants", "% needing a human", [A.review_rate_direct] * N, PCT,
+    put("Review rate: direct applicants", "% needing a human", [A.review_rate_direct] * N, PCT,
         "review_direct", const=True,
         derive_note="ops-load output of scripts/admission_stress.py")
-    put("Admission rate — club-nominated", "% admitted", [A.admission_rate_club] * N, PCT,
+    put("Admission rate: club-nominated", "% admitted", [A.admission_rate_club] * N, PCT,
         "admit_club", const=True,
-        note="ESTIMATE — a verified club's floor carries more of them past the bar")
-    put("Review rate — club-nominated", "% needing a human", [A.review_rate_club] * N, PCT,
+        note="ESTIMATE: a verified club's floor carries more of them past the bar")
+    put("Review rate: club-nominated", "% needing a human", [A.review_rate_club] * N, PCT,
         "review_club", const=True, note="ESTIMATE")
     put("Applicants arriving via a club", "% of applicants", A.club_sourced_share, PCT, "club_share",
         note="Grows as federation and club partnerships land")
@@ -480,7 +496,7 @@ def build() -> pathlib.Path:
         return f"Assumptions!$C${A_ROW[key]}"
 
     # ══ DRIVERS ═════════════════════════════════════════════════════════════
-    d = sheet(wb, "Drivers", "Drivers — athletes and fans, with cohort churn")
+    d = sheet(wb, "Drivers", "Drivers: athletes and fans, with cohort churn")
     r, D = 4, {}
 
     def drow(label, formula=None, values=None, fmt=NUM, **kw):
@@ -496,7 +512,7 @@ def build() -> pathlib.Path:
 
     for tag, base in (("Niche", "Niche athletes"), ("Popular", "Popular athletes")):
         t = tag.lower()
-        r = section(d, r, f"{tag.upper()} — fans and churn")
+        r = section(d, r, f"{tag.upper()}: fans and churn")
         drow(f"{tag} athletes lost to churn",
              formula=(f"=IF({{k}}=1,0,{{p}}{D[base]}*Assumptions!{{c}}{A_ROW[f'{t}_achurn']})"))
         drow(f"{tag} athletes acquired (gross)",
@@ -533,7 +549,7 @@ def build() -> pathlib.Path:
              first="=0",
              formula=f"={{p}}{end}*{{c}}{rr}^12")
         # Capped HERE, on the driver, because everything downstream reads this
-        # row: the annual figure below it and — the one that matters — average
+        # row: the annual figure below it and: the one that matters: average
         # fans during the year, which is what revenue accrues on. Capping only
         # the annual display row left the ceiling cosmetic and the revenue
         # uncapped, which is the exact shape of the bug the ceiling was added to
@@ -593,8 +609,7 @@ def build() -> pathlib.Path:
                   f"*Assumptions!{{c}}{A_ROW['popular_dpa']}"))
     drow("Total deals", formula=f"={{c}}{r-2}+{{c}}{r-1}", bold=True)
     # A matching product is worth nothing without athletes to match. Below the
-    # supply floor, paid conversion scales with the size of the directory —
-    # otherwise the workbook books SaaS revenue against an empty one, and again
+    # supply floor, paid conversion scales with the size of the directory, # otherwise the workbook books SaaS revenue against an empty one, and again
     # disagrees with Python.
     drow("Supply factor", unit="athletes / floor, capped at 1", fmt='0.000',
          formula=(f"=MIN(1,{{c}}{D['Total athletes (year end)']}"
@@ -624,7 +639,7 @@ def build() -> pathlib.Path:
                   f"/Assumptions!{{c}}{A_ROW['ops_hours']}"))
 
     # ══ REVENUE ═════════════════════════════════════════════════════════════
-    v = sheet(wb, "Revenue", "Revenue — GMV built stream by stream, then our take")
+    v = sheet(wb, "Revenue", "Revenue: GMV built stream by stream, then our take")
     r, R = 4, {}
 
     def vrow(label, formula=None, fmt=MONEY, **kw):
@@ -632,7 +647,7 @@ def build() -> pathlib.Path:
         R[label] = r
         r = row(v, r, label, kw.pop("unit", ""), formula=formula, fmt=fmt, **kw)
 
-    r = section(v, r, "FAN GMV — what fans pay athletes, net of VAT")
+    r = section(v, r, "FAN GMV: what fans pay athletes, net of VAT")
     # ARPU is the price a fan sees, which in the EU is displayed VAT-inclusive.
     # Dividing by (1+VAT) here makes every row below the taxable base, which is
     # what the take applies to. The gross is reconstructed further down for the
@@ -656,7 +671,7 @@ def build() -> pathlib.Path:
                   f"*(1+Assumptions!{{c}}{A_ROW['vat_fan']})"))
     r += 1
 
-    r = section(v, r, "SPONSORSHIP GMV — what sponsors pay athletes and clubs")
+    r = section(v, r, "SPONSORSHIP GMV: what sponsors pay athletes and clubs")
     vrow("Niche sponsorship GMV",
          formula=f"=Drivers!{{c}}{D['Niche deals']}*Assumptions!{{c}}{A_ROW['niche_deal']}")
     vrow("Popular sponsorship GMV",
@@ -666,7 +681,7 @@ def build() -> pathlib.Path:
          bold=True, top=True)
     r += 1
 
-    r = section(v, r, "NET REVENUE — our share")
+    r = section(v, r, "NET REVENUE: our share")
     vrow("Fan take", unit="fan GMV x take rate",
          formula=f"={{c}}{R['Total fan GMV']}*Assumptions!{{c}}{A_ROW['take_fan']}")
     vrow("Sponsorship take",
@@ -680,7 +695,7 @@ def build() -> pathlib.Path:
          formula=f"={{c}}{R['NET REVENUE']}/{{c}}{R['TOTAL GMV']}", fmt=PCT)
 
     # ══ COSTS ═══════════════════════════════════════════════════════════════
-    co = sheet(wb, "Costs", "Costs — every line built from its driver")
+    co = sheet(wb, "Costs", "Costs: every line built from its driver")
     r, C = 4, {}
 
     def crow(label, formula=None, fmt=MONEY, **kw):
@@ -739,10 +754,10 @@ def build() -> pathlib.Path:
     r = section(co, r, "OPERATING COSTS")
     crow("People", unit="FTE x loaded salary",
          formula=f"=Assumptions!{{c}}{A_ROW['headcount']}*Assumptions!{{c}}{A_ROW['salary']}")
-    crow("Athlete acquisition — niche", unit="gross adds x CAC",
+    crow("Athlete acquisition: niche", unit="gross adds x CAC",
          formula=(f"=Drivers!{{c}}{D['Niche athletes acquired (gross)']}"
                   f"*Assumptions!{{c}}{A_ROW['niche_cac']}"))
-    crow("Athlete acquisition — popular",
+    crow("Athlete acquisition: popular",
          formula=(f"=Drivers!{{c}}{D['Popular athletes acquired (gross)']}"
                   f"*Assumptions!{{c}}{A_ROW['popular_cac']}"))
     crow("Sponsor acquisition",
@@ -753,10 +768,10 @@ def build() -> pathlib.Path:
     # The ambiguity worth surfacing rather than resolving silently: segment CAC
     # is priced per athlete ADMITTED, so multiplying it by the funnel would
     # double-count. This memo is what the same money works out to per
-    # application — the figure to hold against what a channel actually charges.
+    # application: the figure to hold against what a channel actually charges.
     crow("  memo: athlete marketing per application", unit="CAC is per ADMITTED athlete",
          fmt=MONEY2, font=Font(color="6B7480", name="Calibri", size=10, italic=True),
-         formula=(f"=({{c}}{C['Athlete acquisition — niche']}+{{c}}{C['Athlete acquisition — popular']})"
+         formula=(f"=({{c}}{C['Athlete acquisition: niche']}+{{c}}{C['Athlete acquisition: popular']})"
                   f"/Drivers!{{c}}{D['Applications required']}"))
     crow("Legal & compliance", formula=f"=Assumptions!{{c}}{A_ROW['legal']}", font=LINK)
     crow("Other opex", unit="% of revenue",
@@ -826,7 +841,7 @@ def build() -> pathlib.Path:
     prow("Amortisation", formula=f"=-WorkingCap!{{c}}{W['Amortisation']}", font=LINK)
     prow("EBIT", formula=f"={{c}}{P['EBITDA']}+{{c}}{P['Amortisation']}", bold=True)
     r += 1
-    r = section(pl, r, "TAX — with loss carryforward and the startup-rate step")
+    r = section(pl, r, "TAX: with loss carryforward and the startup-rate step")
     prow("Losses brought forward", unit="accumulated",
          formula=f"=IF({{k}}=1,0,MIN(0,{{p}}{r+2}))")
     prow("Taxable profit", unit="after offset",
@@ -843,7 +858,7 @@ def build() -> pathlib.Path:
     prow("NET PROFIT", formula=f"={{c}}{P['EBIT']}+{{c}}{r-1}", bold=True, top=True, band=True)
 
     # ══ CASH FLOW ═══════════════════════════════════════════════════════════
-    cf = sheet(wb, "CashFlow", "Cash flow — indirect method")
+    cf = sheet(wb, "CashFlow", "Cash flow, indirect method")
     r, F = 4, {}
 
     def frow(label, formula=None, fmt=MONEY, **kw):
@@ -868,7 +883,7 @@ def build() -> pathlib.Path:
     # Year one opens at nothing rather than at `IF(k=1, 0, prev closing)`: in the
     # first column `{p}` falls back to the same column, so the untaken branch
     # named the closing-cash cell that reads this one. Excel does not care that
-    # the branch never runs — it saw Opening -> Closing -> Opening and stopped
+    # the branch never runs: it saw Opening -> Closing -> Opening and stopped
     # calculating. Found by the dependency-graph check, which the direct
     # self-reference check could not see because the loop goes through a
     # neighbour rather than back to the same cell.
@@ -958,7 +973,7 @@ def build() -> pathlib.Path:
          formula=f"=1-{{c}}{U['Founders + team retained']}")
 
     # ══ HIRING PLAN ═════════════════════════════════════════════════════════
-    hp = sheet(wb, "HiringPlan", "Hiring plan — headcount by role, reconciled to the model")
+    hp = sheet(wb, "HiringPlan", "Hiring plan, headcount by role, reconciled to the model")
     r = 4
     r = section(hp, r, "FTE BY ROLE")
     ROLES = [
@@ -986,13 +1001,13 @@ def build() -> pathlib.Path:
             formula=f"=ROUND({{c}}{total_fte}-{{c}}{model_hc},3)")
 
     r += 1
-    r = section(hp, r, "COST — ROLE BUILD-UP AGAINST THE MODEL")
+    r = section(hp, r, "COST: ROLE BUILD-UP AGAINST THE MODEL")
     ss = r
     r = row(hp, r, "Employer social security", "on gross",
             values=[0.32] * 10, fmt=PCT, hard=True)
     cost_first = r
     for label, _fte, gross in ROLES:
-        r = row(hp, r, f"{label} — loaded", "EUR",
+        r = row(hp, r, f"{label}: loaded", "EUR",
                 formula=f"={{c}}{role_rows[label]}*{gross}*(1+{{c}}{ss})")
     cost_last = r - 1
     build_up = r
@@ -1001,7 +1016,7 @@ def build() -> pathlib.Path:
     modelled = r
     r = row(hp, r, "People cost in the model", "Costs", font=LINK,
             formula=f"=Costs!{{c}}{C['People']}")
-    r = row(hp, r, "Difference — role mix", "build-up less model",
+    r = row(hp, r, "Difference: role mix", "build-up less model",
             formula=f"={{c}}{build_up}-{{c}}{modelled}")
     r = row(hp, r, "  memo: build-up per FTE", "EUR", font=LINK,
             formula=f"=IF({{c}}{total_fte}=0,0,{{c}}{build_up}/{{c}}{total_fte})")
@@ -1023,7 +1038,7 @@ def build() -> pathlib.Path:
     # ══ CAC & CLV ═══════════════════════════════════════════════════════════
     cl = sheet(wb, "CAC_CLV", "Customer acquisition cost and lifetime value")
     r = 4
-    r = section(cl, r, "ATHLETE — BLENDED ACROSS SEGMENTS")
+    r = section(cl, r, "ATHLETE: BLENDED ACROSS SEGMENTS")
     n_share = r
     r = row(cl, r, "Niche share of athletes", "%", fmt=PCT, font=LINK,
             formula=f"=Assumptions!{{c}}{A_ROW['niche_share']}")
@@ -1033,8 +1048,8 @@ def build() -> pathlib.Path:
     # and in a business with 20-30% annual athlete churn those two differ.
     r = row(cl, r, "Blended CAC per athlete acquired", "spend / gross adds",
             formula=f"=IF(Drivers!{{c}}{D['Athletes acquired (gross)']}=0,0,"
-                    f"(Costs!{{c}}{C['Athlete acquisition — niche']}"
-                    f"+Costs!{{c}}{C['Athlete acquisition — popular']})"
+                    f"(Costs!{{c}}{C['Athlete acquisition: niche']}"
+                    f"+Costs!{{c}}{C['Athlete acquisition: popular']})"
                     f"/Drivers!{{c}}{D['Athletes acquired (gross)']})")
     a_ch = r
     # Weighted by the GROSS-ADD mix, to match the CAC above. Weighting by the
@@ -1071,13 +1086,13 @@ def build() -> pathlib.Path:
                   "thesis rather than an error: acquisition is cheap precisely "
                   "because there is no incumbent agent to outbid in these "
                   "sports. It should be read alongside the fan LTV below, which "
-                  "is small — the economics work on volume of athletes, not on "
+                  "is small: the economics work on volume of athletes, not on "
                   "the value of any one of them.").font = Font(
                       italic=True, size=8, color="6B7280", name="Calibri")
     r += 2
 
     r += 1
-    r = section(cl, r, "FAN — NICHE SUBSCRIPTION ONLY")
+    r = section(cl, r, "FAN: NICHE SUBSCRIPTION ONLY")
     cl.cell(r - 1, 4, "excludes PPV and tips, which the revenue model "
                       "carries separately").font = Font(
                           italic=True, size=8, color="6B7280", name="Calibri")
@@ -1145,7 +1160,7 @@ def build() -> pathlib.Path:
                   "reported.").font = Font(italic=True, size=8, color="6B7280", name="Calibri")
 
     # ══ KPIs ════════════════════════════════════════════════════════════════
-    kp = sheet(wb, "KPIs", "KPIs — the dozen numbers that describe the business")
+    kp = sheet(wb, "KPIs", "KPIs: the dozen numbers that describe the business")
     r = 4
     r = section(kp, r, "SCALE")
     r = row(kp, r, "Active athletes", "count", fmt=NUM, font=LINK,
@@ -1187,7 +1202,7 @@ def build() -> pathlib.Path:
             formula=f"=Revenue!{{c}}{R['Take rate on GMV']}")
 
     # ══ VALUATION ═══════════════════════════════════════════════════════════
-    va = sheet(wb, "Valuation", "Valuation — DCF, NPV, IRR and exit multiples")
+    va = sheet(wb, "Valuation", "Valuation, DCF, NPV, IRR and exit multiples")
     r = 4
     r = row(va, r, "Free cash flow", "EUR", formula=f"=CashFlow!{{c}}{F['FREE CASH FLOW']}",
             fmt=MONEY, font=LINK)
@@ -1247,7 +1262,7 @@ def build() -> pathlib.Path:
             c.value = c.value.replace("$C$__TV__", f"$C${V['Terminal value at Y10']}")
 
     r += 1
-    r = section(va, r, "SENSITIVITY — enterprise value by WACC and terminal growth")
+    r = section(va, r, "SENSITIVITY: enterprise value by WACC and terminal growth")
     va.cell(r, 1, "Terminal growth \\ WACC").font = BOLD
     waccs = [0.18, 0.20, 0.22, 0.25, 0.28, 0.30]
     for j, w in enumerate(waccs):
@@ -1597,10 +1612,10 @@ def build() -> pathlib.Path:
         r += 1
 
     # ══ CHECK ═══════════════════════════════════════════════════════════════
-    ck = sheet(wb, "Check", "Check — Excel's own answers against the Python model")
+    ck = sheet(wb, "Check", "Check: Excel's own answers against the Python model")
     r = 4
     ck.cell(2, 1, "Each pair is the Python model's figure and the workbook's own calculation. "
-                  "VARIANCE must be zero — if a formula is wrong, it shows up here on open.").font =         Font(italic=True, size=9, color="6B7480")
+                  "VARIANCE must be zero: if a formula is wrong, it shows up here on open.").font =         Font(italic=True, size=9, color="6B7480")
 
     CHECKS = [
         ("Net revenue", "revenue", f"=Revenue!{{c}}{R['NET REVENUE']}", MONEY),
@@ -1636,6 +1651,15 @@ def build() -> pathlib.Path:
     ck.cell(r, 1, "Balance sheet check (from BalanceSheet, must be zero):").font = BOLD
     r = row(ck, r + 1, "  Assets less liabilities and equity", "must be 0", check=True, bold=True,
             formula=f"=BalanceSheet!{{c}}{B['BALANCE CHECK']}", fmt=MONEY)
+
+    # Sheets are created in dependency order, which is not the order a reader
+    # wants them in. Reordering here, from the same list the README is built
+    # from, means the tabs and the index can never disagree.
+    missing = [n for n in TAB_ORDER if n not in wb.sheetnames]
+    extra = [n for n in wb.sheetnames if n not in TAB_ORDER]
+    assert not missing, f"TAB_ORDER names sheets that do not exist: {missing}"
+    assert not extra, f"sheets missing from TAB_ORDER: {extra}"
+    wb._sheets = [wb[n] for n in TAB_ORDER]
 
     out = pathlib.Path(__file__).parent / "Stride_Financial_Model.xlsx"
     wb.save(out)

@@ -174,7 +174,7 @@ class Renderer:
                 i += 1
                 continue
 
-            # fenced code — kept as a monospace block (the process map is one)
+            # fenced code: kept as a monospace block (the process map is one)
             if stripped.startswith("```"):
                 block, i = [], i + 1
                 while i < len(lines) and not lines[i].strip().startswith("```"):
@@ -284,7 +284,10 @@ class Renderer:
         if self.renumber:
             text = re.sub(r"^\d+\.", f"{self.renumber}.", text)
         if self.appendix and level == 1:
-            text = f"Appendix {self.appendix} — {re.sub(r'^\d+\s*[—-]\s*', '', text)}"
+            # Strips the source file's own number and separator: "17: Evidence
+            # Base" becomes "Appendix L: Evidence Base". The class is written
+            # out rather than as a range so a stray space cannot join it.
+            text = f"Appendix {self.appendix}: {re.sub(r'^\d+\s*[:-]\s*', '', text)}"
         sizes = {1: 16, 2: 12.5, 3: 11, 4: 10}
         # A real Word Heading style, not a bold paragraph. Without an outline
         # level the TOC field indexes nothing and the Contents page stays empty

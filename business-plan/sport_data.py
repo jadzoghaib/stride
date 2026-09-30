@@ -23,7 +23,7 @@ are measured and which are guessed is not a plan:
     "derived"   computed from a measured figure
     "estimate"  reasoned, order-of-magnitude, replace when real data arrives
 
-REFRESH CADENCE — see 08-sport-index.md:
+REFRESH CADENCE: see 08-sport-index.md:
     activity_index   Eurobarometer, every ~4 years (next expected 2026)
     licences         national federations, annual
     fandom           estimates today; replaced by Stride's own engagement data
@@ -35,7 +35,7 @@ from __future__ import annotations
 SOURCES = {
     "eb525": "Special Eurobarometer 525, Sport and Physical Activity (Sept 2022). "
              "Share who NEVER exercise: FI 8%, SE 12%, DK 20%, PL 65%, GR 68%, PT 73%; EU-27 average 45%.",
-    "fip25": "FIP World Padel Report 2025 — Spain ~6.0M players (12.7% of population), "
+    "fip25": "FIP World Padel Report 2025: Spain ~6.0M players (12.7% of population), "
              "109,040 federation licences, 17,300+ courts; 35M+ players and 77,000+ courts worldwide.",
 }
 
@@ -93,7 +93,7 @@ COUNTRIES: list[Country] = [
 # ── Sports ───────────────────────────────────────────────────────────────────
 # base_participation: relative share of active people who do it (global baseline)
 # base_fandom:        relative share of sports followers who follow it
-# agent_density:      0..1 — share of commercially active athletes with representation
+# agent_density:      0..1: share of commercially active athletes with representation
 #
 # The gap between the two columns is the whole point. Running has huge
 # participation and modest fandom; motorsport is the reverse.
@@ -131,7 +131,7 @@ SPORTS: list[Sport] = [
 
 REGION_MULTIPLIERS: dict[str, dict[str, float]] = {
     "iberia": {
-        "padel": 7.0,        # FIP: 12.7% of Spaniards play — the outlier that proves regional weighting
+        "padel": 7.0,        # FIP: 12.7% of Spaniards play: the outlier that proves regional weighting
         "football": 1.5, "cycling": 1.25, "handball": 1.3, "basketball": 1.2,
         "motorsport": 1.3, "golf": 0.7, "skateboarding": 0.8,
     },

@@ -1,4 +1,4 @@
-# 13 — Organization and Human Resources Plan
+# 13: Organization and Human Resources Plan
 
 *ESADE outline §8. Headcount, loaded costs and the hiring sequence are generated
 by [`model.py`](model.py); the doc guard fails the build if the prose drifts
@@ -63,14 +63,14 @@ Growth function, because at this stage marketing *is* partnerships.
 Roles are listed in hiring order. Gross and loaded costs reflect Spanish
 employer social security at **~30–32%** on top of gross.
 
-### Founder / CEO — Y1
+### Founder / CEO: Y1
 **Gross €0 → €45k · Loaded €0 → €59k**
 Unpaid in Y1; the opportunity cost is modelled explicitly rather than hidden.
 Owns strategy, fundraising, the anchor-athlete relationship and the sponsor
 pipeline until a BD hire exists. Writes code in Y1–Y2.
 *Requires:* the venture's core insight, and enough technical depth to ship.
 
-### Senior engineer — Y2
+### Senior engineer: Y2
 **Gross €55k · Loaded €72k**
 Owns the platform end to end: API, data model, the analytics engine, deployment.
 Second pair of hands on a codebase that already exists and already has a test
@@ -78,7 +78,7 @@ suite running on two databases.
 *Requires:* Python/TypeScript, Postgres, cloud deployment. Payments integration
 experience is the single most valuable specialism at this stage.
 
-### BD / partnerships — Y2
+### BD / partnerships: Y2
 **Gross €38k + commission · Loaded €50k+**
 Opens the club channel and the first sponsor accounts. Commission-weighted
 because the role is measurable and the early pipeline is the company's riskiest
@@ -86,28 +86,28 @@ unknown after fan churn.
 *Requires:* Spanish sports ecosystem relationships. Federation or club-side
 experience preferred over agency experience.
 
-### Athlete success — Y3
+### Athlete success: Y3
 **Gross €30k · Loaded €39k**
 Onboards admitted athletes, coaches content strategy, holds retention. The
 counterpart to BD on the supply side, and the role closest to the churn
 assumption the whole plan rests on.
 *Requires:* credibility with athletes. Competitive background strongly preferred.
 
-### Content moderation lead — Y3
+### Content moderation lead: Y3
 **Gross €34k · Loaded €45k**
 Owns the review queue, the trust and safety policy, the age-gate enforcement and
 the escalation path. Also owns the admission-review service level (< 48 hours).
 *Requires:* trust and safety experience on a UGC platform; judgement under
 ambiguity.
 
-### Finance / operations — Y4
+### Finance / operations: Y4
 **Gross €42k · Loaded €55k**
 Payouts, reconciliation, VAT across markets, investor reporting, the working
 capital cycle. The first hire whose absence would become a control weakness
 rather than a workload problem.
 *Requires:* multi-jurisdiction VAT, marketplace payment flows.
 
-### Data protection officer — Y3 fractional → Y5 hired
+### Data protection officer: Y3 fractional → Y5 hired
 **Fractional €18k → Hired gross €60k / loaded €79k**
 GDPR Article 37 exposure arrives with scale, not with launch. Fractional until
 the athlete base and the media pipeline justify a full-time appointment.
@@ -207,11 +207,11 @@ plan and visible in the product.*
 
 | SDG | How the business model addresses it | Where it is decided |
 |---|---|---|
-| **8 — Decent Work and Economic Growth** | The core purpose: creating an income stream for semi-professional athletes who currently have none. A trail runner's alternative to Stride is nothing | [06](06-market-strategy.md) |
-| **5 — Gender Equality** | Women's sport is systematically under-monetised by agent-mediated models, precisely because agents chase the largest audiences. An evidence-based matching engine that scores on engagement rather than on name recognition is structurally fairer to it | [11](11-admission-and-matching.md) |
-| **10 — Reduced Inequalities** | The 15% flat take with **no monthly athlete fee** means the athlete earning €200 a month pays the same rate as the one earning €5,000. A subscription fee would have been regressive | [01](01-revenue-model.md) |
-| **16 — Peace, Justice and Strong Institutions** | Nothing self-verifies. A club above the verification bar still waits for a human; a rejected proof cannot be cleared by re-submitting. Consent is versioned and audited | [11](11-admission-and-matching.md) |
-| **12 — Responsible Consumption** | The zero-egress architecture is chosen on cost, and the same decision cuts billed cross-network transfer by an order of magnitude. We do **not** claim a measured energy saving: the €0.075 against €0.008 per GB in [02](02-cost-model.md) is a price ratio, and no energy measurement sits behind it | [02](02-cost-model.md) |
+| **8: Decent Work and Economic Growth** | The core purpose: creating an income stream for semi-professional athletes who currently have none. A trail runner's alternative to Stride is nothing | [06](06-market-strategy.md) |
+| **5: Gender Equality** | Women's sport is systematically under-monetised by agent-mediated models, precisely because agents chase the largest audiences. An evidence-based matching engine that scores on engagement rather than on name recognition is structurally fairer to it | [11](11-admission-and-matching.md) |
+| **10: Reduced Inequalities** | The 15% flat take with **no monthly athlete fee** means the athlete earning €200 a month pays the same rate as the one earning €5,000. A subscription fee would have been regressive | [01](01-revenue-model.md) |
+| **16: Peace, Justice and Strong Institutions** | Nothing self-verifies. A club above the verification bar still waits for a human; a rejected proof cannot be cleared by re-submitting. Consent is versioned and audited | [11](11-admission-and-matching.md) |
+| **12: Responsible Consumption** | The zero-egress architecture is chosen on cost, and the same decision cuts billed cross-network transfer by an order of magnitude. We do **not** claim a measured energy saving: the €0.075 against €0.008 per GB in [02](02-cost-model.md) is a price ratio, and no energy measurement sits behind it | [02](02-cost-model.md) |
 
 **Two commitments that cost us money**, stated because they are the test of
 whether the above is real:

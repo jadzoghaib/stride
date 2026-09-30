@@ -158,6 +158,17 @@ NO_VAT_Y7 = NO_VAT[6]
 SCEN = {r["scenario"]: r for r in model.scenario_table()}
 
 
+#: The blended cost of acquiring one athlete, at the Y1 and Y10 segment mix.
+#: 16.2 quotes both ends to show the mix shift is what moves it.
+def _weighted_cac(i: int) -> float:
+    ns = model.A.niche_share[i]
+    return ns * model.A.segments[0].cac_eur[i] + (1 - ns) * model.A.segments[1].cac_eur[i]
+
+
+NICHE_CAC_Y1 = _weighted_cac(0)
+NICHE_CAC_Y10 = _weighted_cac(9)
+
+
 def peak_funding() -> float:
     cum = trough = 0.0
     for r in ROWS:
@@ -385,6 +396,19 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
 
     ("14-legal-and-growth.md", "what the startup tax rate is worth",
      r"worth €([\d.]+)M across Y6–Y9", startup_tax_saving() / 1e6, 0.005),
+    # -- 16.2 the segment progression --------------------------------------
+    # The mix shift is the plan's largest strategic claim about its own future,
+    # so every number stating it is read from niche_share and the two segments'
+    # CAC rather than typed.
+    ("16-growth-strategy.md", "niche share in Y1",
+     r"\*\*(\d+)% niche in Y1", model.A.niche_share[0] * 100, 0.5),
+    ("16-growth-strategy.md", "niche share by Y10",
+     r"niche in Y1 to (\d+)% by Y10", model.A.niche_share[9] * 100, 0.5),
+    ("16-growth-strategy.md", "weighted athlete CAC in Y1",
+     r"\*\*€(\d+) to €\d+\*\*", NICHE_CAC_Y1, 0.5),
+    ("16-growth-strategy.md", "weighted athlete CAC by Y10",
+     r"\*\*€\d+ to €(\d+)\*\*", NICHE_CAC_Y10, 0.5),
+
     # Follows the growth strategy out of the legal document: the ESADE outline
     # separates legal aspects from company growth, so they are now two files.
     ("16-growth-strategy.md", "Y10 EBITDA",
@@ -622,7 +646,10 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"\| Series A \| €8\.0M \| €40M \| €48M \| 16\.7% \| (\d+)% \|",
      DILUTION["Series A"]["held"] * 100, 0.5),
     ("04-capital-and-valuation.md", "founders held after the ESOP",
-     r"\| ESOP \(cumulative\) \| — \| — \| — \| 10% \| \*\*~(\d+)%\*\* \|",
+     # The three empty columns were em-dashes until the document dropped them;
+     # matched as "whatever is between the pipes" so the pin survives a
+     # formatting decision it has no stake in.
+     r"\| ESOP \(cumulative\) \|[^|]*\|[^|]*\|[^|]*\| 10% \| \*\*~(\d+)%\*\* \|",
      DILUTION["ESOP (cumulative)"]["held"] * 100, 0.5),
     ("04-capital-and-valuation.md", "equity retained through the Series A",
      r"Retaining ~(\d+)% through Series A",
@@ -698,11 +725,11 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("README.md", "the trough the egress difference is compared to",
      r"this plan's entire €(\d+)k cash trough", peak_funding() / 1e3, 1.0),
     ("02-cost-model.md", "the egress difference across the plan",
-     r"— €([\d.]+)M across the ten\s+years", egress_cumulative() / 1e6, 0.05),
+     r", €([\d.]+)M across the ten\s+years", egress_cumulative() / 1e6, 0.05),
     ("README.md", "the Y7 egress difference",
      r"costs \*\*€(\d+)k more in Y7\*\*", egress_delta(7) / 1e3, 1.0),
     ("README.md", "the egress difference across the plan",
-     r"more in Y7\*\* — and €([\d.]+)M", egress_cumulative() / 1e6, 0.05),
+     r"more in Y7\*\*, and €([\d.]+)M", egress_cumulative() / 1e6, 0.05),
     ("stride-business-plan-draft.md", "the Y7 egress difference",
      r"is \*\*€(\d+)k a year at Y7\*\*", egress_delta(7) / 1e3, 1.0),
     ("stride-business-plan-draft.md", "the egress difference across the plan",

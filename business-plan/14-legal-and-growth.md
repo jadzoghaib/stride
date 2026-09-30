@@ -1,4 +1,4 @@
-# 14 — Legal Form and Intellectual Property
+# 14: Legal Form and Intellectual Property
 
 *ESADE outline §10. The growth strategy that used to sit here is now its own
 section: see [16](16-growth-strategy.md), which the outline separates and which
@@ -18,8 +18,8 @@ full plan does not.*
 |---|---|---|
 | **Sociedad Limitada (S.L.)** | **€1** since *Ley 18/2022, Crea y Crece* | **Chosen.** Standard for Spanish venture-backed startups; investors expect it |
 | Sociedad Anónima (S.A.) | €60,000, 25% paid up | Rejected. Capital requirement and formality serve no purpose pre-Series A |
-| Autónomo (sole trader) | — | Rejected. No limited liability; cannot issue shares, so cannot raise |
-| Foreign holding (Delaware, Estonia) | — | Rejected for now. See below |
+| Autónomo (sole trader) |  | Rejected. No limited liability; cannot issue shares, so cannot raise |
+| Foreign holding (Delaware, Estonia) |  | Rejected for now. See below |
 
 **Why S.L.** Limited liability, share issuance for the pre-seed, and
 eligibility for the **Ley 28/2022, Ley de Startups** regime, which is a
@@ -75,7 +75,7 @@ protects the surface, not the substance.
 | Asset | Protection | Status |
 |---|---|---|
 | **Marketability scoring engine, admission gate, matching algorithm** | Trade secret + copyright in the source | Held. The repository is currently public for academic assessment; it goes private before commercial launch |
-| **"Stride" word mark** | EU trade mark (EUIPO), Nice classes 9, 35, 41, 42 | **To file.** €850 for the first class, €50 for the second, €150 for each beyond it — **€1,200** for four |
+| **"Stride" word mark** | EU trade mark (EUIPO), Nice classes 9, 35, 41, 42 | **To file.** €850 for the first class, €50 for the second, €150 for each beyond it, **€1,200** for four |
 | Domain and handles | Registration | To secure alongside the mark |
 | **Athlete engagement database** | *Sui generis* database right (Directive 96/9/EC) | Arises automatically from substantial investment in obtaining and verifying the data. This is the most valuable and least discussed protection we have |
 | Platform content (athlete posts, media) | Licensed from athletes, not owned | Terms grant a limited licence to host, display and promote; the athlete retains ownership |

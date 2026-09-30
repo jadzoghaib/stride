@@ -1,4 +1,4 @@
-# 01 — Revenue Model
+# 01: Revenue Model
 
 ## Why OnlyFans is the right reference, and where the analogy stops
 
@@ -23,7 +23,7 @@ relationship, power-law outcomes, one-off unlocks and tips on top of the base.
 | Difference | Consequence for Stride |
 |---|---|
 | Athlete content is brand-safe | Better card-scheme terms, no high-risk processor premium, sponsors will co-exist with it |
-| Athletes have a **second payer** (sponsors) | Two revenue engines from one audience — OnlyFans has one |
+| Athletes have a **second payer** (sponsors) | Two revenue engines from one audience, OnlyFans has one |
 | Performance is objectively measured | The analytics engine is a real moat; "audience quality" is provable, not asserted |
 | Athletes are often minors | A safeguarding obligation OnlyFans solved by banning under-18s outright |
 | Careers are seasonal | Subscription revenue smooths what sponsorship spikes |
@@ -58,7 +58,7 @@ uneconomic bottom end (see [02](02-cost-model.md#the-fixed-fee-problem)).
 | Tier | Suggested | What the fan gets | Why an athlete offers it |
 |---|---|---|---|
 | Supporter | €4.99 | Training log, results before the feed, supporter badge | Volume tier, low effort |
-| Insider | €9.99 | Behind-the-scenes video, session breakdowns, monthly Q&A | **The default** — best margin per effort |
+| Insider | €9.99 | Behind-the-scenes video, session breakdowns, monthly Q&A | **The default**: best margin per effort |
 | Inner circle | €24.99 | Direct messaging, personalised video, early merch | Small cohort, high ARPU |
 | Season pass | €89/yr | Insider for a competitive season | One payment fee instead of twelve |
 
@@ -68,7 +68,7 @@ retains 64%. The same content at double the price is not twice as hard to sell
 when the buyer is a fan of a specific athlete.
 
 **Annual billing is worth more than a take-rate increase.** A €89 season pass
-carries one €0.25 fixed fee instead of twelve — worth ~€2.75/fan/year, against
+carries one €0.25 fixed fee instead of twelve, worth ~€2.75/fan/year, against
 €13.35 of total take. Pushing 30% of subscribers annual is roughly equivalent to
 raising the take rate by a point, without asking athletes for anything.
 
@@ -84,30 +84,29 @@ raising the take rate by a point, without asking athletes for anything.
 
 SaaS matters disproportionately: it is **100% margin** (no GMV, no payment
 rail), and it converts the analytics engine into revenue that does not depend on
-a deal closing. By Y7 it is €1.92M of the €10.70M — 18% of revenue at close to
+a deal closing. By Y7 it is €1.92M of the €10.70M: 18% of revenue at close to
 100% gross margin, which is roughly 26% of gross profit.
 
 ---
 
-## Take rate — benchmarked
+## Take rate: benchmarked
 
 Headline rates across the platforms an athlete could plausibly choose instead:
 
 | Platform | Headline take | Other creator fees | Effective take, small creator | Evidence |
 |---|---|---|---|---|
 | **Passes** | **10%** | **$0.30/txn + $29/mo creator fee** | **~16–25%** | Sacra; rebrand release |
-| OnlyFans | 20% | — | **19.5% measured** | filed accounts — see below |
-| Fansly | 20% | — | 20% | not published; consistently reported |
-| Fanfix | 20% | — | 20% | not published; consistently reported |
-| Patreon | **10%** | none — processing included | 10% | Patreon publishes it |
-| **Stride (proposed)** | **15%** | **none — we absorb payment costs** | **15%** | our decision |
+| OnlyFans | 20% |  | **19.5% measured** | filed accounts: see below |
+| Fansly | 20% |  | 20% | not published; consistently reported |
+| Fanfix | 20% |  | 20% | not published; consistently reported |
+| Patreon | **10%** | none: processing included | 10% | Patreon publishes it |
+| **Stride (proposed)** | **15%** | **none: we absorb payment costs** | **15%** | our decision |
 
-**OnlyFans' 20% is not a reported figure — it is arithmetic on filed accounts.**
+**OnlyFans' 20% is not a reported figure; it is arithmetic on filed accounts.**
 OnlyFans' parent, [Fenix International Limited, company no. 10354575](https://find-and-update.company-information.service.gov.uk/company/10354575),
 files publicly at Companies House. FY2024 (to 30 November 2024): **$7.22bn** of
 gross fan payments, of which **$1.41bn** was retained as OnlyFans' own revenue
-and **$5.8bn** paid out to creators. The take is 1.41 / 7.22 = **19.5%** —
-measured, not asserted, in a document that will still be there in five years.
+and **$5.8bn** paid out to creators. The take is 1.41 / 7.22 = **19.5%**, measured, not asserted, in a document that will still be there in five years.
 
 The two sides do not tie to exactly 100% (19.5% + 80.3% = 99.8%), and that is
 worth saying rather than rounding away: net revenue and creator payouts are
@@ -121,12 +120,12 @@ moved to a single published rate:
 [10% of what you earn](https://www.patreon.com/pricing), which it states
 *includes* "payment processing, currency conversion, and payout fees". So
 Patreon is materially cheaper than this document previously claimed. It ties
-Passes on the headline — both say 10% — but Passes adds $0.30 a transaction and
+Passes on the headline: both say 10%, but Passes adds $0.30 a transaction and
 $29 a month, so **on all-in cost Patreon is the cheapest option in this table,
 cheaper than what we are proposing.** That is worth stating plainly rather than
 leaving it to be discovered. It does not undo the Passes argument below, because
 Patreon is a membership tool rather than an athlete product and its 10% buys
-none of the sponsorship-side machinery — but the table should not have been
+none of the sponsorship-side machinery, but the table should not have been
 flattering us, and it was.
 
 **Fansly and Fanfix do not publish a rate at all.** Checked 2026-09-05: Fanfix's
@@ -140,7 +139,7 @@ And the middlemen the athlete is paying *on top* of the platform:
 
 | Intermediary | Takes | Where the number comes from |
 |---|---|---|
-| Sports agent, endorsement deal | **10–20%** | unregulated — no governing body caps it |
+| Sports agent, endorsement deal | **10–20%** | unregulated: no governing body caps it |
 | Sports agent, playing contract | **2–5%** | capped, and the caps are published |
 | OnlyFans management agency | **20–50% of net**, on top of the platform's 20% | agency rate guides |
 
@@ -159,13 +158,13 @@ and it takes effect with the new transfer system on 1 January 2027.)*
 regulations do not contain the word "endorsement" once: unions cap what an agent
 may charge for negotiating a *playing contract*, and leave marketing work
 uncapped. That is why endorsement representation costs an athlete several times
-what a union permits on their salary — and endorsement is exactly the work
+what a union permits on their salary, and endorsement is exactly the work
 Stride's 15% replaces.
 
 ### Why 15% beats Passes' 10% for the athletes we serve
 
 Passes is the closest competitor and looks cheaper. It is not, for the long
-tail, because its **$29/month creator fee is regressive** — a fixed cost is
+tail, because its **$29/month creator fee is regressive**, a fixed cost is
 brutal on a small creator and trivial on a large one.
 
 An athlete earning `R` per month across `N` transactions keeps:
@@ -184,12 +183,12 @@ At an average ticket of €9.20 those cross at **€1,380/month of fan revenue**
 | €313 *(modelled niche athlete, Y7)* | €266 | €245 | **Stride, by 9%** |
 | €500 | €425 | €408 | **Stride** |
 | €1,000 | €850 | €843 | **Stride**, barely |
-| €1,380 | €1,173 | €1,173 | — crossover |
+| €1,380 | €1,173 | €1,173 | crossover |
 | €2,000 | €1,700 | €1,712 | Passes |
 | €5,000 | €4,250 | €4,321 | Passes |
 
 **Below €1,380/month, Stride's 15% pays the athlete more than Passes' 10%.**
-Our modelled niche athlete at maturity earns ~€313/month — comfortably on the left of
+Our modelled niche athlete at maturity earns ~€313/month, comfortably on the left of
 that line, and the entire long tail with them. The athletes on the right are
 the ones who already have an agent.
 
@@ -216,13 +215,13 @@ rather than one:
 | 10% | €9.10M | €1.64M | Patreon's published, all-in rate |
 
 Read the bottom row before the top one. **Matching Patreon costs €1.60M of Y7
-revenue and €1.48M of EBITDA — EBITDA falls 47%, from €3.11M to €1.64M.** The
+revenue and €1.48M of EBITDA: EBITDA falls 47%, from €3.11M to €1.64M.** The
 same five points that look like upside going up are what a price war costs
 going down, and the downside lands harder because the cost base does not shrink
 with the take.
 
-> [!example] 📊 ==GRAPH G9 — the corridor, not the sensitivity==
-> **Chart** · Three grouped columns — revenue and EBITDA at 10%, 15%, 20% — with
+> [!example] 📊 ==GRAPH G9: the corridor, not the sensitivity==
+> **Chart** · Three grouped columns, revenue and EBITDA at 10%, 15%, 20%, with
 > the 15% pair highlighted and the other two labelled by the competitor they
 > represent, not by the percentage alone. A sensitivity table nobody reads
 > becomes a picture of where we sit between two real companies.
@@ -233,15 +232,15 @@ with the take.
 > series so that asymmetry is the thing the eye lands on.
 
 **Recommendation: hold 15%, and never add a monthly creator fee.** But hold it
-for the right reason. The Passes argument below — that 10% plus $0.30 a
+for the right reason. The Passes argument below: that 10% plus $0.30 a
 transaction plus $29 a month is worse than a flat 15% for any athlete earning
-under €1,380 a month — is arithmetic, and it survives. It does **not** cover
+under €1,380 a month: is arithmetic, and it survives. It does **not** cover
 Patreon, whose 10% carries no fee at all and is genuinely cheaper for everyone.
 Against Patreon the argument has to be that the 15% buys something Patreon does
 not sell: the sponsorship side, the score a brand will price against, the
 admission gate that makes the roster mean something. If an athlete only wants a
 paywall, Patreon is cheaper and we should expect to lose that athlete. Revisit
-the percentage at Series A, when the network — not the price — is the reason to
+the percentage at Series A, when the network, not the price: is the reason to
 stay.
 
 *Sources: [Passes fee structure (Sacra)](https://sacra.com/c/passes/) ·
@@ -250,20 +249,20 @@ stay.
 [FIFA Football Agent Regulations, art. 15](https://digitalhub.fifa.com/m/1e7b741fa0fae779/original/FIFA-Football-Agent-Regulations.pdf) ·
 [CJEU upholds the FIFA cap, 16 Jul 2026](https://inside.fifa.com/news/welcomes-court-of-justice-european-union-decision-football-agent-regulations) ·
 [OnlyFans agency commissions 20–50%](https://arunatalent.com/blog/onlyfans-agency-commission-rates/) ·
-[Fanfix Creator Terms of Use](https://auth.fanfix.io/creator-terms-of-use) — cited for what it does *not* say
+[Fanfix Creator Terms of Use](https://auth.fanfix.io/creator-terms-of-use), cited for what it does *not* say
 
 **On the platform rates in the first table.** They split three ways once
 actually chased down, and this note used to say flatly that none of them could
 be sourced. That was true of half of them. Patreon publishes its rate outright.
 OnlyFans does not, but its parent files accounts, so the 20% is recoverable as
 arithmetic rather than taken on trust. Fansly and Fanfix publish nothing and
-file nothing — checked 2026-09-05, Fanfix's Creator Terms and public FAQ state
+file nothing: checked 2026-09-05, Fanfix's Creator Terms and public FAQ state
 no percentage and Fansly's terms render client-side with nothing in the
-document — so those two stay at the reported 20% and stay marked as estimates.
+document, so those two stay at the reported 20% and stay marked as estimates.
 
 **What does not depend on any of this:** the recommendation to hold 15%. It
-rests on the Passes comparison — Sacra plus the rebrand release, both live and
-both primary — and on the crossover arithmetic, which is computed from the model
+rests on the Passes comparison: Sacra plus the rebrand release, both live and
+both primary, and on the crossover arithmetic, which is computed from the model
 rather than cited.*
 
 ---
@@ -278,7 +277,7 @@ rather than cited.*
 | **Total** | **€25k** | **€0.53M** | **€3.43M** | **€10.70M** |
 
 The mix shifts deliberately. Fans fund the early years because they can be
-acquired at near-zero cost — **athletes bring their own audience**. Sponsorship
+acquired at near-zero cost: **athletes bring their own audience**. Sponsorship
 grows into it as the athlete pool becomes large enough that matching is
 genuinely useful, which is when the analytics moat starts to pay.
 
@@ -290,7 +289,7 @@ A two-sided marketplace with a third side is three cold starts. The sequence
 that avoids all three at once:
 
 1. **One anchor athlete** brings fans on day one. Fan revenue needs no sponsors.
-2. **Their club** brings a roster — ten to thirty athletes without ten to thirty
+2. **Their club** brings a roster: ten to thirty athletes without ten to thirty
    sales conversations.
 3. **Sponsors arrive when the pool is measurable**, not when it is large. Fifty
    athletes with real analytics beat five hundred unmeasured ones.

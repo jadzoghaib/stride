@@ -1,4 +1,4 @@
-# 11 — Admission, Club Eligibility and Matching
+# 11: Admission, Club Eligibility and Matching
 
 Who is allowed onto the platform, whose word carries whom, and how a campaign
 ranks the people who got in. Cold start is the problem all three solve: before
@@ -19,7 +19,7 @@ them is a gate.**
 |---|---|---|
 | Asks | is this entity what it claims to be? | how valuable is it to a sponsor? |
 | Source | evidence the applicant supplies | measurement the platform takes |
-| Setting | adversarial — applicants lie | non-adversarial — data is what it is |
+| Setting | adversarial: applicants lie | non-adversarial: data is what it is |
 | Shape | a gate | a ranking |
 | Failure mode | fraud gets in | ordering is wrong |
 | Role | **admission** | **listing and matching** |
@@ -34,7 +34,7 @@ it through and the gate does the opposite of what the product promises.
 
 A compensatory gate lets reach buy legitimacy, which admits exactly the person
 Stride exists not to be, and rejects exactly the person it exists to serve.
-Worse, it does the second by treating *unmeasured* analytics as a zero — the
+Worse, it does the second by treating *unmeasured* analytics as a zero: the
 error `matching.py` already refuses to make.
 
 So: **credibility decides admission. The social score can only route a case to
@@ -46,17 +46,17 @@ connect a platform. Gate on legitimacy, tier on value.
 
 ## Three rules the arithmetic enforces
 
-**1. Evidence multiplies, it does not add.** In the original rubric proof links
+**1. Evidence multiplies; it does not add.** In the original rubric proof links
 were a required field worth zero points, so a self-declared `international`
 claim with a dead link outscored a verified `regional` one. As a multiplier it
 cannot: the strongest possible unevidenced application scores **24.0** and is
-rejected — just under the 25 review floor, by construction.
+rejected: just under the 25 review floor, by construction.
 
-**2. Missing is zero here — the opposite of `matching.py`, on purpose.** That
+**2. Missing is zero here: the opposite of `matching.py`, on purpose.** That
 module renormalises weights over the analytics it could measure, because the
 athlete does not control whether Instagram returned data. Everything on an
 application form is the reverse: the applicant chooses what to supply.
-Renormalising over self-reported fields makes *withholding raise the score* — a
+Renormalising over self-reported fields makes *withholding raise the score*, a
 blank competition level handed its whole weight to tenure and scored 100 in the
 first draft. **Renormalise over what the system could not measure; never over
 what the applicant chose not to write down.**
@@ -79,7 +79,7 @@ tenure   = min(1, max( years / 8 , years / (age − 10) ))
 
 E        = 1.15 verified | 0.70 pending | 0.55 unverified | 0.10 rejected
            0.25 when no proof was supplied at all
-           (a rejected check dominates the absence of one — see stress test #2)
+           (a rejected check dominates the absence of one, see stress test #2)
 
 C        = min(100, 100 × (0.85·level + 0.15·tenure) × E)
 ```
@@ -93,7 +93,7 @@ share reading never binds for anyone old enough to hold an account.
 
 ### Decision
 
-Order matters — disqualifications cannot be outscored, and the social score
+Order matters: disqualifications cannot be outscored, and the social score
 runs last and only ever moves a case towards a human.
 
 ```
@@ -115,7 +115,7 @@ the age gate, so a known 15-year-old who left one box blank was held on file
 rather than refused (stress finding 6).
 
 Nothing auto-admits on evidence nobody has opened. `pending` means a link was
-supplied, not that it says what the applicant says it says — and at 0.70 a large
+supplied, not that it says what the applicant says it says, and at 0.70 a large
 enough claim clears the line unaided (see stress finding 3).
 
 ### Club legitimacy
@@ -134,10 +134,10 @@ nomination_floor = 0.75 × L, and only when verified
 
 The `AND` is load-bearing. Every field on a club application is a self-reported
 string; filled in perfectly they reach claim 100, which at the `pending`
-multiplier is 70 — over the bar. Without it a fabricated club verifies itself and
+multiplier is 70: over the bar. Without it a fabricated club verifies itself and
 starts nominating (stress finding 4).
 
-### Nomination — a floor, not a bypass
+### Nomination: a floor, not a bypass
 
 "Verified club nominates → athlete auto-accepted" makes the club a fraud
 multiplier: verify one club, mint five hundred athletes. Three properties stop
@@ -160,13 +160,13 @@ unaided, so club strength propagates proportionally rather than as a switch.
 
 A nomination is also a **ratchet**: it can raise a listing, never lower one.
 Without that, a club vouching for a healthy listed athlete would knock them to
-`draft` on a `pending` verdict — a third party's action costing someone their
+`draft` on a `pending` verdict: a third party's action costing someone their
 standing.
 
 ### The second ratchet: listings that predate the gate
 
 The directory existed before this gate did. Athletes listed under the old rules
-are not retroactively re-audited — but the first version of that promise only
+are not retroactively re-audited, but the first version of that promise only
 held while they ignored the gate. Submitting the eligibility form scored them,
 found the claim insufficient, and dropped a healthy listed profile to `draft`
 for the act of filling in a form. Found by an outside walkthrough of the demo,
@@ -190,7 +190,7 @@ the applicant. Keying this to any rejection delists people for filling a form in
 badly; keying it to the proof status alone let a declared age below the minimum
 keep a listing, which is the one rule here nothing may buy its way past.
 
-The protection also ends when the gate itself grants a listing — recorded as
+The protection also ends when the gate itself grants a listing, recorded as
 `admitted_via`. From that point the listing was earned here rather than
 inherited, so weakening the claim behind it can take it away. Otherwise editing
 your application downwards would be a free way to keep a listing it no longer
@@ -205,14 +205,14 @@ is the shape around it.
 
 **Hard constraints moved into retrieval.** A weighted blend is compensatory by
 construction, so a strong audience fit would outscore a failed brand-safety or
-verification check — the one trade no brand wants made on its behalf. Anything a
+verification check: the one trade no brand wants made on its behalf. Anything a
 sponsor states as a *must* is now a filter in `candidates()`, where it cannot be
 outscored. `require_verified_athletes` is the first instance and it is what ties
 admission to matching: a risk-averse brand can require athletes whose
 participation was actually checked.
 
 **Congestion is surfaced, not silently corrected.** The problem "stable matching"
-reaches for is real — the top few athletes absorb most offers — but Gale–Shapley
+reaches for is real: the top few athletes absorb most offers, but Gale–Shapley
 solves two-sided preference with quotas and exclusivity, and sponsorship has
 none of those properties: a sponsor offers to many, an athlete accepts many, the
 binding constraint is budget rather than exclusivity, and the market clears
@@ -230,7 +230,7 @@ today, and it is not a model.
 
 `matching.ran` now records every candidate shown, its rank, its score, its
 component vector, and the weights in force. One row per matching run, and
-unrecoverable if skipped — the classic selection-bias trap, and the reason most
+unrecoverable if skipped: the classic selection-bias trap, and the reason most
 in-house rankers cannot be evaluated off-policy after the fact.
 
 ---
@@ -255,7 +255,7 @@ What is being accumulated in the meantime, and what it becomes:
 | Admission inputs and verdict, with `policy_version` | `admission.decided` | Back-test set for retuning the gate |
 
 **The trigger to move from rules to a model** is roughly 500 completed
-(campaign, athlete, outcome) triples with at least 50 distinct sponsors — below
+(campaign, athlete, outcome) triples with at least 50 distinct sponsors, below
 that a learned ranker fits one buyer's taste and calls it a market. The first
 version should be a gradient-boosted ranker on the components already logged,
 shipped behind an A/B against the current weights, judged on realised delivered
@@ -272,7 +272,7 @@ with.
 
 `scripts/admission_stress.py` sweeps the discrete input space exhaustively
 rather than spot-checking: 8,960 applications × the questions below. It found
-two failures that the hand-written test cases did not — two more turned up only
+two failures that the hand-written test cases did not, two more turned up only
 by driving the running API, and a sixth appeared the moment the harness itself
 was widened to cover what those escapees had exposed. The honest reading is that
 sweeps, live runs and hand-written cases each catch a different class, and none
@@ -292,10 +292,10 @@ of the three substitutes for the others.
 The middle three rows were added *after* findings 3 and 4, because a harness
 that misses the class of bug it exists to find is itself the defect. Clubs had
 six hand-picked cases where athletes had thousands, and the decision function
-was only ever swept one axis at a time — which is exactly where both escapees
+was only ever swept one axis at a time, which is exactly where both escapees
 lived. Widening it immediately produced finding 6.
 
-### Finding 1 — an incomplete form was a softer landing than an honest one
+### Finding 1: an incomplete form was a softer landing than an honest one
 
 13,992 combinations where blanking a field *improved* the outcome. Routing an
 unanswerable form to `review` made it strictly better than an honest weak claim,
@@ -303,11 +303,11 @@ because a queued case can still be admitted by a human and a rejected one
 cannot. That hands every applicant heading for rejection a strategy: leave a box
 empty.
 
-**Fix:** an incomplete application returns `pending` — not a lenient decision but
+**Fix:** an incomplete application returns `pending`, not a lenient decision but
 the *absence* of one. It occupies no reviewer and confers nothing, so stalling
 gains nothing.
 
-### Finding 2 — deleting failed evidence scored better than leaving it
+### Finding 2: deleting failed evidence scored better than leaving it
 
 With a rejected check at 0.10 and no proof at all at 0.25, withdrawing a link
 that had been checked and failed *raised* credibility. Combined with the
@@ -319,7 +319,7 @@ inside the scoring function itself, and a failed check is sticky across
 re-submission. A failed verification is a finding about the applicant, not about
 the URL, so only a reviewer can clear it.
 
-### Findings 3 and 4 — nothing required the evidence to have been *looked at*
+### Findings 3 and 4: nothing required the evidence to have been *looked at*
 
 These two came from driving the running API rather than from the sweep, which
 had missed them because its own definition of "unevidenced" wrongly counted a
@@ -327,8 +327,8 @@ queued link as evidence.
 
 - An unchecked `international` claim scored **62.4** at the `pending` multiplier
   and was admitted outright.
-- A fully fabricated club — plausible registration number, federation id,
-  founding year, team count, roster URL, none of them opened — scored **70**,
+- A fully fabricated club: plausible registration number, federation id,
+  founding year, team count, roster URL, none of them opened, scored **70**,
   cleared the 65 bar, and could verify itself and begin nominating.
 
 **Fix:** admission requires one *checked* source, either the applicant's own
@@ -337,11 +337,11 @@ the club side now requires that somebody verified something. The sweep's
 definition was corrected too, so it would now catch this class on its own.
 
 A fifth defect, found the same way: there was no ops endpoint to record a check
-against a *club's* roster page, so the verified state was unreachable — a club
+against a *club's* roster page, so the verified state was unreachable, a club
 re-submitting its own form resets the proof to `pending` by design, which is
 correct, and left no forward path at all.
 
-### Finding 6 — an unfinished form outranked a legal disqualification
+### Finding 6: an unfinished form outranked a legal disqualification
 
 Found by the widened sweep, on its first run. `incomplete_application` was
 checked *before* the age gate, so a known 15-year-old who left the competition
@@ -350,8 +350,7 @@ docstring promised that disqualifications run first; the code did not. Holding a
 minor on file in a pending state, inviting them to finish a form they can never
 pass, is the opposite of what the age model exists for.
 
-**Fix:** both hard disqualifications — a failed proof check and being under 16 —
-now run above the incompleteness check. An adult with the same unfinished form is
+**Fix:** both hard disqualifications, a failed proof check and being under 16, now run above the incompleteness check. An adult with the same unfinished form is
 still simply unfinished, and an applicant whose age is unknown still cannot be
 disqualified on age.
 
@@ -370,7 +369,7 @@ because a stress harness that cries wolf gets switched off.
 > retuned threshold leaves the workbook costing a funnel that no longer exists.
 
 
-Under an assumed applicant mix — an assumption, not a measurement; replace it
+Under an assumed applicant mix: an assumption, not a measurement; replace it
 with real intake data the moment it exists:
 
 | Admit threshold | admitted | review | rejected | pending |
@@ -379,7 +378,7 @@ with real intake data the moment it exists:
 | **55 (current)** | **20%** | **25%** | **40%** | **15%** |
 | 65 | 5% | 40% | 40% | 15% |
 
-**250 manual reviews per 1,000 applicants — about 17 hours per 1,000 at four
+**250 manual reviews per 1,000 applicants, about 17 hours per 1,000 at four
 minutes each.**
 
 The composition matters more than the level. **Every case in that queue is there
@@ -391,14 +390,14 @@ That points at one obvious automation: **fetch the roster or results page and
 look for the applicant's name.** It converts most of the queue directly into
 admissions and leaves humans only the ambiguous cases. It is the only part of
 this design that needs the public internet, which is why it is specified rather
-than built here — every connector in this codebase is mocked.
+than built here: every connector in this codebase is mocked.
 
 **A correction to the earlier framing, now that the financial model carries the
 funnel.** This was described as the highest-leverage *ops* investment, which
 implied cost. It is not: verification peaks at €25k a year and 0.33 of one
 reviewer, and the whole discounted stream is 0.28% of enterprise value
 ([02](02-cost-model.md#compliance-and-moderation)). Nobody automates a 0.6-FTE
-task to save the salary. **The leverage is latency** — an athlete sitting in the
+task to save the salary. **The leverage is latency**: an athlete sitting in the
 queue is not listed, not matchable and not earning, so the automation buys
 time-to-supply rather than headcount.
 
@@ -418,15 +417,15 @@ constant should not be retuned without re-running the sweep.
 
 | | State |
 |---|---|
-| Credibility, legitimacy, nomination, decisions | **Built** — `admission.py` |
-| Applications, review queue, proof review, revocation | **Built** — `routers/admission.py` |
-| Hard retrieval filters, congestion, slate logging | **Built** — `matching.py` |
-| Adversarial sweep | **Built** — `scripts/admission_stress.py` |
-| Athlete eligibility, club eligibility + nomination, ops review queue | **Built** — see below |
-| Automated proof-link checking | **Specified** — needs live HTTP; see above |
-| Learned ranker | **Deliberately deferred** — no labels yet |
-| The funnel in the financial model | **Built** — `model.py`, `Stride_Financial_Model.xlsx` |
-| Topic embeddings for narrative fit | **Deferred** — needs real post text and a model dependency |
+| Credibility, legitimacy, nomination, decisions | **Built**: `admission.py` |
+| Applications, review queue, proof review, revocation | **Built**: `routers/admission.py` |
+| Hard retrieval filters, congestion, slate logging | **Built**: `matching.py` |
+| Adversarial sweep | **Built**: `scripts/admission_stress.py` |
+| Athlete eligibility, club eligibility + nomination, ops review queue | **Built**: see below |
+| Automated proof-link checking | **Specified**: needs live HTTP; see above |
+| Learned ranker | **Deliberately deferred**: no labels yet |
+| The funnel in the financial model | **Built**: `model.py`, `Stride_Financial_Model.xlsx` |
+| Topic embeddings for narrative fit | **Deferred**: needs real post text and a model dependency |
 
 ---
 
@@ -448,7 +447,7 @@ the same discipline the marketability scores already follow.
 Three things the interface is deliberate about:
 
 - **Rule codes become sentences.** `evidence_not_checked` reads "Your claim
-  clears the bar — we just have not opened your proof link yet." The wording
+  clears the bar: we just have not opened your proof link yet." The wording
   lives in the client so it can change without touching policy.
 - **The nomination panel says what a nomination cannot do**, before the club
   spends its budget: nominees sit at `pending` until they complete their own

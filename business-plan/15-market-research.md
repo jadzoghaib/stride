@@ -1,4 +1,4 @@
-# 15 — Primary Research
+# 15: Primary Research
 
 *ESADE outline §5.1.4. Two strands of qualitative primary research: one expert
 interview inside Olympic broadcasting, and conversations with athletes in the
@@ -51,7 +51,7 @@ product decision. Both happened.
 
 ---
 
-## 15.2 Expert interview — Olympic broadcasting
+## 15.2 Expert interview: Olympic broadcasting
 
 **Íñigo Cristóbal Losada** is AI Lead at olympics.com (Olympic Channel
 Services), following eleven years at Olympic Broadcasting Services, where he was
@@ -63,7 +63,7 @@ perspective of the Olympic Channel in Europe.
 **The headline: he liked it.** Three pieces of substantive advice followed, and
 two of them changed the plan.
 
-### Finding 1 — Phase it. Content first, sponsorship second.
+### Finding 1: Phase it. Content first, sponsorship second.
 
 His advice was to prioritise the content side, and to roll out the sponsorship
 and business layer as real data accumulated or once a reasonable athlete base
@@ -81,7 +81,7 @@ matching engine is what proves the analytics are real, but it means the thing a
 viewer clicks is the second-phase product. The build sequence in
 [12.11](12-operations-plan.md) corrects the order; the demo has not caught up.
 
-### Finding 2 — Open it to everyone, but filter it
+### Finding 2: Open it to everyone, but filter it
 
 The idea was originally pitched to him as a product *for the IOC*, in which only
 Olympic athletes could participate. **He rejected that framing.** His position:
@@ -110,7 +110,7 @@ inherited the IOC's athlete population: elite, already represented, and largely
 already monetised. The segment with the actual problem sits below that tier,
 which is where the plan now starts.
 
-### Finding 3 — Look at Athlete365, and at partnership
+### Finding 3: Look at Athlete365, and at partnership
 
 He pointed to the IOC's own athlete programmes, in particular **Athlete365**,
 as both a reference and a possible future partnership route.
@@ -136,12 +136,12 @@ the top of the sport. That the programme teaches entrepreneurship to retiring
 elite athletes confirms it is not addressing the athlete this plan targets.
 
 **As a partnership**, the relevant asset is credibility and reach into national
-federations, which is exactly the channel [16.3](16-growth-strategy.md) plans
+federations, which is exactly the channel [16.4](16-growth-strategy.md) plans
 to open at Y3. It is listed as an opportunity, not as a dependency.
 
 ---
 
-## 15.3 Athlete interviews — the segment itself
+## 15.3 Athlete interviews: the segment itself
 
 Conversations with five athletes: rugby league players competing in Spain and
 in Lebanon, and top-ranked Lebanese CrossFit athletes, one of them at Asian
@@ -149,7 +149,7 @@ level. The founder is capped by the Lebanese
 national rugby team, which is how this access exists and why the conversations
 were candid rather than performative.
 
-### Finding 1 — Current earnings are zero, not low
+### Finding 1: Current earnings are zero, not low
 
 Not "modest", not "inconsistent". **Nothing.** The athletes spoken to earn no
 income from their sport or their audience.
@@ -158,7 +158,7 @@ This matters for the plan's framing: the alternative to Stride for this athlete
 is not a worse deal. It is no deal. That is the market-creation argument in
 [06](06-market-strategy.md), stated by the people it describes.
 
-### Finding 2 — The inequity is visible, and it is felt
+### Finding 2: The inequity is visible, and it is felt
 
 The comparison that came up unprompted: **influencers producing far less
 demanding content earn more than competing athletes do.** The grievance is not
@@ -166,7 +166,7 @@ that sport should pay more in the abstract. It is that the monetisation
 infrastructure available to a lifestyle creator has no equivalent for someone
 whose content is a training block and a competitive record.
 
-### Finding 3 — Sponsorship arrives despite the sport, not because of it
+### Finding 3: Sponsorship arrives despite the sport, not because of it
 
 One athlete does receive sponsorship. **He does not receive it as a rugby league
 athlete.** There is no route by which the sport itself produces the commercial
@@ -176,7 +176,7 @@ a brand to find him through it.
 This is the disintermediation thesis observed from the supply side: the
 sponsorship market is not competitive here; it is **absent**.
 
-### Finding 4 — The suppression loop
+### Finding 4: The suppression loop
 
 The strongest finding, and the one that changes how the opportunity should be
 sized:
@@ -233,7 +233,7 @@ In priority order, and sized to what actually changes a decision:
 
 | Priority | Research | Why it matters | Effort |
 |---|---|---|---|
-| **1** | **6–10 sponsor-side interviews** — regional brands, sports nutrition, local retail | The only completely untested side of the marketplace. Without it, the demand side is desk research alone | 2 weeks |
+| **1** | **6–10 sponsor-side interviews**: regional brands, sports nutrition, local retail | The only completely untested side of the marketplace. Without it, the demand side is desk research alone | 2 weeks |
 | **2** | Structured athlete survey, n ≥ 30, via the club channel | Converts the qualitative findings into something defensible. Ask about current income, brand approaches, and willingness to accept a 15% take | 3 weeks |
 | **3** | Spanish athlete interviews, 5–8 | Tests whether the structural finding holds in the launch market specifically | 2 weeks |
 | **4** | Athlete365 / federation exploratory contact | Partnership route, and a credibility signal for the club channel | Opportunistic |

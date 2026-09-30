@@ -1,11 +1,11 @@
-# 04 — Capital & Valuation
+# 04: Capital & Valuation
 
 ---
 
 ## Internal capital, priced honestly
 
 You asked for the starting cash to be treated on an opportunity-cost basis. It
-should be, and the answer is larger than the cash figure — because the scarce
+should be, and the answer is larger than the cash figure, because the scarce
 input is not the money.
 
 ### What is actually committed
@@ -30,13 +30,13 @@ and it produces a hurdle rate that is far too low.
 
 ### The hurdle this sets
 
-To beat the alternative — take the job, invest the €80k — the venture must
+To beat the alternative of taking the job and investing the €80k, the venture must
 return more than €201,600 compounded at 7%, plus a premium for the risk of total
 loss. At a 70% failure probability, the surviving case must return roughly
 **€1.5–2M to the founder** for the decision to have been rational ex ante.
 
 The model delivers that: a founder retaining ~49% through the Series A holds
-that share of the enterprise value — **€4.11M against the DCF floor of €8.37M**,
+that share of the enterprise value: **€4.11M against the DCF floor of €8.37M**,
 and €5.4–12.1M against the exit multiples discounted back. **Even the floor
 clears the hurdle twice over**, which is the honest justification for doing it
 at all.
@@ -48,9 +48,9 @@ at all.
 You were right to want raises gated on something concrete. Each gate below is a
 fact you can demonstrate, not a milestone you can assert.
 
-| Stage | Amount | Pre-money | Gate — what must be true before raising | Use of funds |
+| Stage | Amount | Pre-money | Gate: what must be true before raising | Use of funds |
 |---|---|---|---|---|
-| **Internal** | €80k cash + time | — | Product exists (it does) | Payments, subscriptions, one anchor athlete live |
+| **Internal** | €80k cash + time |  | Product exists (it does) | Payments, subscriptions, one anchor athlete live |
 | **Pre-seed** | **€600k** | €2.5M | 400 athletes · €10k MRR · anchor athlete public · payments processing real money · fan churn measured for 3 months | 2 hires, Spain go-to-market, club channel |
 | **Seed** *(optional)* | €2.0M | €10M | €80k MRR · fan churn < 8%/mo · CAC payback < 9mo · 2nd market opened · 30+ paying sponsors | Team to 15, second and third market, moderation infrastructure |
 | **Series A** | €8.0M | €40M | €300k MRR · net revenue retention > 110% · sponsorship take > 25% of revenue · unit economics stable across 3 markets | EU-wide, sales org, managed services |
@@ -62,13 +62,13 @@ trough dies with a working product. Raise the buffer; do not spend it unless
 the conservative case materialises.
 
 The pre-seed alone covers the **€464k trough in Y4** with €136k to spare, which
-is why the seed is marked optional above. It is growth capital — a second market
-sooner — not rescue capital. A plan whose survival does not depend on the next
+is why the seed is marked optional above. It is growth capital: a second market
+sooner, not rescue capital. A plan whose survival does not depend on the next
 round arriving on schedule is a materially stronger one to raise against.
 
 Be precise about what that claims. **€600k clears the trough the model
 produces; €649k is that trough plus the 40% buffer.** The seed is optional
-against the plan as modelled — not against the conservative case the buffer
+against the plan as modelled, not against the conservative case the buffer
 exists for. If the buffer is needed, the €49k gap is what the non-dilutive stack
 above is for.
 
@@ -78,33 +78,32 @@ Every gate after it is a scaling question. The pre-seed gate is the **only** one
 that tests the thesis: *will fans of a semi-professional athlete actually pay?*
 
 Nothing in the product proves that today. Three months of real subscription data
-from one anchor athlete answers it definitively — and if the answer is no, you
+from one anchor athlete answers it definitively, and if the answer is no, you
 have spent €80k and a year, not €2.6M and four.
 
 **That is the single most important sequencing decision in this plan.**
 
 ---
 
-## Spanish instruments — non-dilutive capital first
+## Spanish instruments: non-dilutive capital first
 
 Spain has unusually good public financing for early-stage technology companies.
 Taking dilution before exhausting these is leaving money on the table.
 
 | Instrument | Amount | Cost | Fit |
 |---|---|---|---|
-| **ENISA Jóvenes Emprendedores** | €25k–€75k | Participative loan, ~Euribor + spread, **no equity** | Y1 — designed exactly for this |
+| **ENISA Jóvenes Emprendedores** | €25k–€75k | Participative loan, ~Euribor + spread, **no equity** | Y1: designed exactly for this |
 | **ENISA Crecimiento** | up to €300k | Participative loan, no equity | Y2–Y3 |
-| **CDTI Neotec** | up to €250k (70% of budget) | **Grant**, no equity | Y2 — requires R&D framing; the analytics engine qualifies |
+| **CDTI Neotec** | up to €250k (70% of budget) | **Grant**, no equity | Y2: requires R&D framing; the analytics engine qualifies |
 | **Startup Capital (regional, Catalunya)** | €25k–€100k | Grant / soft loan | Y1–Y2 |
-| **Ley de Startups** tax regime | — | **15% corporate tax** for the first four taxable years vs 25% | Modelled — worth €1.57M across Y6–Y9 |
-| Beckham Law | — | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
+| **Ley de Startups** tax regime |  | **15% corporate tax** for the first four taxable years vs 25% | Modelled: worth €1.57M across Y6–Y9 |
+| Beckham Law |  | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
 
 **A realistic non-dilutive stack is €300–500k**, which covers most of the €464k
 trough on its own. Combined with a smaller pre-seed, the founder could reach the
 Seed gate holding materially more equity.
 
-The 15% startup tax rate is already in the model. The others are excluded —
-they are upside, and grant timelines are unreliable enough that no plan should
+The 15% startup tax rate is already in the model. The others are excluded: they are upside, and grant timelines are unreliable enough that no plan should
 depend on them.
 
 ---
@@ -139,13 +138,12 @@ Two methods, because they answer different questions and disagree for a reason.
 ### Why they disagree, and which to believe
 
 The DCF says €8.4M; the blended exit multiple says €165.0M. **This is not an
-error in either — it is the standard failure of perpetuity-growth DCF applied to
+error in either: it is the standard failure of perpetuity-growth DCF applied to
 a company that has not finished growing.**
 
 The DCF's terminal value assumes growth collapses to 3% the day after Y10, from
 a year that still grew 27%. For a marketplace that has just reached €25M revenue
-at a 71% gross margin with a network effect, that is not a neutral assumption —
-it is a pessimistic one. The terminal value is 53% of the DCF's total, so that
+at a 71% gross margin with a network effect, that is not a neutral assumption; it is a pessimistic one. The terminal value is 53% of the DCF's total, so that
 single assumption carries half the answer.
 
 **For a venture-stage company, the exit-multiple method discounted back is the
@@ -180,7 +178,7 @@ pre-seed gate, so its structure matters more than its cost.
 | Co-founder equity | 5–15% | Total alignment | ✗ Only if they are genuinely operational |
 
 **Recommended: 1% advisory equity, two-year vest, six-month cliff, with a
-performance trigger** — an extra 0.5% if they bring three clubs or 25 athletes.
+performance trigger**: an extra 0.5% if they bring three clubs or 25 athletes.
 The cliff protects you if they lose interest after the launch photos.
 
 ### What the anchor athlete must actually be
@@ -204,11 +202,11 @@ That last row is a hard filter, not a preference. See
 
 | Round | Raised | Pre-money | Post-money | New investor % | Founder(s) after |
 |---|---|---|---|---|---|
-| Internal | — | — | — | — | 100% |
+| Internal |  | | | | 100% |
 | Pre-seed | €600k | €2.5M | €3.1M | 19.4% | 79% (after 2% advisory) |
 | Seed *(optional)* | €2.0M | €10M | €12M | 16.7% | 66% |
 | Series A | €8.0M | €40M | €48M | 16.7% | 55% |
-| ESOP (cumulative) | — | — | — | 10% | **~49%** |
+| ESOP (cumulative) |  | | | 10% | **~49%** |
 
 Retaining ~49% through Series A is a good outcome, and it depends on the
 non-dilutive stack being used before equity rather than after it.

@@ -1,17 +1,17 @@
-# Stride — Business Plan
+# Stride: Business Plan
 
 A seven-year operating plan for a Spanish company.
 
 > **Stride is a creator platform with a sponsorship feature.**
 >
 > Athletes are creators with a second payer. OnlyFans proved that direct fan
-> monetisation beats ad-share. No one has built it for athletes — who, unlike
+> monetisation beats ad-share. No one has built it for athletes, who, unlike
 > lifestyle creators, also have sponsors, clubs, and a competitive record that
 > makes their audience measurable.
 
 That sentence is a decision, not a description, and it settles the sequencing of
 everything else: fan revenue leads, sponsorship compounds behind it, and the
-analytics engine earns its keep by making the second payer possible — which is
+analytics engine earns its keep by making the second payer possible, which is
 precisely the thing a general creator platform cannot do.
 
 **The market position is disintermediation on one side and market creation on
@@ -31,21 +31,22 @@ are no agents at all, and the athlete's alternative to Stride is nothing. See
 | 02 | [Cost model](02-cost-model.md) | AWS build-up, people, compliance, and the two costs that decide viability |
 | 03 | [Financial model](03-financial-model.md) | Seven-year P&L, drivers, scenarios |
 | 04 | [Capital & valuation](04-capital-and-valuation.md) | Internal capital on an opportunity-cost basis, raise gates, Spanish instruments, DCF and exit multiples |
-| 05 | [Product gaps](05-product-gaps.md) | What the app must gain before a euro can move — assessed against the actual codebase, including the age model |
+| 05 | [Product gaps](05-product-gaps.md) | What the app must gain before a euro can move, assessed against the actual codebase, including the age model |
 | 06 | [Market strategy](06-market-strategy.md) | Two segments: disintermediation in popular sports, market creation in niche sports |
 | 07 | [Open questions](07-open-questions.md) | What is settled, and what still needs a founder |
 | 08 | [Sport index](08-sport-index.md) | 714 country x sport pairs, the classification method, and its three product uses |
-| 09 | [Analytics strategy](09-analytics-strategy.md) | How the data function phases in — and the one thing that is urgent now |
-| 10 | [Competitor: TEKTA](10-competitor-tekta.md) | Publicis/Kelce's NIL venture — what it validates, and the market its economics exclude |
-| 11 | [Admission & matching](11-admission-and-matching.md) | Who gets in and how a campaign ranks them — the cold-start gate, club nomination, and why there is no learned ranker yet |
-| 12 | [Operations plan](12-operations-plan.md) | Process map, subcontracting, service levels, unit costs, launch plan — ESADE outline §7 |
-| 13 | [Organization & HR](13-organization-and-hr.md) | Structure, job descriptions, HR policy, governance, SDG alignment — ESADE outline §8 |
-| 14 | [Legal form & growth](14-legal-and-growth.md) | S.L., IP and trade marks, and the three axes of growth — ESADE outline §10 and §12 |
-| 15 | [Primary research](15-market-research.md) | Expert and athlete interviews, what they changed, and what they do not settle — ESADE outline §5.1.4 |
-| — | **Research tab** in the workbook | How every assumption was baselined, with sources and confidence |
+| 09 | [Analytics strategy](09-analytics-strategy.md) | How the data function phases in, and the one thing that is urgent now |
+| 10 | [Competitor: TEKTA](10-competitor-tekta.md) | Publicis/Kelce's NIL venture: what it validates, and the market its economics exclude |
+| 11 | [Admission & matching](11-admission-and-matching.md) | Who gets in and how a campaign ranks them, the cold-start gate, club nomination, and why there is no learned ranker yet |
+| 12 | [Operations plan](12-operations-plan.md) | Process map, subcontracting, service levels, unit costs, launch plan, ESADE outline §7 |
+| 13 | [Organization & HR](13-organization-and-hr.md) | Structure, job descriptions, HR policy, governance, SDG alignment, ESADE outline §8 |
+| 14 | [Legal form & IP](14-legal-and-growth.md) | S.L., IP and trade marks. ESADE outline §10 |
+| 15 | [Primary research](15-market-research.md) | Expert and athlete interviews, what they changed, and what they do not settle, ESADE outline §5.1.4 |
+| 16 | [Growth strategy](16-growth-strategy.md) | Market, segment, product and channel. ESADE outline §12 |
+| | **Research tab** in the workbook | How every assumption was baselined, with sources and confidence |
 
 Every number in 03 and 04 is produced by [`model.py`](model.py). Change an
-assumption there and rerun — nothing is hand-typed:
+assumption there and rerun. Nothing is hand-typed:
 
 ```bash
 python business-plan/model.py
@@ -65,11 +66,11 @@ python business-plan/model.py
 
 **Capital required to fund it: €649k** (peak burn €464k plus a 40% buffer)**.** EBITDA turns positive in **Y5**.
 
-**Ten years, not seven** — at Y7 the business is still compounding above 50%, so
+**Ten years, not seven**: at Y7 the business is still compounding above 50%, so
 a terminal value placed there does most of the valuation work and does it badly.
 
 A live Excel model is generated alongside these documents:
-**[`Stride_Financial_Model.xlsx`](Stride_Financial_Model.xlsx)** — three
+**[`Stride_Financial_Model.xlsx`](Stride_Financial_Model.xlsx)**, three
 statements, DCF/NPV/IRR, and every cell outside Assumptions is a formula, so any
 number can be traced back to the inputs that produced it.
 
@@ -89,17 +90,17 @@ cannot disagree with the model. §9.4 of the plan indexes every slot.
 ## The four things that decide whether this works
 
 **1. The fixed payment fee, not the take rate.** At a €4.99 tier we keep 44% of
-our own commission, because Stripe's €0.25 lands on a €0.62 take — the take is
+our own commission, because Stripe's €0.25 lands on a €0.62 take. The take is
 charged on the VAT-exclusive price. At €9.99 we keep 64%. This single mechanic should set the minimum tier price and push hard
-toward annual billing — Patreon reports annual patrons churn at **one third**
+toward annual billing: Patreon reports annual patrons churn at **one third**
 the rate of monthly ones, so the retention gain compounds the fee saving. See
 [02](02-cost-model.md#the-fixed-fee-problem).
 
 **2. Media egress, not compute.** The current product is deterministic
 analytics: compute is a rounding error, which `docs/costs.md` correctly says.
 The moment fans pay for video, that stops being true. Served naively from
-CloudFront, egress alone costs **€402k more in Y7** — and €3.1M across the
-plan — than the same bytes behind a zero-egress CDN. The Y7 figure is most of
+CloudFront, egress alone costs **€402k more in Y7**, and €3.1M across the
+plan than the same bytes behind a zero-egress CDN. The Y7 figure is most of
 this plan's entire €464k cash trough, spent annually, on one architecture
 decision.
 
@@ -107,7 +108,7 @@ decision.
 account, and that choice is forward-compatible: Spain's draft Organic Law on
 the Protection of Minors in Digital Environments would raise the digital
 consent age from 14 to **16** and make age verification mandatory. But three
-things do not follow from it — Stripe's Express/Custom Connect requires **18**
+things do not follow from it: Stripe's Express/Custom Connect requires **18**
 for payouts, a minor's image cannot be commercially exploited without guardian
 consent, and adults paying for private access to a 16-year-old is a
 categorically different risk from a sponsor paying for a post. See
@@ -117,7 +118,7 @@ categorically different risk from a sponsor paying for a post. See
 or wallet entity of any kind. What has changed since this was first written is
 everything *around* that hole: a fan can now follow, subscribe, read a wall,
 hit a paywall, vote in a poll, post and message. The paywall works and has
-nothing behind it to charge — the €9.99 on the membership card is a label
+nothing behind it to charge: the €9.99 on the membership card is a label
 rendered by the client, not a price. So the gap is no longer "the creator
 platform is unbuilt"; it is **one entity and one processor**, which is a much
 smaller and much better-defined ask. See
@@ -139,5 +140,5 @@ smaller and much better-defined ask. See
 ---
 
 *Currency is EUR throughout. Y1 = 2027. Assumptions are stated where they are
-used, and are arguable by design — the point of the model is that you can move
+used, and are arguable by design: the point of the model is that you can move
 them.*
