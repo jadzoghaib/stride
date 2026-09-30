@@ -169,6 +169,22 @@ NICHE_CAC_Y1 = _weighted_cac(0)
 NICHE_CAC_Y10 = _weighted_cac(9)
 
 
+#: What the average sponsor puts through the platform, and the commission on it.
+#: The entry-tier argument in 01 rests on the ratio between that and the plan
+#: price, so both ends of it are read from the model.
+def _gmv_per_sponsor(i: int) -> float:
+    return ROWS[i]["sponsorship_gmv"] / model.A.sponsors[i]
+
+
+#: Cumulative free cash flow, year by year. The raiseability argument in 04
+#: quotes the first two, and they are the same series the funding table uses.
+CUM_FCF = []
+_c = 0.0
+for _r in ROWS:
+    _c += _r["fcf"]
+    CUM_FCF.append(_c)
+
+
 def peak_funding() -> float:
     cum = trough = 0.0
     for r in ROWS:
@@ -363,12 +379,12 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     *[("13-organization-and-hr.md", f"HR table, Y{y} headcount",
        r"\| Headcount \(FTE\) \|" + r" [\d.]+ \|" * (y - 1) + r" ([\d.]+)",
        ROWS[y - 1]["headcount"], 0.05) for y in range(1, 8)],
+    # All seven years read in thousands now. The leaner hiring ramp keeps Y6
+    # and Y7 people cost under a million, where they used to cross it and
+    # needed a second pattern.
     *[("13-organization-and-hr.md", f"HR table, Y{y} people cost",
        r"\| People cost \|" + r" €[\d.]+[kM] \|" * (y - 1) + r" €(\d+)k",
-       ROWS[y - 1]["people"] / 1e3, 0.5) for y in range(1, 6)],
-    *[("13-organization-and-hr.md", f"HR table, Y{y} people cost",
-       r"\| People cost \|" + r" €[\d.]+[kM] \|" * (y - 1) + r" €([\d.]+)M",
-       ROWS[y - 1]["people"] / 1e6, 0.005) for y in (6, 7)],
+       ROWS[y - 1]["people"] / 1e3, 0.5) for y in range(1, 8)],
 
     ("13-organization-and-hr.md", "Y10 headcount",
      r"Growth to (\d+) FTE by Y10", ROWS[9]["headcount"], 0.5),
@@ -376,7 +392,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"reaches \*\*€([\d.]+)M of revenue at Y7", Y7["revenue"] / 1e6, 0.05),
     ("13-organization-and-hr.md", "Y7 headcount in prose",
      r"of revenue at Y7 with (\d+) people", ROWS[6]["headcount"], 0.5),
-    ("13-organization-and-hr.md", "founders held after the pre-seed",
+    ("13-organization-and-hr.md", "founders held after both pre-seed tranches",
      r"(\d+)% held after the 2% advisory grant",
      DILUTION["Pre-seed"]["held"] * 100, 0.5),
     ("13-organization-and-hr.md", "founders held after the seed",
@@ -458,16 +474,52 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"\*\*Base\*\*(?:[^|]*\|){5}[^|]*€(\d+)k", SCEN["Base"]["capital_need"] / 1e3, 0.5),
     ("esade-body.md", "optimistic cash trough",
      r"\*\*Optimistic\*\*(?:[^|]*\|){4}[^|]*€(\d+)k", SCEN["Optimistic"]["trough"] / 1e3, 0.5),
+    # -- 01 the entry-tier argument ---------------------------------------
+    ("01-revenue-model.md", "Y1 deal volume per sponsor",
+     r"average sponsor runs\s+about €([\d,]+) of deals", _gmv_per_sponsor(0), 0.5),
+    ("01-revenue-model.md", "Y1 commission per sponsor",
+     r"commission on them is\s+roughly €(\d+)", _gmv_per_sponsor(0) * model.A.take_sponsorship, 0.5),
+    ("01-revenue-model.md", "Y7 deal volume per sponsor",
+     r"average sponsor runs €([\d,]+) of deals", _gmv_per_sponsor(6), 0.5),
+    ("01-revenue-model.md", "Y7 commission per sponsor",
+     r"commission alone is €([\d,]+)", _gmv_per_sponsor(6) * model.A.take_sponsorship, 0.5),
+
+    # -- 04 the round multiples -------------------------------------------
+    # Both ends read from the model: the price from ROUNDS by stage, the gate
+    # from ROUND_GATE_MRR. The gate used to be hardcoded here while living only
+    # in the document's prose, so moving a milestone would have left the
+    # multiple beside it stale and passing.
+    *[("04-capital-and-valuation.md", f"{stage} gate MRR",
+       rf"\| €(\d+)k MRR", mrr / 1e3, 0.5)
+      for stage, mrr in list(model.ROUND_GATE_MRR.items())[:1]],
+    ("04-capital-and-valuation.md", "Seed multiple on the gate",
+     r"\*\*([\d.]+)x ARR\*\* \| Marketplaces",
+     next(r["pre"] for r in model.ROUNDS if r["stage"] == "Seed (optional)") / (model.ROUND_GATE_MRR["Seed (optional)"] * 12), 0.05),
+    ("04-capital-and-valuation.md", "Series A multiple on the gate",
+     r"\*\*([\d.]+)x ARR\*\* \| European Series A",
+     next(r["pre"] for r in model.ROUNDS if r["stage"] == "Series A") / (model.ROUND_GATE_MRR["Series A"] * 12), 0.05),
+
+    # -- 04 the raiseability section --------------------------------------
+    # Figures a reader will check against the cash flow, so they are read from
+    # it rather than restated.
+    ("04-capital-and-valuation.md", "Y1 cash need in the raiseability section",
+     r"Y1 cash need of\s+€(\d+)k", -CUM_FCF[0] / 1e3, 0.5),
+    ("04-capital-and-valuation.md", "cumulative need to end of Y2",
+     r"cumulative need of\s+€(\d+)k to the end of Y2", -CUM_FCF[1] / 1e3, 0.5),
+    ("04-capital-and-valuation.md", "equity tranche plus the ENISA loan",
+r"Together they are €(\d+)k",
+     # By stage, not by position. grant_years() documents a silent
+     # divergence caused by indexing ROUNDS[0] when a round was inserted.
+     (next(r["amount"] for r in model.ROUNDS if r["stage"] == "Pre-seed")
+      + 75_000) / 1e3, 0.5),
+
     ("esade-body.md", "capital the plan needs",
      r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 0.5),
     ("esade-body.md", "the cash trough",
-     r"a €(\d+)k cash\s+trough in Y4", peak_funding() / 1e3, 0.5),
+     r"a €(\d+)k cash\s+trough in Y\d", peak_funding() / 1e3, 0.5),
     ("esade-body.md", "the pre-seed ask",
-     r"\*\*The ask is €(\d+)k at €2\.5M pre-money\.\*\*",
+     r"\*\*The ask is €(\d+)k at €2\.5M pre-money",
      model.ROUNDS[0]["amount"] / 1e3, 0.5),
-    ("esade-body.md", "spare over the trough",
-     r"clears the trough itself with\s+€(\d+)k to spare",
-     (model.ROUNDS[0]["amount"] - peak_funding()) / 1e3, 0.5),
     ("esade-body.md", "first EBITDA-positive year",
      r"EBITDA turns positive in \*\*Y(\d+)\*\*",
      next((r["year"] for r in ROWS if r["ebitda"] > 0), 0), 0.1),
@@ -620,9 +672,9 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # The trough is the number the raise has to clear, so it is quoted in four
     # places and was right in one of them.
     ("00-executive-summary.md", "the cash trough",
-     r"\*\*€(\d+)k cash trough in Y4\*\*", peak_funding() / 1e3, 1.0),
+     r"\*\*€(\d+)k cash trough in Y\d\*\*", peak_funding() / 1e3, 1.0),
     ("04-capital-and-valuation.md", "the cash trough",
-     r"\*\*€(\d+)k trough in Y4\*\*", peak_funding() / 1e3, 1.0),
+     r"\*\*€(\d+)k trough in Y\d\*\*", peak_funding() / 1e3, 1.0),
     ("04-capital-and-valuation.md", "the trough the grant stack covers",
      r"covers most of the €(\d+)k", peak_funding() / 1e3, 1.0),
     ("README.md", "peak burn",
@@ -631,19 +683,24 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # The dilution path, cell by cell. It was typed by hand and its later rows
     # did not follow from its earlier ones under any reading of them.
     ("04-capital-and-valuation.md", "pre-seed post-money",
-     r"\| Pre-seed \| €600k \| €2\.5M \| €([\d.]+)M \|",
+     r"\| Pre-seed \| €\d+k \| €2\.5M \| €([\d.]+)M \|",
      DILUTION["Pre-seed"]["post"] / 1e6, 0.05),
     ("04-capital-and-valuation.md", "pre-seed investor stake",
-     r"\| Pre-seed \| €600k \| €2\.5M \| €3\.1M \| ([\d.]+)% \|",
+     r"\| Pre-seed \|(?:[^|]*\|){3} ([\d.]+)% \|",
      DILUTION["Pre-seed"]["stake"] * 100, 0.1),
-    ("04-capital-and-valuation.md", "founders held after the pre-seed",
-     r"€3\.1M \| 19\.4% \| (\d+)% \(after 2% advisory\)",
+    # The advisory grant lands after the second tranche, so this row reports
+    # what is held after BOTH, not after the first.
+    ("04-capital-and-valuation.md", "founders held after the first tranche",
+     r"\| Pre-seed \|(?:[^|]*\|){4} (\d+)% \|",
      DILUTION["Pre-seed"]["held"] * 100, 0.5),
+    ("04-capital-and-valuation.md", "founders held after both tranches",
+     r"\| Pre-seed extension \|(?:[^|]*\|){4} (\d+)% \(after 2% advisory\)",
+     DILUTION["Pre-seed extension"]["held"] * 100, 0.5),
     ("04-capital-and-valuation.md", "founders held after the seed",
-     r"\| Seed \*\(optional\)\* \| €2\.0M \| €10M \| €12M \| 16\.7% \| (\d+)% \|",
+     r"\| Seed \*\(optional\)\* \|(?:[^|]*\|){4} (\d+)% \|",
      DILUTION["Seed (optional)"]["held"] * 100, 0.5),
     ("04-capital-and-valuation.md", "founders held after the Series A",
-     r"\| Series A \| €8\.0M \| €40M \| €48M \| 16\.7% \| (\d+)% \|",
+     r"\| Series A \|(?:[^|]*\|){4} (\d+)% \|",
      DILUTION["Series A"]["held"] * 100, 0.5),
     ("04-capital-and-valuation.md", "founders held after the ESOP",
      # The three empty columns were em-dashes until the document dropped them;
@@ -676,9 +733,6 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # Unpinned figures that the egress correction moved and review caught:
     # the gap between the ask and the pre-seed, and G11's restatement of the
     # Y7 infrastructure number from the table three sections above it.
-    ("04-capital-and-valuation.md", "the gap between the ask and the pre-seed",
-     r"the €(\d+)k gap is what the non-dilutive stack",
-     (peak_funding() * 1.4 - model.ROUNDS[0]["amount"]) / 1e3, 1.0),
     ("stride-business-plan-draft.md", "Y7 infrastructure in the G11 callout",
      r"€2\.55M against €(\d+)k at Y7", Y7["infra"] / 1e3, 1.0),
 
@@ -785,6 +839,13 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # The document describes the guard that checks it, so the guard checks that
     # description too. Self-referential on purpose: this count is exactly the
     # kind of figure that goes stale the moment anyone adds a claim.
+    # Pinned in every document that states it. It was pinned in one, so the
+    # other two could drift to a different number and nothing would notice.
+    *[(doc, "number of pinned claims",
+       r"(\d+) prose\s+claims", lambda: len(CLAIMS), 0.1)
+      for doc in ("esade-body.md", "STATUS.md")],
+    ("esade-body.md", "number of documents checked",
+     r"prose claims across (\d+) documents", lambda: len({c[0] for c in CLAIMS}), 0.1),
     ("stride-business-plan-draft.md", "number of pinned claims",
      r"checks \*\*(\d+) prose\s+claims", lambda: len(CLAIMS), 0.1),
     ("stride-business-plan-draft.md", "number of documents checked",

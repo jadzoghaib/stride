@@ -1,7 +1,7 @@
 # Stride: MSc Business Plan · status
 
 *ESADE MSc Final Project, Business Plan track, October 2026 session.
-Last updated 29 September 2026.*
+Last updated 30 September 2026.*
 
 ---
 
@@ -9,9 +9,9 @@ Last updated 29 September 2026.*
 
 | What | Where |
 |---|---|
-| **The submission** | `business-plan/Stride_Business_Plan.docx`, 40-page body, 107 total, TOC populated |
+| **The submission** | `business-plan/Stride_Business_Plan.docx`, 40-page body, 108 total, TOC populated |
 | Same, without Word | `business-plan/Stride_Business_Plan.pdf` |
-| **The financial model** | `business-plan/Stride_Financial_Model.xlsx`, 18 sheets, 2,520 formulas |
+| **The financial model** | `business-plan/Stride_Financial_Model.xlsx`, 18 sheets, 2,617 formulas |
 | The body's source | `business-plan/esade-body.md` |
 | The exhibits | `business-plan/attachments/charts/`, 12 PNGs, and `attachments/ui/`: 6 screens |
 | School material | `Desktop\Business Track MSc Thesis\` (outside this repo) |
@@ -52,7 +52,7 @@ uv run python business-plan/build_workbook.py                  # the .xlsx
 Then check it:
 
 ```bash
-uv run python scripts/doc_consistency.py    # 298 prose claims against the model
+uv run python scripts/doc_consistency.py    # 310 prose claims against the model
 uv run python scripts/verify_workbook.py    # structure: refs, cycles, parsing
 uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 ```
@@ -95,6 +95,23 @@ and `18-product-walkthrough.md`.
 - **53 em-dashes removed** from prose. The remainder are structural: table
   cells, figure captions, appendix labels
 
+## Changed 30 September
+
+- **Scout Starter at €99/mo**, a fourth sponsor tier. The plan listed €249 as
+  its cheapest paid plan while the model booked €199 per subscriber in Y1,
+  which no mix of €249 and €999 can produce
+- **Sponsorship commission tiered 10 / 7 / 5** by plan. The blended rate falls
+  from 9.60% in Y1 to 8.56% by Y10
+- **Pre-seed cut to €400k** from €600k, by moving the hiring ramp out about
+  eighteen months rather than building less. Scaling the plan down was tried
+  first and does not work: halving the athlete trajectory leaves the trough
+  within €15k of where it was, because cutting growth cuts income and
+  outgoings in the same proportion. Trough €280k, requirement €392k
+- **WACC cited to Damodaran**, NYU Stern European cost of capital, 5 January
+  2026: Software (Internet) at 6.01% in euros, with the 19-point gap to our
+  25% stated as a stage premium rather than hidden
+- **Zero em-dashes** in the document and the workbook
+
 ## What is not done
 
 | Item | Note |
@@ -108,8 +125,16 @@ and `18-product-walkthrough.md`.
 
 ## Decisions worth not relitigating
 
-- **€600k pre-seed, not €400k.** It clears the €464k Y4 trough on its own, which
-  makes the seed a growth option rather than a rescue.
+- **A staged pre-seed: €150k now, €250k in Y2.**
+  The cumulative cash need to the end of Y1 is only €73k, and Y1 is the year
+  that settles whether fans pay. Raising the whole runway against that question
+  prices it as a promise; raising the second tranche against three months of
+  real revenue prices it on evidence. Same €400k total, founder holds
+  55% through the Series A instead of 53%. ENISA
+  participative loans come before either tranche.
+- The plan asked €600k until 30 September. Moving the hiring ramp out closed the
+  gap from the cost side; scaling the plan down was tried first and does not
+  work, because cutting growth cuts income and outgoings in the same proportion.
 - **The financial model stays ours** rather than being retrofitted into the
   school's template, which says of itself that it is a guide and not a
   fill-in-the-blanks. The three concepts it teaches that were missing have been

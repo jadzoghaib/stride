@@ -17,7 +17,7 @@ python business-plan/model.py
 | Paying fans | 2,058 | 8,148 | 25,288 | 60,197 | 120,076 | 206,658 | 321,288 | 434,076 | 553,629 | 665,896 |
 | Sponsorship deals | 25 | 117 | 485 | 1,549 | 3,767 | 7,376 | 11,563 | 16,258 | 19,895 | 25,539 |
 | Paying sponsors (SaaS) | 0 | 8 | 39 | 95 | 180 | 280 | 400 | 520 | 620 | 720 |
-| Headcount (FTE) | 1.5 | 2.0 | 3.5 | 6.0 | 10.0 | 15.0 | 22.0 | 28.0 | 33.0 | 38.0 |
+| Headcount (FTE) | 1.0 | 1.5 | 2.0 | 3.5 | 6.0 | 9.0 | 13.0 | 18.0 | 23.0 | 28.0 |
 <!-- /MODEL:drivers -->
 
 ---
@@ -123,12 +123,12 @@ other.
 | Net revenue | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Fan take (15%) | €21k | €98k | €322k | €811k | €1.69M | €3.02M | €4.81M | €6.82M | €8.93M | €11.07M |
-| Sponsorship take (10%) | €3k | €16k | €91k | €362k | €1.04M | €2.30M | €3.97M | €5.89M | €7.60M | €10.21M |
+| Sponsorship take (blended by plan) | €3k | €15k | €81k | €319k | €907k | €2.00M | €3.43M | €5.07M | €6.52M | €8.74M |
 | Sponsor SaaS | €1k | €21k | €122k | €331k | €691k | €1.21M | €1.92M | €2.68M | €3.39M | €4.10M |
-| **Total net revenue** | €25k | €134k | €535k | €1.50M | €3.43M | €6.53M | €10.70M | €15.39M | €19.92M | €25.38M |
+| **Total net revenue** | €25k | €133k | €525k | €1.46M | €3.29M | €6.22M | €10.16M | €14.57M | €18.84M | €23.91M |
 <!-- /MODEL:revenue -->
 
-Growth: Y2 +442%, Y3 +298%, Y4 +181%, Y5 +128%, Y6 +90%, Y7 +64%. A decelerating
+Growth: Y2 +440%, Y3 +298%, Y4 +181%, Y5 +128%, Y6 +90%, Y7 +64%. A decelerating
 curve that stays above 50% through Y7 is what a Series B buyer wants to see.
 
 ---
@@ -138,23 +138,23 @@ curve that stays above 50% through Y7 is what a Series B buyer wants to see.
 <!-- MODEL:pl -->
 | P&L | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Net revenue | €25k | €134k | €535k | €1.50M | €3.43M | €6.53M | €10.70M | €15.39M | €19.92M | €25.38M |
+| Net revenue | €25k | €133k | €525k | €1.46M | €3.29M | €6.22M | €10.16M | €14.57M | €18.84M | €23.91M |
 | Payment processing | €8k | €39k | €137k | €371k | €830k | €1.56M | €2.55M | €3.67M | €4.78M | €6.08M |
 | Payouts | €645 | €3k | €11k | €32k | €74k | €144k | €237k | €343k | €446k | €574k |
 | Infrastructure (AWS) | €2k | €9k | €28k | €73k | €149k | €234k | €336k | €428k | €508k | €576k |
 | Moderation | €1k | €4k | €10k | €19k | €33k | €51k | €70k | €89k | €108k | €127k |
 | Athlete verification | €745 | €2k | €5k | €8k | €12k | €15k | €18k | €20k | €23k | €25k |
-| **Gross profit** | €11k | €77k | €344k | €1.00M | €2.33M | €4.52M | €7.49M | €10.85M | €14.05M | €18.01M |
-| Gross margin | 46% | 57% | 64% | 67% | 68% | 69% | 70% | 70% | 71% | 71% |
-| People | €57k | €104k | €210k | €384k | €660k | €1.02M | €1.54M | €2.02M | €2.44M | €2.89M |
+| **Gross profit** | €11k | €76k | €334k | €958k | €2.20M | €4.22M | €6.95M | €10.03M | €12.97M | €16.53M |
+| Gross margin | 46% | 57% | 64% | 66% | 67% | 68% | 68% | 69% | 69% | 69% |
+| People | €38k | €78k | €120k | €224k | €396k | €612k | €910k | €1.30M | €1.70M | €2.13M |
 | Marketing / CAC | €29k | €87k | €229k | €520k | €915k | €1.30M | €1.70M | €1.85M | €1.80M | €1.95M |
 | Legal & compliance | €18k | €45k | €90k | €150k | €200k | €235k | €270k | €300k | €325k | €345k |
-| Other opex | €2k | €11k | €43k | €120k | €274k | €522k | €856k | €1.23M | €1.59M | €2.03M |
-| **EBITDA** | €-95k | €-169k | €-228k | €-173k | €278k | €1.44M | €3.12M | €5.45M | €7.89M | €10.80M |
-| Tax | €0 | €0 | €0 | €0 | €0 | €89k | €419k | €748k | €1.09M | €2.52M |
-| Working capital movement | €-16k | €-38k | €-110k | €-264k | €-516k | €-821k | €-1.09M | €-1.21M | €-1.17M | €-1.46M |
-| Capex (capitalised development) | €17k | €31k | €63k | €115k | €198k | €306k | €462k | €605k | €733k | €866k |
-| **Free cash flow** | €-96k | €-162k | €-181k | €-25k | €596k | €1.87M | €3.33M | €5.30M | €7.23M | €8.87M |
+| Other opex | €2k | €11k | €42k | €117k | €263k | €498k | €813k | €1.17M | €1.51M | €1.91M |
+| **EBITDA** | €-76k | €-145k | €-147k | €-53k | €420k | €1.57M | €3.25M | €5.41M | €7.64M | €10.20M |
+| Tax | €0 | €0 | €0 | €0 | €0 | €193k | €459k | €769k | €1.09M | €2.42M |
+| Working capital movement | €-15k | €-38k | €-106k | €-262k | €-517k | €-830k | €-1.10M | €-1.23M | €-1.20M | €-1.50M |
+| Capex (capitalised development) | €11k | €23k | €36k | €67k | €119k | €184k | €273k | €389k | €511k | €638k |
+| **Free cash flow** | €-73k | €-130k | €-77k | €142k | €819k | €2.02M | €3.62M | €5.49M | €7.24M | €8.64M |
 <!-- /MODEL:pl -->
 
 Free cash flow is EBITDA less tax, working capital movement and capex, not
@@ -179,30 +179,30 @@ parent (~85% at a 20% take on far larger tickets).
 <!-- MODEL:cash -->
 | Year | Free cash flow | Cumulative |
 |---|---|---|
-| Y1 | €-96k | €-96k |
-| Y2 | €-162k | €-258k |
-| Y3 | €-181k | €-439k |
-| Y4 | €-25k | €-464k |
-| Y5 | €596k | €132k |
-| Y6 | €1.87M | €2.00M |
-| Y7 | €3.33M | €5.33M |
-| Y8 | €5.30M | €10.63M |
-| Y9 | €7.23M | €17.86M |
-| Y10 | €8.87M | €26.73M |
+| Y1 | €-73k | €-73k |
+| Y2 | €-130k | €-203k |
+| Y3 | €-77k | €-280k |
+| Y4 | €142k | €-138k |
+| Y5 | €819k | €681k |
+| Y6 | €2.02M | €2.70M |
+| Y7 | €3.62M | €6.32M |
+| Y8 | €5.49M | €11.81M |
+| Y9 | €7.24M | €19.05M |
+| Y10 | €8.64M | €27.69M |
 <!-- /MODEL:cash -->
 
 | Capital requirement | Value |
 <!-- MODEL:funding -->
 | Capital requirement | Value |
 |---|---|
-| Deepest cumulative cash position | €-464k |
-| Year it occurs | Y4 |
-| Buffer at 40% (hiring slips, churn worse) | €186k |
-| **Total capital to fund the plan** | **€649k** |
+| Deepest cumulative cash position | €-280k |
+| Year it occurs | Y3 |
+| Buffer at 40% (hiring slips, churn worse) | €112k |
+| **Total capital to fund the plan** | **€392k** |
 | First EBITDA-positive year | Y5 |
 <!-- /MODEL:funding -->
 
-**€649k is a small number for a plan that reaches €10.7M of revenue by Y7,
+**€392k is a small number for a plan that reaches €10.16M of revenue by Y7,
 and that should be interrogated rather than celebrated.** It is small because
 the model hires behind revenue rather than ahead of it, and because fan
 acquisition is free. A growth-optimised version: hiring 12 months earlier,
@@ -219,7 +219,7 @@ be wrong are **fans per athlete** and **share of athletes who monetise**.
 | Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Capital need |
 |---|---|---|---|---|
 | **Conservative** | Fans/athlete −30%, monetise rate −25% | ~€8.4M | ~€1.9M | ~€1.26M |
-| **Base** | As modelled | €10.70M | €3.12M | €649k |
+| **Base** | As modelled | €10.16M | €3.25M | €392k |
 | **Growth-optimised** | Hire 12mo ahead, 3 markets from Y2 | ~€39M | ~€9M | €3–5M |
 
 To run these, edit `Assumptions` in `model.py` and rerun. The conservative case

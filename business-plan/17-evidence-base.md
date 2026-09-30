@@ -9,22 +9,22 @@ here with its method and the comparable behind it. A driver appears*
 
 ## 17.1 What the model is built on
 
-The model runs on **32 named assumptions**. Classifying them honestly matters more than the count, because a plan that presents an estimate with the same confidence as a published figure is not being read carefully by its own author.
+The model runs on **35 named assumptions**. Classifying them honestly matters more than the count, because a plan that presents an estimate with the same confidence as a published figure is not being read carefully by its own author.
 
 | Method | Count | What it means |
 |---|---|---|
 | **SOURCED** | 10 | A published figure, cited |
-| **BENCHMARKED** | 9 | Set against named comparables |
+| **BENCHMARKED** | 11 | Set against named comparables |
 | **DERIVED** | 3 | Computed from other assumptions or from the codebase |
-| **ESTIMATE** | 10 | Reasoned, with no published figure behind it |
+| **ESTIMATE** | 11 | Reasoned, with no published figure behind it |
 
 | Confidence | Count |
 |---|---|
-| High | 11 |
+| High | 13 |
 | Medium | 12 |
-| Low | 9 |
+| Low | 10 |
 
-> [!warning] 10 of 32 assumptions are estimates, and 9 carry low confidence
+> [!warning] 11 of 35 assumptions are estimates, and 10 carry low confidence
 > These are listed below rather than buried. The weakest two are the
 > athlete count trajectory, which is a target rather than a forecast,
 > and sports fandom by country, which is the softest layer of the
@@ -40,6 +40,9 @@ The model runs on **32 named assumptions**. Classifying them honestly matters mo
 | Assumption | Method | Confidence | Benchmark or comparable | Source |
 |---|---|---|---|---|
 | **Take rate on fan revenue** | BENCHMARKED | High | Passes charges 10% but adds $0.30/txn and a $29/month creator fee; OnlyFans, Fansly and Fanfix are all 20%; Patreon 8-12%. A flat 15% with no monthly fee pays an athlete more than Passes for anyone under EUR 1,380/month of fan revenue. | Sacra company profile (Passes); Passes rebrand release, Apr 2026; MEXC platform comparison 2026 |
+| **Sponsorship commission, Scout Pro** | BENCHMARKED | High | 7% against a 10% base. A sponsor paying EUR 2,988 a year for the tooling is already paying for the relationship, and charging them the full headline rate on every deal as well is charging twice for it. Below the 10-20% an agent takes, which is the point: the sponsor who commits most pays least on each deal. | Priced against the agent range; the discount itself is a pricing decision |
+| **Sponsorship commission, Scout Agency** | BENCHMARKED | High | 5%, which is half the low end of what an agent charges and a quarter of the high end. The most committed tier pays EUR 11,988 a year, so the deal rate can fall furthest here. | Oreate and Sapling agent-commission surveys, 10-20% |
+| **Subscriber share of deal volume** | ESTIMATE | Low | Subscribers are assumed to run 2.0x the deal volume of the average sponsor, which with a paid rate of 10-20% puts them at 20-40% of GMV. This is the ONLY estimate in the tiering and it is the one that sets the blended rate, which falls from 9.60% in Y1 to 8.56% by Y10. Deliberately conservative: Scout Pro buys five campaigns against the free tier's one, so 2.0x is well below what the campaign allowance alone would imply. Higher multiples lower the blend further. | None. No tier-level deal volume exists yet, because no tier exists yet |
 | **Take rate on sponsorship** | BENCHMARKED | High | Sports agents take 10-20% of an endorsement and 4-10% of a playing contract. On OnlyFans, management agencies take a further 20-50% on top of the platform's 20%. | Oreate and Sapling agent-commission surveys; Aruna Talent agency rate guide 2026 |
 | **Suggested tiers 4.99 / 9.99 / 24.99** | BENCHMARKED | Medium | Patreon's typical patronage is quoted at $8-12/month, so the EUR 9.99 anchor sits inside the observed band. EUR 4.99 retains only 54% of our take after payment fees, against 71% at EUR 9.99: which is why the floor matters more than the take rate. | Patreon 2024 Transparency Report; independent audits of ~1,200 creators |
 | **Season pass / annual billing** | SOURCED | High | Patreon reports that annual patrons churn at ONE THIRD the rate of monthly patrons. This is the single strongest piece of evidence in the plan for pushing annual billing. | Patreon 2024 Transparency Report |
@@ -91,7 +94,7 @@ The model runs on **32 named assumptions**. Classifying them honestly matters mo
 |---|---|---|---|---|
 | **Corporate tax rates** | SOURCED | High | 15% for the first four profitable years under the Spanish Startup Law, then the 25% standard rate. Modelled with loss carryforward against the Y1-Y4 losses. | Ley de Startups (Spain); Impuesto sobre Sociedades |
 | **Risk-free rate** | SOURCED | High | Spanish 10-year sovereign yield, ~3.2% in mid-2026. Used as the floor for the founder opportunity-cost calculation rather than as the discount rate. | Spanish 10Y government bond yield |
-| **WACC / discount rate** | BENCHMARKED | Medium | 25%, against a published mature-company anchor of 6.01%. Damodaran's European cost of capital dataset puts Software (Internet) at 6.01% in euros across 23 listed firms, and the European market ex-financials at 6.59%. Those are costs of capital for mature listed companies; this is a pre-revenue venture, and the 19-point gap is the stage premium. It is stated rather than buried because it is the largest single judgement in the valuation. Damodaran publishes no dataset for venture-stage rates, so the premium itself is convention (20-35% is the usual range) and not a sourced figure. The sensitivity grid runs 18-30% because this is arguable rather than knowable. | Aswath Damodaran, NYU Stern, Cost of Capital by Industry (Europe), updated 5 January 2026 |
+| **WACC / discount rate** | BENCHMARKED | Medium | 25%, against a published mature-company anchor of 6.01%. Damodaran's European cost of capital dataset puts Software (Internet) at 6.01% in euros across 23 listed firms, and the European market ex-financials at 6.59%. Those are costs of capital for mature listed companies; this is a pre-revenue venture, and the 19-point gap is the stage premium. It is stated rather than buried because it is the largest single judgement in the valuation. Damodaran publishes no dataset for venture-stage rates, so the premium itself is convention (20-35% is the usual range) and not a sourced figure. The sensitivity grid runs 20-30% because this is arguable rather than knowable. | Aswath Damodaran, NYU Stern, Cost of Capital by Industry (Europe), updated 5 January 2026 |
 | **Exit revenue multiple** | BENCHMARKED | Medium | 6.5x blended. Marketplace comparables trade around 4x revenue and high-growth SaaS around 9x; our Y10 mix is roughly 55% marketplace take and 12% SaaS. | Public marketplace and SaaS trading multiples |
 | **Terminal growth** | BENCHMARKED | Medium | 3%, approximating long-run nominal GDP. Ten explicit forecast years were chosen partly so this assumption carries less of the valuation than it would at Y7. | Standard DCF convention |
 

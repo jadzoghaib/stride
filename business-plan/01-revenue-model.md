@@ -79,13 +79,65 @@ raising the take rate by a point, without asking athletes for anything.
 | Plan | Price | Includes | Target |
 |---|---|---|---|
 | Scout Free | €0 | Public directory, 1 campaign, top-5 matches | Trial, inbound |
+| Scout Starter | €99/mo | Full matching, 2 campaigns, no evidence views | First paid step, single-brand sponsors |
 | Scout Pro | €249/mo | Full matching, evidence views, 5 campaigns, pipeline | Regional brands, small agencies |
 | Scout Agency | €999/mo | Unlimited campaigns, multi-seat, API, saved searches | Agencies, national brands |
 
+**Why an entry tier exists, and why it is €99.** In Y1 the average sponsor runs
+about €1,073 of deals through the platform, so the 10% commission on them is
+roughly €107. Scout Pro at €2,988 a year is twenty-eight times that. A sponsor
+is being asked to multiply their total spend with us by a large factor to buy
+software, at exactly the point when the directory is thinnest and the software
+is worth least. €99 a month is credible against that; €249 is not. The ratio
+only reaches parity around Y7, when the average sponsor runs €19,848 of deals
+and the commission alone is €1,985.
+
+**This is what the ARPU path has always assumed.** Blended revenue per paying
+sponsor runs €199 in Y1 to €475 by Y10, and the early figures sit *below*
+the old cheapest plan, which no mix of €249 and €999 can produce. With Starter
+in the list the series resolves, and it describes a ladder rather than a
+mystery:
+
+| | Y1 | Y2 | Y3 | Y7 | Y10 |
+|---|---|---|---|---|---|
+| Blended ARPU per month | €199 | €229 | €260 | €400 | €475 |
+| Implied mix | 33% Starter, 67% Pro | 13% Starter, 87% Pro | 1.5% Agency, rest Pro | 20.1% Agency, rest Pro | 30.1% Agency, rest Pro |
+
+Sponsors enter on Starter, graduate to Pro as they run more campaigns, and the
+Agency share grows to roughly a third by Y10 as agencies rather than single
+brands become the larger buyer.
+
 SaaS matters disproportionately: it is **100% margin** (no GMV, no payment
 rail), and it converts the analytics engine into revenue that does not depend on
-a deal closing. By Y7 it is €1.92M of the €10.70M: 18% of revenue at close to
-100% gross margin, which is roughly 26% of gross profit.
+a deal closing. By Y7 it is €1.92M of the €10.16M: 18% of revenue at close to
+100% gross margin, which is roughly 28% of gross profit.
+
+---
+
+## Commission by plan, and what it does to the agent comparison
+
+| Plan | Subscription | Commission | An agent charges |
+|---|---|---|---|
+| Scout Free | €0 | **10%** | 10 to 20% |
+| Scout Starter | €99/mo | **10%** | 10 to 20% |
+| Scout Pro | €249/mo | **7%** | 10 to 20% |
+| Scout Agency | €999/mo | **5%** | 10 to 20% |
+
+A sponsor paying €11,988 a year for the tooling is already paying for the
+relationship. Charging them the full headline rate on every deal as well is
+charging twice for the same thing, and the tiering removes that.
+
+It also sharpens the comparison the whole plan rests on. **An agent takes 10 to
+20% and gives a sponsor one relationship. Stride's most committed sponsors pay
+5% and get a matched market**, with the evidence behind every match. At the top
+tier that is a quarter of what an agent charges at the high end, and half at the
+low end.
+
+The blended rate this produces falls from **9.60% in Y1 to 8.56%
+by Y10** as subscribers become a larger share of deal volume. The model uses the
+blended rate throughout, not the headline one, so the revenue line already
+carries the cost of this decision. What it rests on is how much volume
+subscribers run, which is an estimate and is marked as one in Appendix L.
 
 ---
 
@@ -210,12 +262,12 @@ rather than one:
 
 | Take | Y7 revenue | Y7 EBITDA | Against |
 |---|---|---|---|
-| 20% | €12.31M | €4.59M | OnlyFans' rate, derived from filed accounts |
-| **15%** | **€10.70M** | **€3.11M** | **our proposal** |
-| 10% | €9.10M | €1.64M | Patreon's published, all-in rate |
+| 20% | €11.77M | €4.73M | OnlyFans' rate, derived from filed accounts |
+| **15%** | **€10.16M** | **€3.25M** | **our proposal** |
+| 10% | €8.56M | €1.78M | Patreon's published, all-in rate |
 
 Read the bottom row before the top one. **Matching Patreon costs €1.60M of Y7
-revenue and €1.48M of EBITDA: EBITDA falls 47%, from €3.11M to €1.64M.** The
+revenue and €1.48M of EBITDA: EBITDA falls 45%, from €3.25M to €1.78M.** The
 same five points that look like upside going up are what a price war costs
 going down, and the downside lands harder because the cost base does not shrink
 with the take.
@@ -272,9 +324,9 @@ rather than cited.*
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
 | Fan take | €21k (84%) | €322k (60%) | €1.69M (49%) | €4.81M (45%) |
-| Sponsorship take | €3k (11%) | €91k (17%) | €1.04M (30%) | €3.97M (37%) |
+| Sponsorship take | €3k (10%) | €81k (16%) | €907k (28%) | €3.43M (34%) |
 | Sponsor SaaS | €1k (5%) | €122k (23%) | €0.69M (20%) | €1.92M (18%) |
-| **Total** | **€25k** | **€0.53M** | **€3.43M** | **€10.70M** |
+| **Total** | **€25k** | **€0.53M** | **€3.29M** | **€10.16M** |
 
 The mix shifts deliberately. Fans fund the early years because they can be
 acquired at near-zero cost: **athletes bring their own audience**. Sponsorship

@@ -168,6 +168,17 @@ class Assumptions:
     # does not reduce what the business keeps.
     vat_rate_fan: float = 0.21
     take_sponsorship: float = 0.10
+    #: Commission by sponsor plan. Free and Starter pay the headline rate; the
+    #: two paid tiers pay less, because a sponsor on EUR 999 a month is already
+    #: paying for the relationship. This is a pricing decision, not an estimate.
+    take_sponsorship_pro: float = 0.07
+    take_sponsorship_agency: float = 0.05
+    #: How much more deal volume a subscribing sponsor runs than the average
+    #: one. Subscribers buy campaign capacity (Pro five, Agency unlimited,
+    #: free one), so their share of GMV exceeds their share of headcount. The
+    #: only genuine estimate in the tiering, and deliberately low against a
+    #: fivefold difference in campaign allowance.
+    subscriber_volume_multiple: float = 2.0
 
     # ---- payment rails (charged on GMV, not on our net revenue) ------------
     # Blended card rate for a SPANISH entity, not the US headline. Stripe EEA
@@ -225,7 +236,11 @@ class Assumptions:
     # the slower ramp, the plan hired for growth that never arrived and the
     # capital requirement went from EUR 824k to EUR 3.1M -- the same company,
     # four times the money, because the costs kept the old plan's shape.
-    headcount: list[float] = field(default_factory=lambda: [1.5, 2.0, 3.5, 6.0, 10.0, 15.0, 22.0, 28.0, 33.0, 38.0])
+    #: Deliberately later than the first version of this plan, which ramped
+    #: to 22 FTE by Y7 and needed EUR 600k to do it. Payroll is the cost
+    #: that lands earliest and scales least with revenue, so moving the
+    #: ramp out is what takes the raise down without building less.
+    headcount: list[float] = field(default_factory=lambda: [1.0, 1.5, 2.0, 3.5, 6.0, 9.0, 13.0, 18.0, 23.0, 28.0])
     loaded_salary_eur: list[int] = field(default_factory=lambda: [38_000, 52_000, 60_000, 64_000, 66_000, 68_000, 70_000, 72_000, 74_000, 76_000])
     sponsor_cac_eur: list[int] = field(default_factory=lambda: [900, 1_050, 1_200, 1_400, 1_600, 1_750, 1_900, 2_000, 2_100, 2_200])
     legal_compliance_eur: list[int] = field(default_factory=lambda: [18_000, 45_000, 90_000, 150_000, 200_000, 235_000, 270_000, 300_000, 325_000, 345_000])
@@ -251,11 +266,56 @@ class Assumptions:
     tax_low: float = 0.15
     tax_high: float = 0.25
     tax_low_years: int = 4
-    wacc: float = 0.25
+    #: The discount rate, decomposed. Two published components and one
+    #: judgement, so a reader can see which is which rather than being handed
+    #: a round number. See `wacc` below, which is their sum.
+    #:
+    #: Damodaran, NYU Stern, Cost of Capital by Industry (Europe), 5 Jan 2026:
+    #: Software (Internet) at 6.01% in euros across 23 listed firms.
+    wacc_mature_base: float = 0.0601
+    #: Damodaran, country risk premiums, 5 Jan 2026. The sector figure above is
+    #: pan-European; the company is Spanish.
+    wacc_country_premium: float = 0.0155
+    #: NOT SOURCED. A pre-revenue company with one product, no operating
+    #: history and no liquid market in its shares does not finance itself at a
+    #: listed company's cost of capital. Convention puts early-stage venture at
+    #: 20-35% all-in and this sits mid-range. It is the largest single
+    #: judgement in the valuation, which is why it is a line of its own.
+    wacc_stage_premium: float = 0.1744
     terminal_growth: float = 0.03
     risk_free: float = 0.032       # Spanish 10Y, mid-2026
     founder_alt_return: float = 0.07
 
+
+
+    @property
+    def wacc(self) -> float:
+        """The discount rate, as the sum of its parts.
+
+        A property rather than a field so that the three components and the
+        rate cannot disagree: there is no cell to leave stale.
+        """
+        return (self.wacc_mature_base
+                + self.wacc_country_premium
+                + self.wacc_stage_premium)
+
+    @wacc.setter
+    def wacc(self, value: float) -> None:
+        """Move the rate by moving the judgement, which is what a sensitivity
+        grid is actually asking about.
+
+        The mature base and the country premium are published facts about the
+        market; they do not flex because someone wants to see a different
+        number. The stage premium is the assertion, so it absorbs the change
+        and the decomposition stays true at every point on the grid.
+        """
+        self.wacc_stage_premium = (value - self.wacc_mature_base
+                                   - self.wacc_country_premium)
+
+
+#: Sponsor plan list prices, in euros per month. Named here because the tier
+#: mix is derived from them and the plan quotes them in three places.
+SCOUT_STARTER, SCOUT_PRO, SCOUT_AGENCY = 99, 249, 999
 
 A = Assumptions()
 
@@ -267,10 +327,27 @@ A = Assumptions()
 # regenerating it from this model never touched a list hardcoded in the
 # builder. Years are when the gate is met, not when the money is convenient.
 ROUNDS: list[dict] = [
-    {"year": 1, "stage": "Pre-seed", "amount": 600_000, "pre": 2_500_000},
+    # Staged deliberately. The cumulative cash need is only EUR 73k to the end
+    # of Y1, and Y1 is the year that settles whether fans pay at all. Raising
+    # the whole runway against that question prices it as a promise; raising
+    # the first tranche against it and the second against three months of real
+    # subscription revenue prices the second on evidence. Same EUR 400k, and
+    # the founder holds 55% through the Series A instead of 53%.
+    {"year": 1, "stage": "Pre-seed", "amount": 150_000, "pre": 2_500_000},
+    {"year": 2, "stage": "Pre-seed extension", "amount": 250_000, "pre": 5_000_000},
     {"year": 4, "stage": "Seed (optional)", "amount": 2_000_000, "pre": 10_000_000},
     {"year": 6, "stage": "Series A", "amount": 8_000_000, "pre": 40_000_000},
 ]
+
+#: The monthly recurring revenue each later round is gated on. These existed
+#: only as prose in the funding table, which meant the multiple quoted in 04
+#: was computed from numbers nobody could change in one place: moving a gate in
+#: the document would have left the multiple beside it silently stale.
+ROUND_GATE_MRR: dict[str, int] = {
+    "Seed (optional)": 80_000,
+    "Series A": 300_000,
+}
+
 
 # The two grants that dilute alongside the rounds: an advisory grant made at
 # the pre-seed, and the option pool topped up to 10% by the Series A.
@@ -405,7 +482,10 @@ def segment_year(seg: Segment, athlete_count: float, prev_athletes: float,
         capacity_bound=fans["capacity_bound"], fan_shortfall=fans["shortfall"],
         athlete_gross_adds=athlete_gross_adds, athletes_lost=athletes_lost,
         deals=deals, fan_gmv=fan_gmv, sponsorship_gmv=sponsorship_gmv,
-        revenue=fan_gmv * A.take_fan + sponsorship_gmv * A.take_sponsorship,
+        # Tiered, like the consolidated line. A flat rate here was not
+        # harmless: render() publishes this field in the per-segment revenue
+        # table, so the breakdown disagreed with the total it sums to.
+        revenue=fan_gmv * A.take_fan + sponsorship_gmv * effective_take(i_),
     )
 
 
@@ -414,6 +494,38 @@ def split(i_: int) -> dict[str, float]:
     total = A.athletes[i_]
     n = total * A.niche_share[i_]
     return {"niche": n, "popular": total - n}
+
+
+
+def tier_mix(i: int) -> dict[str, float]:
+    """Share of paying subscribers on each plan, read from blended ARPU.
+
+    A blended figure against three known list prices determines the mix without
+    a separate assumption. Below the Pro price the balance is Starter; above
+    it, Agency.
+    """
+    arpu = A.sponsor_arpu_month[i]
+    if arpu < SCOUT_PRO:
+        starter = (SCOUT_PRO - arpu) / (SCOUT_PRO - SCOUT_STARTER)
+        return {"starter": starter, "pro": 1 - starter, "agency": 0.0}
+    agency = (arpu - SCOUT_PRO) / (SCOUT_AGENCY - SCOUT_PRO)
+    return {"starter": 0.0, "pro": 1 - agency, "agency": agency}
+
+
+def effective_take(i: int) -> float:
+    """The blended commission rate once the tiers are applied.
+
+    Subscribers are `sponsor_paid_rate` of sponsors by headcount and
+    `subscriber_volume_multiple` times that by deal volume, capped at all of
+    it. Starter pays the headline rate, so only Pro and Agency reduce the
+    blend.
+    """
+    volume_share = min(1.0, A.sponsor_paid_rate[i] * A.subscriber_volume_multiple)
+    mix = tier_mix(i)
+    subscriber_rate = (mix["starter"] * A.take_sponsorship
+                       + mix["pro"] * A.take_sponsorship_pro
+                       + mix["agency"] * A.take_sponsorship_agency)
+    return (1 - volume_share) * A.take_sponsorship + volume_share * subscriber_rate
 
 
 def build() -> list[dict]:
@@ -441,7 +553,7 @@ def build() -> list[dict]:
 
         # --- net revenue ------------------------------------------------
         rev_fan = fan_gmv * A.take_fan
-        rev_sponsorship = sponsorship_gmv * A.take_sponsorship
+        rev_sponsorship = sponsorship_gmv * effective_take(i_)
         supply_factor = min(1.0, athletes / A.athletes_for_full_saas_value)
         paying_sponsors = A.sponsors[i_] * A.sponsor_paid_rate[i_] * supply_factor
         rev_saas = paying_sponsors * A.sponsor_arpu_month[i_] * 12
@@ -743,7 +855,7 @@ def render(rows: list[dict]) -> dict[str, str]:
 
     revenue = table(["Net revenue"] + ys, [
         line(f"Fan take ({A.take_fan:.0%})", "rev_fan"),
-        line(f"Sponsorship take ({A.take_sponsorship:.0%})", "rev_sponsorship"),
+        line("Sponsorship take (blended by plan)", "rev_sponsorship"),
         line("Sponsor SaaS", "rev_saas"),
         line("**Total net revenue**", "revenue"),
     ])
@@ -841,7 +953,9 @@ def render(rows: list[dict]) -> dict[str, str]:
         ["Y7 CAC", f"€{blended_cac(rows[6]):,.0f}", "~€0", f"€{A.sponsor_cac_eur[6]:,}"],
         ["Applications behind one athlete",
          f"{1 / rows[0]['admit_rate']:.1f}x in Y1, {1 / rows[6]['admit_rate']:.1f}x in Y7",
-         ": ", ": "],
+         # Empty, not a stray colon: the em-dash sweep turned the two
+         # not-applicable cells into bare punctuation.
+         "", ""],
         ["Channel", "Clubs, federations, ambassador referral",
          "**Brought by the athlete**", "Outbound, events, agency partnerships"],
     ])

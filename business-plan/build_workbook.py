@@ -101,7 +101,12 @@ LEGEND = [("Input: change me", FILL_INPUT, FONT_INPUT),
 
 
 def legend(ws, row_ix=2):
-    """A compact key on every sheet, so the colours never need explaining."""
+    """The colour key.
+
+    No longer called per sheet. It lives on the README, and repeating it above
+    every table was noise: the author deleted it from all eighteen sheets by
+    hand, which is a clear enough verdict.
+    """
     col = 3
     for text, fill, font in LEGEND:
         c = ws.cell(row_ix, col, text)
@@ -120,9 +125,9 @@ def sheet(wb, name, title):
     ws.column_dimensions["B"].width = 15
     for c in COLS:
         ws.column_dimensions[c].width = 13
-    ws.freeze_panes = "C4"
-    legend(ws)
-    r = 3
+    # Header at row 1, column labels at row 2, data from row 3.
+    ws.freeze_panes = "C3"
+    r = 2
     ws.cell(r, 1, "Line").font = HEAD
     ws.cell(r, 1).fill = HEAD_FILL
     ws.cell(r, 2, "Unit").font = HEAD
@@ -341,13 +346,24 @@ def build() -> pathlib.Path:
         r += 1
 
     # ══ ASSUMPTIONS ═════════════════════════════════════════════════════════
-    a = sheet(wb, "Assumptions", "Assumptions, every input lives here")
+    a = sheet(wb, "Assumptions", "Assumptions")
     r = 4
     A_ROW = {}
 
     def put(label, unit, values, fmt=NUM, key=None, hard=False, const=False, note="",
-            derive_note=""):
+            derive_note="", formula=None):
         nonlocal r
+        # A row that computes rather than states. Used where the research
+        # establishes a figure and the input should depend on it, which is the
+        # opposite of a typed constant that merely agrees with a paragraph
+        # somewhere else.
+        if formula is not None:
+            A_ROW[key or label] = r
+            r = row(a, r, label, unit, formula=formula, fmt=fmt, bold=True)
+            if note:
+                c = a.cell(r - 1, FIRST + N + 1, note)
+                c.font = Font(size=8, italic=True, color="6B7480", name="Calibri")
+            return
         # An input that repeats a number already on `model.A` instead of reading
         # it is a divergence waiting to happen: retune the Python and the
         # workbook goes on costing the old plan, silently, because both files
@@ -406,8 +422,21 @@ def build() -> pathlib.Path:
     r = section(a, r, "TAKE RATES & PAYMENT RAILS")
     put("Take rate: fan revenue", "%", [A.take_fan] * N, PCT, "take_fan", const=True,
         note="Our pricing decision. OnlyFans/Fansly/Fanfix 20%, Passes 10% + $29/mo")
-    put("Take rate: sponsorship", "%", [A.take_sponsorship] * N, PCT, "take_sp", const=True,
-        note="Agents take 10-20% of an endorsement")
+    put("Take rate: sponsorship, base", "%", [A.take_sponsorship] * N, PCT, "take_sp", const=True,
+        note="Free and Starter plans. Agents take 10-20% of an endorsement")
+    put("Take rate: sponsorship, Scout Pro", "%", [A.take_sponsorship_pro] * N, PCT,
+        "take_sp_pro", const=True,
+        note="A sponsor paying for the tooling pays less on the deal")
+    put("Take rate: sponsorship, Scout Agency", "%", [A.take_sponsorship_agency] * N, PCT,
+        "take_sp_agency", const=True,
+        note="The most committed tier. Half what an agent charges at the low end")
+    put("Subscriber deal volume, multiple of average", "x",
+        [A.subscriber_volume_multiple] * N, '0.00', "sub_vol_mult", const=True,
+        note="Subscribers buy campaign capacity, so they run more volume than "
+             "the average sponsor. The only estimate in the tiering")
+    put("Scout Starter price", "EUR/mo", [M.SCOUT_STARTER] * N, NUM, "p_starter", const=True)
+    put("Scout Pro price", "EUR/mo", [M.SCOUT_PRO] * N, NUM, "p_pro", const=True)
+    put("Scout Agency price", "EUR/mo", [M.SCOUT_AGENCY] * N, NUM, "p_agency", const=True)
     put("VAT on fan subscriptions", "%", [A.vat_rate_fan] * N, PCT, "vat_fan", const=True,
         note="Spain's rate. Fan prices are displayed VAT-inclusive, so the take "
              "applies to price/(1+VAT) while the processor charges on the price")
@@ -479,8 +508,30 @@ def build() -> pathlib.Path:
     r += 1
 
     r = section(a, r, "VALUATION")
-    put("WACC / discount rate", "%", [A.wacc] * N, PCT, "wacc", const=True,
-        note="Early-stage venture hurdle")
+    # The discount rate is derived here rather than typed, because the research
+    # establishes it and the input should depend on the research rather than
+    # the other way round. Two sourced components and one judgement: putting
+    # the judgement on its own row is the point, since it is seventeen of the
+    # twenty-five points.
+    put("  Mature listed software, Europe, in EUR", "%", [A.wacc_mature_base] * N,
+        PCT, "wacc_base", hard=True, const=True,
+        note="Damodaran, NYU Stern, Cost of Capital by Industry (Europe), "
+             "5 Jan 2026. 23 listed firms")
+    put("  Spain country risk premium", "%", [A.wacc_country_premium] * N,
+        PCT, "wacc_country", hard=True, const=True,
+        note="Damodaran, country risk premiums, 5 Jan 2026. The sector figure "
+             "above is pan-European; the company is Spanish")
+    put("  Size and stage premium", "%", [A.wacc_stage_premium] * N,
+        PCT, "wacc_stage", const=True,
+        note="NOT SOURCED. A pre-revenue company with one product and no "
+             "operating history does not finance itself at a listed company's "
+             "cost of capital. Convention puts early-stage venture at 20-35% "
+             "all-in. The largest single judgement in the valuation")
+    put("WACC / discount rate", "%", None, PCT, "wacc_total",
+        formula=(f"={{c}}{A_ROW['wacc_base']}+{{c}}{A_ROW['wacc_country']}"
+                 f"+{{c}}{A_ROW['wacc_stage']}"),
+        note="The sum of the three rows above. Trace precedents from here to "
+             "see which parts are published and which is judgement")
     put("Terminal growth", "%", [A.terminal_growth] * N, PCT, "tg", const=True)
     put("Exit revenue multiple", "x", [6.5] * N, '0.0', "exit_mult", const=True,
         note="Blended marketplace + SaaS comparables")
@@ -496,7 +547,7 @@ def build() -> pathlib.Path:
         return f"Assumptions!$C${A_ROW[key]}"
 
     # ══ DRIVERS ═════════════════════════════════════════════════════════════
-    d = sheet(wb, "Drivers", "Drivers: athletes and fans, with cohort churn")
+    d = sheet(wb, "Drivers", "Drivers: Growth Assumptions")
     r, D = 4, {}
 
     def drow(label, formula=None, values=None, fmt=NUM, **kw):
@@ -639,7 +690,7 @@ def build() -> pathlib.Path:
                   f"/Assumptions!{{c}}{A_ROW['ops_hours']}"))
 
     # ══ REVENUE ═════════════════════════════════════════════════════════════
-    v = sheet(wb, "Revenue", "Revenue: GMV built stream by stream, then our take")
+    v = sheet(wb, "Revenue", "Revenue: Stream by stream breakdown")
     r, R = 4, {}
 
     def vrow(label, formula=None, fmt=MONEY, **kw):
@@ -677,6 +728,38 @@ def build() -> pathlib.Path:
     vrow("Popular sponsorship GMV",
          formula=f"=Drivers!{{c}}{D['Popular deals']}*Assumptions!{{c}}{A_ROW['popular_deal']}")
     vrow("Total sponsorship GMV", formula=f"={{c}}{r-2}+{{c}}{r-1}", bold=True, band=True)
+    # -- the blended commission rate ------------------------------------
+    # Plan mix is solved from blended ARPU against the three list prices, which
+    # is what model.tier_mix does. Below the Pro price the balance is Starter,
+    # above it the balance is Agency. Starter pays the base rate, so only the
+    # two paid tiers pull the blend down.
+    vrow("Agency share of subscribers",
+         formula=(f"=MAX(0,(Assumptions!{{c}}{A_ROW['sponsor_arpu']}"
+                  f"-Assumptions!{{c}}{A_ROW['p_pro']})"
+                  f"/(Assumptions!{{c}}{A_ROW['p_agency']}"
+                  f"-Assumptions!{{c}}{A_ROW['p_pro']}))"), fmt=PCT)
+    vrow("Starter share of subscribers",
+         formula=(f"=MAX(0,(Assumptions!{{c}}{A_ROW['p_pro']}"
+                  f"-Assumptions!{{c}}{A_ROW['sponsor_arpu']})"
+                  f"/(Assumptions!{{c}}{A_ROW['p_pro']}"
+                  f"-Assumptions!{{c}}{A_ROW['p_starter']}))"), fmt=PCT)
+    vrow("Subscriber share of deal volume",
+         formula=(f"=MIN(1,Assumptions!{{c}}{A_ROW['sponsor_paid']}"
+                  f"*Assumptions!{{c}}{A_ROW['sub_vol_mult']})"), fmt=PCT)
+    # Referenced by label, not by arithmetic on `r`: vrow records a row number
+    # before it writes, so a formula built with {r} points at the cell it is
+    # being written into, which verify_workbook correctly calls a cycle.
+    _vol = R["Subscriber share of deal volume"]
+    _starter = R["Starter share of subscribers"]
+    _agency = R["Agency share of subscribers"]
+    vrow("Effective sponsorship take",
+         formula=(f"=(1-{{c}}{_vol})*Assumptions!{{c}}{A_ROW['take_sp']}"
+                  f"+{{c}}{_vol}*("
+                  f"{{c}}{_starter}*Assumptions!{{c}}{A_ROW['take_sp']}"
+                  f"+(1-{{c}}{_starter}-{{c}}{_agency})*Assumptions!{{c}}{A_ROW['take_sp_pro']}"
+                  f"+{{c}}{_agency}*Assumptions!{{c}}{A_ROW['take_sp_agency']})"),
+         fmt='0.000%', bold=True)
+
     vrow("TOTAL GMV", formula=f"={{c}}{R['Total fan GMV']}+{{c}}{R['Total sponsorship GMV']}",
          bold=True, top=True)
     r += 1
@@ -685,7 +768,7 @@ def build() -> pathlib.Path:
     vrow("Fan take", unit="fan GMV x take rate",
          formula=f"={{c}}{R['Total fan GMV']}*Assumptions!{{c}}{A_ROW['take_fan']}")
     vrow("Sponsorship take",
-         formula=f"={{c}}{R['Total sponsorship GMV']}*Assumptions!{{c}}{A_ROW['take_sp']}")
+         formula=f"={{c}}{R['Total sponsorship GMV']}*{{c}}{R['Effective sponsorship take']}")
     vrow("Sponsor SaaS", unit="paying sponsors x ARPU x 12",
          formula=(f"=Drivers!{{c}}{D['Paying sponsors']}"
                   f"*Assumptions!{{c}}{A_ROW['sponsor_arpu']}*12"))
@@ -695,7 +778,7 @@ def build() -> pathlib.Path:
          formula=f"={{c}}{R['NET REVENUE']}/{{c}}{R['TOTAL GMV']}", fmt=PCT)
 
     # ══ COSTS ═══════════════════════════════════════════════════════════════
-    co = sheet(wb, "Costs", "Costs: every line built from its driver")
+    co = sheet(wb, "Costs", "Costs")
     r, C = 4, {}
 
     def crow(label, formula=None, fmt=MONEY, **kw):
@@ -858,7 +941,7 @@ def build() -> pathlib.Path:
     prow("NET PROFIT", formula=f"={{c}}{P['EBIT']}+{{c}}{r-1}", bold=True, top=True, band=True)
 
     # ══ CASH FLOW ═══════════════════════════════════════════════════════════
-    cf = sheet(wb, "CashFlow", "Cash flow, indirect method")
+    cf = sheet(wb, "CashFlow", "Cash Flow Statement")
     r, F = 4, {}
 
     def frow(label, formula=None, fmt=MONEY, **kw):
@@ -973,7 +1056,7 @@ def build() -> pathlib.Path:
          formula=f"=1-{{c}}{U['Founders + team retained']}")
 
     # ══ HIRING PLAN ═════════════════════════════════════════════════════════
-    hp = sheet(wb, "HiringPlan", "Hiring plan, headcount by role, reconciled to the model")
+    hp = sheet(wb, "HiringPlan", "Hiring plan")
     r = 4
     r = section(hp, r, "FTE BY ROLE")
     ROLES = [
@@ -1160,7 +1243,7 @@ def build() -> pathlib.Path:
                   "reported.").font = Font(italic=True, size=8, color="6B7280", name="Calibri")
 
     # ══ KPIs ════════════════════════════════════════════════════════════════
-    kp = sheet(wb, "KPIs", "KPIs: the dozen numbers that describe the business")
+    kp = sheet(wb, "KPIs", "KPIs")
     r = 4
     r = section(kp, r, "SCALE")
     r = row(kp, r, "Active athletes", "count", fmt=NUM, font=LINK,
@@ -1207,7 +1290,7 @@ def build() -> pathlib.Path:
     r = row(va, r, "Free cash flow", "EUR", formula=f"=CashFlow!{{c}}{F['FREE CASH FLOW']}",
             fmt=MONEY, font=LINK)
     r = row(va, r, "Discount factor", "1/(1+WACC)^t",
-            formula=f"=1/(1+Assumptions!$C${A_ROW['wacc']})^{{k}}", fmt='0.000')
+            formula=f"=1/(1+Assumptions!$C${A_ROW['wacc_total']})^{{k}}", fmt='0.000')
     r = row(va, r, "Discounted FCF", "EUR", formula="={c}4*{c}5", fmt=MONEY, bold=True)
     r += 1
     lastc = COLS[-1]
@@ -1228,12 +1311,12 @@ def build() -> pathlib.Path:
         ("PV of explicit forecast", f"=SUM(C6:{lastc}6)"),
         ("Terminal value at Y10",
          f"={lastc}4*(1+Assumptions!$C${A_ROW['tg']})"
-         f"/(Assumptions!$C${A_ROW['wacc']}-Assumptions!$C${A_ROW['tg']})"),
+         f"/(Assumptions!$C${A_ROW['wacc_total']}-Assumptions!$C${A_ROW['tg']})"),
         ("PV of terminal value", "=C{Terminal value at Y10}*" + f"{lastc}5"),
         ("ENTERPRISE VALUE (DCF)", "=C{PV of explicit forecast}+C{PV of terminal value}"),
         ("", None),
         ("RETURN METRICS", None),
-        ("NPV of FCF at WACC", f"=NPV(Assumptions!$C${A_ROW['wacc']},C4:{lastc}4)"),
+        ("NPV of FCF at WACC", f"=NPV(Assumptions!$C${A_ROW['wacc_total']},C4:{lastc}4)"),
         ("IRR of the plan", f"=IRR(C4:{lastc}4)"),
         ("IRR incl. terminal value", f"=IRR(C{tv_series_row}:{lastc}{tv_series_row},0.3)"),
         ("", None),

@@ -131,6 +131,7 @@ content, converts badly, and concludes the platform does not work.
 | Tier | Normalised | Raw | Components |
 |---|---|---|---|
 | Scout Free | yes | – | – |
+| Scout Starter | yes | – | – |
 | Scout Pro | yes | yes | – |
 | Scout Agency | yes | yes | yes + API |
 

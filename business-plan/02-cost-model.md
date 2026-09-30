@@ -33,7 +33,7 @@ Three responses, in order of impact:
 3. **Renegotiate at volume.** Above ~€5M/yr processed, interchange-plus pricing is
    available. Not modelled: upside.
 
-At Y7 the payment rail costs **€2.55M against €10.70M of revenue**, 24% of
+At Y7 the payment rail costs **€2.55M against €10.16M of revenue**, 25% of
 revenue, our largest single cost line, larger than all salaries combined
 (€1.54M). The share rose when VAT entered the model: the processor charges on
 the price a fan pays, while the revenue it is measured against is net of the
@@ -72,7 +72,7 @@ the rows themselves, that the egress decision moves.
 > its own cohort model documents on the revenue side and had already fixed
 > there.
 
-**€402k a year is most of this plan's entire €464k cash trough, spent annually
+**€402k a year is most of this plan's entire €280k cash trough, spent annually
 and decided by one architectural choice**, €3.1M across the ten years.
 
 The recommendation is AWS for compute and database, where its managed services
@@ -151,8 +151,8 @@ figure below is loaded cost.
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
-| Headcount (FTE) | 1.5 | 2.0 | 3.5 | 6.0 | 10.0 | 15.0 | 22.0 |
-| People cost | €57k | €104k | €210k | €384k | €660k | €1.02M | €1.54M |
+| Headcount (FTE) | 1.0 | 1.5 | 2.0 | 3.5 | 6.0 | 9.0 | 13.0 |
+| People cost | €38k | €78k | €120k | €224k | €396k | €0.61M | €0.91M |
 
 **Spain is a structural cost advantage.** A senior engineer at €72k loaded costs
 roughly half the equivalent in London or Amsterdam and a third of the Bay Area,
@@ -221,7 +221,7 @@ matter more than the line item:
 |---|---|---|---|
 | Y1 CAC | €17 | ~€0 | €900 |
 | Y7 CAC | €61 | ~€0 | €1,900 |
-| Applications behind one athlete | 5.0x in Y1, 3.3x in Y7 | | |
+| Applications behind one athlete | 5.0x in Y1, 3.3x in Y7 |  |  |
 | Channel | Clubs, federations, ambassador referral | **Brought by the athlete** | Outbound, events, agency partnerships |
 <!-- /MODEL:cac -->
 
@@ -241,18 +241,18 @@ roster.
 <!-- MODEL:costs_y7 -->
 | Line | Y7 amount | % of revenue |
 |---|---|---|
-| Payment processing | €2.55M | 23.8% |
-| Marketing / CAC | €1.70M | 15.9% |
-| People | €1.54M | 14.4% |
-| Other opex | €856k | 8.0% |
-| Infrastructure | €336k | 3.1% |
-| Legal & compliance | €270k | 2.5% |
-| Payouts | €237k | 2.2% |
+| Payment processing | €2.55M | 25.1% |
+| Marketing / CAC | €1.70M | 16.8% |
+| People | €910k | 9.0% |
+| Other opex | €813k | 8.0% |
+| Infrastructure | €336k | 3.3% |
+| Legal & compliance | €270k | 2.7% |
+| Payouts | €237k | 2.3% |
 | Moderation | €70k | 0.7% |
 | Athlete verification | €18k | 0.2% |
-| **EBITDA** | **€3.12M** | **29.1%** |
+| **EBITDA** | **€3.25M** | **32.0%** |
 <!-- /MODEL:costs_y7 -->
 
-Infrastructure is 3.1% of revenue. **Payments are nearly eight times larger.** Any
+Infrastructure is 3.3% of revenue. **Payments are nearly eight times larger.** Any
 optimisation effort belongs there: tier pricing, annual billing, processor
 negotiation, not in the AWS bill.

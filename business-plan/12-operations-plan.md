@@ -80,7 +80,7 @@ transactions.**
 | **Review FTE required** | **0.02** | **0.08** | **0.18** | **0.26** |
 
 At four minutes per review, the entire manual burden of the business peaks at
-roughly **a quarter of one full-time person at Y7**, against 22 FTE total. The
+roughly **a quarter of one full-time person at Y7**, against 13 FTE total. The
 admission gate is cheap. It is the *design* of the gate, not its cost, that
 carries the risk.
 
@@ -118,7 +118,7 @@ allocation until Y4.
 The location decision is nonetheless a real one, taken for four reasons:
 
 1. **Ley de Startups** grants a 15% corporate tax rate for the first four
-   taxable years against the standard 25%, worth **€1.57M across Y6–Y9** in the
+   taxable years against the standard 25%, worth **€1.67M across Y6–Y9** in the
    model.
 2. **Loaded engineering cost.** A senior engineer at €72k loaded is roughly half
    the London or Amsterdam equivalent and a third of the Bay Area.
@@ -240,7 +240,7 @@ removes.**
 | Moderation | €70k | 0.7% |
 | Athlete verification | €18k | 0.2% |
 
-Infrastructure is 3.1% of revenue. **Payments are nearly eight times larger.**
+Infrastructure is 3.3% of revenue. **Payments are nearly eight times larger.**
 Any optimisation effort belongs there: tier pricing, annual billing and
 processor negotiation, not the AWS bill.
 

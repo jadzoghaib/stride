@@ -165,6 +165,9 @@ GUIDANCE = {
 
 TIER_VISIBILITY = {
     "Scout Free": {"normalised": True, "raw": False, "components": False},
+    # Starter buys campaign capacity, not deeper visibility: the same view as
+    # free, which is what makes Pro the upgrade that matters.
+    "Scout Starter": {"normalised": True, "raw": False, "components": False},
     "Scout Pro": {"normalised": True, "raw": True, "components": False},
     "Scout Agency": {"normalised": True, "raw": True, "components": True},
 }

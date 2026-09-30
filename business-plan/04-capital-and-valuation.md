@@ -35,9 +35,9 @@ return more than €201,600 compounded at 7%, plus a premium for the risk of tot
 loss. At a 70% failure probability, the surviving case must return roughly
 **€1.5–2M to the founder** for the decision to have been rational ex ante.
 
-The model delivers that: a founder retaining ~49% through the Series A holds
-that share of the enterprise value: **€4.11M against the DCF floor of €8.37M**,
-and €5.4–12.1M against the exit multiples discounted back. **Even the floor
+The model delivers that: a founder retaining ~55% through the Series A holds
+that share of the enterprise value: **€4.73M against the DCF floor of €8.60M**,
+and €5.6–12.7M against the exit multiples discounted back. **Even the floor
 clears the hurdle twice over**, which is the honest justification for doing it
 at all.
 
@@ -51,26 +51,27 @@ fact you can demonstrate, not a milestone you can assert.
 | Stage | Amount | Pre-money | Gate: what must be true before raising | Use of funds |
 |---|---|---|---|---|
 | **Internal** | €80k cash + time |  | Product exists (it does) | Payments, subscriptions, one anchor athlete live |
-| **Pre-seed** | **€600k** | €2.5M | 400 athletes · €10k MRR · anchor athlete public · payments processing real money · fan churn measured for 3 months | 2 hires, Spain go-to-market, club channel |
+| **Pre-seed** | **€150k** | €2.5M | 400 athletes · €10k MRR · anchor athlete public · payments processing real money · fan churn measured for 3 months | 2 hires, Spain go-to-market, club channel |
 | **Seed** *(optional)* | €2.0M | €10M | €80k MRR · fan churn < 8%/mo · CAC payback < 9mo · 2nd market opened · 30+ paying sponsors | Team to 15, second and third market, moderation infrastructure |
 | **Series A** | €8.0M | €40M | €300k MRR · net revenue retention > 110% · sponsorship take > 25% of revenue · unit economics stable across 3 markets | EU-wide, sales org, managed services |
 
-**The plan needs €649k. The rounds above raise €2.6M before Series A.** The
+**The plan needs €392k. The rounds above raise €2.4M before Series A.** The
 difference is deliberate: raising only what the model needs leaves no room for
 the assumption that turns out wrong, and a company that runs out of cash at the
 trough dies with a working product. Raise the buffer; do not spend it unless
 the conservative case materialises.
 
-The pre-seed alone covers the **€464k trough in Y4** with €136k to spare, which
+The pre-seed alone covers the **€280k trough in Y4** with €136k to spare, which
 is why the seed is marked optional above. It is growth capital: a second market
 sooner, not rescue capital. A plan whose survival does not depend on the next
 round arriving on schedule is a materially stronger one to raise against.
 
-Be precise about what that claims. **€600k clears the trough the model
-produces; €649k is that trough plus the 40% buffer.** The seed is optional
-against the plan as modelled, not against the conservative case the buffer
-exists for. If the buffer is needed, the €49k gap is what the non-dilutive stack
-above is for.
+Be precise about what that claims. **€400k clears both the trough the
+model produces and that trough plus the 40% buffer**, which is €392k.
+The earlier version of this plan asked for €600k against a requirement of
+€711k and left the buffer partly unfunded; moving the hiring ramp out closed
+the gap from the cost side rather than the raise side. The seed is therefore
+optional against the conservative case as well as the modelled one.
 
 ### Why the pre-seed gate is the one that matters
 
@@ -85,6 +86,69 @@ have spent €80k and a year, not €2.6M and four.
 
 ---
 
+## Is this raiseable, by this founder, in this market
+
+The honest version of the question is whether a first-time founder in their
+twenties raises this in Spain. Three things say yes, and one says be careful.
+
+**The ask is small and the price is unremarkable.** European pre-seed pre-money
+valuations had a median of **€3.3M in 2024**, up from €1.7M the year before,
+with the usual band €2M to €4M. This plan asks **€150k at €2.5M pre-money**:
+the price sits **inside that band and below the median**, and the round itself
+is **below** the €500k to €3M that European pre-seed rounds now typically raise.
+So the valuation is ordinary and the cheque is small, which is the combination
+that makes a first round easy to say yes to.
+
+**ENISA Jóvenes Emprendedores fits this founder exactly.** It lends up to
+**€75,000** as a participative loan that is **not convertible into equity**,
+with no personal guarantees, to companies whose majority shareholders are
+**under 40** and which have fewer than two closed financial years. Both
+conditions hold. The loan runs up to seven years with up to five years of
+grace, at Euribor plus 3.25% on the first tranche.
+
+Against a **Y1 cash need of €73k**, that is close to the whole of the
+first year at no equity cost. The two are complementary rather than
+alternatives: ENISA asks for an own-funds ratio of roughly 50%, so the
+€150k equity tranche is what makes the €75k loan available.
+Together they are €225k against a cumulative need of
+€203k to the end of Y2.
+
+**The product exists.** Most pre-seed rounds are raised on a deck. This one is
+raised on a deployed application with connected analytics, an admission gate
+and explainable matching, which is the single strongest asset a first-time
+founder can bring to that conversation. Appendix M shows the screens.
+
+### The later rounds, as multiples rather than as numbers
+
+€10M and €40M look like large numbers. The question an investor asks is not how
+large they are but what they are a multiple **of**, and each round here is gated
+on a revenue milestone, so both can be stated that way.
+
+| Round | Pre-money | Gate | Implied multiple | European benchmark |
+|---|---|---|---|---|
+| **Seed** | €10M | €80k MRR = €0.96M ARR | **10.4x ARR** | Marketplaces 4x to 10x net revenue |
+| **Series A** | €40M | €300k MRR = €3.6M ARR | **11.1x ARR** | European Series A median ~13x ARR |
+
+Against the revenue the model actually produces in those years rather than the
+gate, the multiples are lower still: **6.8x**
+at the Seed and **6.4x** at the Series A.
+
+**So the prices are conservative on the measure that matters and only look
+aggressive in absolute terms.** The median European Series A sits near $28M
+pre-money against roughly $2.3M of ARR; SaaS specifically is nearer $45M against
+$2.5M. This plan asks €40M against €3.6M, which is more revenue for a similar
+price. European rounds already price 30 to 50% below US equivalents on identical
+metrics, and these numbers sit inside that discount rather than arguing with it.
+
+> [!warning] What that still does not settle
+> A multiple is only conservative if the revenue behind it arrives. Both rounds
+> are gated on metrics in the table above, neither is a commitment anyone has
+> made, and the plan reaches break-even in Y5 without either of them. **The
+> pre-seed is the only round this plan depends on.** Everything after it is a
+> description of what good would look like, priced sensibly, and nothing more.
+
+---
+
 ## Spanish instruments: non-dilutive capital first
 
 Spain has unusually good public financing for early-stage technology companies.
@@ -96,10 +160,10 @@ Taking dilution before exhausting these is leaving money on the table.
 | **ENISA Crecimiento** | up to €300k | Participative loan, no equity | Y2–Y3 |
 | **CDTI Neotec** | up to €250k (70% of budget) | **Grant**, no equity | Y2: requires R&D framing; the analytics engine qualifies |
 | **Startup Capital (regional, Catalunya)** | €25k–€100k | Grant / soft loan | Y1–Y2 |
-| **Ley de Startups** tax regime |  | **15% corporate tax** for the first four taxable years vs 25% | Modelled: worth €1.57M across Y6–Y9 |
+| **Ley de Startups** tax regime |  | **15% corporate tax** for the first four taxable years vs 25% | Modelled: worth €1.67M across Y6–Y9 |
 | Beckham Law |  | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
 
-**A realistic non-dilutive stack is €300–500k**, which covers most of the €464k
+**A realistic non-dilutive stack is €300–500k**, which covers most of the €280k
 trough on its own. Combined with a smaller pre-seed, the founder could reach the
 Seed gate holding materially more equity.
 
@@ -114,13 +178,47 @@ Two methods, because they answer different questions and disagree for a reason.
 
 ### Discounted cash flow
 
+### Where the 25% comes from
+
+It is three components, and only two of them are published. The workbook
+derives it the same way, on the Assumptions sheet, so tracing precedents from
+the discount rate lands on these rows rather than on a typed constant.
+
+| | Rate | Source |
+|---|---|---|
+| Mature listed software, Europe, in euros | 6.01% | Damodaran, NYU Stern, 5 Jan 2026, 23 firms |
+| Spain country risk premium | 1.55% | Damodaran, country risk premiums, 5 Jan 2026 |
+| **= a mature Spanish software company** | **7.56%** | |
+| Size and stage premium | 17.44% | **Judgement. Not sourced** |
+| **= discount rate used** | **25.00%** | |
+
+**Seventeen of the twenty-five points are asserted.** A pre-revenue company
+with one product, no operating history and no liquid market in its shares does
+not finance itself at a listed company's cost of capital, and convention puts
+early-stage venture at 20 to 35% all-in. That is the whole of the argument, and
+it is why the sensitivity below runs 20 to 30%.
+
+> [!warning] The honest objection, which points the other way
+> Venture capital target rates for seed-stage companies are conventionally 50
+> to 70%, not 25%. Those rates are applied to success-case projections across
+> a portfolio in which most companies fail, so they carry mortality risk in the
+> discount rate. Standard practice puts that risk in the cash flows instead, as
+> probability-weighted expected values.
+>
+> **This plan does neither.** The cash flows are a base case with no failure
+> probability in them, and the rate is well below venture convention. A
+> reviewer is entitled to say the DCF therefore understates risk, and the
+> answer is that the DCF is presented as a floor rather than the headline: the
+> valuation range comes from exit multiples, and the pessimistic scenario
+> models the downside where it belongs, in the cash flows.
+
 <!-- MODEL:valuation -->
 | Valuation (DCF) | Value |
 |---|---|
-| PV of explicit FCF, Y1–Y10 | €3.91M |
-| Terminal value (g=3%) | €41.53M |
-| PV of terminal value | €4.46M |
-| **Enterprise value (WACC 25%)** | **€8.37M** |
+| PV of explicit FCF, Y1–Y10 | €4.25M |
+| Terminal value (g=3%) | €40.46M |
+| PV of terminal value | €4.34M |
+| **Enterprise value (WACC 25%)** | **€8.60M** |
 <!-- /MODEL:valuation -->
 
 ### Exit multiple
@@ -129,34 +227,34 @@ Two methods, because they answer different questions and disagree for a reason.
 <!-- MODEL:multiples -->
 | Exit method (Y10) | Multiple | Value at Y10 | Discounted to today |
 |---|---|---|---|
-| Marketplace comparables | 4.0x revenue | €101.53M | €10.90M |
-| Blended marketplace + SaaS | 6.5x revenue | €164.99M | €17.72M |
-| High-growth SaaS mix | 9.0x revenue | €228.45M | €24.53M |
-| EBITDA multiple | 14x EBITDA | €151.13M | €16.23M |
+| Marketplace comparables | 4.0x revenue | €95.65M | €10.27M |
+| Blended marketplace + SaaS | 6.5x revenue | €155.42M | €16.69M |
+| High-growth SaaS mix | 9.0x revenue | €215.20M | €23.11M |
+| EBITDA multiple | 14x EBITDA | €142.82M | €15.33M |
 <!-- /MODEL:multiples -->
 
 ### Why they disagree, and which to believe
 
-The DCF says €8.4M; the blended exit multiple says €165.0M. **This is not an
+The DCF says €8.6M; the blended exit multiple says €155.4M. **This is not an
 error in either: it is the standard failure of perpetuity-growth DCF applied to
 a company that has not finished growing.**
 
 The DCF's terminal value assumes growth collapses to 3% the day after Y10, from
 a year that still grew 27%. For a marketplace that has just reached €25M revenue
-at a 71% gross margin with a network effect, that is not a neutral assumption; it is a pessimistic one. The terminal value is 53% of the DCF's total, so that
+at a 69% gross margin with a network effect, that is not a neutral assumption; it is a pessimistic one. The terminal value is 51% of the DCF's total, so that
 single assumption carries half the answer.
 
 **For a venture-stage company, the exit-multiple method discounted back is the
 more informative number.** The DCF is worth presenting precisely because it is
 the conservative floor: *even if growth stops dead after Y10*, the business is
-worth €8.4M today.
+worth €8.6M today.
 
 <!-- MODEL:sensitivity -->
 | Enterprise value | WACC 20% | WACC 25% | WACC 30% |
 |---|---|---|---|
-| Terminal growth 2% | €13.67M | €8.14M | €5.14M |
-| Terminal growth 3% | €14.23M | **€8.37M** | €5.25M |
-| Terminal growth 4% | €14.86M | €8.63M | €5.37M |
+| Terminal growth 2% | €13.87M | €8.37M | €5.36M |
+| Terminal growth 3% | €14.42M | **€8.60M** | €5.47M |
+| Terminal growth 4% | €15.04M | €8.85M | €5.59M |
 <!-- /MODEL:sensitivity -->
 
 **Defensible headline: €11–25M enterprise value, the Y10 exit multiples
@@ -203,17 +301,18 @@ That last row is a hard filter, not a preference. See
 | Round | Raised | Pre-money | Post-money | New investor % | Founder(s) after |
 |---|---|---|---|---|---|
 | Internal |  | | | | 100% |
-| Pre-seed | €600k | €2.5M | €3.1M | 19.4% | 79% (after 2% advisory) |
-| Seed *(optional)* | €2.0M | €10M | €12M | 16.7% | 66% |
-| Series A | €8.0M | €40M | €48M | 16.7% | 55% |
-| ESOP (cumulative) |  | | | 10% | **~49%** |
+| Pre-seed | €150k | €2.5M | €2.6M | 5.7% | 92% |
+| Pre-seed extension | €250k | €5M | €5.2M | 4.8% | 88% (after 2% advisory) |
+| Seed *(optional)* | €2M | €10M | €12M | 16.7% | 73% |
+| Series A | €8M | €40M | €48M | 16.7% | 61% |
+| ESOP (cumulative) |  | | | 10% | **~55%** |
 
-Retaining ~49% through Series A is a good outcome, and it depends on the
+Retaining ~55% through Series A is a good outcome, and it depends on the
 non-dilutive stack being used before equity rather than after it.
 
 > [!note] This table used to be typed by hand, and did not add up
-> The previous version raised €400k and still ended at ~45%, because each row
+> The previous version raised €600k and still ended at ~45%, because each row
 > was written independently rather than carried forward from the one above it.
 > Every cell here is now generated by `model.dilution()` and pinned by the doc
-> guard: the pre-seed grew by €200k and retention went **up**, because the
+> guard: the pre-seed fell by €200k and retention went **up**, because the
 > arithmetic was wrong before, not because the round got cheaper.
