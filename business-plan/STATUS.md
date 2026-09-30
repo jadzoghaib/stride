@@ -59,7 +59,8 @@ uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 
 `esade-body.md` carries Operations, HR, Legal/Growth and the primary research
 **in the body** via `<!-- INCLUDE: -->`, not as appendices, the rubric weights
-Operations and HR at 15% each, and an examiner grades what is in front of them.
+Operations and HR at 15% each, and an examiner grades what is in front of them
+rather than what is filed behind it.
 Appendices are `01-` to `11-`, plus the two generated ones, `17-evidence-base.md`
 and `18-product-walkthrough.md`.
 

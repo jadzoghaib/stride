@@ -102,7 +102,7 @@ checked = own proof verified  OR  nominated by a verified club
 proof rejected                          → rejected     ┐ hard disqualifications,
 age < 16                                → rejected     ┘ and they run first
 competition level missing               → pending      (not a decision at all)
-max(C, club_floor) ≥ 55, age known
+max(C, club_floor) ≥ 55, age known:
         and checked                     → admitted
         and not checked                 → review       (evidence_not_checked)
                                   ≥ 25  → review
@@ -248,7 +248,7 @@ What is being accumulated in the meantime, and what it becomes:
 
 | Logged now | Event | Becomes |
 |---|---|---|
-| Candidate slate, who was shown, rank, score, components, weights | `matching.ran` | Features + exposure, for off-policy evaluation |
+| Candidate slate: who was shown, rank, score, components, weights | `matching.ran` | Features + exposure, for off-policy evaluation |
 | Offer sent | `deal.created` | Positive label (sponsor chose) |
 | Accept / decline / no answer | `deal.responded` | Response-likelihood label |
 | Delivered reach, engagement, variance vs projection | `deal.completed` | The **outcome** label that actually matters |

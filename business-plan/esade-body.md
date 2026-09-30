@@ -334,6 +334,14 @@ a label rendered by the client, not a price.
 | **Sponsorship** | 10% of deal value | €3.97M |
 | **Sponsor SaaS** | Monthly subscription, tiered | €1.92M |
 
+**The two sponsor streams add, they do not substitute.** Commission is the
+marketplace take and every sponsor pays it on every deal, including those on
+the free plan. The subscription buys tooling rather than a commission waiver:
+the free tier runs one campaign and sees the top five matches, Scout Pro at
+€249 a month adds full matching, evidence views and pipeline, and Scout Agency
+at €999 adds multi-seat and API access. Only 10% of sponsors subscribe in Y1,
+rising to 20%, so most sponsor revenue is commission throughout.
+
 Full derivation, tier design and the take-rate argument in **Appendix A**.
 
 ---

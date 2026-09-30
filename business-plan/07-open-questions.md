@@ -112,7 +112,7 @@ examiner who spots a perpetuity-growth DCF applied to a company still growing
 
 They convert automatically at 18, so the question is whether to build the heavy
 safeguards (identity-verified subscribers, pre-publication review, no DMs) to
-unlock them sooner. **My instinct, not before there is a moderation team**, so
+unlock them sooner. **My instinct: not before there is a moderation team**, so
 Y3 at the earliest. But it is a real cohort with real revenue.
 
 ### F2: Which two or three niche sports, specifically?
