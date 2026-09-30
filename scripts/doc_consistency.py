@@ -485,14 +485,19 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"commission alone is €([\d,]+)", _gmv_per_sponsor(6) * model.A.take_sponsorship, 0.5),
 
     # -- 04 the round multiples -------------------------------------------
-    # The whole argument is that these are multiples of a gated milestone, so
-    # both ends of each are read from ROUNDS rather than restated.
+    # Both ends read from the model: the price from ROUNDS by stage, the gate
+    # from ROUND_GATE_MRR. The gate used to be hardcoded here while living only
+    # in the document's prose, so moving a milestone would have left the
+    # multiple beside it stale and passing.
+    *[("04-capital-and-valuation.md", f"{stage} gate MRR",
+       rf"\| €(\d+)k MRR", mrr / 1e3, 0.5)
+      for stage, mrr in list(model.ROUND_GATE_MRR.items())[:1]],
     ("04-capital-and-valuation.md", "Seed multiple on the gate",
      r"\*\*([\d.]+)x ARR\*\* \| Marketplaces",
-     next(r["pre"] for r in model.ROUNDS if r["stage"] == "Seed (optional)") / (80_000 * 12), 0.05),
+     next(r["pre"] for r in model.ROUNDS if r["stage"] == "Seed (optional)") / (model.ROUND_GATE_MRR["Seed (optional)"] * 12), 0.05),
     ("04-capital-and-valuation.md", "Series A multiple on the gate",
      r"\*\*([\d.]+)x ARR\*\* \| European Series A",
-     next(r["pre"] for r in model.ROUNDS if r["stage"] == "Series A") / (300_000 * 12), 0.05),
+     next(r["pre"] for r in model.ROUNDS if r["stage"] == "Series A") / (model.ROUND_GATE_MRR["Series A"] * 12), 0.05),
 
     # -- 04 the raiseability section --------------------------------------
     # Figures a reader will check against the cash flow, so they are read from

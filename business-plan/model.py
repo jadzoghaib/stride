@@ -339,6 +339,16 @@ ROUNDS: list[dict] = [
     {"year": 6, "stage": "Series A", "amount": 8_000_000, "pre": 40_000_000},
 ]
 
+#: The monthly recurring revenue each later round is gated on. These existed
+#: only as prose in the funding table, which meant the multiple quoted in 04
+#: was computed from numbers nobody could change in one place: moving a gate in
+#: the document would have left the multiple beside it silently stale.
+ROUND_GATE_MRR: dict[str, int] = {
+    "Seed (optional)": 80_000,
+    "Series A": 300_000,
+}
+
+
 # The two grants that dilute alongside the rounds: an advisory grant made at
 # the pre-seed, and the option pool topped up to 10% by the Series A.
 ADVISORY_GRANT: float = 0.02
