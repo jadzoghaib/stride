@@ -4,7 +4,7 @@
 by [`model.py`](model.py); the doc guard fails the build if the prose drifts
 from it.*
 
-The plan reaches **€10.2M of revenue at Y7 with 22 people.** That ratio is the
+The plan reaches **€10.2M of revenue at Y7 with 13 people.** That ratio is the
 central organisational claim, and it is only credible if the org design explains
 *why* it holds. It holds because the only human step in the value chain is
 admission review (see [12](12-operations-plan.md)), and admission review scales
@@ -21,33 +21,48 @@ who decides what.
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
-| Headcount (FTE) | 1.5 | 2.0 | 3.5 | 6.0 | 10.0 | 15.0 | 22.0 |
-| People cost | €57k | €104k | €210k | €384k | €660k | €1.02M | €1.54M |
+| Headcount (FTE) | 1 | 1.5 | 2 | 3.5 | 6 | 9 | 13 |
+| People cost | €38k | €78k | €120k | €224k | €396k | €612k | €910k |
 
-Growth to 38 FTE by Y10. The shape is deliberate: **the team stays below five
-people until fan revenue is proven**, because the pre-seed gate tests an
+Growth to 28 FTE by Y10. The shape is deliberate: **the team stays below
+four people until fan revenue is proven**, because the pre-seed gate tests an
 assumption, and testing an assumption does not need an organisation.
+
+> [!warning] This ramp is what a €400k raise buys, and the model flatters it
+> An earlier version of this plan reached 22 FTE by Y7 and needed €600k to
+> fund it. Moving the ramp out by roughly eighteen months takes the cash
+> trough from €508k to €280k without changing the athlete, fan or sponsor
+> plan at all, because payroll is the cost that arrives earliest and scales
+> least with revenue.
+>
+> **The model does not penalise under-hiring.** Athletes, fans and sponsors
+> are inputs to it, so a smaller team costs less and produces exactly the same
+> revenue, which is not how companies work. The honest statement is that a
+> smaller raise buys a slower build, and the risk it carries is execution
+> speed rather than unit economics. Y1 at 1 FTE means the founder
+> personally runs admission review, the club conversations and the product.
+> That is deliberate and it is a constraint, not a saving.
 
 ### Functional structure by stage
 
 ```
-  Y1–Y2  ── FOUNDER / CEO ──┬── Full-stack engineer
-  (2 FTE)                   └── Community / athlete lead
+  Y1–Y3  ── FOUNDER / CEO ──┬── Full-stack engineer (part-time from Y2)
+  (1→2 FTE)             └── the founder carries review, BD and product
 
-  Y3–Y5  ── FOUNDER / CEO ──┬── ENGINEERING ── senior eng · full-stack
-  (3.5→10)                  ├── GROWTH ────── BD/partnerships · athlete success
+  Y4–Y6  ── FOUNDER / CEO ──┬── ENGINEERING ── senior eng · full-stack
+  (3.5→9)                ├── GROWTH ────── BD/partnerships · athlete success
                             ├── OPERATIONS ── moderation lead · review
                             └── FINANCE & COMPLIANCE ── finance/ops · DPO (frac.)
 
-  Y6+    ── FOUNDER / CEO ──┬── VP ENGINEERING ── platform · data · mobile
-  (15→38)                   ├── VP GROWTH ────── sales · partnerships · marketing
+  Y7+    ── FOUNDER / CEO ──┬── VP ENGINEERING ── platform · data · mobile
+  (13→28)               ├── VP GROWTH ────── sales · partnerships · marketing
                             ├── HEAD OF OPS ──── trust & safety · support · review
                             └── HEAD OF FINANCE ─ finance · legal · DPO (hired)
 ```
 
 **Three functions, not five.** Engineering, Growth and Operations carry the
-business; Finance & Compliance is fractional until Y4 and a function only from
-Y5. There is no separate marketing team before Y6, acquisition runs through the
+business; Finance & Compliance is fractional until Y6 and a function only from
+Y7. There is no separate marketing team before Y6, acquisition runs through the
 Growth function, because at this stage marketing *is* partnerships.
 
 > [!note] Why the org chart is flat for longer than is comfortable
@@ -70,7 +85,7 @@ Owns strategy, fundraising, the anchor-athlete relationship and the sponsor
 pipeline until a BD hire exists. Writes code in Y1–Y2.
 *Requires:* the venture's core insight, and enough technical depth to ship.
 
-### Senior engineer: Y2
+### Senior engineer: Y3
 **Gross €55k · Loaded €72k**
 Owns the platform end to end: API, data model, the analytics engine, deployment.
 Second pair of hands on a codebase that already exists and already has a test
@@ -78,7 +93,7 @@ suite running on two databases.
 *Requires:* Python/TypeScript, Postgres, cloud deployment. Payments integration
 experience is the single most valuable specialism at this stage.
 
-### BD / partnerships: Y2
+### BD / partnerships: Y4
 **Gross €38k + commission · Loaded €50k+**
 Opens the club channel and the first sponsor accounts. Commission-weighted
 because the role is measurable and the early pipeline is the company's riskiest
@@ -86,28 +101,28 @@ unknown after fan churn.
 *Requires:* Spanish sports ecosystem relationships. Federation or club-side
 experience preferred over agency experience.
 
-### Athlete success: Y3
+### Athlete success: Y5
 **Gross €30k · Loaded €39k**
 Onboards admitted athletes, coaches content strategy, holds retention. The
 counterpart to BD on the supply side, and the role closest to the churn
 assumption the whole plan rests on.
 *Requires:* credibility with athletes. Competitive background strongly preferred.
 
-### Content moderation lead: Y3
+### Content moderation lead: Y5
 **Gross €34k · Loaded €45k**
 Owns the review queue, the trust and safety policy, the age-gate enforcement and
 the escalation path. Also owns the admission-review service level (< 48 hours).
 *Requires:* trust and safety experience on a UGC platform; judgement under
 ambiguity.
 
-### Finance / operations: Y4
+### Finance / operations: Y6
 **Gross €42k · Loaded €55k**
 Payouts, reconciliation, VAT across markets, investor reporting, the working
 capital cycle. The first hire whose absence would become a control weakness
 rather than a workload problem.
 *Requires:* multi-jurisdiction VAT, marketplace payment flows.
 
-### Data protection officer: Y3 fractional → Y5 hired
+### Data protection officer: Y5 fractional → Y7 hired
 **Fractional €18k → Hired gross €60k / loaded €79k**
 GDPR Article 37 exposure arrives with scale, not with launch. Fractional until
 the athlete base and the media pipeline justify a full-time appointment.
@@ -174,10 +189,10 @@ alternatives considered are in [14](14-legal-and-growth.md).
 | Stage | Board | Founder control |
 |---|---|---|
 | Pre-incorporation | Founder only | 100% |
-| **Pre-seed** (€600k) | Founder + 1 investor observer | 79% held after the 2% advisory grant |
-| **Seed** (€2.0M, optional) | Founder + 1 investor director + 1 independent | 66% |
-| **Series A** (€8.0M) | Founder + 2 investor directors + 1 independent | 55% |
-| Post-ESOP | As above | **~49%** |
+| **Pre-seed** (€600k) | Founder + 1 investor observer | 84% held after the 2% advisory grant |
+| **Seed** (€2.0M, optional) | Founder + 1 investor director + 1 independent | 70% |
+| **Series A** (€8.0M) | Founder + 2 investor directors + 1 independent | 58% |
+| Post-ESOP | As above | **~53%** |
 
 ### Reserved matters
 From the pre-seed onward, the following require investor consent: new share

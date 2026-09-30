@@ -70,7 +70,7 @@ Three things in it are worth two minutes of a technical diligence call:
 |  | Y3 | Y7 |
 |---|---|---|
 | Net revenue | €525k | €10.16M |
-| EBITDA | €-237k | €2.62M |
+| EBITDA | €-147k | €3.25M |
 | Active athletes | 3,000 | 22,000 |
 | Paying fans | 25,288 | 321,288 |
 | Gross margin | 64% | 68% |
@@ -107,18 +107,18 @@ definitively, which is why that, and not a feature, is the pre-seed gate.
 
 ## The ask
 
-**€600k pre-seed at €2.5M pre-money.**
+**€400k pre-seed at €2.5M pre-money.**
 
 The gate is evidence, not a milestone we can assert: 400 athletes, €10k MRR, an
 anchor athlete public, payments processing real money, and **fan churn measured
 for three months.** Use of funds: two hires, Spain go-to-market, the club
 channel.
 
-The plan needs €711k: the **€508k cash trough in Y4** plus a 40% buffer, and
+The plan needs €392k: the **€280k cash trough in Y4** plus a 40% buffer, and
 the pre-seed clears the trough itself with €136k to spare. That is what asking
 for €600k rather than €400k buys: **the seed becomes optional.** It brings a
 second market forward; it is not the thing standing between the company and
-running out of cash. The rounds raise €2.6M before a Series A, and the
+running out of cash. The rounds raise €2.4M before a Series A, and the
 honest answer to *"what if the next round does not come?"* is now "we grow more
 slowly", not "we die".
 

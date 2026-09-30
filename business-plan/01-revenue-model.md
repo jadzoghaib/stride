@@ -262,12 +262,12 @@ rather than one:
 
 | Take | Y7 revenue | Y7 EBITDA | Against |
 |---|---|---|---|
-| 20% | €11.77M | €4.10M | OnlyFans' rate, derived from filed accounts |
-| **15%** | **€10.16M** | **€2.62M** | **our proposal** |
-| 10% | €8.56M | €1.15M | Patreon's published, all-in rate |
+| 20% | €11.77M | €4.73M | OnlyFans' rate, derived from filed accounts |
+| **15%** | **€10.16M** | **€3.25M** | **our proposal** |
+| 10% | €8.56M | €1.78M | Patreon's published, all-in rate |
 
 Read the bottom row before the top one. **Matching Patreon costs €1.60M of Y7
-revenue and €1.48M of EBITDA: EBITDA falls 56%, from €3.11M to €1.64M.** The
+revenue and €1.48M of EBITDA: EBITDA falls 45%, from €3.11M to €1.64M.** The
 same five points that look like upside going up are what a price war costs
 going down, and the downside lands harder because the cost base does not shrink
 with the take.

@@ -236,7 +236,11 @@ class Assumptions:
     # the slower ramp, the plan hired for growth that never arrived and the
     # capital requirement went from EUR 824k to EUR 3.1M -- the same company,
     # four times the money, because the costs kept the old plan's shape.
-    headcount: list[float] = field(default_factory=lambda: [1.5, 2.0, 3.5, 6.0, 10.0, 15.0, 22.0, 28.0, 33.0, 38.0])
+    #: Deliberately later than the first version of this plan, which ramped
+    #: to 22 FTE by Y7 and needed EUR 600k to do it. Payroll is the cost
+    #: that lands earliest and scales least with revenue, so moving the
+    #: ramp out is what takes the raise down without building less.
+    headcount: list[float] = field(default_factory=lambda: [1.0, 1.5, 2.0, 3.5, 6.0, 9.0, 13.0, 18.0, 23.0, 28.0])
     loaded_salary_eur: list[int] = field(default_factory=lambda: [38_000, 52_000, 60_000, 64_000, 66_000, 68_000, 70_000, 72_000, 74_000, 76_000])
     sponsor_cac_eur: list[int] = field(default_factory=lambda: [900, 1_050, 1_200, 1_400, 1_600, 1_750, 1_900, 2_000, 2_100, 2_200])
     legal_compliance_eur: list[int] = field(default_factory=lambda: [18_000, 45_000, 90_000, 150_000, 200_000, 235_000, 270_000, 300_000, 325_000, 345_000])
@@ -282,7 +286,7 @@ A = Assumptions()
 # regenerating it from this model never touched a list hardcoded in the
 # builder. Years are when the gate is met, not when the money is convenient.
 ROUNDS: list[dict] = [
-    {"year": 1, "stage": "Pre-seed", "amount": 600_000, "pre": 2_500_000},
+    {"year": 1, "stage": "Pre-seed", "amount": 400_000, "pre": 2_500_000},
     {"year": 4, "stage": "Seed (optional)", "amount": 2_000_000, "pre": 10_000_000},
     {"year": 6, "stage": "Series A", "amount": 8_000_000, "pre": 40_000_000},
 ]

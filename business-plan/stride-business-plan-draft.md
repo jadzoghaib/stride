@@ -60,7 +60,7 @@ commercial value have come apart**.
 | | Y3 | Y7 |
 |---|---|---|
 | Net revenue | €0.53M | €10.16M |
-| EBITDA | €-237k | €2.62M |
+| EBITDA | €-147k | €3.25M |
 | Active athletes | 3,000 | 22,000 |
 | Paying fans | 25,288 | 321,288 |
 | Gross margin | 64% | 68% |
@@ -978,7 +978,7 @@ pass; assumed mix 40/50/10.
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
 | Net revenue | €0.02M | €0.13M | €0.53M | €1.50M | €3.29M | €6.22M | €10.16M |
-| EBITDA | €-0.10M | €-0.17M | €-0.23M | €-0.21M | €0.16M | €1.16M | €2.62M |
+| EBITDA | €-0.08M | €-0.14M | €-0.15M | €-0.05M | €0.42M | €1.57M | €3.25M |
 | Athletes | 400 | 1,200 | 3,000 | 6,000 | 10,500 | 16,000 | 22,000 |
 | Paying fans | 2,058 | 8,148 | 25,288 | 60,197 | 120,076 | 206,658 | 321,288 |
 | Deals | 25 | 117 | 485 | 1,549 | 3,767 | 7,376 | 11,563 |
@@ -1043,11 +1043,11 @@ popular sports enter from a position of proof.
 | Stage | Amount | Pre-money | Gate |
 |---|---|---|---|
 | Internal | €80k + time |  | Product exists ✓ |
-| **Pre-seed** | **€600k** | **€2.5M** | 400 athletes · €10k MRR · anchor athlete public · payments live · **3 months fan churn** |
+| **Pre-seed** | **€400k** | **€2.5M** | 400 athletes · €10k MRR · anchor athlete public · payments live · **3 months fan churn** |
 | Seed *(optional)* | €2.0M | €10M | €80k MRR · churn <8%/mo · CAC payback <9mo · 2nd market · 30+ sponsors |
 | Series A | €8.0M | €40M | €300k MRR · NRR >110% · sponsorship >25% of revenue |
 
-**The plan needs €711k** (peak burn €464k + 40% buffer).
+**The plan needs €392k** (peak burn €464k + 40% buffer).
 
 > [!important] The €600k pre-seed funds the company to profitability
 > This is the change that slowing the ramp bought, and it is worth more than the
@@ -1183,7 +1183,7 @@ weekend.
 
 | # | Issue | Why it matters here | Effect if it lands against us |
 |---|---|---|---|
-| **L1** | **VAT: we assume we are the deemed supplier.** Art 9a of the VAT Implementing Regulation presumes a platform supplying electronic services acts *in its own name*, and the presumption is **irrebuttable** where the platform sets the essential terms **and** processes the payment. We publish fixed take rates and run the PSP, we do both | So the fan price is treated as VAT-inclusive throughout: the taxable base is the price divided by 1.21, and the take applies to that base. **This is now in the model**, not a note beside it | **Priced in, at Spain's 21%.** Were the reading wrong and the take charged on a net price, Y7 revenue would be €11.17M and Y7 EBITDA €3.55M, so carrying it costs 26% of Y7 EBITDA. The remaining exposure is the *rate*, not the principle: see below |
+| **L1** | **VAT: we assume we are the deemed supplier.** Art 9a of the VAT Implementing Regulation presumes a platform supplying electronic services acts *in its own name*, and the presumption is **irrebuttable** where the platform sets the essential terms **and** processes the payment. We publish fixed take rates and run the PSP, we do both | So the fan price is treated as VAT-inclusive throughout: the taxable base is the price divided by 1.21, and the take applies to that base. **This is now in the model**, not a note beside it | **Priced in, at Spain's 21%.** Were the reading wrong and the take charged on a net price, Y7 revenue would be €11.17M and Y7 EBITDA €4.18M, so carrying it costs 22% of Y7 EBITDA. The remaining exposure is the *rate*, not the principle: see below |
 | **L2** | **Adult content: permitted or not?** The plan cites OnlyFans as proof of the model. It does not follow that we copy their content policy. Stripe and every mainstream PSP prohibit adult content | The PSP assumption in §4.4 is **1.9% + €0.25**. High-risk processing for adult platforms runs several times that, and payments are already the dominant COGS line | Payments are €2.55M at Y7 on the mainstream rate. A high-risk rate does not dent the margin, it removes it. **Recommendation: prohibit adult content in the terms, explicitly, from day one**, the athlete audience is practitioner-led and the policy costs us nothing we want |
 | **L3** | **DAC7 arrives earlier than P4.** The reporting directive covers "personal services", time- or task-based work performed *at a user's request*. Commentary is fairly settled that pre-recorded subscription content falls **outside** that. A sponsorship deliverable, a post an athlete produces because a sponsor briefed it, falls squarely **inside**, and personal services carry **no de minimis**: one deal is reportable | §4.2 schedules DAC7 at P4/Series A. That is right for the subscription side and wrong for the sponsorship side, which is **already built** | Seller due diligence (TIN, address, business registration) has to be collected **before the first paid deal**, not in Y4. Cheap if designed in, expensive as a retrofit against a live roster |
 
@@ -1311,7 +1311,7 @@ Ordered by how much the plan would change if the answer surprised us.
 - **Financial model:** `business-plan/model.py`. Ten-year projection, real
   working capital, capex, amortisation, loss carry-forward, Spanish Startup Law
   tax step (15% for four profitable years, then 25%).
-- **Consistency:** an automated guard checks **302 prose claims across 15
+- **Consistency:** an automated guard checks **301 prose claims across 15
   documents** against the model, plus the evidence chain from published
   comparables → derived assumptions. The build fails if any figure drifts, including this sentence, whose two numbers are themselves pinned to the
   guard's own contents.

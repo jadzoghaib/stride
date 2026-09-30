@@ -72,7 +72,7 @@ the rows themselves, that the egress decision moves.
 > its own cohort model documents on the revenue side and had already fixed
 > there.
 
-**€402k a year is most of this plan's entire €508k cash trough, spent annually
+**€402k a year is most of this plan's entire €280k cash trough, spent annually
 and decided by one architectural choice**, €3.1M across the ten years.
 
 The recommendation is AWS for compute and database, where its managed services
@@ -151,8 +151,8 @@ figure below is loaded cost.
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
-| Headcount (FTE) | 1.5 | 2.0 | 3.5 | 6.0 | 10.0 | 15.0 | 22.0 |
-| People cost | €57k | €104k | €210k | €384k | €660k | €1.02M | €1.54M |
+| Headcount (FTE) | 1.0 | 1.5 | 2.0 | 3.5 | 6.0 | 9.0 | 13.0 |
+| People cost | €38k | €78k | €120k | €224k | €396k | €0.61M | €0.91M |
 
 **Spain is a structural cost advantage.** A senior engineer at €72k loaded costs
 roughly half the equivalent in London or Amsterdam and a third of the Bay Area,
@@ -243,14 +243,14 @@ roster.
 |---|---|---|
 | Payment processing | €2.55M | 25.1% |
 | Marketing / CAC | €1.70M | 16.8% |
-| People | €1.54M | 15.2% |
+| People | €910k | 9.0% |
 | Other opex | €813k | 8.0% |
 | Infrastructure | €336k | 3.3% |
 | Legal & compliance | €270k | 2.7% |
 | Payouts | €237k | 2.3% |
 | Moderation | €70k | 0.7% |
 | Athlete verification | €18k | 0.2% |
-| **EBITDA** | **€2.62M** | **25.8%** |
+| **EBITDA** | **€3.25M** | **32.0%** |
 <!-- /MODEL:costs_y7 -->
 
 Infrastructure is 3.3% of revenue. **Payments are nearly eight times larger.** Any

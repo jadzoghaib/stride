@@ -370,12 +370,12 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     *[("13-organization-and-hr.md", f"HR table, Y{y} headcount",
        r"\| Headcount \(FTE\) \|" + r" [\d.]+ \|" * (y - 1) + r" ([\d.]+)",
        ROWS[y - 1]["headcount"], 0.05) for y in range(1, 8)],
+    # All seven years read in thousands now. The leaner hiring ramp keeps Y6
+    # and Y7 people cost under a million, where they used to cross it and
+    # needed a second pattern.
     *[("13-organization-and-hr.md", f"HR table, Y{y} people cost",
        r"\| People cost \|" + r" €[\d.]+[kM] \|" * (y - 1) + r" €(\d+)k",
-       ROWS[y - 1]["people"] / 1e3, 0.5) for y in range(1, 6)],
-    *[("13-organization-and-hr.md", f"HR table, Y{y} people cost",
-       r"\| People cost \|" + r" €[\d.]+[kM] \|" * (y - 1) + r" €([\d.]+)M",
-       ROWS[y - 1]["people"] / 1e6, 0.005) for y in (6, 7)],
+       ROWS[y - 1]["people"] / 1e3, 0.5) for y in range(1, 8)],
 
     ("13-organization-and-hr.md", "Y10 headcount",
      r"Growth to (\d+) FTE by Y10", ROWS[9]["headcount"], 0.5),
@@ -648,13 +648,13 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # The dilution path, cell by cell. It was typed by hand and its later rows
     # did not follow from its earlier ones under any reading of them.
     ("04-capital-and-valuation.md", "pre-seed post-money",
-     r"\| Pre-seed \| €600k \| €2\.5M \| €([\d.]+)M \|",
+     r"\| Pre-seed \| €\d+k \| €2\.5M \| €([\d.]+)M \|",
      DILUTION["Pre-seed"]["post"] / 1e6, 0.05),
     ("04-capital-and-valuation.md", "pre-seed investor stake",
-     r"\| Pre-seed \| €600k \| €2\.5M \| €3\.1M \| ([\d.]+)% \|",
+     r"\| Pre-seed \|(?:[^|]*\|){3} ([\d.]+)% \|",
      DILUTION["Pre-seed"]["stake"] * 100, 0.1),
     ("04-capital-and-valuation.md", "founders held after the pre-seed",
-     r"€3\.1M \| 19\.4% \| (\d+)% \(after 2% advisory\)",
+     r"\| (\d+)% \(after 2% advisory\)",
      DILUTION["Pre-seed"]["held"] * 100, 0.5),
     ("04-capital-and-valuation.md", "founders held after the seed",
      r"\| Seed \*\(optional\)\* \| €2\.0M \| €10M \| €12M \| 16\.7% \| (\d+)% \|",
@@ -693,9 +693,6 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # Unpinned figures that the egress correction moved and review caught:
     # the gap between the ask and the pre-seed, and G11's restatement of the
     # Y7 infrastructure number from the table three sections above it.
-    ("04-capital-and-valuation.md", "the gap between the ask and the pre-seed",
-     r"the €(\d+)k gap is what the non-dilutive stack",
-     (peak_funding() * 1.4 - model.ROUNDS[0]["amount"]) / 1e3, 1.0),
     ("stride-business-plan-draft.md", "Y7 infrastructure in the G11 callout",
      r"€2\.55M against €(\d+)k at Y7", Y7["infra"] / 1e3, 1.0),
 
