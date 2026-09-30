@@ -14,7 +14,7 @@ determines what Stride is selling, who it displaces, and what it has to prove.
 | Sales motion | Competitive displacement | Category education |
 | CAC | Higher: must beat an incumbent relationship | **Lower**: no incumbent to beat |
 | Willingness to pay | Anchored to agent rates (10–20%) | Anchored to zero, but the alternative is also zero |
-| Sponsor demand | Already exists, already served | Must be created: but no one else is competing for it |
+| Sponsor demand | Already exists, already served | Must be created, but no one else is competing for it |
 
 ---
 

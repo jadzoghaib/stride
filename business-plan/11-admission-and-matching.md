@@ -34,7 +34,7 @@ it through and the gate does the opposite of what the product promises.
 
 A compensatory gate lets reach buy legitimacy, which admits exactly the person
 Stride exists not to be, and rejects exactly the person it exists to serve.
-Worse, it does the second by treating *unmeasured* analytics as a zero, the
+Worse, it does the second by treating *unmeasured* analytics as a zero: the
 error `matching.py` already refuses to make.
 
 So: **credibility decides admission. The social score can only route a case to
@@ -46,7 +46,7 @@ connect a platform. Gate on legitimacy, tier on value.
 
 ## Three rules the arithmetic enforces
 
-**1. Evidence multiplies, it does not add.** In the original rubric proof links
+**1. Evidence multiplies; it does not add.** In the original rubric proof links
 were a required field worth zero points, so a self-declared `international`
 claim with a dead link outscored a verified `regional` one. As a multiplier it
 cannot: the strongest possible unevidenced application scores **24.0** and is
@@ -102,7 +102,7 @@ checked = own proof verified  OR  nominated by a verified club
 proof rejected                          → rejected     ┐ hard disqualifications,
 age < 16                                → rejected     ┘ and they run first
 competition level missing               → pending      (not a decision at all)
-max(C, club_floor) ≥ 55, age known:
+max(C, club_floor) ≥ 55, age known
         and checked                     → admitted
         and not checked                 → review       (evidence_not_checked)
                                   ≥ 25  → review
@@ -166,7 +166,7 @@ standing.
 ### The second ratchet: listings that predate the gate
 
 The directory existed before this gate did. Athletes listed under the old rules
-are not retroactively re-audited: but the first version of that promise only
+are not retroactively re-audited, but the first version of that promise only
 held while they ignored the gate. Submitting the eligibility form scored them,
 found the claim insufficient, and dropped a healthy listed profile to `draft`
 for the act of filling in a form. Found by an outside walkthrough of the demo,
@@ -248,7 +248,7 @@ What is being accumulated in the meantime, and what it becomes:
 
 | Logged now | Event | Becomes |
 |---|---|---|
-| Candidate slate: who was shown, rank, score, components, weights | `matching.ran` | Features + exposure, for off-policy evaluation |
+| Candidate slate, who was shown, rank, score, components, weights | `matching.ran` | Features + exposure, for off-policy evaluation |
 | Offer sent | `deal.created` | Positive label (sponsor chose) |
 | Accept / decline / no answer | `deal.responded` | Response-likelihood label |
 | Delivered reach, engagement, variance vs projection | `deal.completed` | The **outcome** label that actually matters |

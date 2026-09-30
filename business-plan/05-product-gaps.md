@@ -26,9 +26,9 @@ A fan's set of available actions today:
 | `POST /api/messages` | Message an athlete you subscribe to |
 
 So the *relationship* and *content* halves of the creator platform exist, posts, image upload, locked items, polls, products, follow versus subscribe,
-a fan feed, fan DMs: and are demonstrable end to end. What does not exist is
+a fan feed, fan DMs, and are demonstrable end to end. What does not exist is
 the part that makes it a business: **there is no way for anyone to pay anything.** The entire fan-monetisation
-model: 60% of Y7 revenue: has no product surface at all. Deals and packages
+model, 60% of Y7 revenue, has no product surface at all. Deals and packages
 record an `amount` and a status, but no money moves; they are contracts of
 record, not transactions.
 
@@ -87,7 +87,7 @@ greenfield codebase:
 
 **The riskiest gap is #4, content.** Everything else is a well-understood
 integration. Media is where the cost model, the moderation obligation and the
-egress decision all converge: and it is the one that turns a data product into
+egress decision all converge, and it is the one that turns a data product into
 a content platform, with the operational weight that implies.
 
 ---
@@ -147,7 +147,7 @@ follows: unmeasured, not free.
 
 That rule was written here before the endpoint kept it. Delivered reach and
 engagements came back as `0`, and where a projection existed the variance read
-`-100%`: not "unmeasured" but "delivered a hundred per cent below plan", about
+`-100%`, not "unmeasured" but "delivered a hundred per cent below plan", about
 an athlete who had not posted yet. The line runs between counts and
 measurements: `posts` is `0` because none are attached and that is a fact,
 while reach, engagements and variance are `null` because nothing was measured.

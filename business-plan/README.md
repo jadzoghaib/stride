@@ -5,7 +5,7 @@ A seven-year operating plan for a Spanish company.
 > **Stride is a creator platform with a sponsorship feature.**
 >
 > Athletes are creators with a second payer. OnlyFans proved that direct fan
-> monetisation beats ad-share. No one has built it for athletes: who, unlike
+> monetisation beats ad-share. No one has built it for athletes, who, unlike
 > lifestyle creators, also have sponsors, clubs, and a competitive record that
 > makes their audience measurable.
 
@@ -35,7 +35,7 @@ are no agents at all, and the athlete's alternative to Stride is nothing. See
 | 06 | [Market strategy](06-market-strategy.md) | Two segments: disintermediation in popular sports, market creation in niche sports |
 | 07 | [Open questions](07-open-questions.md) | What is settled, and what still needs a founder |
 | 08 | [Sport index](08-sport-index.md) | 714 country x sport pairs, the classification method, and its three product uses |
-| 09 | [Analytics strategy](09-analytics-strategy.md) | How the data function phases in: and the one thing that is urgent now |
+| 09 | [Analytics strategy](09-analytics-strategy.md) | How the data function phases in, and the one thing that is urgent now |
 | 10 | [Competitor: TEKTA](10-competitor-tekta.md) | Publicis/Kelce's NIL venture: what it validates, and the market its economics exclude |
 | 11 | [Admission & matching](11-admission-and-matching.md) | Who gets in and how a campaign ranks them, the cold-start gate, club nomination, and why there is no learned ranker yet |
 | 12 | [Operations plan](12-operations-plan.md) | Process map, subcontracting, service levels, unit costs, launch plan, ESADE outline §7 |
@@ -45,7 +45,7 @@ are no agents at all, and the athlete's alternative to Stride is nothing. See
 | | **Research tab** in the workbook | How every assumption was baselined, with sources and confidence |
 
 Every number in 03 and 04 is produced by [`model.py`](model.py). Change an
-assumption there and rerun: nothing is hand-typed:
+assumption there and rerun. Nothing is hand-typed:
 
 ```bash
 python business-plan/model.py
@@ -89,7 +89,7 @@ cannot disagree with the model. §9.4 of the plan indexes every slot.
 ## The four things that decide whether this works
 
 **1. The fixed payment fee, not the take rate.** At a €4.99 tier we keep 44% of
-our own commission, because Stripe's €0.25 lands on a €0.62 take, the take is
+our own commission, because Stripe's €0.25 lands on a €0.62 take. The take is
 charged on the VAT-exclusive price. At €9.99 we keep 64%. This single mechanic should set the minimum tier price and push hard
 toward annual billing: Patreon reports annual patrons churn at **one third**
 the rate of monthly ones, so the retention gain compounds the fee saving. See
@@ -99,7 +99,7 @@ the rate of monthly ones, so the retention gain compounds the fee saving. See
 analytics: compute is a rounding error, which `docs/costs.md` correctly says.
 The moment fans pay for video, that stops being true. Served naively from
 CloudFront, egress alone costs **€402k more in Y7**, and €3.1M across the
-plan: than the same bytes behind a zero-egress CDN. The Y7 figure is most of
+plan than the same bytes behind a zero-egress CDN. The Y7 figure is most of
 this plan's entire €464k cash trough, spent annually, on one architecture
 decision.
 

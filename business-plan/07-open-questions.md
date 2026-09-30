@@ -35,7 +35,7 @@ tools ever appear (deeper analytics, competitor benchmarking, media-kit export).
 
 **My recommendation: free forever for the core**, paid tools only if athletes
 ask unprompted. Charging the supply side before the marketplace is dense is how
-marketplaces die: and a monthly athlete fee is precisely the Passes mistake we
+marketplaces die, and a monthly athlete fee is precisely the Passes mistake we
 are pricing against. **This is close to settled; flag it if you disagree.**
 
 ### A3: Minimum tier price and annual billing
@@ -50,7 +50,7 @@ Needs a decision before P1 ships because it shapes the tier UI.
 ### B1: Video, or text and photo first?
 
 **Recommendation: text and photo in P1.** It answers the only question that
-matters: *will fans pay?*: without a transcoding pipeline, a CDN decision, or
+matters, *will fans pay?*, without a transcoding pipeline, a CDN decision, or
 video's moderation exposure. Commit to video only once P1 has three months of
 churn data. See [05](05-product-gaps.md#sequenced-build).
 
@@ -61,7 +61,7 @@ Stride, with invoicing above ~€5k.** Record-only take rates leak to zero.
 
 Open sub-question: in the disintermediation pitch we claim 10% against an
 agent's 10–20%. If sponsors pay outside the platform, that claim is
-unenforceable: which makes this decision load-bearing for
+unenforceable, which makes this decision load-bearing for
 [06](06-market-strategy.md), not just for revenue.
 
 ### C1: Spain only through the pre-seed gate?
@@ -112,7 +112,7 @@ examiner who spots a perpetuity-growth DCF applied to a company still growing
 
 They convert automatically at 18, so the question is whether to build the heavy
 safeguards (identity-verified subscribers, pre-publication review, no DMs) to
-unlock them sooner. **My instinct: not before there is a moderation team**, so
+unlock them sooner. **My instinct, not before there is a moderation team**, so
 Y3 at the earliest. But it is a real cohort with real revenue.
 
 ### F2: Which two or three niche sports, specifically?
@@ -137,5 +137,5 @@ change in the plan**, because it makes the algorithm agree with the strategy.
 The fallback is good and should be stated: **the product already works as a
 sponsorship marketplace today.** If P1 shows fans won't pay, the company becomes
 a smaller, viable, analytics-led B2B business rather than a failure. Worth
-naming explicitly in any investor conversation, it is a genuine floor under the
+naming explicitly in any investor conversation; it is a genuine floor under the
 downside, and few pre-seed companies have one.

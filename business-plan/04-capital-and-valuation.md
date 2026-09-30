@@ -30,7 +30,7 @@ and it produces a hurdle rate that is far too low.
 
 ### The hurdle this sets
 
-To beat the alternative: take the job, invest the €80k: the venture must
+To beat the alternative of taking the job and investing the €80k, the venture must
 return more than €201,600 compounded at 7%, plus a premium for the risk of total
 loss. At a 70% failure probability, the surviving case must return roughly
 **€1.5–2M to the founder** for the decision to have been rational ex ante.
@@ -63,12 +63,12 @@ the conservative case materialises.
 
 The pre-seed alone covers the **€464k trough in Y4** with €136k to spare, which
 is why the seed is marked optional above. It is growth capital: a second market
-sooner: not rescue capital. A plan whose survival does not depend on the next
+sooner, not rescue capital. A plan whose survival does not depend on the next
 round arriving on schedule is a materially stronger one to raise against.
 
 Be precise about what that claims. **€600k clears the trough the model
 produces; €649k is that trough plus the 40% buffer.** The seed is optional
-against the plan as modelled: not against the conservative case the buffer
+against the plan as modelled, not against the conservative case the buffer
 exists for. If the buffer is needed, the €49k gap is what the non-dilutive stack
 above is for.
 
@@ -143,7 +143,7 @@ a company that has not finished growing.**
 
 The DCF's terminal value assumes growth collapses to 3% the day after Y10, from
 a year that still grew 27%. For a marketplace that has just reached €25M revenue
-at a 71% gross margin with a network effect, that is not a neutral assumption, it is a pessimistic one. The terminal value is 53% of the DCF's total, so that
+at a 71% gross margin with a network effect, that is not a neutral assumption; it is a pessimistic one. The terminal value is 53% of the DCF's total, so that
 single assumption carries half the answer.
 
 **For a venture-stage company, the exit-multiple method discounted back is the

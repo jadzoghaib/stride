@@ -103,7 +103,7 @@ decides how hard the plan is to hold, not a line item.
 
 Nothing in the product proves it today, and no amount of further engineering
 will. Three months of real subscription data from one anchor athlete answers it
-definitively: which is why that, and not a feature, is the pre-seed gate.
+definitively, which is why that, and not a feature, is the pre-seed gate.
 
 ## The ask
 

@@ -17,7 +17,7 @@ The most consequential thing about it is what it is *not*.
 
 **TEKTA is the intermediary Stride's thesis exists to remove.** Agency plus
 talent management, taking a cut to make introductions, gated to selected
-clients. That is not a criticism: it is a good business: but it makes them the
+clients. That is not a criticism: it is a good business, but it makes them the
 incumbent in the disintermediation pitch rather than a competitor in the
 marketplace one.
 
@@ -37,7 +37,7 @@ marketplace one.
 2. **The long tail is a real market.** They are aggregating 45,000 athletes
    because no single one is large enough. Same insight, different geography.
 3. **Athlete-side services drive retention.** Financial literacy, brand
-   development, transparent deal terms, they are buying trust, not just supply.
+   development, transparent deal terms. They are buying trust, not just supply.
 4. **Institutional relationships are the cheapest supply channel.** 3 Arts
    brings universities and conferences, not individual athletes.
 
@@ -52,21 +52,21 @@ would not want to.
 They also cannot reach: non-US athletes, non-collegiate athletes, any sport
 outside the Power Four's orbit, brands too small for a Publicis retainer, and
 fan revenue entirely. **The overlap with Stride's actual market is close to
-zero today**: which is exactly why they are useful as validation rather than
+zero today**, which is exactly why they are useful as validation rather than
 threatening as competition.
 
 ---
 
 ## What Stride should take from this
 
-### 1. Build measurement. This was the real gap.: DONE
+### 1. Build measurement. This was the real gap. DONE
 
 TEKTA's headline to brands is identify → activate → **measure**. Stride did
 identify (matching) and half of activate (offers). It did **not** measure:
 `deals` recorded an amount and a status, and nothing about what the sponsor
 actually got.
 
-**Now shipped**: a campaign outcome record: reach delivered, engagement, cost
+**Now shipped**: a campaign outcome record, reach delivered, engagement, cost
 per 1k reach, cost per engagement, actual versus projected, pulled from the same
 connectors that already produce the analytics. The athlete attaches the post
 that fulfilled the deal (guarded so it must be their own), completion is refused
@@ -99,7 +99,7 @@ difference between this and an agency's brochure.
 ### 3. Use clubs the way they use universities, HIGH
 
 3 Arts' contribution is *relationships with institutions*. Stride already has
-the structural equivalent built: `clubs`, rosters, and packages: and the plan
+the structural equivalent built: `clubs`, rosters, and packages, and the plan
 underuses it. One federation conversation onboards a roster; one athlete
 conversation onboards one athlete.
 
@@ -111,7 +111,7 @@ academies**, and Spain's federation structure is unusually accessible.
 TEKTA offers financial literacy and brand development. Stride's weakest
 assumption is churn ([Research tab](Stride_Financial_Model.xlsx)); education is
 cheap retention. The sport index already generates **content guidance per
-athlete**: extend it into: what to charge, how to read your own analytics, tax
+athlete**, extending it into what to charge, how to read your own analytics, tax
 basics for a Spanish athlete, what a fair deal looks like.
 
 ### 5. Target the brands an agency will not serve, MEDIUM

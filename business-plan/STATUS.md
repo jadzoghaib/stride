@@ -9,7 +9,7 @@ Last updated 29 September 2026.*
 
 | What | Where |
 |---|---|
-| **The submission** | `business-plan/Stride_Business_Plan.docx`, 39-page body, 105 total, TOC populated |
+| **The submission** | `business-plan/Stride_Business_Plan.docx`, 40-page body, 107 total, TOC populated |
 | Same, without Word | `business-plan/Stride_Business_Plan.pdf` |
 | **The financial model** | `business-plan/Stride_Financial_Model.xlsx`, 18 sheets, 2,520 formulas |
 | The body's source | `business-plan/esade-body.md` |
@@ -58,7 +58,7 @@ uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 ```
 
 `esade-body.md` carries Operations, HR, Legal/Growth and the primary research
-**in the body** via `<!-- INCLUDE: -->`, not as appendices: the rubric weights
+**in the body** via `<!-- INCLUDE: -->`, not as appendices, the rubric weights
 Operations and HR at 15% each, and an examiner grades what is in front of them.
 Appendices are `01-` to `11-`, plus the two generated ones, `17-evidence-base.md`
 and `18-product-walkthrough.md`.

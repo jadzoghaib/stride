@@ -6,11 +6,12 @@ milestone invented for this section.*
 
 ---
 
-Growth is sequenced along four axes. The market axis moves one step at a
-time and only through a funding gate, which is the constraint that matters;
-product and channel develop continuously alongside it. Y2 opens the club
-channel and the seed opens Portugal, and those are deliberately different
-kinds of move.
+Growth is sequenced along four axes. Market and segment are the two that are
+gated: the market axis moves one step at a time and only through a funding
+round, and the segment mix moves only as fast as the evidence that earns it.
+Product and channel develop continuously alongside both. Y2 opens the club
+channel and the seed opens Portugal, and those are deliberately different kinds
+of move.
 
 ## 16.1 Axis 1: Market
 
@@ -52,8 +53,7 @@ prices them better than a relationship does. That evidence does not exist on
 day one. It is produced by the niche side: completed deals, measured delivery,
 and a scoring model trained on real outcomes. The mix shifts because the
 company earns the right to compete for athletes it could not have won earlier,
-which is the same compounding argument the club channel rests on in
-[16.4](16-growth-strategy.md).
+which is the same compounding argument the channel axis rests on below.
 
 **What it costs.** Weighted athlete acquisition cost rises from
 **€17 to €67**, almost four times, and none of that is

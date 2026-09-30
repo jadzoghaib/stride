@@ -1,6 +1,6 @@
 # 09: Analytics Strategy
 
-**Yes, phase it: and the phasing is not optional, because the data you need
+**Yes, phase it, and the phasing is not optional, because the data you need
 does not exist yet.** Most of what an analytics team would want to know about
 Stride can only be learned by operating Stride.
 
@@ -54,7 +54,7 @@ afternoon during P1. Adding them in Y3 means a year of blind cohorts.
 ### Phase 1: Observed data (pre-seed → seed)
 
 Once connectors are live, Stride measures what it currently estimates. The
-fandom layer of the sport index: its weakest input: gets replaced by real
+fandom layer of the sport index: its weakest input, gets replaced by real
 engagement per sport per country, drawn from the athletes already on the
 platform.
 
@@ -99,7 +99,7 @@ never depended on it.
 joined.**
 
 If padel athletes convert well on Stride, that may be because padel audiences
-pay: or because the padel athletes who joined early were unusually good at
+pay, or because the padel athletes who joined early were unusually good at
 content, or because you recruited them personally and they tried harder.
 Concluding "padel converts" from platform data alone is selection bias, and it
 is the specific way this company would fool itself.

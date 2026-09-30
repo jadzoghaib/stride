@@ -102,7 +102,7 @@ Headline rates across the platforms an athlete could plausibly choose instead:
 | Patreon | **10%** | none: processing included | 10% | Patreon publishes it |
 | **Stride (proposed)** | **15%** | **none: we absorb payment costs** | **15%** | our decision |
 
-**OnlyFans' 20% is not a reported figure, it is arithmetic on filed accounts.**
+**OnlyFans' 20% is not a reported figure; it is arithmetic on filed accounts.**
 OnlyFans' parent, [Fenix International Limited, company no. 10354575](https://find-and-update.company-information.service.gov.uk/company/10354575),
 files publicly at Companies House. FY2024 (to 30 November 2024): **$7.22bn** of
 gross fan payments, of which **$1.41bn** was retained as OnlyFans' own revenue
@@ -120,7 +120,7 @@ moved to a single published rate:
 [10% of what you earn](https://www.patreon.com/pricing), which it states
 *includes* "payment processing, currency conversion, and payout fees". So
 Patreon is materially cheaper than this document previously claimed. It ties
-Passes on the headline: both say 10%: but Passes adds $0.30 a transaction and
+Passes on the headline: both say 10%, but Passes adds $0.30 a transaction and
 $29 a month, so **on all-in cost Patreon is the cheapest option in this table,
 cheaper than what we are proposing.** That is worth stating plainly rather than
 leaving it to be discovered. It does not undo the Passes argument below, because
@@ -183,7 +183,7 @@ At an average ticket of €9.20 those cross at **€1,380/month of fan revenue**
 | €313 *(modelled niche athlete, Y7)* | €266 | €245 | **Stride, by 9%** |
 | €500 | €425 | €408 | **Stride** |
 | €1,000 | €850 | €843 | **Stride**, barely |
-| €1,380 | €1,173 | €1,173 |: crossover |
+| €1,380 | €1,173 | €1,173 | crossover |
 | €2,000 | €1,700 | €1,712 | Passes |
 | €5,000 | €4,250 | €4,321 | Passes |
 
@@ -258,11 +258,11 @@ OnlyFans does not, but its parent files accounts, so the 20% is recoverable as
 arithmetic rather than taken on trust. Fansly and Fanfix publish nothing and
 file nothing: checked 2026-09-05, Fanfix's Creator Terms and public FAQ state
 no percentage and Fansly's terms render client-side with nothing in the
-document: so those two stay at the reported 20% and stay marked as estimates.
+document, so those two stay at the reported 20% and stay marked as estimates.
 
 **What does not depend on any of this:** the recommendation to hold 15%. It
 rests on the Passes comparison: Sacra plus the rebrand release, both live and
-both primary: and on the crossover arithmetic, which is computed from the model
+both primary, and on the crossover arithmetic, which is computed from the model
 rather than cited.*
 
 ---

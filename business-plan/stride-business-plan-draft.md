@@ -645,7 +645,7 @@ reads them, the retention table, the fee table in §2 of the cost model, and thi
 document.
 
 A fifth tier at €14.99 used to exist in **two hand-typed copies of the fee table
-and nowhere else**: not in the tier design, not in the pricing decision, not in
+and nowhere else**, not in the tier design, not in the pricing decision, not in
 the model's inputs. Both copies are generated now. A duplicated price is a price
 that drifts, and this one drifted in two directions at once, one copy invented a
 tier, the other priced the season pass at €99.
@@ -1271,7 +1271,7 @@ one that can void a deal we have already taken a fee on:
 
 Short, in order of what it would cost to get wrong:
 
-1. **VAT: deemed supplier or not, and is €9.99 inclusive or exclusive?** (L1, a 14% EBITDA question)
+1. **VAT, deemed supplier or not, and is €9.99 inclusive or exclusive?** (L1, a 14% EBITDA question)
 2. **Review**, not drafting, of the terms and privacy policy that already ship, plus an athlete agreement and a sponsor agreement that do not, with the image-rights warranty in the athlete one
 3. **DAC7 seller due diligence before the first paid deal** (L3)
 4. **DPIA and Record of Processing**, and DPAs with the processors

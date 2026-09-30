@@ -15,7 +15,7 @@ python business-plan/sport_index.py --coverage          # data confidence audit
 
 **There is no launch sport.** The index is *context*, not a gate. Early athletes
 are judged on everything: audience, consistency, professionalism, willingness
-to publish: and their sport is one input among those. What the index does is
+to publish, and their sport is one input among those. What the index does is
 tell us, and them, how to read their numbers.
 
 ---
@@ -77,7 +77,7 @@ at runtime. Change the data and the scale follows, no hand-tuned ceilings.
 | football | 53.1 | popular | spectator |
 | triathlon | 52.6 | niche | mixed |
 
-Padel first, endurance second: which is where intuition put them, now derived
+Padel first, endurance second, which is where intuition put them, now derived
 rather than asserted.
 
 ### Top pairs globally
@@ -175,7 +175,7 @@ inputs today and are exactly what Stride will measure directly: once connectors
 are live, the platform observes real engagement per sport per country, and once
 deals flow it observes how many athletes arrive already represented. **The
 estimates are placeholders for data the product generates as a by-product of
-operating**: which is also why the index is defensible as a moat rather than a
+operating**, which is also why the index is defensible as a moat rather than a
 spreadsheet anyone could copy.
 
 ### Honest limitations

@@ -76,7 +76,7 @@ the rows themselves, that the egress decision moves.
 and decided by one architectural choice**, €3.1M across the ten years.
 
 The recommendation is AWS for compute and database, where its managed services
-genuinely earn their premium: and a zero-egress provider for media delivery.
+genuinely earn their premium, and a zero-egress provider for media delivery.
 Hybrid, deliberately.
 
 ---
@@ -221,7 +221,7 @@ matter more than the line item:
 |---|---|---|---|
 | Y1 CAC | €17 | ~€0 | €900 |
 | Y7 CAC | €61 | ~€0 | €1,900 |
-| Applications behind one athlete | 5.0x in Y1, 3.3x in Y7 | :  | :  |
+| Applications behind one athlete | 5.0x in Y1, 3.3x in Y7 | | |
 | Channel | Clubs, federations, ambassador referral | **Brought by the athlete** | Outbound, events, agency partnerships |
 <!-- /MODEL:cac -->
 
@@ -255,4 +255,4 @@ roster.
 
 Infrastructure is 3.1% of revenue. **Payments are nearly eight times larger.** Any
 optimisation effort belongs there: tier pricing, annual billing, processor
-negotiation: not in the AWS bill.
+negotiation, not in the AWS bill.
