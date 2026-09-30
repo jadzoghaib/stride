@@ -114,8 +114,8 @@ anchor athlete public, payments processing real money, and **fan churn measured
 for three months.** Use of funds: two hires, Spain go-to-market, the club
 channel.
 
-The plan needs €392k: the **€280k cash trough in Y4** plus a 40% buffer, and
-the pre-seed clears the trough itself with €136k to spare. That is what asking
+The plan needs €392k: the **€280k cash trough in Y3** plus a 40% buffer, and
+the pre-seed clears the trough itself with €120k to spare. That is what asking
 for €400k buys: **the seed becomes optional.** It brings a
 second market forward; it is not the thing standing between the company and
 running out of cash. The rounds raise €2.4M before a Series A, and the

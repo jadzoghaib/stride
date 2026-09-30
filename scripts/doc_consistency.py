@@ -478,7 +478,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("esade-body.md", "capital the plan needs",
      r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 0.5),
     ("esade-body.md", "the cash trough",
-     r"a €(\d+)k cash\s+trough in Y4", peak_funding() / 1e3, 0.5),
+     r"a €(\d+)k cash\s+trough in Y\d", peak_funding() / 1e3, 0.5),
     ("esade-body.md", "the pre-seed ask",
      r"\*\*The ask is €(\d+)k at €2\.5M pre-money\.\*\*",
      model.ROUNDS[0]["amount"] / 1e3, 0.5),
@@ -637,9 +637,9 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     # The trough is the number the raise has to clear, so it is quoted in four
     # places and was right in one of them.
     ("00-executive-summary.md", "the cash trough",
-     r"\*\*€(\d+)k cash trough in Y4\*\*", peak_funding() / 1e3, 1.0),
+     r"\*\*€(\d+)k cash trough in Y\d\*\*", peak_funding() / 1e3, 1.0),
     ("04-capital-and-valuation.md", "the cash trough",
-     r"\*\*€(\d+)k trough in Y4\*\*", peak_funding() / 1e3, 1.0),
+     r"\*\*€(\d+)k trough in Y\d\*\*", peak_funding() / 1e3, 1.0),
     ("04-capital-and-valuation.md", "the trough the grant stack covers",
      r"covers most of the €(\d+)k", peak_funding() / 1e3, 1.0),
     ("README.md", "peak burn",

@@ -424,9 +424,9 @@ def segment_year(seg: Segment, athlete_count: float, prev_athletes: float,
         capacity_bound=fans["capacity_bound"], fan_shortfall=fans["shortfall"],
         athlete_gross_adds=athlete_gross_adds, athletes_lost=athletes_lost,
         deals=deals, fan_gmv=fan_gmv, sponsorship_gmv=sponsorship_gmv,
-        # Tiered, like the consolidated line. A flat rate here was harmless
-        # because nothing downstream reads this field, and that is exactly why
-        # it would have gone on disagreeing with the real one indefinitely.
+        # Tiered, like the consolidated line. A flat rate here was not
+        # harmless: render() publishes this field in the per-segment revenue
+        # table, so the breakdown disagreed with the total it sums to.
         revenue=fan_gmv * A.take_fan + sponsorship_gmv * effective_take(i_),
     )
 
