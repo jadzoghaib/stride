@@ -109,8 +109,35 @@ brands become the larger buyer.
 
 SaaS matters disproportionately: it is **100% margin** (no GMV, no payment
 rail), and it converts the analytics engine into revenue that does not depend on
-a deal closing. By Y7 it is €1.92M of the €10.70M: 18% of revenue at close to
-100% gross margin, which is roughly 26% of gross profit.
+a deal closing. By Y7 it is €1.92M of the €10.16M: 18% of revenue at close to
+100% gross margin, which is roughly 28% of gross profit.
+
+---
+
+## Commission by plan, and what it does to the agent comparison
+
+| Plan | Subscription | Commission | An agent charges |
+|---|---|---|---|
+| Scout Free | €0 | **10%** | 10 to 20% |
+| Scout Starter | €99/mo | **10%** | 10 to 20% |
+| Scout Pro | €249/mo | **7%** | 10 to 20% |
+| Scout Agency | €999/mo | **5%** | 10 to 20% |
+
+A sponsor paying €11,988 a year for the tooling is already paying for the
+relationship. Charging them the full headline rate on every deal as well is
+charging twice for the same thing, and the tiering removes that.
+
+It also sharpens the comparison the whole plan rests on. **An agent takes 10 to
+20% and gives a sponsor one relationship. Stride's most committed sponsors pay
+5% and get a matched market**, with the evidence behind every match. At the top
+tier that is a quarter of what an agent charges at the high end, and half at the
+low end.
+
+The blended rate this produces falls from **9.60% in Y1 to 8.56%
+by Y10** as subscribers become a larger share of deal volume. The model uses the
+blended rate throughout, not the headline one, so the revenue line already
+carries the cost of this decision. What it rests on is how much volume
+subscribers run, which is an estimate and is marked as one in Appendix L.
 
 ---
 
@@ -235,12 +262,12 @@ rather than one:
 
 | Take | Y7 revenue | Y7 EBITDA | Against |
 |---|---|---|---|
-| 20% | €12.31M | €4.59M | OnlyFans' rate, derived from filed accounts |
-| **15%** | **€10.70M** | **€3.11M** | **our proposal** |
-| 10% | €9.10M | €1.64M | Patreon's published, all-in rate |
+| 20% | €11.77M | €4.10M | OnlyFans' rate, derived from filed accounts |
+| **15%** | **€10.16M** | **€2.62M** | **our proposal** |
+| 10% | €8.56M | €1.15M | Patreon's published, all-in rate |
 
 Read the bottom row before the top one. **Matching Patreon costs €1.60M of Y7
-revenue and €1.48M of EBITDA: EBITDA falls 47%, from €3.11M to €1.64M.** The
+revenue and €1.48M of EBITDA: EBITDA falls 56%, from €3.11M to €1.64M.** The
 same five points that look like upside going up are what a price war costs
 going down, and the downside lands harder because the cost base does not shrink
 with the take.
@@ -297,7 +324,7 @@ rather than cited.*
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
 | Fan take | €21k (84%) | €322k (60%) | €1.69M (49%) | €4.81M (45%) |
-| Sponsorship take | €3k (11%) | €91k (17%) | €1.04M (30%) | €3.97M (37%) |
+| Sponsorship take | €3k (11%) | €91k (17%) | €1.04M (30%) | €3.43M (37%) |
 | Sponsor SaaS | €1k (5%) | €122k (23%) | €0.69M (20%) | €1.92M (18%) |
 | **Total** | **€25k** | **€0.53M** | **€3.43M** | **€10.70M** |
 

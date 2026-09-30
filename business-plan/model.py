@@ -168,6 +168,17 @@ class Assumptions:
     # does not reduce what the business keeps.
     vat_rate_fan: float = 0.21
     take_sponsorship: float = 0.10
+    #: Commission by sponsor plan. Free and Starter pay the headline rate; the
+    #: two paid tiers pay less, because a sponsor on EUR 999 a month is already
+    #: paying for the relationship. This is a pricing decision, not an estimate.
+    take_sponsorship_pro: float = 0.07
+    take_sponsorship_agency: float = 0.05
+    #: How much more deal volume a subscribing sponsor runs than the average
+    #: one. Subscribers buy campaign capacity (Pro five, Agency unlimited,
+    #: free one), so their share of GMV exceeds their share of headcount. The
+    #: only genuine estimate in the tiering, and deliberately low against a
+    #: fivefold difference in campaign allowance.
+    subscriber_volume_multiple: float = 2.0
 
     # ---- payment rails (charged on GMV, not on our net revenue) ------------
     # Blended card rate for a SPANISH entity, not the US headline. Stripe EEA
@@ -256,6 +267,10 @@ class Assumptions:
     risk_free: float = 0.032       # Spanish 10Y, mid-2026
     founder_alt_return: float = 0.07
 
+
+#: Sponsor plan list prices, in euros per month. Named here because the tier
+#: mix is derived from them and the plan quotes them in three places.
+SCOUT_STARTER, SCOUT_PRO, SCOUT_AGENCY = 99, 249, 999
 
 A = Assumptions()
 
@@ -416,6 +431,38 @@ def split(i_: int) -> dict[str, float]:
     return {"niche": n, "popular": total - n}
 
 
+
+def tier_mix(i: int) -> dict[str, float]:
+    """Share of paying subscribers on each plan, read from blended ARPU.
+
+    A blended figure against three known list prices determines the mix without
+    a separate assumption. Below the Pro price the balance is Starter; above
+    it, Agency.
+    """
+    arpu = A.sponsor_arpu_month[i]
+    if arpu < SCOUT_PRO:
+        starter = (SCOUT_PRO - arpu) / (SCOUT_PRO - SCOUT_STARTER)
+        return {"starter": starter, "pro": 1 - starter, "agency": 0.0}
+    agency = (arpu - SCOUT_PRO) / (SCOUT_AGENCY - SCOUT_PRO)
+    return {"starter": 0.0, "pro": 1 - agency, "agency": agency}
+
+
+def effective_take(i: int) -> float:
+    """The blended commission rate once the tiers are applied.
+
+    Subscribers are `sponsor_paid_rate` of sponsors by headcount and
+    `subscriber_volume_multiple` times that by deal volume, capped at all of
+    it. Starter pays the headline rate, so only Pro and Agency reduce the
+    blend.
+    """
+    volume_share = min(1.0, A.sponsor_paid_rate[i] * A.subscriber_volume_multiple)
+    mix = tier_mix(i)
+    subscriber_rate = (mix["starter"] * A.take_sponsorship
+                       + mix["pro"] * A.take_sponsorship_pro
+                       + mix["agency"] * A.take_sponsorship_agency)
+    return (1 - volume_share) * A.take_sponsorship + volume_share * subscriber_rate
+
+
 def build() -> list[dict]:
     rows = []
     prev_fans = {s.name: 0.0 for s in A.segments}
@@ -441,7 +488,7 @@ def build() -> list[dict]:
 
         # --- net revenue ------------------------------------------------
         rev_fan = fan_gmv * A.take_fan
-        rev_sponsorship = sponsorship_gmv * A.take_sponsorship
+        rev_sponsorship = sponsorship_gmv * effective_take(i_)
         supply_factor = min(1.0, athletes / A.athletes_for_full_saas_value)
         paying_sponsors = A.sponsors[i_] * A.sponsor_paid_rate[i_] * supply_factor
         rev_saas = paying_sponsors * A.sponsor_arpu_month[i_] * 12

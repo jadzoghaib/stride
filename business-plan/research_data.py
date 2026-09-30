@@ -28,6 +28,26 @@ ROWS: list[tuple] = [
      "Sacra company profile (Passes); Passes rebrand release, Apr 2026; MEXC platform "
      "comparison 2026",
      "High", "Nothing. This is a pricing decision and the comparables are public."),
+    ("Sponsorship commission, Scout Pro", "take_sp_pro", "BENCHMARKED",
+     "7% against a 10% base. A sponsor paying EUR 2,988 a year for the tooling is already "
+     "paying for the relationship, and charging them the full headline rate on every deal as "
+     "well is charging twice for it. Still comfortably inside the 10-20% an agent takes.",
+     "Priced against the agent range; the discount itself is a pricing decision",
+     "High", "Nothing to improve. This is a decision, not a measurement."),
+    ("Sponsorship commission, Scout Agency", "take_sp_agency", "BENCHMARKED",
+     "5%, which is half the low end of what an agent charges and a quarter of the high end. "
+     "The most committed tier pays EUR 11,988 a year, so the deal rate can fall furthest here.",
+     "Oreate and Sapling agent-commission surveys, 10-20%",
+     "High", "Nothing to improve. This is a decision, not a measurement."),
+    ("Subscriber share of deal volume", "sub_vol_mult", "ESTIMATE",
+     "Subscribers are assumed to run 2.0x the deal volume of the average sponsor, which with "
+     "a paid rate of 10-20% puts them at 20-40% of GMV. This is the ONLY estimate in the "
+     "tiering and it is the one that sets the blended rate, which falls from "
+     "9.60% in Y1 to 8.56% by Y10. Deliberately conservative: Scout Pro buys "
+     "five campaigns against the free tier's one, so 2.0x is well below what the campaign "
+     "allowance alone would imply. Higher multiples lower the blend further.",
+     "None. No tier-level deal volume exists yet, because no tier exists yet",
+     "Low", "The first year of billing settles it exactly."),
     ("Take rate on sponsorship", "take_sp", "BENCHMARKED",
      "Sports agents take 10-20% of an endorsement and 4-10% of a playing contract. On "
      "OnlyFans, management agencies take a further 20-50% on top of the platform's 20%.",

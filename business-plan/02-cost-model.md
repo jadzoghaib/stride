@@ -72,7 +72,7 @@ the rows themselves, that the egress decision moves.
 > its own cohort model documents on the revenue side and had already fixed
 > there.
 
-**€402k a year is most of this plan's entire €464k cash trough, spent annually
+**€402k a year is most of this plan's entire €508k cash trough, spent annually
 and decided by one architectural choice**, €3.1M across the ten years.
 
 The recommendation is AWS for compute and database, where its managed services
@@ -221,7 +221,7 @@ matter more than the line item:
 |---|---|---|---|
 | Y1 CAC | €17 | ~€0 | €900 |
 | Y7 CAC | €61 | ~€0 | €1,900 |
-| Applications behind one athlete | 5.0x in Y1, 3.3x in Y7 | | |
+| Applications behind one athlete | 5.0x in Y1, 3.3x in Y7 | :  | :  |
 | Channel | Clubs, federations, ambassador referral | **Brought by the athlete** | Outbound, events, agency partnerships |
 <!-- /MODEL:cac -->
 
@@ -241,18 +241,18 @@ roster.
 <!-- MODEL:costs_y7 -->
 | Line | Y7 amount | % of revenue |
 |---|---|---|
-| Payment processing | €2.55M | 23.8% |
-| Marketing / CAC | €1.70M | 15.9% |
-| People | €1.54M | 14.4% |
-| Other opex | €856k | 8.0% |
-| Infrastructure | €336k | 3.1% |
-| Legal & compliance | €270k | 2.5% |
-| Payouts | €237k | 2.2% |
+| Payment processing | €2.55M | 25.1% |
+| Marketing / CAC | €1.70M | 16.8% |
+| People | €1.54M | 15.2% |
+| Other opex | €813k | 8.0% |
+| Infrastructure | €336k | 3.3% |
+| Legal & compliance | €270k | 2.7% |
+| Payouts | €237k | 2.3% |
 | Moderation | €70k | 0.7% |
 | Athlete verification | €18k | 0.2% |
-| **EBITDA** | **€3.12M** | **29.1%** |
+| **EBITDA** | **€2.62M** | **25.8%** |
 <!-- /MODEL:costs_y7 -->
 
-Infrastructure is 3.1% of revenue. **Payments are nearly eight times larger.** Any
+Infrastructure is 3.3% of revenue. **Payments are nearly eight times larger.** Any
 optimisation effort belongs there: tier pricing, annual billing, processor
 negotiation, not in the AWS bill.

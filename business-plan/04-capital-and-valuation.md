@@ -36,8 +36,8 @@ loss. At a 70% failure probability, the surviving case must return roughly
 **€1.5–2M to the founder** for the decision to have been rational ex ante.
 
 The model delivers that: a founder retaining ~49% through the Series A holds
-that share of the enterprise value: **€4.11M against the DCF floor of €8.37M**,
-and €5.4–12.1M against the exit multiples discounted back. **Even the floor
+that share of the enterprise value: **€3.63M against the DCF floor of €7.38M**,
+and €5.0–11.4M against the exit multiples discounted back. **Even the floor
 clears the hurdle twice over**, which is the honest justification for doing it
 at all.
 
@@ -55,13 +55,13 @@ fact you can demonstrate, not a milestone you can assert.
 | **Seed** *(optional)* | €2.0M | €10M | €80k MRR · fan churn < 8%/mo · CAC payback < 9mo · 2nd market opened · 30+ paying sponsors | Team to 15, second and third market, moderation infrastructure |
 | **Series A** | €8.0M | €40M | €300k MRR · net revenue retention > 110% · sponsorship take > 25% of revenue · unit economics stable across 3 markets | EU-wide, sales org, managed services |
 
-**The plan needs €649k. The rounds above raise €2.6M before Series A.** The
+**The plan needs €711k. The rounds above raise €2.6M before Series A.** The
 difference is deliberate: raising only what the model needs leaves no room for
 the assumption that turns out wrong, and a company that runs out of cash at the
 trough dies with a working product. Raise the buffer; do not spend it unless
 the conservative case materialises.
 
-The pre-seed alone covers the **€464k trough in Y4** with €136k to spare, which
+The pre-seed alone covers the **€508k trough in Y4** with €136k to spare, which
 is why the seed is marked optional above. It is growth capital: a second market
 sooner, not rescue capital. A plan whose survival does not depend on the next
 round arriving on schedule is a materially stronger one to raise against.
@@ -69,7 +69,7 @@ round arriving on schedule is a materially stronger one to raise against.
 Be precise about what that claims. **€600k clears the trough the model
 produces; €649k is that trough plus the 40% buffer.** The seed is optional
 against the plan as modelled, not against the conservative case the buffer
-exists for. If the buffer is needed, the €49k gap is what the non-dilutive stack
+exists for. If the buffer is needed, the €111k gap is what the non-dilutive stack
 above is for.
 
 ### Why the pre-seed gate is the one that matters
@@ -96,10 +96,10 @@ Taking dilution before exhausting these is leaving money on the table.
 | **ENISA Crecimiento** | up to €300k | Participative loan, no equity | Y2–Y3 |
 | **CDTI Neotec** | up to €250k (70% of budget) | **Grant**, no equity | Y2: requires R&D framing; the analytics engine qualifies |
 | **Startup Capital (regional, Catalunya)** | €25k–€100k | Grant / soft loan | Y1–Y2 |
-| **Ley de Startups** tax regime |  | **15% corporate tax** for the first four taxable years vs 25% | Modelled: worth €1.57M across Y6–Y9 |
+| **Ley de Startups** tax regime |  | **15% corporate tax** for the first four taxable years vs 25% | Modelled: worth €1.30M across Y6–Y9 |
 | Beckham Law |  | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
 
-**A realistic non-dilutive stack is €300–500k**, which covers most of the €464k
+**A realistic non-dilutive stack is €300–500k**, which covers most of the €508k
 trough on its own. Combined with a smaller pre-seed, the founder could reach the
 Seed gate holding materially more equity.
 
@@ -117,10 +117,10 @@ Two methods, because they answer different questions and disagree for a reason.
 <!-- MODEL:valuation -->
 | Valuation (DCF) | Value |
 |---|---|
-| PV of explicit FCF, Y1–Y10 | €3.91M |
-| Terminal value (g=3%) | €41.53M |
-| PV of terminal value | €4.46M |
-| **Enterprise value (WACC 25%)** | **€8.37M** |
+| PV of explicit FCF, Y1–Y10 | €3.41M |
+| Terminal value (g=3%) | €36.99M |
+| PV of terminal value | €3.97M |
+| **Enterprise value (WACC 25%)** | **€7.38M** |
 <!-- /MODEL:valuation -->
 
 ### Exit multiple
@@ -129,34 +129,34 @@ Two methods, because they answer different questions and disagree for a reason.
 <!-- MODEL:multiples -->
 | Exit method (Y10) | Multiple | Value at Y10 | Discounted to today |
 |---|---|---|---|
-| Marketplace comparables | 4.0x revenue | €101.53M | €10.90M |
-| Blended marketplace + SaaS | 6.5x revenue | €164.99M | €17.72M |
-| High-growth SaaS mix | 9.0x revenue | €228.45M | €24.53M |
-| EBITDA multiple | 14x EBITDA | €151.13M | €16.23M |
+| Marketplace comparables | 4.0x revenue | €95.65M | €10.27M |
+| Blended marketplace + SaaS | 6.5x revenue | €155.42M | €16.69M |
+| High-growth SaaS mix | 9.0x revenue | €215.20M | €23.11M |
+| EBITDA multiple | 14x EBITDA | €132.18M | €14.19M |
 <!-- /MODEL:multiples -->
 
 ### Why they disagree, and which to believe
 
-The DCF says €8.4M; the blended exit multiple says €165.0M. **This is not an
+The DCF says €7.4M; the blended exit multiple says €155.4M. **This is not an
 error in either: it is the standard failure of perpetuity-growth DCF applied to
 a company that has not finished growing.**
 
 The DCF's terminal value assumes growth collapses to 3% the day after Y10, from
 a year that still grew 27%. For a marketplace that has just reached €25M revenue
-at a 71% gross margin with a network effect, that is not a neutral assumption; it is a pessimistic one. The terminal value is 53% of the DCF's total, so that
+at a 71% gross margin with a network effect, that is not a neutral assumption; it is a pessimistic one. The terminal value is 54% of the DCF's total, so that
 single assumption carries half the answer.
 
 **For a venture-stage company, the exit-multiple method discounted back is the
 more informative number.** The DCF is worth presenting precisely because it is
 the conservative floor: *even if growth stops dead after Y10*, the business is
-worth €8.4M today.
+worth €7.4M today.
 
 <!-- MODEL:sensitivity -->
 | Enterprise value | WACC 20% | WACC 25% | WACC 30% |
 |---|---|---|---|
-| Terminal growth 2% | €13.67M | €8.14M | €5.14M |
-| Terminal growth 3% | €14.23M | **€8.37M** | €5.25M |
-| Terminal growth 4% | €14.86M | €8.63M | €5.37M |
+| Terminal growth 2% | €12.09M | €7.17M | €4.51M |
+| Terminal growth 3% | €12.59M | **€7.38M** | €4.61M |
+| Terminal growth 4% | €13.15M | €7.61M | €4.71M |
 <!-- /MODEL:sensitivity -->
 
 **Defensible headline: €11–25M enterprise value, the Y10 exit multiples

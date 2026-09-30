@@ -9,22 +9,22 @@ here with its method and the comparable behind it. A driver appears*
 
 ## 17.1 What the model is built on
 
-The model runs on **32 named assumptions**. Classifying them honestly matters more than the count, because a plan that presents an estimate with the same confidence as a published figure is not being read carefully by its own author.
+The model runs on **35 named assumptions**. Classifying them honestly matters more than the count, because a plan that presents an estimate with the same confidence as a published figure is not being read carefully by its own author.
 
 | Method | Count | What it means |
 |---|---|---|
 | **SOURCED** | 10 | A published figure, cited |
-| **BENCHMARKED** | 9 | Set against named comparables |
+| **BENCHMARKED** | 11 | Set against named comparables |
 | **DERIVED** | 3 | Computed from other assumptions or from the codebase |
-| **ESTIMATE** | 10 | Reasoned, with no published figure behind it |
+| **ESTIMATE** | 11 | Reasoned, with no published figure behind it |
 
 | Confidence | Count |
 |---|---|
-| High | 11 |
+| High | 13 |
 | Medium | 12 |
-| Low | 9 |
+| Low | 10 |
 
-> [!warning] 10 of 32 assumptions are estimates, and 9 carry low confidence
+> [!warning] 11 of 35 assumptions are estimates, and 10 carry low confidence
 > These are listed below rather than buried. The weakest two are the
 > athlete count trajectory, which is a target rather than a forecast,
 > and sports fandom by country, which is the softest layer of the
@@ -40,6 +40,9 @@ The model runs on **32 named assumptions**. Classifying them honestly matters mo
 | Assumption | Method | Confidence | Benchmark or comparable | Source |
 |---|---|---|---|---|
 | **Take rate on fan revenue** | BENCHMARKED | High | Passes charges 10% but adds $0.30/txn and a $29/month creator fee; OnlyFans, Fansly and Fanfix are all 20%; Patreon 8-12%. A flat 15% with no monthly fee pays an athlete more than Passes for anyone under EUR 1,380/month of fan revenue. | Sacra company profile (Passes); Passes rebrand release, Apr 2026; MEXC platform comparison 2026 |
+| **Sponsorship commission, Scout Pro** | BENCHMARKED | High | 7% against a 10% base. A sponsor paying EUR 2,988 a year for the tooling is already paying for the relationship, and charging them the full headline rate on every deal as well is charging twice for it. Still comfortably inside the 10-20% an agent takes. | Priced against the agent range; the discount itself is a pricing decision |
+| **Sponsorship commission, Scout Agency** | BENCHMARKED | High | 5%, which is half the low end of what an agent charges and a quarter of the high end. The most committed tier pays EUR 11,988 a year, so the deal rate can fall furthest here. | Oreate and Sapling agent-commission surveys, 10-20% |
+| **Subscriber share of deal volume** | ESTIMATE | Low | Subscribers are assumed to run 2.0x the deal volume of the average sponsor, which with a paid rate of 10-20% puts them at 20-40% of GMV. This is the ONLY estimate in the tiering and it is the one that sets the blended rate, which falls from 9.60% in Y1 to 8.56% by Y10. Deliberately conservative: Scout Pro buys five campaigns against the free tier's one, so 2.0x is well below what the campaign allowance alone would imply. Higher multiples lower the blend further. | None. No tier-level deal volume exists yet, because no tier exists yet |
 | **Take rate on sponsorship** | BENCHMARKED | High | Sports agents take 10-20% of an endorsement and 4-10% of a playing contract. On OnlyFans, management agencies take a further 20-50% on top of the platform's 20%. | Oreate and Sapling agent-commission surveys; Aruna Talent agency rate guide 2026 |
 | **Suggested tiers 4.99 / 9.99 / 24.99** | BENCHMARKED | Medium | Patreon's typical patronage is quoted at $8-12/month, so the EUR 9.99 anchor sits inside the observed band. EUR 4.99 retains only 54% of our take after payment fees, against 71% at EUR 9.99: which is why the floor matters more than the take rate. | Patreon 2024 Transparency Report; independent audits of ~1,200 creators |
 | **Season pass / annual billing** | SOURCED | High | Patreon reports that annual patrons churn at ONE THIRD the rate of monthly patrons. This is the single strongest piece of evidence in the plan for pushing annual billing. | Patreon 2024 Transparency Report |

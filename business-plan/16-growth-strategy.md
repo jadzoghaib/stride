@@ -107,7 +107,7 @@ Stated because growth plans are judged as much by their exclusions:
 The plan is built to reach profitability without an exit, which is what makes
 the options real rather than hopeful:
 
-1. **Independent operation.** EBITDA-positive in Y5, €10.8M EBITDA by Y10.
+1. **Independent operation.** EBITDA-positive in Y5, €9.4M EBITDA by Y10.
 2. **Strategic acquisition.** The natural acquirers are creator platforms buying
    a vertical, sports-data companies buying a consumer surface, or a sponsorship
    agency buying disintermediation before it happens to them.

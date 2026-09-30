@@ -4,7 +4,7 @@
 by [`model.py`](model.py); the doc guard fails the build if the prose drifts
 from it.*
 
-The plan reaches **€10.7M of revenue at Y7 with 22 people.** That ratio is the
+The plan reaches **€10.2M of revenue at Y7 with 22 people.** That ratio is the
 central organisational claim, and it is only credible if the org design explains
 *why* it holds. It holds because the only human step in the value chain is
 admission review (see [12](12-operations-plan.md)), and admission review scales

@@ -69,16 +69,16 @@ Three things in it are worth two minutes of a technical diligence call:
 <!-- MODEL:summary -->
 |  | Y3 | Y7 |
 |---|---|---|
-| Net revenue | €535k | €10.70M |
-| EBITDA | €-228k | €3.12M |
+| Net revenue | €525k | €10.16M |
+| EBITDA | €-237k | €2.62M |
 | Active athletes | 3,000 | 22,000 |
 | Paying fans | 25,288 | 321,288 |
-| Gross margin | 64% | 70% |
+| Gross margin | 64% | 68% |
 <!-- /MODEL:summary -->
 
 EBITDA turns positive in **Y5**. Take rates are published and fixed: **15% on
 fan revenue, 10% on sponsorship**, no monthly athlete fee. Gross margin climbs
-from 64% in Y3 to **71% by Y10** rather than reaching a SaaS 80%+, because the
+from 64% in Y3 to **69% by Y10** rather than reaching a SaaS 80%+, because the
 payment rail is real and no amount of engineering removes it.
 
 Every figure here is generated from the model, and a guard in the repository
@@ -114,7 +114,7 @@ anchor athlete public, payments processing real money, and **fan churn measured
 for three months.** Use of funds: two hires, Spain go-to-market, the club
 channel.
 
-The plan needs €649k: the **€464k cash trough in Y4** plus a 40% buffer, and
+The plan needs €711k: the **€508k cash trough in Y4** plus a 40% buffer, and
 the pre-seed clears the trough itself with €136k to spare. That is what asking
 for €600k rather than €400k buys: **the seed becomes optional.** It brings a
 second market forward; it is not the thing standing between the company and

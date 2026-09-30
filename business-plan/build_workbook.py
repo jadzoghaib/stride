@@ -406,8 +406,21 @@ def build() -> pathlib.Path:
     r = section(a, r, "TAKE RATES & PAYMENT RAILS")
     put("Take rate: fan revenue", "%", [A.take_fan] * N, PCT, "take_fan", const=True,
         note="Our pricing decision. OnlyFans/Fansly/Fanfix 20%, Passes 10% + $29/mo")
-    put("Take rate: sponsorship", "%", [A.take_sponsorship] * N, PCT, "take_sp", const=True,
-        note="Agents take 10-20% of an endorsement")
+    put("Take rate: sponsorship, base", "%", [A.take_sponsorship] * N, PCT, "take_sp", const=True,
+        note="Free and Starter plans. Agents take 10-20% of an endorsement")
+    put("Take rate: sponsorship, Scout Pro", "%", [A.take_sponsorship_pro] * N, PCT,
+        "take_sp_pro", const=True,
+        note="A sponsor paying for the tooling pays less on the deal")
+    put("Take rate: sponsorship, Scout Agency", "%", [A.take_sponsorship_agency] * N, PCT,
+        "take_sp_agency", const=True,
+        note="The most committed tier. Half what an agent charges at the low end")
+    put("Subscriber deal volume, multiple of average", "x",
+        [A.subscriber_volume_multiple] * N, '0.00', "sub_vol_mult", const=True,
+        note="Subscribers buy campaign capacity, so they run more volume than "
+             "the average sponsor. The only estimate in the tiering")
+    put("Scout Starter price", "EUR/mo", [M.SCOUT_STARTER] * N, NUM, "p_starter", const=True)
+    put("Scout Pro price", "EUR/mo", [M.SCOUT_PRO] * N, NUM, "p_pro", const=True)
+    put("Scout Agency price", "EUR/mo", [M.SCOUT_AGENCY] * N, NUM, "p_agency", const=True)
     put("VAT on fan subscriptions", "%", [A.vat_rate_fan] * N, PCT, "vat_fan", const=True,
         note="Spain's rate. Fan prices are displayed VAT-inclusive, so the take "
              "applies to price/(1+VAT) while the processor charges on the price")
@@ -677,6 +690,38 @@ def build() -> pathlib.Path:
     vrow("Popular sponsorship GMV",
          formula=f"=Drivers!{{c}}{D['Popular deals']}*Assumptions!{{c}}{A_ROW['popular_deal']}")
     vrow("Total sponsorship GMV", formula=f"={{c}}{r-2}+{{c}}{r-1}", bold=True, band=True)
+    # -- the blended commission rate ------------------------------------
+    # Plan mix is solved from blended ARPU against the three list prices, which
+    # is what model.tier_mix does. Below the Pro price the balance is Starter,
+    # above it the balance is Agency. Starter pays the base rate, so only the
+    # two paid tiers pull the blend down.
+    vrow("Agency share of subscribers",
+         formula=(f"=MAX(0,(Assumptions!{{c}}{A_ROW['sponsor_arpu']}"
+                  f"-Assumptions!{{c}}{A_ROW['p_pro']})"
+                  f"/(Assumptions!{{c}}{A_ROW['p_agency']}"
+                  f"-Assumptions!{{c}}{A_ROW['p_pro']}))"), fmt=PCT)
+    vrow("Starter share of subscribers",
+         formula=(f"=MAX(0,(Assumptions!{{c}}{A_ROW['p_pro']}"
+                  f"-Assumptions!{{c}}{A_ROW['sponsor_arpu']})"
+                  f"/(Assumptions!{{c}}{A_ROW['p_pro']}"
+                  f"-Assumptions!{{c}}{A_ROW['p_starter']}))"), fmt=PCT)
+    vrow("Subscriber share of deal volume",
+         formula=(f"=MIN(1,Assumptions!{{c}}{A_ROW['sponsor_paid']}"
+                  f"*Assumptions!{{c}}{A_ROW['sub_vol_mult']})"), fmt=PCT)
+    # Referenced by label, not by arithmetic on `r`: vrow records a row number
+    # before it writes, so a formula built with {r} points at the cell it is
+    # being written into, which verify_workbook correctly calls a cycle.
+    _vol = R["Subscriber share of deal volume"]
+    _starter = R["Starter share of subscribers"]
+    _agency = R["Agency share of subscribers"]
+    vrow("Effective sponsorship take",
+         formula=(f"=(1-{{c}}{_vol})*Assumptions!{{c}}{A_ROW['take_sp']}"
+                  f"+{{c}}{_vol}*("
+                  f"{{c}}{_starter}*Assumptions!{{c}}{A_ROW['take_sp']}"
+                  f"+(1-{{c}}{_starter}-{{c}}{_agency})*Assumptions!{{c}}{A_ROW['take_sp_pro']}"
+                  f"+{{c}}{_agency}*Assumptions!{{c}}{A_ROW['take_sp_agency']})"),
+         fmt='0.000%', bold=True)
+
     vrow("TOTAL GMV", formula=f"={{c}}{R['Total fan GMV']}+{{c}}{R['Total sponsorship GMV']}",
          bold=True, top=True)
     r += 1
@@ -685,7 +730,7 @@ def build() -> pathlib.Path:
     vrow("Fan take", unit="fan GMV x take rate",
          formula=f"={{c}}{R['Total fan GMV']}*Assumptions!{{c}}{A_ROW['take_fan']}")
     vrow("Sponsorship take",
-         formula=f"={{c}}{R['Total sponsorship GMV']}*Assumptions!{{c}}{A_ROW['take_sp']}")
+         formula=f"={{c}}{R['Total sponsorship GMV']}*{{c}}{R['Effective sponsorship take']}")
     vrow("Sponsor SaaS", unit="paying sponsors x ARPU x 12",
          formula=(f"=Drivers!{{c}}{D['Paying sponsors']}"
                   f"*Assumptions!{{c}}{A_ROW['sponsor_arpu']}*12"))
