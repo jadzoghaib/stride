@@ -35,9 +35,9 @@ return more than €201,600 compounded at 7%, plus a premium for the risk of tot
 loss. At a 70% failure probability, the surviving case must return roughly
 **€1.5–2M to the founder** for the decision to have been rational ex ante.
 
-The model delivers that: a founder retaining ~53% through the Series A holds
-that share of the enterprise value: **€4.53M against the DCF floor of €8.60M**,
-and €5.4–12.2M against the exit multiples discounted back. **Even the floor
+The model delivers that: a founder retaining ~55% through the Series A holds
+that share of the enterprise value: **€4.73M against the DCF floor of €8.60M**,
+and €5.6–12.7M against the exit multiples discounted back. **Even the floor
 clears the hurdle twice over**, which is the honest justification for doing it
 at all.
 
@@ -51,7 +51,7 @@ fact you can demonstrate, not a milestone you can assert.
 | Stage | Amount | Pre-money | Gate: what must be true before raising | Use of funds |
 |---|---|---|---|---|
 | **Internal** | €80k cash + time |  | Product exists (it does) | Payments, subscriptions, one anchor athlete live |
-| **Pre-seed** | **€400k** | €2.5M | 400 athletes · €10k MRR · anchor athlete public · payments processing real money · fan churn measured for 3 months | 2 hires, Spain go-to-market, club channel |
+| **Pre-seed** | **€150k** | €2.5M | 400 athletes · €10k MRR · anchor athlete public · payments processing real money · fan churn measured for 3 months | 2 hires, Spain go-to-market, club channel |
 | **Seed** *(optional)* | €2.0M | €10M | €80k MRR · fan churn < 8%/mo · CAC payback < 9mo · 2nd market opened · 30+ paying sponsors | Team to 15, second and third market, moderation infrastructure |
 | **Series A** | €8.0M | €40M | €300k MRR · net revenue retention > 110% · sponsorship take > 25% of revenue · unit economics stable across 3 markets | EU-wide, sales org, managed services |
 
@@ -238,12 +238,12 @@ That last row is a hard filter, not a preference. See
 | Round | Raised | Pre-money | Post-money | New investor % | Founder(s) after |
 |---|---|---|---|---|---|
 | Internal |  | | | | 100% |
-| Pre-seed | €400k | €2.5M | €2.9M | 13.8% | 84% (after 2% advisory) |
-| Seed *(optional)* | €2.0M | €10M | €12M | 16.7% | 70% |
-| Series A | €8.0M | €40M | €48M | 16.7% | 58% |
-| ESOP (cumulative) |  | | | 10% | **~53%** |
+| Pre-seed | €400k | €2.5M | €2.6M | 5.7% | 92% (after 2% advisory) |
+| Seed *(optional)* | €2.0M | €10M | €12M | 16.7% | 73% |
+| Series A | €8.0M | €40M | €48M | 16.7% | 61% |
+| ESOP (cumulative) |  | | | 10% | **~55%** |
 
-Retaining ~53% through Series A is a good outcome, and it depends on the
+Retaining ~55% through Series A is a good outcome, and it depends on the
 non-dilutive stack being used before equity rather than after it.
 
 > [!note] This table used to be typed by hand, and did not add up

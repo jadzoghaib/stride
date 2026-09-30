@@ -327,7 +327,14 @@ A = Assumptions()
 # regenerating it from this model never touched a list hardcoded in the
 # builder. Years are when the gate is met, not when the money is convenient.
 ROUNDS: list[dict] = [
-    {"year": 1, "stage": "Pre-seed", "amount": 400_000, "pre": 2_500_000},
+    # Staged deliberately. The cumulative cash need is only EUR 73k to the end
+    # of Y1, and Y1 is the year that settles whether fans pay at all. Raising
+    # the whole runway against that question prices it as a promise; raising
+    # the first tranche against it and the second against three months of real
+    # subscription revenue prices the second on evidence. Same EUR 400k, and
+    # the founder holds 55% through the Series A instead of 53%.
+    {"year": 1, "stage": "Pre-seed", "amount": 150_000, "pre": 2_500_000},
+    {"year": 2, "stage": "Pre-seed extension", "amount": 250_000, "pre": 5_000_000},
     {"year": 4, "stage": "Seed (optional)", "amount": 2_000_000, "pre": 10_000_000},
     {"year": 6, "stage": "Series A", "amount": 8_000_000, "pre": 40_000_000},
 ]

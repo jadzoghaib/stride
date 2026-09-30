@@ -189,10 +189,10 @@ alternatives considered are in [14](14-legal-and-growth.md).
 | Stage | Board | Founder control |
 |---|---|---|
 | Pre-incorporation | Founder only | 100% |
-| **Pre-seed** (€400k) | Founder + 1 investor observer | 84% held after the 2% advisory grant |
-| **Seed** (€2.0M, optional) | Founder + 1 investor director + 1 independent | 70% |
-| **Series A** (€8.0M) | Founder + 2 investor directors + 1 independent | 58% |
-| Post-ESOP | As above | **~53%** |
+| **Pre-seed** (€400k) | Founder + 1 investor observer | 92% held after the 2% advisory grant |
+| **Seed** (€2.0M, optional) | Founder + 1 investor director + 1 independent | 73% |
+| **Series A** (€8.0M) | Founder + 2 investor directors + 1 independent | 61% |
+| Post-ESOP | As above | **~55%** |
 
 ### Reserved matters
 From the pre-seed onward, the following require investor consent: new share

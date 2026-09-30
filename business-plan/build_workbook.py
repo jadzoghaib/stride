@@ -101,7 +101,12 @@ LEGEND = [("Input: change me", FILL_INPUT, FONT_INPUT),
 
 
 def legend(ws, row_ix=2):
-    """A compact key on every sheet, so the colours never need explaining."""
+    """The colour key.
+
+    No longer called per sheet. It lives on the README, and repeating it above
+    every table was noise: the author deleted it from all eighteen sheets by
+    hand, which is a clear enough verdict.
+    """
     col = 3
     for text, fill, font in LEGEND:
         c = ws.cell(row_ix, col, text)
@@ -120,9 +125,9 @@ def sheet(wb, name, title):
     ws.column_dimensions["B"].width = 15
     for c in COLS:
         ws.column_dimensions[c].width = 13
-    ws.freeze_panes = "C4"
-    legend(ws)
-    r = 3
+    # Header at row 1, column labels at row 2, data from row 3.
+    ws.freeze_panes = "C3"
+    r = 2
     ws.cell(r, 1, "Line").font = HEAD
     ws.cell(r, 1).fill = HEAD_FILL
     ws.cell(r, 2, "Unit").font = HEAD
@@ -341,7 +346,7 @@ def build() -> pathlib.Path:
         r += 1
 
     # ══ ASSUMPTIONS ═════════════════════════════════════════════════════════
-    a = sheet(wb, "Assumptions", "Assumptions, every input lives here")
+    a = sheet(wb, "Assumptions", "Assumptions")
     r = 4
     A_ROW = {}
 
@@ -542,7 +547,7 @@ def build() -> pathlib.Path:
         return f"Assumptions!$C${A_ROW[key]}"
 
     # ══ DRIVERS ═════════════════════════════════════════════════════════════
-    d = sheet(wb, "Drivers", "Drivers: athletes and fans, with cohort churn")
+    d = sheet(wb, "Drivers", "Drivers: Growth Assumptions")
     r, D = 4, {}
 
     def drow(label, formula=None, values=None, fmt=NUM, **kw):
@@ -685,7 +690,7 @@ def build() -> pathlib.Path:
                   f"/Assumptions!{{c}}{A_ROW['ops_hours']}"))
 
     # ══ REVENUE ═════════════════════════════════════════════════════════════
-    v = sheet(wb, "Revenue", "Revenue: GMV built stream by stream, then our take")
+    v = sheet(wb, "Revenue", "Revenue: Stream by stream breakdown")
     r, R = 4, {}
 
     def vrow(label, formula=None, fmt=MONEY, **kw):
@@ -773,7 +778,7 @@ def build() -> pathlib.Path:
          formula=f"={{c}}{R['NET REVENUE']}/{{c}}{R['TOTAL GMV']}", fmt=PCT)
 
     # ══ COSTS ═══════════════════════════════════════════════════════════════
-    co = sheet(wb, "Costs", "Costs: every line built from its driver")
+    co = sheet(wb, "Costs", "Costs")
     r, C = 4, {}
 
     def crow(label, formula=None, fmt=MONEY, **kw):
@@ -936,7 +941,7 @@ def build() -> pathlib.Path:
     prow("NET PROFIT", formula=f"={{c}}{P['EBIT']}+{{c}}{r-1}", bold=True, top=True, band=True)
 
     # ══ CASH FLOW ═══════════════════════════════════════════════════════════
-    cf = sheet(wb, "CashFlow", "Cash flow, indirect method")
+    cf = sheet(wb, "CashFlow", "Cash Flow Statement")
     r, F = 4, {}
 
     def frow(label, formula=None, fmt=MONEY, **kw):
@@ -1051,7 +1056,7 @@ def build() -> pathlib.Path:
          formula=f"=1-{{c}}{U['Founders + team retained']}")
 
     # ══ HIRING PLAN ═════════════════════════════════════════════════════════
-    hp = sheet(wb, "HiringPlan", "Hiring plan, headcount by role, reconciled to the model")
+    hp = sheet(wb, "HiringPlan", "Hiring plan")
     r = 4
     r = section(hp, r, "FTE BY ROLE")
     ROLES = [
@@ -1238,7 +1243,7 @@ def build() -> pathlib.Path:
                   "reported.").font = Font(italic=True, size=8, color="6B7280", name="Calibri")
 
     # ══ KPIs ════════════════════════════════════════════════════════════════
-    kp = sheet(wb, "KPIs", "KPIs: the dozen numbers that describe the business")
+    kp = sheet(wb, "KPIs", "KPIs")
     r = 4
     r = section(kp, r, "SCALE")
     r = row(kp, r, "Active athletes", "count", fmt=NUM, font=LINK,

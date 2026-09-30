@@ -1043,7 +1043,7 @@ popular sports enter from a position of proof.
 | Stage | Amount | Pre-money | Gate |
 |---|---|---|---|
 | Internal | €80k + time |  | Product exists ✓ |
-| **Pre-seed** | **€400k** | **€2.5M** | 400 athletes · €10k MRR · anchor athlete public · payments live · **3 months fan churn** |
+| **Pre-seed** | **€150k** | **€2.5M** | 400 athletes · €10k MRR · anchor athlete public · payments live · **3 months fan churn** |
 | Seed *(optional)* | €2.0M | €10M | €80k MRR · churn <8%/mo · CAC payback <9mo · 2nd market · 30+ sponsors |
 | Series A | €8.0M | €40M | €300k MRR · NRR >110% · sponsorship >25% of revenue |
 
@@ -1311,7 +1311,7 @@ Ordered by how much the plan would change if the answer surprised us.
 - **Financial model:** `business-plan/model.py`. Ten-year projection, real
   working capital, capex, amortisation, loss carry-forward, Spanish Startup Law
   tax step (15% for four profitable years, then 25%).
-- **Consistency:** an automated guard checks **301 prose claims across 15
+- **Consistency:** an automated guard checks **300 prose claims across 15
   documents** against the model, plus the evidence chain from published
   comparables → derived assumptions. The build fails if any figure drifts, including this sentence, whose two numbers are themselves pinned to the
   guard's own contents.

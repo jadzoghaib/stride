@@ -52,7 +52,7 @@ uv run python business-plan/build_workbook.py                  # the .xlsx
 Then check it:
 
 ```bash
-uv run python scripts/doc_consistency.py    # 301 prose claims against the model
+uv run python scripts/doc_consistency.py    # 300 prose claims against the model
 uv run python scripts/verify_workbook.py    # structure: refs, cycles, parsing
 uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 ```
@@ -125,11 +125,16 @@ and `18-product-walkthrough.md`.
 
 ## Decisions worth not relitigating
 
-- **€400k pre-seed.** It clears the €280k Y3 trough and the 40% buffer on top
-  of it, which makes the seed a growth option rather than a rescue. The plan
-  asked €600k until 30 September; moving the hiring ramp out closed the gap
-  from the cost side, and scaling the plan down was tried first and does not
-  work.
+- **A staged pre-seed: €150k now, €250k in Y2.**
+  The cumulative cash need to the end of Y1 is only €73k, and Y1 is the year
+  that settles whether fans pay. Raising the whole runway against that question
+  prices it as a promise; raising the second tranche against three months of
+  real revenue prices it on evidence. Same €400k total, founder holds
+  55% through the Series A instead of 53%. ENISA
+  participative loans come before either tranche.
+- The plan asked €600k until 30 September. Moving the hiring ramp out closed the
+  gap from the cost side; scaling the plan down was tried first and does not
+  work, because cutting growth cuts income and outgoings in the same proportion.
 - **The financial model stays ours** rather than being retrofitted into the
   school's template, which says of itself that it is a guide and not a
   fill-in-the-blanks. The three concepts it teaches that were missing have been

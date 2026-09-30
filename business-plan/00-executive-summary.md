@@ -107,7 +107,7 @@ definitively, which is why that, and not a feature, is the pre-seed gate.
 
 ## The ask
 
-**€400k pre-seed at €2.5M pre-money.**
+**€150k pre-seed at €2.5M pre-money.**
 
 The gate is evidence, not a milestone we can assert: 400 athletes, €10k MRR, an
 anchor athlete public, payments processing real money, and **fan churn measured

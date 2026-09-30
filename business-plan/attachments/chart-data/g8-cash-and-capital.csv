@@ -1,6 +1,6 @@
 year,fcf_eur_m,cumulative_cash_before_raises_eur_m,raise_eur_m,stage
-1,-0.073,-0.073,0.4,Pre-seed
-2,-0.13,-0.203,,
+1,-0.073,-0.073,0.15,Pre-seed
+2,-0.13,-0.203,0.25,Pre-seed extension
 3,-0.077,-0.28,,
 4,0.142,-0.138,2.0,Seed (optional)
 5,0.819,0.681,,
