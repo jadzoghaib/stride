@@ -79,8 +79,33 @@ raising the take rate by a point, without asking athletes for anything.
 | Plan | Price | Includes | Target |
 |---|---|---|---|
 | Scout Free | €0 | Public directory, 1 campaign, top-5 matches | Trial, inbound |
+| Scout Starter | €99/mo | Full matching, 2 campaigns, no evidence views | First paid step, single-brand sponsors |
 | Scout Pro | €249/mo | Full matching, evidence views, 5 campaigns, pipeline | Regional brands, small agencies |
 | Scout Agency | €999/mo | Unlimited campaigns, multi-seat, API, saved searches | Agencies, national brands |
+
+**Why an entry tier exists, and why it is €99.** In Y1 the average sponsor runs
+about €1,073 of deals through the platform, so the 10% commission on them is
+roughly €107. Scout Pro at €2,988 a year is twenty-eight times that. A sponsor
+is being asked to multiply their total spend with us by a large factor to buy
+software, at exactly the point when the directory is thinnest and the software
+is worth least. €99 a month is credible against that; €249 is not. The ratio
+only reaches parity around Y7, when the average sponsor runs €19,848 of deals
+and the commission alone is €1,985.
+
+**This is what the ARPU path has always assumed.** Blended revenue per paying
+sponsor runs €199 in Y1 to €475 by Y10, and the early figures sit *below*
+the old cheapest plan, which no mix of €249 and €999 can produce. With Starter
+in the list the series resolves, and it describes a ladder rather than a
+mystery:
+
+| | Y1 | Y2 | Y3 | Y7 | Y10 |
+|---|---|---|---|---|---|
+| Blended ARPU per month | €199 | €229 | €260 | €400 | €475 |
+| Implied mix | 33% Starter, 67% Pro | 13% Starter, 87% Pro | 1% Agency, rest Pro | 20% Agency, rest Pro | 30% Agency, rest Pro |
+
+Sponsors enter on Starter, graduate to Pro as they run more campaigns, and the
+Agency share grows to roughly a third by Y10 as agencies rather than single
+brands become the larger buyer.
 
 SaaS matters disproportionately: it is **100% margin** (no GMV, no payment
 rail), and it converts the analytics engine into revenue that does not depend on

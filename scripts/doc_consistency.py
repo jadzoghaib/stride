@@ -169,6 +169,13 @@ NICHE_CAC_Y1 = _weighted_cac(0)
 NICHE_CAC_Y10 = _weighted_cac(9)
 
 
+#: What the average sponsor puts through the platform, and the commission on it.
+#: The entry-tier argument in 01 rests on the ratio between that and the plan
+#: price, so both ends of it are read from the model.
+def _gmv_per_sponsor(i: int) -> float:
+    return ROWS[i]["sponsorship_gmv"] / model.A.sponsors[i]
+
+
 def peak_funding() -> float:
     cum = trough = 0.0
     for r in ROWS:
@@ -458,6 +465,16 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"\*\*Base\*\*(?:[^|]*\|){5}[^|]*€(\d+)k", SCEN["Base"]["capital_need"] / 1e3, 0.5),
     ("esade-body.md", "optimistic cash trough",
      r"\*\*Optimistic\*\*(?:[^|]*\|){4}[^|]*€(\d+)k", SCEN["Optimistic"]["trough"] / 1e3, 0.5),
+    # -- 01 the entry-tier argument ---------------------------------------
+    ("01-revenue-model.md", "Y1 deal volume per sponsor",
+     r"average sponsor runs\s+about €([\d,]+) of deals", _gmv_per_sponsor(0), 0.5),
+    ("01-revenue-model.md", "Y1 commission per sponsor",
+     r"commission on them is\s+roughly €(\d+)", _gmv_per_sponsor(0) * model.A.take_sponsorship, 0.5),
+    ("01-revenue-model.md", "Y7 deal volume per sponsor",
+     r"average sponsor runs €([\d,]+) of deals", _gmv_per_sponsor(6), 0.5),
+    ("01-revenue-model.md", "Y7 commission per sponsor",
+     r"commission alone is €([\d,]+)", _gmv_per_sponsor(6) * model.A.take_sponsorship, 0.5),
+
     ("esade-body.md", "capital the plan needs",
      r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 0.5),
     ("esade-body.md", "the cash trough",
