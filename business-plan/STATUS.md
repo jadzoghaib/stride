@@ -106,7 +106,7 @@ and `18-product-walkthrough.md`.
   eighteen months rather than building less. Scaling the plan down was tried
   first and does not work: halving the athlete trajectory leaves the trough
   within €15k of where it was, because cutting growth cuts income and
-  outgoings in the same proportion. Trough €261k, requirement €366k
+  outgoings in the same proportion. Trough €296k, requirement €414k
 - **WACC cited to Damodaran**, NYU Stern European cost of capital, 5 January
   2026: Software (Internet) at 6.01% in euros, with the 19-point gap to our
   25% stated as a stage premium rather than hidden
@@ -127,11 +127,11 @@ and `18-product-walkthrough.md`.
   round at a €12M pre-money, which is below PitchBook's €15.9M estimate for
   Sponsoo's own Series A. Total if every tranche is taken: €1.9M, against
   Sponsoo's €2.17M over eleven years. Founder and team retain
-  67% rather than 55%
+  65% rather than 55%
 - **Pre-seed repriced to €1.8M then €3.5M pre-money**, below the €2–4M European
   band rather than inside it. €400k is still the only capital the plan depends on
 - **The founder hurdle no longer clears on the base case, and §Appendix D says
-  so, until the legal line was built rather than asserted.** 67% of a €1.25M DCF is €840k against a €672k break-even at a 70% failure
+  so, until the legal line was built rather than asserted.** 65% of a €1.23M DCF is €799k against a €672k break-even at a 70% failure
   probability. The case now rests on the exit multiples (€1.4M to €3.4M to the
   founder) and on a much lower failure probability than 70%, both stated
 - **Revenue per employee is stated and defended** rather than left implicit:

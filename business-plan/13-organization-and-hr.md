@@ -21,8 +21,8 @@ who decides what.
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
-| Headcount (FTE) | 1.0 | 1.0 | 1.5 | 2.0 | 4.0 | 7.0 | 10.0 |
-| People cost | €38k | €52k | €90k | €128k | €264k | €476k | €700k |
+| Headcount (FTE) | 1.0 | 1.5 | 1.5 | 2.0 | 4.0 | 7.0 | 10.0 |
+| People cost | €38k | €78k | €90k | €128k | €264k | €476k | €700k |
 
 Growth to 16 FTE by Y10. The shape is deliberate: **the team stays below
 four people until fan revenue is proven**, because the extension gate tests an
@@ -31,7 +31,7 @@ assumption, and testing an assumption does not need an organisation.
 > [!warning] This ramp is what a €400k raise buys, and the model flatters it
 > An earlier version of this plan reached 22 FTE by Y7 and asked for €600k.
 > With the tiered commission that ramp put the cash trough at €508k. Moving
-> it out by roughly eighteen months takes the trough to €261k without
+> it out by roughly eighteen months takes the trough to €296k without
 > changing the athlete, fan or sponsor plan at all, because payroll is the
 > cost that arrives earliest and scales least with revenue.
 >
@@ -196,9 +196,9 @@ alternatives considered are in [14](14-legal-and-growth.md).
 | Stage | Board | Founder control |
 |---|---|---|
 | Pre-incorporation | Founder only | 100% |
-| **Pre-seed** (€400k, two tranches) | Founder + 1 investor observer | 84% held after the 2% advisory grant |
-| **Growth** (€1.5M, optional) | Founder + 1 investor director + 1 independent | 75% |
-| Post-ESOP | As above | **~67%** |
+| **Pre-seed** (€400k, two tranches) | Founder + 1 investor observer | 81% held after the 5% athlete partner grant |
+| **Growth** (€1.5M, optional) | Founder + 1 investor director + 1 independent | 72% |
+| Post-ESOP | As above | **~65%** |
 
 ### Reserved matters
 From the pre-seed onward, the following require investor consent: new share
@@ -207,12 +207,15 @@ threshold, and any change to the athlete age policy. **The last one is on the
 list deliberately**; it is the decision most likely to be pressured commercially
 and least reversible reputationally.
 
-### Advisory
-A **2% advisory pool** is opened at the pre-seed, vesting over two years. It
-covers two grants: the anchor-athlete advisor, which
-[04](04-capital-and-valuation.md) sizes at **1%** within a 0.5–1.5% range and
-against a performance trigger, and a sports-industry board advisor of similar
-size. The dilution table above models the **full 2%**, which is deliberately
+### The athlete partner
+A **5% grant** is made at the pre-seed to a named athlete partner, vesting
+over four years with a one-year cliff: 4% base and 1% against a performance
+trigger, sized in [04](04-capital-and-valuation.md). This is the anchor athlete
+the pre-seed gate depends on, not an adviser who takes a call, and the grant is
+sized for what is being asked rather than for the title. A board advisor, if one
+is appointed, comes from the ESOP at the growth round rather than a second pool
+here: one pool, one named person, one number in the cap table. The dilution table
+above models the **full 5%**, which is deliberately
 the expensive assumption, if only one grant is ever made the founder retains
 more than the table shows, not less. The
 intended profile is sports-industry rather than technology: the plan's weakest

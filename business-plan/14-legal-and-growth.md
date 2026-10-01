@@ -24,7 +24,7 @@ full plan does not.*
 **Why S.L.** Limited liability, share issuance for the pre-seed, and
 eligibility for the **Ley 28/2022, Ley de Startups** regime, which is a
 separate statute from the one that cut the capital floor (15% corporate tax for
-the first four taxable years, worth €267k across Y7–Y10 in the model), and
+the first four taxable years, worth €263k across Y7–Y10 in the model), and
 eligibility for ENISA
 participative loans and CDTI Neotec grants, which are the non-dilutive stack in
 [04](04-capital-and-valuation.md).

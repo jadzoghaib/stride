@@ -41,7 +41,7 @@ climbs from 63% in Y3 to **70% by Y10** rather than reaching a SaaS 80%+,
 because the payment rail is real and no amount of engineering removes it.
 
 **The ask is €150k at €1.8M pre-money, and it is
-the first of two.** The plan needs €366k in total, a €261k cash trough in Y3
+the first of two.** The plan needs €414k in total, a €296k cash trough in Y3
 plus a 40% buffer, but it does not need it now: **the cumulative cash
 requirement to the end of Y1 is €113k**, and Y2 is the year that settles
 whether fans pay for a niche athlete at all. Y1 builds the rail and monetises the
@@ -150,8 +150,11 @@ building data products.
 **What the team lacks, stated plainly.** There is no co-founder, and the two
 capabilities the plan most needs from outside are **sports-industry commercial
 relationships** and **a senior engineer**. Both are the first hires (§6.2), and
-the 2% advisory grant at the pre-seed is reserved for a sports-industry profile
-rather than a technical one, because the code is not the weak point.
+the **5% athlete partner grant** at the pre-seed is reserved for the first
+of those, not the second, because the code is not the weak point. That grant is
+named rather than generic: it goes to the anchor athlete the pre-seed gate
+depends on, in equity rather than cash, and §6.3 sets the terms. The 1.0 FTE in
+Y1 is a **payroll** number, not a count of the people involved.
 
 ---
 
@@ -454,7 +457,7 @@ sports that never had any.
 ## 3.4 Costs and investment required
 
 The product exists, which is what makes the launch cost small. Total capital
-required is **€366k**: a €261k cash trough in Y3 plus a 40% buffer. Against
+required is **€414k**: a €296k cash trough in Y3 plus a 40% buffer. Against
 that, **€80k** of founder time and direct cost is already spent. The gap between
 today and first revenue is one entity and one processor: there is no payment,
 tier-price or payout entity of any kind, and the €9.99 on the membership card is
@@ -735,7 +738,7 @@ The assumptions that matter most:
 | Cost of sales | 9 | 36 | 107 | 235 | 421 | 659 | 924 |
 | **Gross profit** | **6** | **42** | **181** | **468** | **900** | **1,465** | **2,089** |
 | Operating costs | 78 | 154 | 320 | 554 | 883 | 1,225 | 1,555 |
-| **EBITDA** | **−111** | **−115** | **−72** | **40** | **173** | **393** | **743** |
+| **EBITDA** | **−111** | **−142** | **−72** | **40** | **173** | **393** | **743** |
 
 Growth decelerates from +414% in Y2 to
 +42% in Y7, which is the shape a
@@ -800,8 +803,8 @@ treats it as both.
 
 ![Figure 10: The hole, and the buffer over it. Y1 to Y5, where the trough lives.](attachments/charts/g8-cash-and-capital.png)
 
-The deepest the cash ever goes is **€261k, in Y4**. The two tranches together
-are €400k, which covers that with €139k to spare, and
+The deepest the cash ever goes is **€296k, in Y4**. The two tranches together
+are €400k, which covers that with €104k to spare, and
 free cash flow turns positive in Y4. Neither tranche is sized to the trough on
 its own: the first covers Y1's €113k, and the second arrives in
 Y2, before the trough does.
@@ -818,11 +821,11 @@ Y2, before the trough does.
 > That is a materially stronger position to raise from.
 
 **Non-dilutive capital first.** A realistic ENISA and CDTI Neotec stack of
-€300–500k covers the whole €261k trough on its own. The *Ley de Startups* 15%
-rate is already in the model and is worth €267k across Y7–Y10.
+€300–500k covers the whole €296k trough on its own. The *Ley de Startups* 15%
+rate is already in the model and is worth €263k across Y7–Y10.
 
-**Dilution.** The founder holds 84% after both pre-seed tranches and the 2% advisory
-grant, 75% after the growth round, and **~67%** after the 10% ESOP.
+**Dilution.** The founder holds 81% after both pre-seed tranches and the 5% athlete partner
+grant, 72% after the growth round, and **~65%** after the 10% ESOP.
 
 ## 7.6 Break-even, ratios and sensitivity
 
@@ -836,12 +839,12 @@ sensitive input is fan churn.
 |---|---|---|---|---|---|
 | Gross margin | 63% | 68% | 69% | 70% | Capped by the payment rail, not by engineering |
 | EBITDA margin | -25% | 13% | 25% | 32% | Turns positive in Y4 |
-| Net margin | -31% | 9% | 17% | 19% | Below EBITDA by amortisation and tax |
+| Net margin | -32% | 9% | 17% | 19% | Below EBITDA by amortisation and tax |
 | Cost of sales / revenue | 37% | 32% | 31% | 30% | Falls as fan subscriptions outgrow one-off payments |
 | Revenue growth | 319% | 88% | 42% | 16% | Decelerating, which is the shape a marketplace should have |
 | Revenue per FTE | €191k | €330k | €301k | €328k | Above the sector's top quartile; defended in 3.2.2 |
 | **Rule of 40** | **294** | **101** | **67** | **48** | **Growth plus EBITDA margin. Above 40 in every year shown** |
-| Burn multiple | 0.18 | n/a | n/a | n/a | Net burn per euro of new revenue. n/a once cash-generative |
+| Burn multiple | 0.19 | n/a | n/a | n/a | Net burn per euro of new revenue. n/a once cash-generative |
 <!-- /MODEL:ratios -->
 
 Three of these are worth reading together rather than one at a time.
@@ -872,14 +875,14 @@ something subtly different.
 
 | Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Cash trough | Capital need |
 |---|---|---|---|---|---|
-| **Pessimistic** | Fans/athlete −30%, monetise −25%, **niche churn at benchmark** | €2.34M | €0.40M | €352k | €0.49M |
-| **Base** | As modelled | €3.01M | €0.74M | €261k | €366k |
-| **Optimistic** | Fans/athlete +25%, monetise +20% | €3.59M | €1.04M | €213k | €299k |
+| **Pessimistic** | Fans/athlete −30%, monetise −25%, **niche churn at benchmark** | €2.34M | €0.40M | €387k | €0.54M |
+| **Base** | As modelled | €3.01M | €0.74M | €296k | €414k |
+| **Optimistic** | Fans/athlete +25%, monetise +20% | €3.59M | €1.04M | €248k | €347k |
 
 **The downside is survivable and the upside is unspectacular, which is the
 honest shape of this business.** Losing a third of the fan thesis costs
 22% of Y7 revenue and multiplies the capital requirement by
-1.3, to €493k against a €400k raise. That is a
+1.3, to €541k against a €400k raise. That is a
 bridge round, not an extinction event. The optimistic case adds 19% to
 revenue, because the constraint is athlete supply rather than fan yield, and no
 fan assumption relieves it.
@@ -902,7 +905,7 @@ argue for it. That case is §10.
 
 ![Figure 11: Two methods that disagree, for a reason.](attachments/charts/g10-valuation.png)
 
-The DCF says **€1246k** today; the blended exit
+The DCF says **€1226k** today; the blended exit
 multiple says €34.1M at Y10. This is not an error in
 either; it is the standard failure of a perpetuity-growth DCF applied to a
 company that has not finished growing. The terminal value assumes growth
@@ -910,7 +913,7 @@ collapses to 3% the day after Y10, from a year that still grew 16%.
 
 **Defensible headline: €2.1–5.1M enterprise value**, the Y10 exit
 multiples discounted back at the same 25% WACC, with a
-**€1246k floor** under a no-growth-after-Y10
+**€1226k floor** under a no-growth-after-Y10
 assumption. Appendix D sets out why the lower half of that range is the half the
 plan's own growth rate supports.
 

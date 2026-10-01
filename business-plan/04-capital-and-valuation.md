@@ -37,9 +37,9 @@ total loss. At a 70% probability of failure, the surviving case has to return
 that cannot be diversified away.
 
 **On the base case it clears, and it is worth saying exactly why.** A founder and
-team retaining **67%** through the growth round hold that share of the enterprise
-value: **€840k against the DCF of €1.25M**, comfortably over the €672k
-break-even. Against the exit multiples discounted back it is **€1.5M to €3.4M**.
+team retaining **65%** through the growth round hold that share of the enterprise
+value: **€799k against the DCF of €1.23M**, comfortably over the €672k
+break-even. Against the exit multiples discounted back it is **€1.5M to €3.3M**.
 
 Until the legal and compliance line was built from its obligations rather than
 asserted, this paragraph said the opposite: €651k against €672k, marginally
@@ -60,7 +60,7 @@ things, and both are now stated rather than assumed:
 2. **A much lower probability of total loss than 70%.** That figure was set
    against a plan needing €10.4M across four rounds, where failure to raise any
    one of them was fatal. This plan raises **€400k** of equity
-   against a €366k requirement, turns EBITDA positive in **Y4**, and
+   against a €414k requirement, turns EBITDA positive in **Y4**, and
    depends on no round after the pre-seed extension. At a 50%
    failure probability the break-even return is €403k, which the base case
    clears comfortably.
@@ -83,7 +83,7 @@ fact you can demonstrate, not a milestone you can assert.
 | **Pre-seed extension** | **€250k** | €3.5M | 250 athletes · **three months of measured fan churn** · churn inside the modelled band | First two hires, second market opened |
 | **Growth** *(optional)* | €1.5M | €12M | €150k MRR · net revenue retention > 110% · CAC payback < 9mo · unit economics stable across 2 markets | Team to 16, third and fourth market, moderation infrastructure |
 
-**The plan needs €366k. The two pre-seed tranches raise €400k, and the growth
+**The plan needs €414k. The two pre-seed tranches raise €400k, and the growth
 round is not part of that number.** The €9k shortfall is covered by the ENISA
 participative loan below, which is non-dilutive. It does not come *before* the
 first tranche: ENISA asks for an own-funds ratio of roughly 50%, so the €150k of
@@ -91,11 +91,11 @@ equity is what makes the €75k loan available, and the two are raised together.
 The equity alone covers the trough with a 37% buffer
 rather than the 40% the requirement asks for.
 
-The two tranches together cover the **€261k trough in Y3** with €139k to spare,
+The two tranches together cover the **€296k trough in Y3** with €104k to spare,
 which is why the growth round is marked optional above. It is growth capital: a
 third market sooner, not rescue capital. **Optional in the base case, to be
 precise:** the pessimistic scenario in §7.6 needs
-€493k against the €400k raised, so if that case
+€541k against the €400k raised, so if that case
 materialises the shortfall is bridged rather than ignored, and §7.6 says so. **Optional in the base case, to be
 precise:** the pessimistic scenario in §7.6 needs
 €493k against the €400k raised, so if that case
@@ -105,7 +105,7 @@ against, and for a first-time founder it is close to the only version worth
 attempting.
 
 Be precise about what that claims. **€400k clears the trough the model produces
-and most of the 40% buffer on top of it**, which is €366k. The earlier
+and most of the 40% buffer on top of it**, which is €414k. The earlier
 version of this plan asked for €600k against a requirement of €711k and left the
 buffer partly unfunded; moving the hiring ramp out closed the gap from the cost
 side rather than the raise side. The growth round is therefore optional against
@@ -170,7 +170,7 @@ Against a **Y1 cash need of €113k**, that is the whole of the first year at no
 equity cost. The two are complementary rather than alternatives: ENISA asks for
 an own-funds ratio of roughly 50%, so the €150k equity tranche is what makes the
 €75k loan available. Together they are €225k against a cumulative need of
-**€221k** to the end of Y2.
+**€254k** to the end of Y2.
 
 **The product exists.** Most pre-seed rounds are raised on a deck. This one is
 raised on a deployed application with connected analytics, an admission gate
@@ -217,10 +217,10 @@ Taking dilution before exhausting these is leaving money on the table.
 | **ENISA Crecimiento** | up to €300k | Participative loan, no equity | Y2–Y3 |
 | **CDTI Neotec** | up to €250k (70% of budget) | **Grant**, no equity | Y2: requires R&D framing; the analytics engine qualifies |
 | **Startup Capital (regional, Catalunya)** | €25k–€100k | Grant / soft loan | Y1–Y2 |
-| **Ley de Startups** tax regime |  | **15% corporate tax** for the first four taxable years vs 25% | Modelled: worth €267k across Y7–Y10 |
+| **Ley de Startups** tax regime |  | **15% corporate tax** for the first four taxable years vs 25% | Modelled: worth €263k across Y7–Y10 |
 | Beckham Law |  | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
 
-**A realistic non-dilutive stack is €300–500k**, which covers the whole €261k
+**A realistic non-dilutive stack is €300–500k**, which covers the whole €296k
 trough on its own. Combined with a smaller pre-seed, the founder could reach the
 growth-round gate holding materially more equity, or skip the growth round
 entirely.
@@ -276,10 +276,10 @@ it is why the sensitivity below runs 20 to 30%.
 <!-- MODEL:valuation -->
 | Valuation (DCF) | Value |
 |---|---|
-| PV of explicit FCF, Y1–Y10 | €645k |
+| PV of explicit FCF, Y1–Y10 | €625k |
 | Terminal value (g=3%) | €5.59M |
 | PV of terminal value | €601k |
-| **Enterprise value (WACC 25%)** | **€1.25M** |
+| **Enterprise value (WACC 25%)** | **€1.23M** |
 <!-- /MODEL:valuation -->
 
 ### Exit multiple
@@ -304,7 +304,7 @@ The DCF's terminal value assumes growth collapses to 3% the day after Y10, from
 a year that still grew 16%. For a marketplace that has reached
 €5.25M of revenue at a 70% gross
 margin with a network effect, that is not a neutral assumption; it is a
-pessimistic one. The terminal value is 48% of the DCF's total, so that
+pessimistic one. The terminal value is 49% of the DCF's total, so that
 single assumption carries most of the answer.
 
 **For a venture-stage company, the exit-multiple method discounted back is the
@@ -315,14 +315,14 @@ worth €1.2M today.
 <!-- MODEL:sensitivity -->
 | Enterprise value | WACC 20% | WACC 25% | WACC 30% |
 |---|---|---|---|
-| Terminal growth 2% | €2.02M | €1.21M | €764k |
-| Terminal growth 3% | €2.10M | **€1.25M** | €779k |
-| Terminal growth 4% | €2.18M | €1.28M | €795k |
+| Terminal growth 2% | €2.00M | €1.19M | €745k |
+| Terminal growth 3% | €2.08M | **€1.23M** | €760k |
+| Terminal growth 4% | €2.16M | €1.26M | €776k |
 <!-- /MODEL:sensitivity -->
 
 **Defensible headline: €2.1–5.1M enterprise
 value, the Y10 exit multiples discounted to today at the same 25% WACC**, with a
-€1246k floor under a no-growth-after-Y10 assumption.
+€1226k floor under a no-growth-after-Y10 assumption.
 
 Be honest about which end of that range the plan supports. Revenue grows
 16% in Y10, so the **9.0x** multiple labelled high-growth SaaS is not a
@@ -343,12 +343,26 @@ pre-seed gate, so its structure matters more than its cost.
 |---|---|---|---|
 | Ambassador fee | €15–30k/yr cash | Name, no alignment | ✗ Burns scarce cash on the least aligned option |
 | Revenue share on their vertical | 2–5% of their sport's GMV | Aligned, but complicates the cap table of every future deal | ◐ Workable, messy at scale |
-| **Advisory equity** | **0.5–1.5%, 2-year vest, 6-month cliff** | **Aligned to exit, costs no cash** | **✓ Recommended** |
+| Advisory equity | 0.5–1.5%, 2-year vest | Aligned to exit, costs no cash | ◐ Too small for what is being asked |
+| **Athlete partner equity** | **5%, 4-year vest, 1-year cliff** | **Aligned to exit, costs no cash, and large enough that they turn up** | **✓ Recommended** |
 | Co-founder equity | 5–15% | Total alignment | ✗ Only if they are genuinely operational |
 
-**Recommended: 1% advisory equity, two-year vest, six-month cliff, with a
-performance trigger**: an extra 0.5% if they bring three clubs or 25 athletes.
-The cliff protects you if they lose interest after the launch photos.
+**Recommended: 5% to a named athlete partner**, 4% base and 1% on a
+performance trigger if they bring three clubs or 25 athletes, vesting over four
+years with a one-year cliff. The cliff protects you if they lose interest after
+the launch photos; the four-year vest matches the employee terms in §6.3.
+
+**Why 5% and not the 1% an adviser gets.** This is not someone who takes a
+quarterly call. The pre-seed gate is three months of real subscription revenue
+from one anchor athlete, so the whole first tranche rests on this person putting
+their name and their audience behind a product that does not exist yet, before
+anyone can show them it works. One percent prices a favour. Five prices a
+partner, and it still costs no cash, which is the point.
+
+**Why not 10% or more.** That is co-founder territory, and a co-founder belongs
+in the headcount, the governance table and §2.3 as a person rather than in a
+grant line. If the right athlete wants to be operational, that is a different and
+better conversation, and §2.3 says plainly that the team has no co-founder.
 
 ### What the anchor athlete must actually be
 
@@ -372,15 +386,15 @@ That last row is a hard filter, not a preference. See
 | Round | Raised | Pre-money | Post-money | New investor % | Founder(s) after |
 |---|---|---|---|---|---|
 | Internal |  | | | | 100% |
-| Pre-seed | €150k | €1.8M | €1.95M | 7.7% | 90% |
-| Pre-seed extension | €250k | €3.5M | €3.8M | 6.7% | 84% (after 2% advisory) |
-| Growth *(optional)* | €1.5M | €12.0M | €13.5M | 11.1% | 75% |
-| ESOP (cumulative) |  | | | 10% | **~67%** |
+| Pre-seed | €150k | €1.8M | €1.95M | 7.7% | 87% |
+| Pre-seed extension | €250k | €3.5M | €3.75M | 6.7% | 81% (after 5% athlete partner) |
+| Growth *(optional)* | €1.5M | €12.0M | €13.5M | 11.1% | 72% |
+| ESOP (cumulative) |  | | | 10% | **~65%** |
 
-Retaining ~67% through the growth round is a good outcome, and it
+Retaining ~65% through the growth round is a good outcome, and it
 depends on the non-dilutive stack being used before equity rather than after it.
 Without the growth round, which the plan does not need, the figure is
-~76%.
+~73%.
 
 > [!note] This table used to be typed by hand, and did not add up
 > The previous version raised €600k and still ended at ~45%, because each row

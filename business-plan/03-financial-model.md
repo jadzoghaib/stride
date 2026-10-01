@@ -17,7 +17,7 @@ python business-plan/model.py
 | Paying fans | 0 | 4,911 | 14,333 | 28,169 | 46,066 | 67,882 | 92,005 | 111,619 | 128,637 | 141,503 |
 | Sponsorship deals | 15 | 73 | 275 | 723 | 1,435 | 2,397 | 3,311 | 4,181 | 4,623 | 5,427 |
 | Paying sponsors (SaaS) | 0 | 3 | 18 | 46 | 76 | 102 | 124 | 142 | 158 | 170 |
-| Headcount (FTE) | 1.0 | 1.0 | 1.5 | 2.0 | 4.0 | 7.0 | 10.0 | 12.5 | 14.5 | 16.0 |
+| Headcount (FTE) | 1.0 | 1.5 | 1.5 | 2.0 | 4.0 | 7.0 | 10.0 | 12.5 | 14.5 | 16.0 |
 <!-- /MODEL:drivers -->
 
 ---
@@ -148,15 +148,15 @@ Y6 is the shape a marketplace should have.
 | Athlete verification | €466 | €1k | €3k | €3k | €4k | €4k | €4k | €4k | €4k | €4k |
 | **Gross profit** | €-1k | €37k | €180k | €468k | €900k | €1.47M | €2.09M | €2.68M | €3.15M | €3.66M |
 | Gross margin | -59% | 53% | 63% | 67% | 68% | 69% | 69% | 69% | 70% | 70% |
-| People | €38k | €52k | €90k | €128k | €264k | €476k | €700k | €900k | €1.07M | €1.22M |
+| People | €38k | €78k | €90k | €128k | €264k | €476k | €700k | €900k | €1.07M | €1.22M |
 | Marketing / CAC | €20k | €51k | €117k | €220k | €313k | €344k | €344k | €317k | €307k | €276k |
-| Legal & compliance | €51k | €43k | €22k | €24k | €44k | €82k | €62k | €69k | €63k | €67k |
+| Legal & compliance | €51k | €44k | €22k | €24k | €44k | €82k | €62k | €69k | €63k | €67k |
 | Other opex | €172 | €5k | €23k | €56k | €106k | €170k | €241k | €308k | €362k | €420k |
-| **EBITDA** | €-111k | €-115k | €-72k | €40k | €173k | €393k | €743k | €1.08M | €1.34M | €1.68M |
-| Tax | €0 | €0 | €0 | €0 | €0 | €17k | €90k | €131k | €161k | €341k |
-| Working capital movement | €-9k | €-22k | €-59k | €-108k | €-173k | €-233k | €-255k | €-246k | €-188k | €-217k |
-| Capex (capitalised development) | €11k | €16k | €27k | €38k | €79k | €143k | €210k | €270k | €322k | €365k |
-| **Free cash flow** | €-113k | €-108k | €-40k | €109k | €267k | €466k | €699k | €927k | €1.05M | €1.19M |
+| **EBITDA** | €-111k | €-142k | €-72k | €40k | €173k | €393k | €743k | €1.08M | €1.34M | €1.68M |
+| Tax | €0 | €0 | €0 | €0 | €0 | €12k | €90k | €131k | €161k | €341k |
+| Working capital movement | €-9k | €-24k | €-57k | €-108k | €-173k | €-233k | €-255k | €-246k | €-188k | €-217k |
+| Capex (capitalised development) | €11k | €23k | €27k | €38k | €79k | €143k | €210k | €270k | €322k | €365k |
+| **Free cash flow** | €-113k | €-141k | €-42k | €109k | €267k | €471k | €699k | €927k | €1.05M | €1.19M |
 <!-- /MODEL:pl -->
 
 Free cash flow is EBITDA less tax, working capital movement and capex, not
@@ -182,29 +182,29 @@ parent (~85% at a 20% take on far larger tickets).
 | Year | Free cash flow | Cumulative |
 |---|---|---|
 | Y1 | €-113k | €-113k |
-| Y2 | €-108k | €-221k |
-| Y3 | €-40k | €-261k |
-| Y4 | €109k | €-152k |
-| Y5 | €267k | €115k |
-| Y6 | €466k | €581k |
-| Y7 | €699k | €1.28M |
-| Y8 | €927k | €2.21M |
-| Y9 | €1.05M | €3.26M |
-| Y10 | €1.19M | €4.45M |
+| Y2 | €-141k | €-254k |
+| Y3 | €-42k | €-296k |
+| Y4 | €109k | €-186k |
+| Y5 | €267k | €80k |
+| Y6 | €471k | €552k |
+| Y7 | €699k | €1.25M |
+| Y8 | €927k | €2.18M |
+| Y9 | €1.05M | €3.23M |
+| Y10 | €1.19M | €4.42M |
 <!-- /MODEL:cash -->
 
 | Capital requirement | Value |
 <!-- MODEL:funding -->
 | Capital requirement | Value |
 |---|---|
-| Deepest cumulative cash position | €-261k |
+| Deepest cumulative cash position | €-296k |
 | Year it occurs | Y3 |
-| Buffer at 40% (hiring slips, churn worse) | €105k |
-| **Total capital to fund the plan** | **€366k** |
+| Buffer at 40% (hiring slips, churn worse) | €118k |
+| **Total capital to fund the plan** | **€414k** |
 | First EBITDA-positive year | Y4 |
 <!-- /MODEL:funding -->
 
-**€366k is a small number for a plan that reaches €3.01M of revenue by Y7,
+**€414k is a small number for a plan that reaches €3.01M of revenue by Y7,
 and that should be interrogated rather than celebrated.** It is small because
 the model hires behind revenue rather than ahead of it, and because fan
 acquisition is free. A growth-optimised version: hiring 12 months earlier,
@@ -220,9 +220,9 @@ be wrong are **fans per athlete** and **share of athletes who monetise**.
 
 | Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Capital need |
 |---|---|---|---|---|
-| Pessimistic | Fans/athlete −30%, monetise −25%, **niche churn at benchmark** | €2.34M | €189k | €493k |
-| **Base** | As modelled | €3.01M | €743k | €366k |
-| Optimistic | Fans/athlete +25%, monetise +20% | €3.59M | €829k | €299k |
+| Pessimistic | Fans/athlete −30%, monetise −25%, **niche churn at benchmark** | €2.34M | €189k | €541k |
+| **Base** | As modelled | €3.01M | €743k | €414k |
+| Optimistic | Fans/athlete +25%, monetise +20% | €3.59M | €829k | €347k |
 
 These are the same three cases as §7.6 of the body, generated from
 `model.scenario_table()`, which re-runs the whole model against changed drivers
@@ -233,7 +233,7 @@ belongs in the growth section rather than in a sensitivity table.
 
 To run these, edit `Assumptions` in `model.py` and rerun. The pessimistic case
 **reaches profitability in Y5 rather than Y4**, two years later than the base
-case, and needs €493k rather than €366k. That is the
+case, and needs €541k rather than €414k. That is the
 honest shape of the downside: survivable on a bridge, not free. The
 robustness test that matters, and a stronger result than the old "later, at Y5
 rather than Y4". Carrying VAT moved the base case back a year; it did not move

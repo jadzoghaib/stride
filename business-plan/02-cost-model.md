@@ -72,7 +72,7 @@ the rows themselves, that the egress decision moves.
 > its own cohort model documents on the revenue side and had already fixed
 > there.
 
-**€120k a year is most of this plan's entire €261k cash trough, spent annually
+**€120k a year is most of this plan's entire €296k cash trough, spent annually
 and decided by one architectural choice**, €0.8M across the ten years.
 
 The recommendation is AWS for compute and database, where its managed services
@@ -151,8 +151,8 @@ figure below is loaded cost.
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
-| Headcount (FTE) | 1.0 | 1.0 | 1.5 | 2.0 | 4.0 | 7.0 | 10.0 |
-| People cost | €38k | €52k | €90k | €128k | €264k | €0.48M | €0.70M |
+| Headcount (FTE) | 1.0 | 1.5 | 1.5 | 2.0 | 4.0 | 7.0 | 10.0 |
+| People cost | €38k | €78k | €90k | €128k | €264k | €0.48M | €0.70M |
 
 **Spain is a structural cost advantage.** A senior engineer at €72k loaded costs
 roughly half the equivalent in London or Amsterdam and a third of the Bay Area,

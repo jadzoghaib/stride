@@ -99,6 +99,47 @@ POPULAR = Segment(
 )
 
 
+#: The hiring plan, role by role, and the ONLY place headcount is decided.
+#:
+#: `Assumptions.headcount` is the column sums of this table, so the two cannot
+#: disagree. They used to be declared separately, here and in build_workbook.py,
+#: with a CHECK row on the HiringPlan sheet to catch it when they drifted. They
+#: did drift: that row read 7.5 for an unknown number of builds after the
+#: trajectory was moderated. One source is better than two and a guard.
+#:
+#: Engineering starts at half a head in Y2 rather than Y3. Y1 and Y2 ship the
+#: payment rail, sponsorship billing and the fan tier, and three builds on top of
+#: the applications, the sponsor conversations, incorporation and two raises is
+#: not one person's two years.
+ROLES: dict[str, list[float]] = {
+    "Founder / CEO":           [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+    "Engineering":             [0.0, 0.5, 0.5, 1.0, 1.5, 2.5, 3.5, 4.5, 5.0, 5.0],
+    "BD / partnerships":       [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 2.0, 2.5, 3.0, 3.5],
+    "Athlete success":         [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
+    "Trust & safety / review": [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.5, 1.5, 2.0],
+    "Finance / operations":    [0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 1.0, 1.0],
+    "Data protection officer": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.5],
+}
+
+#: Gross annual salary by role, before the employer social security the hiring
+#: plan adds on top. Here rather than in the workbook for the same reason as
+#: ROLES: the sheet should render the model, not hold half of it.
+ROLE_SALARY_EUR: dict[str, int] = {
+    "Founder / CEO": 45_000,
+    "Engineering": 55_000,
+    "BD / partnerships": 38_000,
+    "Athlete success": 30_000,
+    "Trust & safety / review": 34_000,
+    "Finance / operations": 42_000,
+    "Data protection officer": 60_000,
+}
+
+
+def headcount_by_year() -> list[float]:
+    """Total FTE per year: the column sums of ROLES."""
+    return [round(sum(r[i] for r in ROLES.values()), 6) for i in range(len(YEARS))]
+
+
 @dataclass
 class Assumptions:
     # ---- demand side -------------------------------------------------------
@@ -252,18 +293,16 @@ class Assumptions:
     #: to 22 FTE by Y7 and needed EUR 600k to do it. Payroll is the cost
     #: that lands earliest and scales least with revenue, so moving the
     #: ramp out is what takes the raise down without building less.
-    #: Lean through Y4 because that is where the cash trough sits, then a
-    #: real ramp. Y1 and Y2 are the founder alone: the EUR 400k ask
-    #: depends on it, since the trough is set by Y1 to Y4 spending and
-    #: nothing hired after it moves the number.
+    #: NOT declared here. Summed from ROLES above, so the hiring plan and the
+    #: headcount are the same statement rather than two that have to agree.
+    #: Still a plain field rather than a property, because scenario() deep-copies
+    #: Assumptions and the sensitivity work assigns to it.
     #:
-    #: Y10 of 16 FTE is deliberately close to Sponsoo's 13, which is the
-    #: scale this plan is now built for. The resulting revenue per
-    #: employee, EUR 301k in Y7, is above the top quartile private SaaS
-    #: benchmark of EUR 215k and is defended in section 3.2.2 rather than
-    #: left implicit: the fan side is self serve, and content moderation
-    #: is a variable cost line rather than headcount.
-    headcount: list[float] = field(default_factory=lambda: [1.0, 1.0, 1.5, 2.0, 4.0, 7.0, 10.0, 12.5, 14.5, 16.0])
+    #: Lean through Y4 because that is where the cash trough sits: the EUR 400k
+    #: ask depends on it, and nothing hired after the trough moves the number.
+    #: Y10 of 16 FTE is deliberately close to Sponsoo's 13. The resulting revenue
+    #: per employee is defended in section 3.2.2 rather than left implicit.
+    headcount: list[float] = field(default_factory=headcount_by_year)
     loaded_salary_eur: list[int] = field(default_factory=lambda: [38_000, 52_000, 60_000, 64_000, 66_000, 68_000, 70_000, 72_000, 74_000, 76_000])
     sponsor_cac_eur: list[int] = field(default_factory=lambda: [900, 1_050, 1_200, 1_400, 1_600, 1_750, 1_900, 2_000, 2_100, 2_200])
     #: Markets live, by year. Spain through the pre-seed, Portugal at the
@@ -455,14 +494,36 @@ ROUND_GATE_MRR: dict[str, int] = {
 }
 
 
-# The two grants that dilute alongside the rounds: an advisory grant made at
-# the pre-seed, and the option pool topped up to 10% at the growth round, which
-# is the point at which the company takes institutional money and has employees
-# worth retaining. With no Series A in the plan, grant_years() reaches its
-# fallback, and the fallback is the intended answer here rather than an
+# The two grants that dilute alongside the rounds: equity to an athlete partner
+# at the pre-seed, and the option pool topped up to 10% at the growth round,
+# which is the point at which the company takes institutional money and has
+# employees worth retaining. With no Series A in the plan, grant_years() reaches
+# its fallback, and the fallback is the intended answer here rather than an
 # accident: the last round is the growth round.
-ADVISORY_GRANT: float = 0.02
+
+#: Equity to the ATHLETE PARTNER, granted at the pre-seed and vesting over four
+#: years with a one-year cliff. Section 2.3 already reserved this for "a
+#: sports-industry profile rather than a technical one"; naming it is the honest
+#: version of what it was always for, and it answers open question C3, "anchor
+#: athlete: equity or cash", with equity.
+#:
+#: Five percent rather than two. Two is an adviser who takes a call; five is
+#: someone putting their name and their audience behind a product that does not
+#: exist yet, which is exactly what the anchor athlete is asked to do and what
+#: the whole pre-seed gate depends on. Not ten, because ten is co-founder
+#: territory and a co-founder belongs in the headcount and the governance
+#: section rather than in a grant line.
+ATHLETE_PARTNER_GRANT: float = 0.05
+#: Kept as an alias so nothing that imported the old name breaks silently.
+ADVISORY_GRANT: float = ATHLETE_PARTNER_GRANT
 ESOP_POOL: float = 0.10
+
+
+# ROLES is the only place headcount is set, and this is what keeps it that way.
+# Stated as an assertion rather than a comment because a comment does not fail.
+assert A.headcount == headcount_by_year(), (
+    "Assumptions.headcount has been set to something other than the column sums "
+    "of ROLES. Change the role ladder, not the total.")
 
 
 def grant_years() -> tuple[int, int]:
@@ -500,7 +561,7 @@ def dilution() -> list[dict]:
         stake = rd["amount"] / post
         held *= 1 - stake
         if rd["stage"] == "Pre-seed":
-            held -= ADVISORY_GRANT
+            held -= ATHLETE_PARTNER_GRANT
         out.append({**rd, "post": post, "stake": stake, "held": held})
     out.append({"year": esop_year, "stage": "ESOP (cumulative)",
                 "amount": 0.0, "pre": 0.0, "post": 0.0,

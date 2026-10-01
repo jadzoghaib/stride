@@ -71,8 +71,10 @@ Y2 as the cheapest test of whether the model travels.
 
 ### C3: Anchor athlete: equity or cash?
 
-**Recommendation: 1% advisory equity, 2-year vest, 6-month cliff, +0.5%
-performance trigger.** Now with an added filter from [06](06-market-strategy.md):
+**Settled: 5% athlete partner equity**, 4% base plus 1% on a performance
+trigger, four-year vest, one-year cliff. Sized as a partner rather than an
+adviser because the pre-seed gate rests entirely on this person. With an added
+filter from [06](06-market-strategy.md):
 they should come from a **niche sport, and be over 18**. A famous name would
 prove the wrong thing and cost more.
 
@@ -86,7 +88,7 @@ in popular sports. The honest reconciliation is that we disintermediate the
 *deal-finding*, not the *representation*, an agent still negotiates, we just
 make the introduction on evidence instead of on their contact list.
 
-### D1: Raise €366k, or the €1.9M the rounds imply?
+### D1: Raise €414k, or the €1.9M the rounds imply?
 
 **Recommendation: non-dilutive stack first** (ENISA + Neotec, €300–500k), then a
 smaller pre-seed. Every grant euro is equity retained.
@@ -100,7 +102,7 @@ sustainability. **Worth deciding deliberately rather than by default.**
 ### D3: Which valuation do we present?
 
 **Recommendation: lead with the exit multiple discounted back
-(€2.1–5.1M), present the DCF (€1246k) as the
+(€2.1–5.1M), present the DCF (€1226k) as the
 conservative floor**, and explain why they differ. An examiner who spots a
 perpetuity-growth DCF applied to a company still growing 16% in the
 terminal year will discount everything else. Appendix D also names which end of

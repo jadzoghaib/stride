@@ -64,7 +64,7 @@ python business-plan/model.py
 | EBITDA | −€111k | −€72k | €0.17M | €0.74M | €1.68M |
 | Headcount | 1.0 | 1.5 | 4.0 | 10.0 | 16.0 |
 
-**Capital required to fund it: €366k** (peak burn €261k plus a 40% buffer)**.** EBITDA turns positive in **Y4**.
+**Capital required to fund it: €414k** (peak burn €296k plus a 40% buffer)**.** EBITDA turns positive in **Y4**.
 
 **Ten years, not seven**: at Y7 the business is still compounding above 50%, so
 a terminal value placed there does most of the valuation work and does it badly.
@@ -101,7 +101,7 @@ analytics: compute is a rounding error, which `docs/costs.md` correctly says.
 The moment fans pay for video, that stops being true. Served naively from
 CloudFront, egress alone costs **€120k more in Y7**, and €0.8M across the
 plan than the same bytes behind a zero-egress CDN. The Y7 figure is
-41% of this plan's entire €261k cash trough, spent
+41% of this plan's entire €296k cash trough, spent
 annually, on one architecture decision.
 
 **3. The age model is tiered, not a single number.** 16 is the floor for an

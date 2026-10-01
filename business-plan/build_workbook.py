@@ -237,7 +237,7 @@ FUNDING_ROWS = {
     "Pre-money valuation": 5,
     "Post-money valuation": 6,
     "New investor stake": 7,
-    "Advisory grant": 8,
+    "Athlete partner equity": 8,
     "ESOP pool": 9,
     "Founders + team retained": 10,
     "Cumulative dilution": 11,
@@ -1139,14 +1139,38 @@ def build() -> pathlib.Path:
     _advisory_year, _esop_year = M.grant_years()
     advisory[_advisory_year - 1] = M.ADVISORY_GRANT
     esop[_esop_year - 1] = M.ESOP_POOL
-    urow("Advisory grant", "%", values=advisory, fmt=PCT)
+    urow("Athlete partner equity", "%", values=advisory, fmt=PCT)
     urow("ESOP pool", "%", values=esop, fmt=PCT)
     urow("Founders + team retained", "%", fmt=PCT, bold=True,
-         first=f"=(1-{{c}}{U['New investor stake']}-{{c}}{U['Advisory grant']})"
+         first=f"=(1-{{c}}{U['New investor stake']}-{{c}}{U['Athlete partner equity']})"
                f"*(1-{{c}}{U['ESOP pool']})",
          formula=f"=({{p}}{U['Founders + team retained']}"
                  f"*(1-{{c}}{U['New investor stake']})"
-                 f"-{{c}}{U['Advisory grant']})*(1-{{c}}{U['ESOP pool']})")
+                 f"-{{c}}{U['Athlete partner equity']})*(1-{{c}}{U['ESOP pool']})")
+    # The author's own notes, written into column M by hand and generated here
+    # so they survive a rebuild. A note that only exists in the output file lasts
+    # until the next run of this script.
+    NOTES = {
+        "Pre-money valuation":
+            "Both rounds are priced against Sponsoo, the closest comparable there "
+            "is: our pre-seed at EUR 1.8M against their EUR 1.55M seed, and the "
+            "growth round at EUR 12M against their EUR 15.9M Series A.",
+        "Athlete partner equity":
+            f"{M.ATHLETE_PARTNER_GRANT:.0%} to an athlete partner at the pre-seed, "
+            "paid in equity rather than cash. The anchor athlete the pre-seed gate "
+            "depends on: they put their name and their audience behind a product "
+            "that does not exist yet. Four-year vesting, one-year cliff.",
+        "ESOP pool":
+            f"Employee Stock Option Pool: {M.ESOP_POOL:.0%} reserved for employee "
+            "options at the growth round, which is when there is institutional "
+            "money and people worth keeping.",
+    }
+    fu.column_dimensions[get_column_letter(FIRST + N)].width = 64
+    for label, text in NOTES.items():
+        c = fu.cell(U[label], FIRST + N, text)
+        c.font = Font(italic=True, size=8, color="6B7480", name="Calibri")
+        c.alignment = Alignment(wrap_text=True, vertical="top")
+
     urow("Cumulative dilution", "%", fmt=PCT,
          formula=f"=1-{{c}}{U['Founders + team retained']}")
 
@@ -1159,15 +1183,10 @@ def build() -> pathlib.Path:
     # ladder was built for a 28-FTE Y10 and summed to 14.5 in Y6 against a
     # model saying 7.0, with the CHECK row dutifully reporting 7.5 and
     # nothing reading it.
-    ROLES = [
-        ("Founder / CEO", [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 45_000),
-        ("Engineering", [0.0, 0.0, 0.5, 1.0, 1.5, 2.5, 3.5, 4.5, 5.0, 5.0], 55_000),
-        ("BD / partnerships", [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 2.0, 2.5, 3.0, 3.5], 38_000),
-        ("Athlete success", [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0], 30_000),
-        ("Trust & safety / review", [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.5, 1.5, 2.0], 34_000),
-        ("Finance / operations", [0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 1.0, 1.0], 42_000),
-        ("Data protection officer", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.5], 60_000),
-    ]
+    # From model.py, which is where the hiring plan is decided. It used to be
+    # declared here as well, with the CHECK row below catching the two when they
+    # drifted apart. They did drift. One source is better than two and a guard.
+    ROLES = [(name, fte, M.ROLE_SALARY_EUR[name]) for name, fte in M.ROLES.items()]
     role_rows = {}
     first_role = r
     for label, fte, _g in ROLES:
@@ -1180,7 +1199,12 @@ def build() -> pathlib.Path:
     model_hc = r
     r = row(hp, r, "Model headcount", "Assumptions", fmt='0.0', font=LINK,
             formula=f"=Assumptions!{{c}}{A_ROW['headcount']}")
-    r = row(hp, r, "CHECK", "must be zero", bold=True, fmt='0.0',
+    # This used to reconcile two independently declared numbers: the role ladder
+    # here and the headcount in model.py. Both now come from model.ROLES, so what
+    # it verifies is narrower and still worth having: that the SUM formula above
+    # adds the role rows correctly, and that Assumptions carries the same total.
+    # A formula error in this sheet would still show up here.
+    r = row(hp, r, "CHECK", "sheet arithmetic, must be zero", bold=True, fmt='0.0',
             formula=f"=ROUND({{c}}{total_fte}-{{c}}{model_hc},3)")
 
     r += 1
