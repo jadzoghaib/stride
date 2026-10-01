@@ -857,6 +857,16 @@ r"Together they are €(\d+)k",
      r"gross margin stops at (\d+)%",
      ROWS[9]["gross"] / ROWS[9]["revenue"] * 100, 0.6),
 
+    # The trough year is stated TWICE in esade-body and the pin above uses
+    # re.search, which finds the first. The second sat unwatched and said Y4
+    # after the trough moved to Y3.
+    ("esade-body.md", "the trough year, second statement",
+     r"cash trough in Y(\d) plus a 40% buffer", TROUGH_YEAR, 0.1),
+    ("esade-body.md", "Y1 cash requirement in 3.4",
+     r"to the end of Y1 is €([\d,]+)k", -ROWS[0]["fcf"] / 1e3, 1.0),
+    ("04-capital-and-valuation.md", "Y1 cash need in the ENISA paragraph",
+     r"Y1 cash need of €([\d,]+)k", -ROWS[0]["fcf"] / 1e3, 1.0),
+
     ("README.md", "peak burn",
      r"peak burn €(\d+)k", peak_funding() / 1e3, 1.0),
 

@@ -1248,7 +1248,7 @@ def ratios(rows: list[dict]) -> str:
         ["Gross margin"] + [f"{rows[i]['gross'] / rows[i]['revenue']:.0%}" for i in pick]
         + ["Capped by the payment rail, not by engineering"],
         ["EBITDA margin"] + [f"{rows[i]['ebitda'] / rows[i]['revenue']:.0%}" for i in pick]
-        + ["Turns positive in Y5"],
+        + [f"Turns positive in Y{next((r['year'] for r in rows if r['ebitda'] > 0), 0)}"],
         ["Net margin"] + [f"{rows[i]['net_profit'] / rows[i]['revenue']:.0%}" for i in pick]
         + ["Below EBITDA by amortisation and tax"],
         ["Cost of sales / revenue"] + [f"{rows[i]['cogs'] / rows[i]['revenue']:.0%}" for i in pick]

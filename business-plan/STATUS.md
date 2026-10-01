@@ -52,7 +52,7 @@ uv run python business-plan/build_workbook.py                  # the .xlsx
 Then check it:
 
 ```bash
-uv run python scripts/doc_consistency.py    # 333 prose claims against the model
+uv run python scripts/doc_consistency.py    # 336 prose claims against the model
 uv run python scripts/verify_workbook.py    # structure: refs, cycles, parsing
 uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 ```
@@ -185,7 +185,7 @@ grades, and the cheapest fix is to drop those pins or delete the file.
 ## Decisions worth not relitigating
 
 - **A staged pre-seed: €150k now, €250k in Y2.**
-  The cumulative cash need to the end of Y1 is only €73k, and Y1 is the year
+  The cumulative cash need to the end of Y1 is €113k, and Y2 is the year
   that settles whether fans pay. Raising the whole runway against that question
   prices it as a promise; raising the second tranche against three months of
   real revenue prices it on evidence. Same €400k total, founder holds
