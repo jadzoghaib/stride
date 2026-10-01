@@ -290,8 +290,8 @@ is genuinely outstanding:
 |---|---|---|---|
 | **P0**: pre-revenue | Stripe Connect, athlete KYC | EUR migration |  |
 | **P1**: first revenue | **A tier entity with a price**, recurring billing, entitlement expiry, dunning | Posts, courses, events, products, polls, free-vs-locked, subscribe as its own relationship, fan feed, fan DMs | **Pre-seed gate** |
-| **P2**: the thesis test | Transcode, object storage, CDN, automated classification ahead of the human queue | Image **and video** upload, locked delivery, age gate at 16, block, report, admin review queue | Pre-seed → Seed |
-| **P3**: second engine | Deal payments, escrow, sponsor billing plans | Deals, deliverables, measurement against the offer-time projection | Seed gate |
+| **P2**: the thesis test | Transcode, object storage, CDN, automated classification ahead of the human queue | Image **and video** upload, locked delivery, age gate at 16, block, report, admin review queue | Pre-seed extension |
+| **P3**: second engine | Deal payments, escrow, sponsor billing plans | Deals, deliverables, measurement against the offer-time projection | Pre-seed extension |
 | **P4**: scale | Refunds/disputes, multi-currency, notifications |  | Growth-round gate |
 
 > [!warning] DAC7 has moved out of P4

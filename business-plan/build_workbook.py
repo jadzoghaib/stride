@@ -466,7 +466,7 @@ def build() -> pathlib.Path:
 
     r = section(a, r, "PEOPLE & OVERHEAD")
     put("Headcount", "FTE", A.headcount, '0.0', "headcount")
-    put("Loaded salary (incl. ~31% employer SS)", "EUR", A.loaded_salary_eur, MONEY, "salary")
+    put("Loaded salary (incl. ~32% employer SS)", "EUR", A.loaded_salary_eur, MONEY, "salary")
     put("Legal & compliance", "EUR", A.legal_compliance_eur, MONEY, "legal")
     put("Other opex as % of revenue", "%", [A.other_opex_pct_of_revenue] * N, PCT, "other_pct", const=True)
     r += 1
