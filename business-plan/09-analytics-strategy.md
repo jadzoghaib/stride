@@ -49,7 +49,7 @@ well set up for it:
 **What to add now, while it is cheap:** an event for every fan subscribe, cancel,
 unlock, tip and paywall view, with the athlete, sport, country and tier attached.
 Those five events are the entire Phase-2 dataset, and adding them costs an
-afternoon during P1. Adding them in Y3 means a year of blind cohorts.
+afternoon during B2. Adding them in Y3 means a year of blind cohorts.
 
 ### Phase 1: Observed data (pre-seed → seed)
 

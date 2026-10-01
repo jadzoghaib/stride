@@ -45,13 +45,13 @@ season pass retains 82%.
 
 **Recommendation: €9.99 default, €4.99 available but unsuggested, and push the
 season pass hard.** Worth more than a take-rate change and costs nothing.
-Needs a decision before P1 ships because it shapes the tier UI.
+Needs a decision before B2 ships because it shapes the tier UI.
 
 ### B1: Video, or text and photo first?
 
-**Recommendation: text and photo in P1.** It answers the only question that
+**Recommendation: text and photo in B2.** It answers the only question that
 matters, *will fans pay?*, without a transcoding pipeline, a CDN decision, or
-video's moderation exposure. Commit to video only once P1 has three months of
+video's moderation exposure. Commit to video only once B2 has three months of
 churn data. See [05](05-product-gaps.md#sequenced-build).
 
 ### B3: Sponsorship payments through Stride, or record-only?
@@ -138,7 +138,7 @@ change in the plan**, because it makes the algorithm agree with the strategy.
 ### F4: What happens to the sponsorship marketplace if fans don't pay?
 
 The fallback is good and should be stated: **the product already works as a
-sponsorship marketplace today.** If P1 shows fans won't pay, the company becomes
+sponsorship marketplace today.** If B2 shows fans won't pay, the company becomes
 a smaller, viable, analytics-led B2B business rather than a failure. Worth
 naming explicitly in any investor conversation; it is a genuine floor under the
 downside, and few pre-seed companies have one.

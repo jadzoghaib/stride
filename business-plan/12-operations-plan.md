@@ -55,8 +55,9 @@ Four core processes create value. Three support processes keep them running.
   S3  Support and dispute handling: athlete, sponsor and fan queues
 ```
 
-**Classification.** P1 and P3 are the only processes that consume meaningful
-human time. P2 and P4 are automated end to end once the entities exist. S1 and
+**Classification.** These four are *processes*, numbered P1 to P4; the *build
+phases* in §12.11 are numbered B0 to B4 and are a different thing entirely. P1
+and P3 are the only processes that consume meaningful human time. P2 and P4 are automated end to end once the entities exist. S1 and
 S2 are subcontracted (§12.2). This is the whole operational thesis: **the
 marketplace scales without linear headcount because the only human step is
 admission review, and admission review is bounded by applications, not by
@@ -214,9 +215,10 @@ one.
 | Item | Amount | Timing |
 |---|---|---|
 | Product build to date | **€80k** (founder time + direct cost) | Pre-seed, already spent |
-| Payments integration (P0) | ~€25k | First 3 months post-raise |
-| Tier entity and billing (P1) | ~€40k | Months 3–6 |
-| Media pipeline (P2) | ~€60k | Months 6–12 |
+| Payment rail (B0) | ~€25k | First 3 months post-raise |
+| Deal payments and sponsor billing (B1) | ~€30k | Months 2–5 |
+| Tier entity and billing (B2) | ~€40k | Months 4–8 |
+| Media pipeline (B3) | ~€60k | Months 8–14 |
 | Spain go-to-market | ~€90k | Y1–Y2 |
 | Working capital and buffer | Balance of the raise | Continuous |
 
@@ -282,11 +284,31 @@ Sequenced by what unlocks revenue, not by what is easiest to build.
 
 | Stage | What ships | Gate it opens |
 |---|---|---|
-| **P0** | Payments: Stripe Connect, wallet, payout rail | A euro can move |
-| **P1** | Tier entity with a price, recurring billing, entitlement expiry, dunning | **Fan revenue starts. This is the pre-seed gate.** |
-| **P1.5** | One-off unlocks, courses, sponsored labels | ARPU without new infrastructure |
-| **P2** | Transcode, object storage, CDN, automated classification | Video, and the thesis test at scale |
-| **P2.5** | Ballots, events with capacity, club publishing and revenue split | The club channel monetises |
+| **B0** | Stripe Connect, wallet, payout rail, athlete KYC | A euro can move. Everything else needs this |
+| **B1** | Deal payments, escrow, sponsor billing plans, DAC7 seller due diligence | **Commission revenue starts.** Contractual, no content obligations |
+| **B2** | Tier entity with a price, recurring billing, entitlement expiry, dunning | **Fan revenue starts. This is the pre-seed gate** |
+| **B3** | Transcode, object storage, CDN, automated classification, age assurance | Video, and the moderation obligation that comes with it |
+| **B4** | Ballots, events with capacity, club publishing and revenue split, refunds and disputes, multi-currency | Growth-round gate |
+
+**Sponsorship is monetised before fan subscriptions, and that is a reversal.**
+An earlier version of this plan built fan tiers first and deal payments third.
+Three reasons for the change, in order of weight: deal payments are the cheapest
+of the three to build here, because `deals` already carries a status lifecycle
+and needs a payment attached rather than a new model; commission is contractual
+revenue, invoiced against a signed deal, rather than a subscription that has to
+be retained; and sponsorship carries none of the content obligations, so the DSA
+moderation duty, the minors exposure and the media egress bill all arrive a phase
+later than they used to.
+
+Two things it costs, and they belong next to the three reasons. **The pre-seed
+gate is three months of measured fan churn, and fan tiers are now the second
+build rather than the first**, so there is one more thing to ship before the gate
+opens. And **DAC7 seller due diligence attaches to deal payments**, which have
+moved earlier, so a reporting obligation that used to sit two phases out now sits
+in the first phase after the rail.
+
+What it does not change is the financial model. This is a build order inside Y1,
+not a change to the year revenue starts.
 
 **Market sequence:** Spain through the pre-seed gate, second market at the pre-seed extension,
 third and EU-wide from the growth round. The reasoning is in [06](06-market-strategy.md):
