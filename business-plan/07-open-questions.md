@@ -15,7 +15,7 @@
 
 Each was the right call, and each closed off something worth naming:
 
-- **15% flat** forfeits €1.6M of Y7 revenue versus 20%. Bought: a pricing
+- **15% flat** forfeits €0.5M of Y7 revenue versus 20%. Bought: a pricing
   argument that survives contact with the exact athlete we target.
 - **18+ for fan subscriptions** forfeits the 16–17 cohort's fan revenue for the
   first year or two. Bought: distance from the risk that has produced litigation
@@ -86,7 +86,7 @@ in popular sports. The honest reconciliation is that we disintermediate the
 *deal-finding*, not the *representation*, an agent still negotiates, we just
 make the introduction on evidence instead of on their contact list.
 
-### D1: Raise €392k, or the €2.4M the rounds imply?
+### D1: Raise €409k, or the €1.9M the rounds imply?
 
 **Recommendation: non-dilutive stack first** (ENISA + Neotec, €300–500k), then a
 smaller pre-seed. Every grant euro is equity retained.
@@ -99,10 +99,13 @@ sustainability. **Worth deciding deliberately rather than by default.**
 
 ### D3: Which valuation do we present?
 
-**Recommendation: lead with the exit multiple discounted back (€11–25M), present
-the DCF (€8.6M) as the conservative floor**, and explain why they differ. An
-examiner who spots a perpetuity-growth DCF applied to a company still growing
-27% in the terminal year will discount everything else.
+**Recommendation: lead with the exit multiple discounted back
+(€2.1–5.1M), present the DCF (€965k) as the
+conservative floor**, and explain why they differ. An examiner who spots a
+perpetuity-growth DCF applied to a company still growing 16% in the
+terminal year will discount everything else. Appendix D also names which end of
+the multiple range the plan's own growth rate supports, which is the lower
+one.
 
 ---
 

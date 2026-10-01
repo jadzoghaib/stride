@@ -468,6 +468,39 @@ def check_variances(calc: Calculator) -> list[str]:
                     f"VARIANCE {heading} Y{col - 2}: workbook differs from "
                     f"model.py by {value:,.0f}")
     print(f"Check sheet: {checked} variance cells computed")
+    problems += check_reconciliations(calc)
+    return problems
+
+
+def check_reconciliations(calc: Calculator) -> list[str]:
+    """Rows labelled CHECK on any OTHER sheet must compute to zero too.
+
+    HiringPlan reconciles its role ladder against the model's headcount in such
+    a row, and nothing read it: check_variances() walks the Check sheet only, so
+    the row sat at 7.5 while the recalculator reported the workbook agreeing
+    with model.py. A cell that says "must be zero" and is never read is worse
+    than no cell, because it tells a reader the work was done.
+    """
+    problems, checked = [], 0
+    for name in calc.wb.sheetnames:
+        if name == "Check":
+            continue
+        ws = calc.wb[name]
+        for row in ws.iter_rows(min_col=1, max_col=1):
+            label = row[0].value
+            if not isinstance(label, str) or label.strip().upper() != "CHECK":
+                continue
+            for col in range(3, ws.max_column + 1):
+                if ws.cell(row=row[0].row, column=col).value is None:
+                    continue
+                checked += 1
+                value = _num(calc.cell(name, col, row[0].row))
+                if abs(value) > 0.001:
+                    problems.append(
+                        f"CHECK {name} Y{col - 2}: reconciliation row is "
+                        f"{value:,.3f}, not zero")
+    if checked:
+        print(f"Reconciliation rows on other sheets: {checked} cells computed")
     return problems
 
 
@@ -500,8 +533,9 @@ def main() -> int:
             print(f"  ... and {len(problems) - 25} more")
         return 1
 
-    print("every formula evaluates, and every VARIANCE row on the Check sheet "
-          "is zero: the workbook computes what model.py computes.")
+    print("every formula evaluates, every VARIANCE row on the Check sheet is "
+          "zero and every CHECK row elsewhere reconciles: the workbook computes "
+          "what model.py computes.")
     return 0
 
 

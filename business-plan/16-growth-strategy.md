@@ -19,7 +19,7 @@ of move.
 |---|---|---|
 | Pre-seed | **Spain only** |  |
 | Seed | +1 market (Portugal) | 3 months of fan churn data; €80k recurring MRR |
-| Series A | +3–4 markets (Italy first), EU-wide | Unit economics stable across 3 markets |
+| Growth round | +1–2 markets (Italy first) | Unit economics stable across 2 markets |
 | Y8+ | Selective non-EU | Regulatory review per market |
 
 The second market is chosen for **sport-mix similarity, not size**: the sport
@@ -107,7 +107,7 @@ Stated because growth plans are judged as much by their exclusions:
 The plan is built to reach profitability without an exit, which is what makes
 the options real rather than hopeful:
 
-1. **Independent operation.** EBITDA-positive in Y5, €10.2M EBITDA by Y10.
+1. **Independent operation.** EBITDA-positive in Y5, €1.4M EBITDA by Y10.
 2. **Strategic acquisition.** The natural acquirers are creator platforms buying
    a vertical, sports-data companies buying a consumer surface, or a sponsorship
    agency buying disintermediation before it happens to them.

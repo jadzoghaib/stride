@@ -72,6 +72,70 @@ PLATFORM_FACTS: list[tuple] = [
      "Publicis: stated 50-70% vs a traditional agency process"),
 ]
 
+# -- Sponsorship marketplaces: the direct comparable set --------------------
+# The platforms above are creator-economy comparables, which is where the fan
+# subscription model comes from. These four are the actual competitors: two
+# sided sponsorship marketplaces, matching brands to athletes. They are listed
+# here because they answer a question the creator platforms cannot, which is
+# how large a company of this exact shape has managed to become, and on how
+# much capital.
+#
+# Every figure is from a PitchBook company profile retrieved 1 October 2026.
+# PitchBook reports in EUR. None of the four discloses revenue, so headcount
+# and capital raised are the only scale measures available, and the plan says
+# so rather than inventing a revenue line for them.
+#
+# (company, country, founded, employees, employees_asof, total_raised_eur,
+#  largest_round, largest_round_date, largest_pre_eur, status)
+SPONSORSHIP_PLATFORMS: list[tuple] = [
+    # The closest comparable by model and by market: a European two sided
+    # sponsorship marketplace, athlete and club side supply, brand side demand.
+    # Eleven years old, thirteen people, EUR 2.17M raised in total. The FY2023
+    # filing shows total equity of zero against total assets of EUR 1.055M,
+    # which is to say the accumulated losses have consumed the paid in capital.
+    # PitchBook's own exit model puts it at 94% probability of no exit.
+    ("Sponsoo", "Germany", 2014, 13, "14 Nov 2025", 2_170_000,
+     "Series A", "28 Jan 2021", 15_900_000, "Privately held, venture backed"),
+    # Same founding year as Sponsoo, United States, backed by 500 Global and
+    # Serena Ventures. Twelve years to 23 people on EUR 5.40M.
+    ("OpenSponsorship", "United States", 2014, 23, "9 Mar 2026", 5_400_000,
+     "Later Stage VC", "21 Oct 2021", 0, "Privately held, venture backed"),
+    # The outlier, and the reason the set is not simply discouraging: a
+    # Series A of EUR 37.47M at a EUR 89.38M pre money in 2022, and 355 people
+    # six years from founding. It is a sponsorship DATA business selling to
+    # rights holders and agencies, not a marketplace that executes deals, which
+    # is the part worth noticing about what got funded at that size.
+    ("SponsorUnited", "United States", 2016, 355, "28 May 2026", 38_760_000,
+     "Series A", "21 Nov 2022", 89_380_000, "Privately held, venture backed"),
+    # The cautionary one. Founded 2001, raised EUR 21.47M across eighteen
+    # years, reached 47 people, and ended in a buyout in February 2022 rather
+    # than an exit anyone would describe as a success. Sponsorship analytics
+    # for brands, having started as an athlete social network.
+    ("Hookit", "United States", 2001, 47, "8 Feb 2022", 21_470_000,
+     "Series C2", "24 Feb 2020", 38_400_000, "Acquired, operating subsidiary"),
+]
+
+#: Sponsoo's and Hookit's pre money figures above are PitchBook estimates
+#: (flagged "E" on the source profiles), not reported terms. SponsorUnited's
+#: and OpenSponsorship's rounds are reported. The distinction matters when the
+#: plan prices its own round against them, so it is recorded here rather than
+#: smoothed away.
+PREMONEY_ESTIMATED: set[str] = {"Sponsoo", "Hookit"}
+
+#: Revenue per employee benchmarks, for sanity checking our own. None of the
+#: four comparables discloses revenue, so the benchmark has to come from the
+#: wider software industry, where it is published. These are the figures the
+#: plan tests its own headcount against.
+#: (label, eur_per_employee, source)
+REVENUE_PER_EMPLOYEE: list[tuple] = [
+    ("Median private B2B SaaS, all stages", 135_000,
+     "SaaS Capital 2025 survey of ~1,000 private B2B SaaS companies"),
+    ("Top quartile private B2B SaaS", 215_000,
+     "SaaS Capital 2025 survey, 75th percentile"),
+    ("Efficient public SaaS at scale", 300_000,
+     "Public SaaS medians, widely reported range EUR 250-350k"),
+]
+
 # ── Take rates: what each platform actually costs a creator ──────────────────
 # (platform, headline_take, per_txn_usd, monthly_fee_usd, source)
 TAKE_RATES: list[tuple] = [
@@ -159,4 +223,9 @@ SOURCE_URLS = {
     "Stripe EU pricing": "https://stripe.com/es/pricing",
     "TEKTA launch": "https://www.publicisgroupe.com/en/news/press-releases/publicis-sports-and-travis-kelce-s-tekta-join-forces-to-reimagine-the-future-of-nil-marketing",
     "Stripe Connect age": "https://support.stripe.com/questions/age-requirement-to-create-a-stripe-account",
+    "PitchBook: Sponsoo GmbH": "https://pitchbook.com/profiles/company/103066-39",
+    "PitchBook: OpenSponsorship": "https://pitchbook.com/profiles/company/113575-96",
+    "PitchBook: SponsorUnited": "https://pitchbook.com/profiles/company/169635-43",
+    "PitchBook: Hookit": "https://pitchbook.com/profiles/company/55307-17",
+    "SaaS Capital revenue per employee benchmarks": "https://www.saas-capital.com/blog-posts/revenue-per-employee-benchmarks-for-private-saas-companies/",
 }

@@ -13,11 +13,11 @@ python business-plan/model.py
 <!-- MODEL:drivers -->
 | Driver | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Active athletes | 400 | 1,200 | 3,000 | 6,000 | 10,500 | 16,000 | 22,000 | 28,000 | 34,000 | 40,000 |
-| Paying fans | 2,058 | 8,148 | 25,288 | 60,197 | 120,076 | 206,658 | 321,288 | 434,076 | 553,629 | 665,896 |
-| Sponsorship deals | 25 | 117 | 485 | 1,549 | 3,767 | 7,376 | 11,563 | 16,258 | 19,895 | 25,539 |
-| Paying sponsors (SaaS) | 0 | 8 | 39 | 95 | 180 | 280 | 400 | 520 | 620 | 720 |
-| Headcount (FTE) | 1.0 | 1.5 | 2.0 | 3.5 | 6.0 | 9.0 | 13.0 | 18.0 | 23.0 | 28.0 |
+| Active athletes | 250 | 750 | 1,700 | 2,800 | 4,000 | 5,200 | 6,300 | 7,200 | 7,900 | 8,500 |
+| Paying fans | 1,286 | 5,093 | 14,334 | 28,169 | 46,066 | 67,882 | 92,005 | 111,619 | 128,637 | 141,503 |
+| Sponsorship deals | 15 | 73 | 275 | 723 | 1,435 | 2,397 | 3,311 | 4,181 | 4,623 | 5,427 |
+| Paying sponsors (SaaS) | 0 | 3 | 18 | 46 | 76 | 102 | 124 | 142 | 158 | 170 |
+| Headcount (FTE) | 1.0 | 1.0 | 1.5 | 2.0 | 4.0 | 7.0 | 10.0 | 12.5 | 14.5 | 16.0 |
 <!-- /MODEL:drivers -->
 
 ---
@@ -31,12 +31,12 @@ show:
 <!-- MODEL:churn -->
 | Retention & acquisition | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Paying fans, year end | 2,058 | 8,148 | 25,288 | 60,197 | 120,076 | 206,658 | 321,288 | 434,076 | 553,629 | 665,896 |
-| Paying fans, average | 1,306 | 5,897 | 18,939 | 47,228 | 97,837 | 174,458 | 277,911 | 391,108 | 507,748 | 622,731 |
-| Fans acquired (gross) | 3,298 | 11,704 | 34,885 | 78,554 | 149,732 | 245,280 | 353,875 | 449,346 | 549,558 | 636,796 |
-| Fans lost to churn | 1,241 | 5,614 | 17,746 | 43,645 | 89,854 | 158,698 | 239,245 | 336,558 | 430,005 | 524,528 |
-| Athletes acquired (gross) | 400 | 909 | 2,094 | 3,690 | 5,796 | 7,671 | 9,200 | 10,224 | 11,278 | 12,229 |
-| Athletes lost to churn | 0 | 109 | 294 | 690 | 1,296 | 2,171 | 3,200 | 4,224 | 5,278 | 6,229 |
+| Paying fans, year end | 1,286 | 5,093 | 14,334 | 28,169 | 46,066 | 67,882 | 92,005 | 111,619 | 128,637 | 141,503 |
+| Paying fans, average | 816 | 3,686 | 10,913 | 23,047 | 39,464 | 59,832 | 82,915 | 104,178 | 122,124 | 136,574 |
+| Fans acquired (gross) | 2,062 | 7,315 | 19,515 | 35,368 | 54,613 | 76,887 | 96,227 | 109,972 | 121,242 | 128,698 |
+| Fans lost to churn | 775 | 3,509 | 10,274 | 21,533 | 36,716 | 55,071 | 72,104 | 90,358 | 104,225 | 115,832 |
+| Athletes acquired (gross) | 250 | 568 | 1,134 | 1,491 | 1,805 | 2,027 | 2,140 | 2,110 | 2,057 | 2,047 |
+| Athletes lost to churn | 0 | 68 | 184 | 391 | 605 | 827 | 1,040 | 1,210 | 1,357 | 1,447 |
 <!-- /MODEL:churn -->
 
 **Revenue accrues on the average fan count, not the year-end count.** Charging
@@ -45,7 +45,7 @@ during fast growth: the previous version of this model did exactly that.
 
 **Gross adds dwarf net adds.** At 9%/month a cohort retains 32% over a year, so
 most of next year's fans are replacements for this year's. In Y7 we acquire
-354k fans to finish with 321k, having lost 239k. That is the real acquisition
+96k fans to finish with 92k, having lost 72k. That is the real acquisition
 machine, and it was invisible until churn was modelled explicitly.
 
 ---
@@ -68,14 +68,14 @@ in kind rather than in size. Sports are assigned by
 
 | Segment | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
-| **Niche: athletes** | 380 | 1,656 | 4,400 | 8,840 | 14,500 | 19,000 | 23,400 |
-| **Niche: paying fans** | 2,128 | 11,658 | 40,700 | 101,483 | 191,400 | 279,680 | 381,888 |
-| **Niche: net revenue** | €43k | €250k | €912k | €2.37M | €4.64M | €6.96M | €9.68M |
-| **Popular: athletes** | 20 | 144 | 1,100 | 4,160 | 10,500 | 19,000 | 28,600 |
-| **Popular: paying fans** | 73 | 710 | 7,040 | 33,488 | 103,740 | 218,120 | 377,520 |
-| **Popular: net revenue** | €2k | €22k | €231k | €1.21M | €3.99M | €8.88M | €15.58M |
+| **Niche: athletes** | 238 | 690 | 1,360 | 1,904 | 2,320 | 2,600 | 2,835 |
+| **Niche: paying fans** | 1,252 | 4,858 | 12,580 | 21,858 | 30,624 | 38,272 | 46,267 |
+| **Niche: net revenue** | €14k | €64k | €184k | €361k | €555k | €737k | €916k |
+| **Popular: athletes** | 12 | 60 | 340 | 896 | 1,680 | 2,600 | 3,465 |
+| **Popular: paying fans** | 35 | 235 | 1,754 | 6,311 | 15,442 | 29,610 | 45,738 |
+| **Popular: net revenue** | €1k | €6k | €48k | €184k | €474k | €947k | €1.50M |
 | Niche share of athletes | 95% | 92% | 80% | 68% | 58% | 50% | 45% |
-| **Niche share of revenue** | **95%** | **92%** | **80%** | **66%** | **54%** | **44%** | **38%** |
+| **Niche share of revenue** | **91%** | **82%** | **64%** | **51%** | **42%** | **35%** | **30%** |
 
 **Niche funds the company; popular scales it.** Niche sports carry 95% of
 revenue through Y2: the entire period before the first external raise, and
@@ -106,9 +106,9 @@ is the point of splitting them.
 <!-- MODEL:gmv -->
 | Marketplace volume | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Fan GMV (subs + unlocks) | €139k | €651k | €2.15M | €5.41M | €11.30M | €20.11M | €32.08M | €45.44M | €59.55M | €73.77M |
-| Sponsorship GMV | €27k | €159k | €908k | €3.62M | €10.40M | €23.01M | €39.70M | €58.95M | €76.01M | €102.13M |
-| **Total GMV** | €166k | €810k | €3.05M | €9.03M | €21.70M | €43.12M | €71.78M | €104.39M | €135.56M | €175.90M |
+| Fan GMV (subs + unlocks) | €87k | €407k | €1.24M | €2.64M | €4.56M | €6.90M | €9.57M | €12.11M | €14.32M | €16.18M |
+| Sponsorship GMV | €17k | €99k | €515k | €1.69M | €3.96M | €7.48M | €11.37M | €15.16M | €17.66M | €21.70M |
+| **Total GMV** | €104k | €506k | €1.75M | €4.33M | €8.52M | €14.37M | €20.94M | €27.27M | €31.99M | €37.88M |
 <!-- /MODEL:gmv -->
 
 GMV is the number a marketplace is judged on by investors; net revenue is the
@@ -122,13 +122,13 @@ other.
 <!-- MODEL:revenue -->
 | Net revenue | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Fan take (15%) | €21k | €98k | €322k | €811k | €1.69M | €3.02M | €4.81M | €6.82M | €8.93M | €11.07M |
-| Sponsorship take (blended by plan) | €3k | €15k | €81k | €319k | €907k | €2.00M | €3.43M | €5.07M | €6.52M | €8.74M |
-| Sponsor SaaS | €1k | €21k | €122k | €331k | €691k | €1.21M | €1.92M | €2.68M | €3.39M | €4.10M |
-| **Total net revenue** | €25k | €133k | €525k | €1.46M | €3.29M | €6.22M | €10.16M | €14.57M | €18.84M | €23.91M |
+| Fan take (15%) | €13k | €61k | €185k | €396k | €684k | €1.03M | €1.44M | €1.82M | €2.15M | €2.43M |
+| Sponsorship take (blended by plan) | €2k | €9k | €46k | €149k | €346k | €649k | €982k | €1.30M | €1.52M | €1.86M |
+| Sponsor SaaS | €537 | €8k | €56k | €159k | €292k | €441k | €595k | €733k | €863k | €969k |
+| **Total net revenue** | €15k | €78k | €288k | €704k | €1.32M | €2.12M | €3.01M | €3.85M | €4.53M | €5.25M |
 <!-- /MODEL:revenue -->
 
-Growth: Y2 +440%, Y3 +298%, Y4 +181%, Y5 +128%, Y6 +90%, Y7 +64%. A decelerating
+Growth: Y2 +414%, Y3 +298%, Y4 +181%, Y5 +128%, Y6 +90%, Y7 +42%. A decelerating
 curve that stays above 50% through Y7 is what a Series B buyer wants to see.
 
 ---
@@ -138,23 +138,23 @@ curve that stays above 50% through Y7 is what a Series B buyer wants to see.
 <!-- MODEL:pl -->
 | P&L | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 | Y8 | Y9 | Y10 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Net revenue | €25k | €133k | €525k | €1.46M | €3.29M | €6.22M | €10.16M | €14.57M | €18.84M | €23.91M |
-| Payment processing | €8k | €39k | €137k | €371k | €830k | €1.56M | €2.55M | €3.67M | €4.78M | €6.08M |
-| Payouts | €645 | €3k | €11k | €32k | €74k | €144k | €237k | €343k | €446k | €574k |
-| Infrastructure (AWS) | €2k | €9k | €28k | €73k | €149k | €234k | €336k | €428k | €508k | €576k |
-| Moderation | €1k | €4k | €10k | €19k | €33k | €51k | €70k | €89k | €108k | €127k |
-| Athlete verification | €745 | €2k | €5k | €8k | €12k | €15k | €18k | €20k | €23k | €25k |
-| **Gross profit** | €11k | €76k | €334k | €958k | €2.20M | €4.22M | €6.95M | €10.03M | €12.97M | €16.53M |
-| Gross margin | 46% | 57% | 64% | 66% | 67% | 68% | 68% | 69% | 69% | 69% |
-| People | €38k | €78k | €120k | €224k | €396k | €612k | €910k | €1.30M | €1.70M | €2.13M |
-| Marketing / CAC | €29k | €87k | €229k | €520k | €915k | €1.30M | €1.70M | €1.85M | €1.80M | €1.95M |
+| Net revenue | €15k | €78k | €288k | €704k | €1.32M | €2.12M | €3.01M | €3.85M | €4.53M | €5.25M |
+| Payment processing | €5k | €25k | €79k | €180k | €331k | €528k | €752k | €967k | €1.14M | €1.32M |
+| Payouts | €403 | €2k | €6k | €15k | €29k | €48k | €69k | €90k | €106k | €124k |
+| Infrastructure (AWS) | €2k | €6k | €14k | €28k | €45k | €62k | €78k | €92k | €105k | €117k |
+| Moderation | €792 | €2k | €5k | €9k | €13k | €16k | €20k | €23k | €25k | €27k |
+| Athlete verification | €466 | €1k | €3k | €3k | €4k | €4k | €4k | €4k | €4k | €4k |
+| **Gross profit** | €6k | €42k | €181k | €468k | €900k | €1.47M | €2.09M | €2.68M | €3.15M | €3.66M |
+| Gross margin | 42% | 54% | 63% | 67% | 68% | 69% | 69% | 69% | 70% | 70% |
+| People | €38k | €52k | €90k | €128k | €264k | €476k | €700k | €900k | €1.07M | €1.22M |
+| Marketing / CAC | €20k | €51k | €117k | €220k | €313k | €344k | €344k | €317k | €307k | €276k |
 | Legal & compliance | €18k | €45k | €90k | €150k | €200k | €235k | €270k | €300k | €325k | €345k |
-| Other opex | €2k | €11k | €42k | €117k | €263k | €498k | €813k | €1.17M | €1.51M | €1.91M |
-| **EBITDA** | €-76k | €-145k | €-147k | €-53k | €420k | €1.57M | €3.25M | €5.41M | €7.64M | €10.20M |
-| Tax | €0 | €0 | €0 | €0 | €0 | €193k | €459k | €769k | €1.09M | €2.42M |
-| Working capital movement | €-15k | €-38k | €-106k | €-262k | €-517k | €-830k | €-1.10M | €-1.23M | €-1.20M | €-1.50M |
-| Capex (capitalised development) | €11k | €23k | €36k | €67k | €119k | €184k | €273k | €389k | €511k | €638k |
-| **Free cash flow** | €-73k | €-130k | €-77k | €142k | €819k | €2.02M | €3.62M | €5.49M | €7.24M | €8.64M |
+| Other opex | €1k | €6k | €23k | €56k | €106k | €170k | €241k | €308k | €362k | €420k |
+| **EBITDA** | €-71k | €-111k | €-140k | €-86k | €17k | €240k | €535k | €852k | €1.08M | €1.40M |
+| Tax | €0 | €0 | €0 | €0 | €0 | €0 | €7k | €97k | €122k | €163k |
+| Working capital movement | €-11k | €-24k | €-61k | €-112k | €-175k | €-233k | €-260k | €-247k | €-191k | €-219k |
+| Capex (capitalised development) | €11k | €16k | €27k | €38k | €79k | €143k | €210k | €270k | €322k | €365k |
+| **Free cash flow** | €-72k | €-103k | €-105k | €-12k | €113k | €330k | €578k | €733k | €828k | €1.10M |
 <!-- /MODEL:pl -->
 
 Free cash flow is EBITDA less tax, working capital movement and capex, not
@@ -179,30 +179,30 @@ parent (~85% at a 20% take on far larger tickets).
 <!-- MODEL:cash -->
 | Year | Free cash flow | Cumulative |
 |---|---|---|
-| Y1 | €-73k | €-73k |
-| Y2 | €-130k | €-203k |
-| Y3 | €-77k | €-280k |
-| Y4 | €142k | €-138k |
-| Y5 | €819k | €681k |
-| Y6 | €2.02M | €2.70M |
-| Y7 | €3.62M | €6.32M |
-| Y8 | €5.49M | €11.81M |
-| Y9 | €7.24M | €19.05M |
-| Y10 | €8.64M | €27.69M |
+| Y1 | €-72k | €-72k |
+| Y2 | €-103k | €-175k |
+| Y3 | €-105k | €-280k |
+| Y4 | €-12k | €-292k |
+| Y5 | €113k | €-179k |
+| Y6 | €330k | €151k |
+| Y7 | €578k | €728k |
+| Y8 | €733k | €1.46M |
+| Y9 | €828k | €2.29M |
+| Y10 | €1.10M | €3.39M |
 <!-- /MODEL:cash -->
 
 | Capital requirement | Value |
 <!-- MODEL:funding -->
 | Capital requirement | Value |
 |---|---|
-| Deepest cumulative cash position | €-280k |
-| Year it occurs | Y3 |
-| Buffer at 40% (hiring slips, churn worse) | €112k |
-| **Total capital to fund the plan** | **€392k** |
+| Deepest cumulative cash position | €-292k |
+| Year it occurs | Y4 |
+| Buffer at 40% (hiring slips, churn worse) | €117k |
+| **Total capital to fund the plan** | **€409k** |
 | First EBITDA-positive year | Y5 |
 <!-- /MODEL:funding -->
 
-**€392k is a small number for a plan that reaches €10.16M of revenue by Y7,
+**€409k is a small number for a plan that reaches €3.01M of revenue by Y7,
 and that should be interrogated rather than celebrated.** It is small because
 the model hires behind revenue rather than ahead of it, and because fan
 acquisition is free. A growth-optimised version: hiring 12 months earlier,
@@ -218,9 +218,16 @@ be wrong are **fans per athlete** and **share of athletes who monetise**.
 
 | Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Capital need |
 |---|---|---|---|---|
-| **Conservative** | Fans/athlete −30%, monetise rate −25% | ~€8.4M | ~€1.9M | ~€1.26M |
-| **Base** | As modelled | €10.16M | €3.25M | €392k |
-| **Growth-optimised** | Hire 12mo ahead, 3 markets from Y2 | ~€39M | ~€9M | €3–5M |
+| Pessimistic | Fans/athlete −30%, monetise −25%, **niche churn at benchmark** | €2.34M | €0.19M | €827k |
+| **Base** | As modelled | €3.01M | €0.53M | €409k |
+| Optimistic | Fans/athlete +25%, monetise +20% | €3.59M | €0.83M | €314k |
+
+These are the same three cases as §7.6 of the body, generated from
+`model.scenario_table()`, which re-runs the whole model against changed drivers
+rather than adjusting the base result. A fourth case, hiring twelve months ahead
+and opening three markets from Y2, used to sit in this table with figures nothing
+produced. It is a real upside and it needs capital the plan has not raised, so it
+belongs in the growth section rather than in a sensitivity table.
 
 To run these, edit `Assumptions` in `model.py` and rerun. The conservative case
 **still reaches profitability in Y5, the same year as the base case**, the

@@ -84,13 +84,13 @@ raising the take rate by a point, without asking athletes for anything.
 | Scout Agency | €999/mo | Unlimited campaigns, multi-seat, API, saved searches | Agencies, national brands |
 
 **Why an entry tier exists, and why it is €99.** In Y1 the average sponsor runs
-about €1,073 of deals through the platform, so the 10% commission on them is
-roughly €107. Scout Pro at €2,988 a year is twenty-eight times that. A sponsor
+about €931 of deals through the platform, so the 10% commission on them is
+roughly €93. Scout Pro at €2,988 a year is twenty-eight times that. A sponsor
 is being asked to multiply their total spend with us by a large factor to buy
 software, at exactly the point when the directory is thinnest and the software
 is worth least. €99 a month is credible against that; €249 is not. The ratio
-only reaches parity around Y7, when the average sponsor runs €19,848 of deals
-and the commission alone is €1,985.
+only reaches parity around Y7, when the average sponsor runs €18,334 of deals
+and the commission alone is €1,833.
 
 **This is what the ARPU path has always assumed.** Blended revenue per paying
 sponsor runs €199 in Y1 to €475 by Y10, and the early figures sit *below*
@@ -109,7 +109,7 @@ brands become the larger buyer.
 
 SaaS matters disproportionately: it is **100% margin** (no GMV, no payment
 rail), and it converts the analytics engine into revenue that does not depend on
-a deal closing. By Y7 it is €1.92M of the €10.16M: 18% of revenue at close to
+a deal closing. By Y7 it is €0.60M of the €3.01M: 18% of revenue at close to
 100% gross margin, which is roughly 28% of gross profit.
 
 ---
@@ -256,18 +256,18 @@ two decisions have to agree with each other.
 
 ### The lever, quantified
 
-At Y7 each point of take on fan GMV is worth **€0.32M of revenue**. It is the
+At Y7 each point of take on fan GMV is worth **€0.10M of revenue**. It is the
 single biggest lever in the model, and it now has a real number at both ends
 rather than one:
 
 | Take | Y7 revenue | Y7 EBITDA | Against |
 |---|---|---|---|
-| 20% | €11.77M | €4.73M | OnlyFans' rate, derived from filed accounts |
-| **15%** | **€10.16M** | **€3.25M** | **our proposal** |
-| 10% | €8.56M | €1.78M | Patreon's published, all-in rate |
+| 20% | €3.49M | €0.97M | OnlyFans' rate, derived from filed accounts |
+| **15%** | **€3.01M** | **€0.53M** | **our proposal** |
+| 10% | €2.53M | €0.09M | Patreon's published, all-in rate |
 
-Read the bottom row before the top one. **Matching Patreon costs €1.60M of Y7
-revenue and €1.48M of EBITDA: EBITDA falls 45%, from €3.25M to €1.78M.** The
+Read the bottom row before the top one. **Matching Patreon costs €0.48M of Y7
+revenue and €0.44M of EBITDA: EBITDA falls 82%, from €0.53M to €0.09M.** The
 same five points that look like upside going up are what a price war costs
 going down, and the downside lands harder because the cost base does not shrink
 with the take.
@@ -292,7 +292,7 @@ Against Patreon the argument has to be that the 15% buys something Patreon does
 not sell: the sponsorship side, the score a brand will price against, the
 admission gate that makes the roster mean something. If an athlete only wants a
 paywall, Patreon is cheaper and we should expect to lose that athlete. Revisit
-the percentage at Series A, when the network, not the price: is the reason to
+the percentage at the growth round, when the network, not the price: is the reason to
 stay.
 
 *Sources: [Passes fee structure (Sacra)](https://sacra.com/c/passes/) ·
@@ -323,10 +323,10 @@ rather than cited.*
 
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| Fan take | €21k (84%) | €322k (60%) | €1.69M (49%) | €4.81M (45%) |
-| Sponsorship take | €3k (10%) | €81k (16%) | €907k (28%) | €3.43M (34%) |
-| Sponsor SaaS | €1k (5%) | €122k (23%) | €0.69M (20%) | €1.92M (18%) |
-| **Total** | **€25k** | **€0.53M** | **€3.29M** | **€10.16M** |
+| Fan take | €13k (86%) | €185k (64%) | €684k (52%) | €1.44M (48%) |
+| Sponsorship take | €2k (11%) | €46k (16%) | €346k (26%) | €982k (33%) |
+| Sponsor SaaS | €1k (4%) | €56k (20%) | €292k (22%) | €595k (20%) |
+| **Total** | **€15k** | **€288k** | **€1.32M** | **€3.01M** |
 
 The mix shifts deliberately. Fans fund the early years because they can be
 acquired at near-zero cost: **athletes bring their own audience**. Sponsorship

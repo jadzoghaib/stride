@@ -26,8 +26,8 @@ because the past does not come back.
 |---|---|---|---|---|
 | **0: Borrowed** | Now → pre-seed | Public datasets, your own schema | **0** | Which sports and countries look promising, and what content to advise |
 | **1: Observed** | Pre-seed → seed | Real engagement from connected platforms | **0** (engineering) | What actually converts, per sport and market |
-| **2: Outcome** | Seed → Series A | Deal outcomes, churn cohorts, campaign results | **1** analyst-engineer | Which matches convert, and what a match is really worth |
-| **3: Intelligence** | Series A+ | Everything above, at scale | **3–5** | Prediction, and data as a product |
+| **2: Outcome** | Growth round | Deal outcomes, churn cohorts, campaign results | **1** analyst-engineer | Which matches convert, and what a match is really worth |
+| **3: Intelligence** | Post-growth | Everything above, at scale | **3–5** | Prediction, and data as a product |
 
 ### Phase 0: Borrowed data (now)
 
@@ -65,7 +65,7 @@ measured dataset of what athlete audiences actually do.
 Still no analytics hire. This is instrumentation and queries, done by whoever
 built the pipeline.
 
-### Phase 2: Outcome data (seed → Series A)
+### Phase 2: Outcome data (the growth round)
 
 Now the interesting questions become answerable, because you have outcomes:
 
@@ -84,7 +84,7 @@ was the right call for launch and it stays the explainable baseline: any learned
 model has to beat it, and if it cannot be decomposed for a sponsor it does not
 ship.
 
-### Phase 3: Intelligence as product (Series A+)
+### Phase 3: Intelligence as product (after the growth round)
 
 Three to five people. Predicted campaign lift, dynamic pricing guidance for rate
 cards, and **market intelligence sold to brands**, revenue stream 8 in
@@ -123,7 +123,7 @@ brilliantly produces a confident wrong answer, which is worse than an honest
 | Data | Recommendation |
 |---|---|
 | Sport participation | **Public**: Eurobarometer, federation licences. Free, periodic, sufficient |
-| Sports fandom / media panels | **Do not buy before Series A.** Nielsen/YouGov-class panels cost more than the whole Y1–Y2 analytics budget and are replaced by your own data in Phase 1 |
+| Sports fandom / media panels | **Do not buy before the growth round.** Nielsen/YouGov-class panels cost more than the whole Y1–Y2 analytics budget and are replaced by your own data in Phase 1 |
 | Social platform metrics | **Already yours** via connectors: the reason the engine was built first |
 | BI tooling | Postgres and a notebook until Phase 2. The warehouse can wait for the data to justify it |
 

@@ -228,11 +228,35 @@ def startup_tax_saving() -> float:
                for r in ROWS if abs(r["tax_rate"] - A.tax_low) < 1e-9)
 
 
-def rounds_before_series_a() -> float:
-    return sum(rd["amount"] for rd in model.ROUNDS if rd["stage"] != "Series A")
+def rounds_total() -> float:
+    """Every tranche in the plan, including the optional growth round.
+
+    Was `rounds_before_series_a`, which answered "how much before the round the
+    plan depends on". With the Series A gone there is no such round: the plan
+    depends on the two pre-seed tranches and nothing after them, so the only
+    interesting total is all of it.
+    """
+    return sum(rd["amount"] for rd in model.ROUNDS)
 
 
 DILUTION = {d["stage"]: d for d in model.dilution()}
+#: The scenario table, keyed by name, so the prose interpreting it can be
+#: pinned to the same numbers the table is generated from.
+SCEN = {s["scenario"]: s for s in model.scenario_table()}
+
+
+def _trough_year() -> int:
+    """The year cumulative free cash flow is at its lowest."""
+    cum = low = 0.0
+    year = 1
+    for r in ROWS:
+        cum += r["fcf"]
+        if cum < low:
+            low, year = cum, r["year"]
+    return year
+
+
+TROUGH_YEAR = _trough_year()
 
 # The "discounted to today" column of the exit-multiple table in 04. Rebuilding
 # the arithmetic here was a second source of truth: changing a multiple in
@@ -360,7 +384,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
        ROWS[y - 1]["review_fte"], 0.005) for n, y in enumerate((1, 3, 5, 7))],
 
     ("12-operations-plan.md", "what the startup tax rate is worth",
-     r"worth \*\*€([\d.]+)M across Y6–Y9\*\*", startup_tax_saving() / 1e6, 0.005),
+     r"worth \*\*€(\d+)k across Y7–Y10\*\*", startup_tax_saving() / 1e3, 1.0),
     ("12-operations-plan.md", "Y7 payment processing",
      r"\| Payment processing \| €([\d.]+)M \|", Y7["psp"] / 1e6, 0.005),
     ("12-operations-plan.md", "Y7 infrastructure",
@@ -394,13 +418,10 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"of revenue at Y7 with (\d+) people", ROWS[6]["headcount"], 0.5),
     ("13-organization-and-hr.md", "founders held after both pre-seed tranches",
      r"(\d+)% held after the 2% advisory grant",
-     DILUTION["Pre-seed"]["held"] * 100, 0.5),
-    ("13-organization-and-hr.md", "founders held after the seed",
-     r"\| \*\*Seed\*\* \(€2\.0M, optional\) \|[^|]*\| (\d+)%",
-     DILUTION["Seed (optional)"]["held"] * 100, 0.5),
-    ("13-organization-and-hr.md", "founders held after the Series A",
-     r"\| \*\*Series A\*\* \(€8\.0M\) \|[^|]*\| (\d+)%",
-     DILUTION["Series A"]["held"] * 100, 0.5),
+     DILUTION["Pre-seed extension"]["held"] * 100, 0.5),
+    ("13-organization-and-hr.md", "founders held after the growth round",
+     r"\| \*\*Growth\*\* \(€1\.5M, optional\) \|[^|]*\| (\d+)%",
+     DILUTION["Growth (optional)"]["held"] * 100, 0.5),
     # Anchored to its own row. `\*\*~(\d+)%\*\*` matched any bold ~NN% in the
     # file, so an unrelated figure added above it would have been checked
     # against the ESOP number without anyone noticing.
@@ -411,7 +432,24 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
      r"forfeits \*\*€([\d.]+)M of Y7 revenue", take_rate_delta() / 1e6, 0.05),
 
     ("14-legal-and-growth.md", "what the startup tax rate is worth",
-     r"worth €([\d.]+)M across Y6–Y9", startup_tax_saving() / 1e6, 0.005),
+     r"worth €(\d+)k across Y7–Y10", startup_tax_saving() / 1e3, 1.0),
+    # The paragraph interpreting the scenario table. The table is generated and
+    # moves with the model; the sentence under it was typed once and was three
+    # figures out of date, including a capital need of EUR 754k against a table
+    # saying EUR 827k.
+    ("esade-body.md", "pessimistic revenue lost against base",
+     r"the fan thesis costs\s+(\d+)% of",
+     (1 - SCEN["Pessimistic"]["revenue_y7"] / SCEN["Base"]["revenue_y7"]) * 100, 0.5),
+    ("esade-body.md", "pessimistic capital need as a multiple of base",
+     r"multiplies the capital requirement by\s+([\d.]+),",
+     SCEN["Pessimistic"]["capital_need"] / SCEN["Base"]["capital_need"], 0.05),
+    ("esade-body.md", "pessimistic capital need",
+     r"to €([\d,]+)k against a €400k raise",
+     SCEN["Pessimistic"]["capital_need"] / 1e3, 0.5),
+    ("esade-body.md", "optimistic revenue gain",
+     r"optimistic case adds (\d+)% to",
+     (SCEN["Optimistic"]["revenue_y7"] / SCEN["Base"]["revenue_y7"] - 1) * 100, 0.5),
+
     # -- 16.2 the segment progression --------------------------------------
     # The mix shift is the plan's largest strategic claim about its own future,
     # so every number stating it is read from niche_share and the two segments'
@@ -492,12 +530,14 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     *[("04-capital-and-valuation.md", f"{stage} gate MRR",
        rf"\| €(\d+)k MRR", mrr / 1e3, 0.5)
       for stage, mrr in list(model.ROUND_GATE_MRR.items())[:1]],
-    ("04-capital-and-valuation.md", "Seed multiple on the gate",
+    ("04-capital-and-valuation.md", "growth-round multiple on the gate",
      r"\*\*([\d.]+)x ARR\*\* \| Marketplaces",
-     next(r["pre"] for r in model.ROUNDS if r["stage"] == "Seed (optional)") / (model.ROUND_GATE_MRR["Seed (optional)"] * 12), 0.05),
-    ("04-capital-and-valuation.md", "Series A multiple on the gate",
-     r"\*\*([\d.]+)x ARR\*\* \| European Series A",
-     next(r["pre"] for r in model.ROUNDS if r["stage"] == "Series A") / (model.ROUND_GATE_MRR["Series A"] * 12), 0.05),
+     next(r["pre"] for r in model.ROUNDS if r["stage"] == "Growth (optional)")
+     / (model.ROUND_GATE_MRR["Growth (optional)"] * 12), 0.05),
+    ("04-capital-and-valuation.md", "growth-round multiple on Y6 revenue",
+     r"lower still, at \*\*([\d.]+)x\*\*",
+     next(r["pre"] for r in model.ROUNDS if r["stage"] == "Growth (optional)")
+     / ROWS[5]["revenue"], 0.05),
 
     # -- 04 the raiseability section --------------------------------------
     # Figures a reader will check against the cash flow, so they are read from
@@ -505,7 +545,8 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("04-capital-and-valuation.md", "Y1 cash need in the raiseability section",
      r"Y1 cash need of\s+€(\d+)k", -CUM_FCF[0] / 1e3, 0.5),
     ("04-capital-and-valuation.md", "cumulative need to end of Y2",
-     r"cumulative need of\s+€(\d+)k to the end of Y2", -CUM_FCF[1] / 1e3, 0.5),
+     r"cumulative need of\s+\*?\*?€(\d+)k\*?\*? to the end of Y2",
+     -CUM_FCF[1] / 1e3, 0.5),
     ("04-capital-and-valuation.md", "equity tranche plus the ENISA loan",
 r"Together they are €(\d+)k",
      # By stage, not by position. grant_years() documents a silent
@@ -518,8 +559,11 @@ r"Together they are €(\d+)k",
     ("esade-body.md", "the cash trough",
      r"a €(\d+)k cash\s+trough in Y\d", peak_funding() / 1e3, 0.5),
     ("esade-body.md", "the pre-seed ask",
-     r"\*\*The ask is €(\d+)k at €2\.5M pre-money",
+     r"\*\*The ask is €(\d+)k at €[\d.]+M pre-money",
      model.ROUNDS[0]["amount"] / 1e3, 0.5),
+    ("esade-body.md", "the pre-seed price",
+     r"\*\*The ask is €\d+k at €([\d.]+)M pre-money",
+     model.ROUNDS[0]["pre"] / 1e6, 0.05),
     ("esade-body.md", "first EBITDA-positive year",
      r"EBITDA turns positive in \*\*Y(\d+)\*\*",
      next((r["year"] for r in ROWS if r["ebitda"] > 0), 0), 0.1),
@@ -549,11 +593,11 @@ r"Together they are €(\d+)k",
        ROWS[y - 1]["revenue"] / 1e6, 0.005) for n, y in enumerate((1, 3, 5, 7, 10))],
 
     ("esade-body.md", "the DCF floor",
-     r"The DCF says \*\*€([\d.]+)M\*\* today", VAL["enterprise_value"] / 1e6, 0.005),
+     r"The DCF says \*\*€([\d,]+)k\*\* today", VAL["enterprise_value"] / 1e3, 1.0),
     ("esade-body.md", "revenue forfeited by the 15% take",
      r"forfeits €([\d.]+)M of Y7\s+revenue", take_rate_delta() / 1e6, 0.05),
     ("esade-body.md", "what the startup tax rate is worth",
-     r"worth €([\d.]+)M\s+across Y6–Y9", startup_tax_saving() / 1e6, 0.005),
+     r"worth €(\d+)k across Y7–Y10", startup_tax_saving() / 1e3, 1.0),
     ("esade-body.md", "Y10 gross adds at benchmark churn",
      r"needs 0\.79M gross adds a year instead of\s+>?\s*([\d.]+)M",
      churn_gross_adds()[0] / 1e6, 0.02),
@@ -571,7 +615,7 @@ r"Together they are €(\d+)k",
        r"\| of which paying SaaS \|" + r" [\d,]+ \|" * n + r" ([\d,]+)",
        ROWS[y - 1]["paying_sponsors"], 0.6) for n, y in enumerate((1, 3, 5, 7, 10))],
     ("esade-body.md", "Y3 sponsors paying SaaS, in the objectives table",
-     r"3,000 athletes, (\d+) sponsors paying SaaS",
+     r"athletes, (\d+) sponsors paying SaaS",
      ROWS[2]["paying_sponsors"], 0.6),
     ("esade-body.md", "workbook formula count",
      r"evaluates all ([\d,]+) workbook\s+formulas", workbook_formulas, 0.5),
@@ -652,20 +696,26 @@ r"Together they are €(\d+)k",
     # Y1/Y3/Y5), and 00/04/07 kept the old ask next to the new capital need. The
     # amount now has one home in model.ROUNDS and every restatement is watched.
     ("00-executive-summary.md", "the pre-seed ask",
-     r"\*\*€(\d+)k pre-seed at €2\.5M pre-money\.\*\*",
+     r"\*\*€(\d+)k pre-seed at €[\d.]+M pre-money\.\*\*",
      model.ROUNDS[0]["amount"] / 1e3, 1.0),
+    ("00-executive-summary.md", "the pre-seed price",
+     r"\*\*€\d+k pre-seed at €([\d.]+)M pre-money\.\*\*",
+     model.ROUNDS[0]["pre"] / 1e6, 0.05),
+    ("04-capital-and-valuation.md", "the first tranche in the raiseability section",
+     r"asks \*\*€(\d+)k at €[\d.]+M pre-money\*\*",
+     model.ROUNDS[0]["amount"] / 1e3, 1.0),
+    ("04-capital-and-valuation.md", "the first tranche price",
+     r"asks \*\*€\d+k at €([\d.]+)M pre-money\*\*",
+     model.ROUNDS[0]["pre"] / 1e6, 0.05),
     ("04-capital-and-valuation.md", "the pre-seed ask",
      r"\| \*\*Pre-seed\*\* \| \*\*€(\d+)k\*\*", model.ROUNDS[0]["amount"] / 1e3, 1.0),
     ("stride-business-plan-draft.md", "the pre-seed ask",
      r"\| \*\*Pre-seed\*\* \| \*\*€(\d+)k\*\*", model.ROUNDS[0]["amount"] / 1e3, 1.0),
 
-    ("00-executive-summary.md", "raised before a Series A",
-     r"raise €([\d.]+)M before a Series A", rounds_before_series_a() / 1e6, 0.05),
-    ("04-capital-and-valuation.md", "raised before a Series A",
-     r"The rounds above raise €([\d.]+)M before Series A",
-     rounds_before_series_a() / 1e6, 0.05),
-    ("07-open-questions.md", "raised before a Series A",
-     r"or the €([\d.]+)M the rounds imply", rounds_before_series_a() / 1e6, 0.05),
+    ("00-executive-summary.md", "total raised across every tranche",
+     r"the plan raises €([\d.]+)M in total", rounds_total() / 1e6, 0.05),
+    ("07-open-questions.md", "total raised across every tranche",
+     r"or the €([\d.]+)M the rounds imply", rounds_total() / 1e6, 0.05),
     ("07-open-questions.md", "capital the plan needs",
      r"Raise €(\d+)k, or the", peak_funding() * 1.4 / 1e3, 1.0),
 
@@ -676,15 +726,27 @@ r"Together they are €(\d+)k",
     ("04-capital-and-valuation.md", "the cash trough",
      r"\*\*€(\d+)k trough in Y\d\*\*", peak_funding() / 1e3, 1.0),
     ("04-capital-and-valuation.md", "the trough the grant stack covers",
-     r"covers most of the €(\d+)k", peak_funding() / 1e3, 1.0),
+     r"covers the whole €(\d+)k", peak_funding() / 1e3, 1.0),
+    # The YEAR the trough falls in, not just its size. Every pin above matched
+    # the year as `Y\\d` and checked only the amount, so moving the trough from
+    # Y3 to Y4 left three documents naming the wrong year while the guard passed.
+    *[(doc, "the year the cash trough falls in",
+       r"cash\s+trough in Y(\d)", TROUGH_YEAR, 0.1)
+      for doc in ("esade-body.md", "00-executive-summary.md")],
+    ("04-capital-and-valuation.md", "the year the cash trough falls in",
+     r"trough in Y(\d)", TROUGH_YEAR, 0.1),
+
     ("README.md", "peak burn",
      r"peak burn €(\d+)k", peak_funding() / 1e3, 1.0),
 
     # The dilution path, cell by cell. It was typed by hand and its later rows
     # did not follow from its earlier ones under any reading of them.
     ("04-capital-and-valuation.md", "pre-seed post-money",
-     r"\| Pre-seed \| €\d+k \| €2\.5M \| €([\d.]+)M \|",
+     r"\| Pre-seed \| €\d+k \| €[\d.]+M \| €([\d.]+)M \|",
      DILUTION["Pre-seed"]["post"] / 1e6, 0.05),
+    ("04-capital-and-valuation.md", "pre-seed pre-money in the cascade",
+     r"\| Pre-seed \| €\d+k \| €([\d.]+)M \|",
+     DILUTION["Pre-seed"]["pre"] / 1e6, 0.05),
     ("04-capital-and-valuation.md", "pre-seed investor stake",
      r"\| Pre-seed \|(?:[^|]*\|){3} ([\d.]+)% \|",
      DILUTION["Pre-seed"]["stake"] * 100, 0.1),
@@ -696,38 +758,40 @@ r"Together they are €(\d+)k",
     ("04-capital-and-valuation.md", "founders held after both tranches",
      r"\| Pre-seed extension \|(?:[^|]*\|){4} (\d+)% \(after 2% advisory\)",
      DILUTION["Pre-seed extension"]["held"] * 100, 0.5),
-    ("04-capital-and-valuation.md", "founders held after the seed",
-     r"\| Seed \*\(optional\)\* \|(?:[^|]*\|){4} (\d+)% \|",
-     DILUTION["Seed (optional)"]["held"] * 100, 0.5),
-    ("04-capital-and-valuation.md", "founders held after the Series A",
-     r"\| Series A \|(?:[^|]*\|){4} (\d+)% \|",
-     DILUTION["Series A"]["held"] * 100, 0.5),
+    ("04-capital-and-valuation.md", "founders held after the growth round",
+     r"\| Growth \*\(optional\)\* \|(?:[^|]*\|){4} (\d+)% \|",
+     DILUTION["Growth (optional)"]["held"] * 100, 0.5),
     ("04-capital-and-valuation.md", "founders held after the ESOP",
      # The three empty columns were em-dashes until the document dropped them;
      # matched as "whatever is between the pipes" so the pin survives a
      # formatting decision it has no stake in.
      r"\| ESOP \(cumulative\) \|[^|]*\|[^|]*\|[^|]*\| 10% \| \*\*~(\d+)%\*\* \|",
      DILUTION["ESOP (cumulative)"]["held"] * 100, 0.5),
-    ("04-capital-and-valuation.md", "equity retained through the Series A",
-     r"Retaining ~(\d+)% through Series A",
+    ("04-capital-and-valuation.md", "equity retained through the growth round",
+     r"Retaining ~(\d+)% through the growth round",
      DILUTION["ESOP (cumulative)"]["held"] * 100, 0.5),
+    ("04-capital-and-valuation.md", "equity retained without the growth round",
+     r"the figure is\s+~(\d+)%",
+     DILUTION["Pre-seed extension"]["held"] * (1 - model.ESOP_POOL) * 100, 0.5),
 
     # The founder-hurdle paragraph. Its old version multiplied a retention the
     # dilution table did not support by an enterprise value nothing produced.
-    ("04-capital-and-valuation.md", "equity retained through the Series A, in prose",
-     r"a founder retaining ~(\d+)% through the Series A",
+    ("04-capital-and-valuation.md", "equity retained through the growth round, in prose",
+     r"team retaining \*\*(\d+)%\*\* through the growth round",
      DILUTION["ESOP (cumulative)"]["held"] * 100, 0.5),
-    ("04-capital-and-valuation.md", "the founder's share of the DCF floor",
-     r"\*\*€([\d.]+)M against the DCF floor",
-     DILUTION["ESOP (cumulative)"]["held"] * VAL["enterprise_value"] / 1e6, 0.02),
+    ("04-capital-and-valuation.md", "the founder's share of the DCF",
+     r"\*\*€(\d+)k against the DCF of",
+     DILUTION["ESOP (cumulative)"]["held"] * VAL["enterprise_value"] / 1e3, 1.0),
+    ("04-capital-and-valuation.md", "the DCF the share is taken from",
+     r"against the DCF of €([\d.]+)M\*\*", VAL["enterprise_value"] / 1e6, 0.005),
     # The two ends of the founder's stake against the exit multiples. Derived
     # from the dilution cascade and a generated table, and quoted in prose --
     # which is the combination that goes stale.
     ("04-capital-and-valuation.md", "founder stake at the lowest exit multiple",
-     r"and €([\d.]+)–[\d.]+M against the exit multiples",
+     r"\*\*€([\d.]+)M to €[\d.]+M\*\*, which clears it",
      DILUTION["ESOP (cumulative)"]["held"] * min(MULTIPLES) / 1e6, 0.08),
     ("04-capital-and-valuation.md", "founder stake at the highest exit multiple",
-     r"and €[\d.]+–([\d.]+)M against the exit multiples",
+     r"\*\*€[\d.]+M to €([\d.]+)M\*\*, which clears it",
      DILUTION["ESOP (cumulative)"]["held"] * max(MULTIPLES) / 1e6, 0.08),
 
     # Unpinned figures that the egress correction moved and review caught:
@@ -736,11 +800,8 @@ r"Together they are €(\d+)k",
     ("stride-business-plan-draft.md", "Y7 infrastructure in the G11 callout",
      r"€2\.55M against €(\d+)k at Y7", Y7["infra"] / 1e3, 1.0),
 
-    ("04-capital-and-valuation.md", "the DCF floor itself",
-     r"against the DCF floor of €([\d.]+)M\*\*", VAL["enterprise_value"] / 1e6, 0.005),
-
     ("04-capital-and-valuation.md", "what the startup tax rate is worth",
-     r"worth €([\d.]+)M across Y6–Y9", startup_tax_saving() / 1e6, 0.005),
+     r"worth €(\d+)k across Y7–Y10", startup_tax_saving() / 1e3, 1.0),
 
     # --- the egress decision, quoted in four documents ---------------------
     # Every one of these was stale, and the draft's prose contradicted a table
@@ -866,7 +927,7 @@ r"Together they are €(\d+)k",
     ("07-open-questions.md", "revenue forgone by 15% vs 20%",
      r"forfeits €([\d.]+)M of Y7 revenue", take_rate_delta() / 1e6, 0.1),
     ("07-open-questions.md", "DCF headline",
-     r"the DCF \(€([\d.]+)M\)", VAL["enterprise_value"] / 1e6, 0.1),
+     r"the DCF \(€([\d,]+)k\)", VAL["enterprise_value"] / 1e3, 1.0),
 
     ("11-admission-and-matching.md", "peak reviewer FTE",
      r"(\d\.\d+) of one\s+reviewer", max(r["review_fte"] for r in ROWS), 0.01),
@@ -927,9 +988,9 @@ r"Together they are €(\d+)k",
     ("01-revenue-model.md", "revenue mix, Y7 fan take",
      r"\| Fan take \| .*\| €([\d.]+)M \(\d+%\) \|", ROWS[6]["rev_fan"] / 1e6, 0.05),
     ("01-revenue-model.md", "revenue mix, Y7 sponsorship take",
-     r"\| Sponsorship take \| .*\| €([\d.]+)M \(\d+%\) \|", ROWS[6]["rev_sponsorship"] / 1e6, 0.05),
+     r"\| Sponsorship take \| .*\| €(\d+)k \(\d+%\) \|", ROWS[6]["rev_sponsorship"] / 1e3, 1.0),
     ("01-revenue-model.md", "revenue mix, Y7 SaaS",
-     r"\| Sponsor SaaS \| .*\| €([\d.]+)M \(\d+%\) \|", ROWS[6]["rev_saas"] / 1e6, 0.05),
+     r"\| Sponsor SaaS \| .*\| €(\d+)k \(\d+%\) \|", ROWS[6]["rev_saas"] / 1e3, 1.0),
 
     ("03-financial-model.md", "Y2 revenue growth",
      r"Growth: Y2 \+(\d+)%", 100 * (ROWS[1]["revenue"] / ROWS[0]["revenue"] - 1), 1.0),

@@ -1059,14 +1059,19 @@ def build() -> pathlib.Path:
     hp = sheet(wb, "HiringPlan", "Hiring plan")
     r = 4
     r = section(hp, r, "FTE BY ROLE")
+    # Reconciles to M.A.headcount in every year, which the CHECK row below
+    # asserts and scripts/verify_workbook.py now enforces. The previous
+    # ladder was built for a 28-FTE Y10 and summed to 14.5 in Y6 against a
+    # model saying 7.0, with the CHECK row dutifully reporting 7.5 and
+    # nothing reading it.
     ROLES = [
-        ("Founder / CEO", [1.0] * 10, 45_000),
-        ("Engineering", [0.5, 1.0, 1.5, 2.0, 3.5, 5.0, 7.0, 9.0, 11.0, 13.0], 55_000),
-        ("BD / partnerships", [0, 0, 0.5, 1.0, 2.0, 3.0, 5.0, 6.0, 7.0, 8.0], 38_000),
-        ("Athlete success", [0, 0, 0.5, 1.0, 1.5, 2.5, 4.0, 5.0, 6.0, 7.0], 30_000),
-        ("Trust & safety / review", [0, 0, 0, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0], 34_000),
-        ("Finance / operations", [0, 0, 0, 0.5, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0], 42_000),
-        ("Data protection officer", [0, 0, 0, 0, 0, 0.5, 1.0, 1.0, 1.0, 1.0], 60_000),
+        ("Founder / CEO", [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], 45_000),
+        ("Engineering", [0.0, 0.0, 0.5, 1.0, 1.5, 2.5, 3.5, 4.5, 5.0, 5.0], 55_000),
+        ("BD / partnerships", [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 2.0, 2.5, 3.0, 3.5], 38_000),
+        ("Athlete success", [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0], 30_000),
+        ("Trust & safety / review", [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.5, 1.5, 2.0], 34_000),
+        ("Finance / operations", [0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 1.0, 1.0], 42_000),
+        ("Data protection officer", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.5], 60_000),
     ]
     role_rows = {}
     first_role = r
@@ -1268,6 +1273,7 @@ def build() -> pathlib.Path:
             formula=f"='P&L'!{{c}}{P['Gross margin']}")
     r = row(kp, r, "EBITDA margin", "%", fmt=PCT, font=LINK,
             formula=f"='P&L'!{{c}}{P['EBITDA margin']}")
+    kpi_rpe_row = r
     r = row(kp, r, "Revenue per FTE", "EUR",
             formula=f"=IF(Assumptions!{{c}}{A_ROW['headcount']}=0,0,"
                     f"Revenue!{{c}}{R['NET REVENUE']}"
@@ -1422,6 +1428,94 @@ def build() -> pathlib.Path:
             c = cp.cell(r, j, val); c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, PCT
         cp.cell(r, 6, source).font = Font(size=9, color="4A525E", name="Calibri")
         r += 1
+
+    r += 1
+    cp.cell(r, 1, "SPONSORSHIP MARKETPLACES - the direct competitor set").font = Font(
+        bold=True, size=10, color="8A5200")
+    r += 1
+    cp.cell(r, 1, "PitchBook company profiles retrieved 1 Oct 2026, reported in EUR. None of the four "
+                  "discloses revenue, so headcount and capital raised are the only scale measures "
+                  "available. Links at the bottom of this sheet.").font = Font(
+        italic=True, size=9, color="6B7480")
+    cp.merge_cells(start_row=r, start_column=1, end_row=r, end_column=6)
+    r += 1
+    for j, h in enumerate(["Company", "Founded", "Employees", "Total raised",
+                           "Largest round pre-money", "Status"]):
+        c = cp.cell(r, 1 + j, h); c.font, c.fill = HEAD, HEAD_FILL
+        c.alignment = Alignment(horizontal="center", wrap_text=True)
+    r += 1
+    SP = {}
+    for (name, country, founded, emp, emp_asof, raised,
+         rnd, rnd_date, pre, status) in CD.SPONSORSHIP_PLATFORMS:
+        SP[name] = r
+        cp.cell(r, 1, f"{name} ({country})").font = BOLD
+        for j, (val, fmt) in enumerate(
+                [(founded, '0'), (emp, '#,##0'), (raised, MONEY),
+                 (pre or None, MONEY)], start=2):
+            c = cp.cell(r, j, val)
+            c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, fmt
+        note = status
+        if name in CD.PREMONEY_ESTIMATED:
+            note += f". {rnd} {rnd_date}; pre-money is a PitchBook ESTIMATE"
+        else:
+            note += f". {rnd} {rnd_date}" if pre else f". Last priced round not disclosed"
+        cp.cell(r, 6, note).font = Font(size=9, name="Calibri", color="4A525E")
+        cp.cell(r, 6).alignment = Alignment(wrap_text=True, vertical="top")
+        for j in range(6):
+            cp.cell(r, 1 + j).border = EDGE
+        r += 1
+
+    # Our own line, for the comparison the sheet exists to make. Grey: an
+    # output of the model, not a published fact about anyone.
+    cp.cell(r, 1, "Stride (this plan, at Y10)").font = BOLD
+    for j, (val, fmt) in enumerate(
+            [(2026, '0'), (M.A.headcount[9], '#,##0.0'),
+             (sum(rd["amount"] for rd in M.ROUNDS), MONEY),
+             (next(rd["pre"] for rd in M.ROUNDS if rd["stage"] == "Growth (optional)"), MONEY)],
+            start=2):
+        c = cp.cell(r, j, val)
+        c.fill, c.font, c.number_format = FILL_TOTAL, BOLD, fmt
+    cp.cell(r, 6, "Deliberately sized near Sponsoo. Only EUR 400k of the total is capital the "
+                  "plan depends on; the growth round is optional").font = Font(
+        size=9, name="Calibri", color="4A525E")
+    cp.cell(r, 6).alignment = Alignment(wrap_text=True, vertical="top")
+    for j in range(6):
+        cp.cell(r, 1 + j).border = EDGE
+    r += 2
+
+    cp.cell(r, 1, "REVENUE PER EMPLOYEE - what the plan is tested against").font = Font(
+        bold=True, size=10, color="8A5200")
+    r += 1
+    for j, h in enumerate(["Benchmark", "EUR per employee", "", "", "", "Source"]):
+        c = cp.cell(r, 1 + j, h); c.font, c.fill = HEAD, HEAD_FILL
+    r += 1
+    RPE = {}
+    for label, value, source in CD.REVENUE_PER_EMPLOYEE:
+        RPE[label] = r
+        cp.cell(r, 1, label).font = Font(size=10, name="Calibri")
+        c = cp.cell(r, 2, value); c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, MONEY
+        cp.cell(r, 6, source).font = Font(size=9, name="Calibri", color="4A525E")
+        cp.cell(r, 6).alignment = Alignment(wrap_text=True, vertical="top")
+        r += 1
+
+    # Ours, read off the KPIs sheet rather than restated, and the gap to the
+    # top quartile computed from the two cells above it.
+    y7col = COLS[6]
+    cp.cell(r, 1, "Stride (this plan, Y7)").font = BOLD
+    c = cp.cell(r, 2, f"=KPIs!{y7col}{kpi_rpe_row}")
+    c.fill, c.font, c.number_format = FILL_TOTAL, BOLD, MONEY
+    cp.cell(r, 6, "Above the top quartile. Defended in section 3.2.2: the fan side is "
+                  "self-serve and moderation is a variable cost, not headcount").font = Font(
+        size=9, name="Calibri", color="4A525E")
+    cp.cell(r, 6).alignment = Alignment(wrap_text=True, vertical="top")
+    stride_rpe_row = r
+    r += 1
+    cp.cell(r, 1, "Multiple of the top quartile").font = Font(size=10, name="Calibri")
+    c = cp.cell(r, 2, f"=B{stride_rpe_row}/B{RPE['Top quartile private B2B SaaS']}")
+    c.fill, c.font, c.number_format = FILL_TOTAL, BOLD, '0.00"x"'
+    cp.cell(r, 6, "The plan's second most aggressive assumption after fan churn").font = Font(
+        size=9, name="Calibri", color="4A525E")
+    r += 1
 
     r += 2
     cp.cell(r, 1, "SOURCES").font = BOLD

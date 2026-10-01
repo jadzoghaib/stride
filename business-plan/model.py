@@ -110,7 +110,12 @@ class Assumptions:
     # slow by construction. Growth still decelerates smoothly -- 3.0x, 2.5x,
     # 2.0x, 1.75x, 1.52x, 1.38x -- it simply starts from a believable multiple
     # rather than 4.5x in the first year after launch.
-    athletes: list[int] = field(default_factory=lambda: [400, 1_200, 3_000, 6_000, 10_500, 16_000, 22_000, 28_000, 34_000, 40_000])
+    #: Moderated 1 Oct 2026, from a Y10 of 40,000. The comparable set
+    #: (Sponsoo 13 people in 11 years, OpenSponsorship 23 in 12) says a
+    #: two sided sponsorship marketplace does not reach tens of thousands
+    #: of athletes on a founder led cost base, and the plan should not
+    #: promise a company its founder does not intend to run.
+    athletes: list[int] = field(default_factory=lambda: [250, 750, 1_700, 2_800, 4_000, 5_200, 6_300, 7_200, 7_900, 8_500])
     # Niche first (no incumbent, acute need), popular entering from Y3 once the
     # niche cohort's earnings make the disintermediation pitch quantified.
     niche_share: list[float] = field(default_factory=lambda: [0.95, 0.92, 0.80, 0.68, 0.58, 0.50, 0.45, 0.43, 0.42, 0.41])
@@ -123,7 +128,9 @@ class Assumptions:
     # Sponsors follow athlete supply -- they arrive for the roster -- so this
     # curve is slowed in step with `athletes`. Left at the old numbers it would
     # have modelled demand densifying against a supply side half the size.
-    sponsors: list[int] = field(default_factory=lambda: [25, 90, 230, 500, 900, 1_400, 2_000, 2_600, 3_100, 3_600])
+    #: Scaled with the athlete base: a sponsor subscribes for access to
+    #: supply, so the two cannot be set independently.
+    sponsors: list[int] = field(default_factory=lambda: [18, 55, 125, 240, 380, 510, 620, 710, 790, 850])
     sponsor_paid_rate: list[float] = field(default_factory=lambda: [0.10, 0.14, 0.17, 0.19, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20])
     sponsor_arpu_month: list[int] = field(default_factory=lambda: [199, 229, 260, 290, 320, 360, 400, 430, 455, 475])
     # A matching product is worth nothing without athletes to match. Below this
@@ -194,7 +201,8 @@ class Assumptions:
     avg_deal_txn_eur: float = 1_800
 
     # ---- infrastructure (AWS) ---------------------------------------------
-    aws_base_month: list[int] = field(default_factory=lambda: [180, 650, 2_100, 5_400, 11_000, 17_000, 24_000, 30_000, 35_000, 39_000])
+    #: Rescaled with the fan base it serves, which is what drives it.
+    aws_base_month: list[int] = field(default_factory=lambda: [150, 420, 1_000, 2_000, 3_200, 4_300, 5_300, 6_200, 7_000, 7_800])
     # media egress is the cost that separates a content platform from an
     # analytics one. GB per paying fan per month.
     gb_per_fan_month: float = 1.8
@@ -240,7 +248,18 @@ class Assumptions:
     #: to 22 FTE by Y7 and needed EUR 600k to do it. Payroll is the cost
     #: that lands earliest and scales least with revenue, so moving the
     #: ramp out is what takes the raise down without building less.
-    headcount: list[float] = field(default_factory=lambda: [1.0, 1.5, 2.0, 3.5, 6.0, 9.0, 13.0, 18.0, 23.0, 28.0])
+    #: Lean through Y4 because that is where the cash trough sits, then a
+    #: real ramp. Y1 and Y2 are the founder alone: the EUR 400k ask
+    #: depends on it, since the trough is set by Y1 to Y4 spending and
+    #: nothing hired after it moves the number.
+    #:
+    #: Y10 of 16 FTE is deliberately close to Sponsoo's 13, which is the
+    #: scale this plan is now built for. The resulting revenue per
+    #: employee, EUR 301k in Y7, is above the top quartile private SaaS
+    #: benchmark of EUR 215k and is defended in section 3.2.2 rather than
+    #: left implicit: the fan side is self serve, and content moderation
+    #: is a variable cost line rather than headcount.
+    headcount: list[float] = field(default_factory=lambda: [1.0, 1.0, 1.5, 2.0, 4.0, 7.0, 10.0, 12.5, 14.5, 16.0])
     loaded_salary_eur: list[int] = field(default_factory=lambda: [38_000, 52_000, 60_000, 64_000, 66_000, 68_000, 70_000, 72_000, 74_000, 76_000])
     sponsor_cac_eur: list[int] = field(default_factory=lambda: [900, 1_050, 1_200, 1_400, 1_600, 1_750, 1_900, 2_000, 2_100, 2_200])
     legal_compliance_eur: list[int] = field(default_factory=lambda: [18_000, 45_000, 90_000, 150_000, 200_000, 235_000, 270_000, 300_000, 325_000, 345_000])
@@ -327,16 +346,33 @@ A = Assumptions()
 # regenerating it from this model never touched a list hardcoded in the
 # builder. Years are when the gate is met, not when the money is convenient.
 ROUNDS: list[dict] = [
-    # Staged deliberately. The cumulative cash need is only EUR 73k to the end
+    # Staged deliberately. The cumulative cash need is only EUR 72k to the end
     # of Y1, and Y1 is the year that settles whether fans pay at all. Raising
     # the whole runway against that question prices it as a promise; raising
     # the first tranche against it and the second against three months of real
-    # subscription revenue prices the second on evidence. Same EUR 400k, and
-    # the founder holds 55% through the Series A instead of 53%.
-    {"year": 1, "stage": "Pre-seed", "amount": 150_000, "pre": 2_500_000},
-    {"year": 2, "stage": "Pre-seed extension", "amount": 250_000, "pre": 5_000_000},
-    {"year": 4, "stage": "Seed (optional)", "amount": 2_000_000, "pre": 10_000_000},
-    {"year": 6, "stage": "Series A", "amount": 8_000_000, "pre": 40_000_000},
+    # subscription revenue prices the second on evidence.
+    #: Priced against the comparable rather than the ambition: PitchBook puts
+    #: Sponsoo's 2016 seed at a EUR 1.55M pre-money, and Spanish pre-seed
+    #: rounds of this size sit between EUR 1M and EUR 3M.
+    {"year": 1, "stage": "Pre-seed", "amount": 150_000, "pre": 1_800_000},
+    #: Roughly double, against a year of real subscription revenue. A step-up,
+    #: not a re-rating.
+    {"year": 2, "stage": "Pre-seed extension", "amount": 250_000, "pre": 3_500_000},
+    # One optional growth round, replacing the EUR 2M seed and EUR 8M Series A
+    # the plan carried until 1 Oct 2026. Those priced a company reaching EUR
+    # 23.9M of revenue; this one reaches EUR 5.25M, and a EUR 40M pre-money
+    # against that is not an aggressive assumption but a different company.
+    #
+    # Priced BELOW the nearest comparable rather than at it. PitchBook
+    # estimates Sponsoo's Series A pre-money at EUR 15.9M, for a seven year old
+    # company in the January 2021 market; EUR 12M is 5.7x our Y6 revenue of
+    # EUR 2.12M and under that estimate. Pricing beneath a bubble-era mark for
+    # a company further along is the conservative side of the comparable, which
+    # is where a first time founder with no exit history belongs.
+    #
+    # Optional in the real sense: EBITDA turns positive in Y5 and cumulative
+    # cash in Y6 without it. It buys speed, not survival.
+    {"year": 6, "stage": "Growth (optional)", "amount": 1_500_000, "pre": 12_000_000},
 ]
 
 #: The monthly recurring revenue each later round is gated on. These existed
@@ -344,13 +380,19 @@ ROUNDS: list[dict] = [
 #: was computed from numbers nobody could change in one place: moving a gate in
 #: the document would have left the multiple beside it silently stale.
 ROUND_GATE_MRR: dict[str, int] = {
-    "Seed (optional)": 80_000,
-    "Series A": 300_000,
+    # Y6 MRR is EUR 177k on plan, so the gate is met inside the year rather
+    # than at its start. Deliberately set below plan: a gate that only the plan
+    # itself clears is not a gate.
+    "Growth (optional)": 150_000,
 }
 
 
 # The two grants that dilute alongside the rounds: an advisory grant made at
-# the pre-seed, and the option pool topped up to 10% by the Series A.
+# the pre-seed, and the option pool topped up to 10% at the growth round, which
+# is the point at which the company takes institutional money and has employees
+# worth retaining. With no Series A in the plan, grant_years() reaches its
+# fallback, and the fallback is the intended answer here rather than an
+# accident: the last round is the growth round.
 ADVISORY_GRANT: float = 0.02
 ESOP_POOL: float = 0.10
 

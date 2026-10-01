@@ -59,11 +59,11 @@ commercial value have come apart**.
 
 | | Y3 | Y7 |
 |---|---|---|
-| Net revenue | €0.53M | €10.16M |
-| EBITDA | €-147k | €3.25M |
+| Net revenue | €0.29M | €3.01M |
+| EBITDA | €-140k | €0.53M |
 | Active athletes | 3,000 | 22,000 |
 | Paying fans | 25,288 | 321,288 |
-| Gross margin | 64% | 68% |
+| Gross margin | 63% | 69% |
 
 EBITDA turns positive in **Y5**. Total capital to fund the plan: **€649k**
 (peak burn €464k plus a 40% buffer), which the **€600k pre-seed very nearly
@@ -733,13 +733,13 @@ Content delivery is the cost that kills naive versions of this business.
 
 | | Egress per GB | Total Y7 infrastructure |
 |---|---|---|
-| Naive (CloudFront list price) | €0.075 | €0.74M |
-| **Zero-egress CDN architecture** | **€0.008** | **€336k** |
+| Naive (CloudFront list price) | €0.075 | €0.20M |
+| **Zero-egress CDN architecture** | **€0.008** | **€78k** |
 
 At **1.8 GB per fan per month**, charged on the *average* fan count through
 the year, not December's, the egress *rate* differs by **9.4×**. Total
-infrastructure differs by **2.2×**, compute and storage are unaffected, which
-is **€402k a year at Y7** and **€3.1M cumulative across the plan**.
+infrastructure differs by **2.5×**, compute and storage are unaffected, which
+is **€120k a year at Y7** and **€0.8M cumulative across the plan**.
 
 In margin terms it is **4.0 points of gross margin at Y7** (70.0% → 66.2%). Not
 existential, and we would rather size it correctly than call it existential: it
@@ -766,7 +766,7 @@ easiest way to lose credibility with anyone who has run a marketplace.
 > band.
 > **Data** · `attachments/chart-data/g11-cogs-composition.csv`
 > **Must say** · The reflex on hearing "content platform" is a bandwidth bill.
-> **It is a payments bill**, €2.55M against €336k at Y7. The architecture
+> **It is a payments bill**, €2.55M against €78k at Y7. The architecture
 > decision is real and worth taking; it is not the thing that decides the
 > margin.
 
@@ -977,8 +977,8 @@ pass; assumed mix 40/50/10.
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
-| Net revenue | €0.02M | €0.13M | €0.53M | €1.50M | €3.29M | €6.22M | €10.16M |
-| EBITDA | €-0.08M | €-0.14M | €-0.15M | €-0.05M | €0.42M | €1.57M | €3.25M |
+| Net revenue | €0.02M | €0.13M | €0.53M | €1.50M | €1.32M | €2.12M | €3.01M |
+| EBITDA | €-0.08M | €-0.11M | €-0.15M | €-0.09M | €0.02M | €0.24M | €0.53M |
 | Athletes | 400 | 1,200 | 3,000 | 6,000 | 10,500 | 16,000 | 22,000 |
 | Paying fans | 2,058 | 8,148 | 25,288 | 60,197 | 120,076 | 206,658 | 321,288 |
 | Deals | 25 | 117 | 485 | 1,549 | 3,767 | 7,376 | 11,563 |
@@ -1047,7 +1047,7 @@ popular sports enter from a position of proof.
 | Seed *(optional)* | €2.0M | €10M | €80k MRR · churn <8%/mo · CAC payback <9mo · 2nd market · 30+ sponsors |
 | Series A | €8.0M | €40M | €300k MRR · NRR >110% · sponsorship >25% of revenue |
 
-**The plan needs €392k** (peak burn €464k + 40% buffer).
+**The plan needs €409k** (peak burn €464k + 40% buffer).
 
 > [!important] The €600k pre-seed funds the company to profitability
 > This is the change that slowing the ramp bought, and it is worth more than the
@@ -1122,10 +1122,10 @@ already being referred to in conversation.
 | **R5** | **Regulatory, DAC7 due diligence, age assurance, Spanish startup law changes** | 3 | 3 | **9** | Re-scored. **DAC7 is not a P4 build**: sponsorship deliverables are "personal services" with no de minimis, so seller due diligence is needed before the first paid deal, see §8.1 **L3**. Accounts are 16+; fan subscriptions stay 18+ in v1, deliberately conservative. Legal budget €18k→€270k |
 | **R7** | **Moderation / content liability** | 3 | 3 | **9** | Re-scored upward: image **and video** upload now ship, so the P2 exposure arrived ahead of the P2 tooling. Block, report and an admin review queue exist and the queue is budgeted from Y1; automated classification ahead of the human queue does not exist yet. 18+ subscriptions |
 | **R4** | **A funded competitor enters the niche** | 2 | 4 | **8** | Data and liquidity are the moat, not the code. 18–24 month head start on measured athlete data. Communities reward incumbency |
-| **R6** | **Payment processing costs rise / Stripe terms change** | 2 | 4 | **8** | PSP is the dominant COGS line, €2.55M at Y7. Multi-PSP architecture from P0; take rate has headroom (10–20% corridor tested). The controllable half is the **content policy**: prohibiting adult content keeps us on mainstream rates, and §8.1 **L2** recommends exactly that |
+| **R6** | **Payment processing costs rise / Stripe terms change** | 2 | 4 | **8** | PSP is the dominant COGS line, €0.75M at Y7. Multi-PSP architecture from P0; take rate has headroom (10–20% corridor tested). The controllable half is the **content policy**: prohibiting adult content keeps us on mainstream rates, and §8.1 **L2** recommends exactly that |
 | **R8** | **Key-person dependency on the anchor athlete** | 3 | 2 | **6** | Sign 3–5 rather than 1 as soon as capital allows. The proof is the *data*, which survives any individual leaving |
 | **R9** | **Sponsor side never densifies** | 2 | 3 | **6** | Fan revenue leads by design; sponsorship is upside, not the base case. Y1 sponsorship is 9% of revenue |
-| **R10** | **Infrastructure costs exceed model** | 1 | 3 | **3** | Zero-egress architecture is a 9× saving already designed in. Infra is 3.3% of Y7 revenue |
+| **R10** | **Infrastructure costs exceed model** | 1 | 3 | **3** | Zero-egress architecture is a 9× saving already designed in. Infra is 2.6% of Y7 revenue |
 
 > [!example] 📊 ==GRAPH G12, the risk map==
 > **Chart** · 5×5 grid, probability across, impact up, one labelled dot per
@@ -1151,7 +1151,7 @@ already being referred to in conversation.
 > and replacing them costs nothing.
 >
 > **What it really changes is the acquisition burden:** holding the same Y10 fan
-> base needs **0.79M gross adds a year instead of 0.64M**, a quarter more,
+> base needs **0.16M gross adds a year instead of 0.64M**, a quarter more,
 > every year, forever, worth €2.0M of cumulative free cash flow.
 >
 > Treat the 45% as an operating assumption that decides *how hard the plan is to
@@ -1183,7 +1183,7 @@ weekend.
 
 | # | Issue | Why it matters here | Effect if it lands against us |
 |---|---|---|---|
-| **L1** | **VAT: we assume we are the deemed supplier.** Art 9a of the VAT Implementing Regulation presumes a platform supplying electronic services acts *in its own name*, and the presumption is **irrebuttable** where the platform sets the essential terms **and** processes the payment. We publish fixed take rates and run the PSP, we do both | So the fan price is treated as VAT-inclusive throughout: the taxable base is the price divided by 1.21, and the take applies to that base. **This is now in the model**, not a note beside it | **Priced in, at Spain's 21%.** Were the reading wrong and the take charged on a net price, Y7 revenue would be €11.17M and Y7 EBITDA €4.18M, so carrying it costs 22% of Y7 EBITDA. The remaining exposure is the *rate*, not the principle: see below |
+| **L1** | **VAT: we assume we are the deemed supplier.** Art 9a of the VAT Implementing Regulation presumes a platform supplying electronic services acts *in its own name*, and the presumption is **irrebuttable** where the platform sets the essential terms **and** processes the payment. We publish fixed take rates and run the PSP, we do both | So the fan price is treated as VAT-inclusive throughout: the taxable base is the price divided by 1.21, and the take applies to that base. **This is now in the model**, not a note beside it | **Priced in, at Spain's 21%.** Were the reading wrong and the take charged on a net price, Y7 revenue would be €3.31M and Y7 EBITDA €0.81M, so carrying it costs 34% of Y7 EBITDA. The remaining exposure is the *rate*, not the principle: see below |
 | **L2** | **Adult content: permitted or not?** The plan cites OnlyFans as proof of the model. It does not follow that we copy their content policy. Stripe and every mainstream PSP prohibit adult content | The PSP assumption in §4.4 is **1.9% + €0.25**. High-risk processing for adult platforms runs several times that, and payments are already the dominant COGS line | Payments are €2.55M at Y7 on the mainstream rate. A high-risk rate does not dent the margin, it removes it. **Recommendation: prohibit adult content in the terms, explicitly, from day one**, the athlete audience is practitioner-led and the policy costs us nothing we want |
 | **L3** | **DAC7 arrives earlier than P4.** The reporting directive covers "personal services", time- or task-based work performed *at a user's request*. Commentary is fairly settled that pre-recorded subscription content falls **outside** that. A sponsorship deliverable, a post an athlete produces because a sponsor briefed it, falls squarely **inside**, and personal services carry **no de minimis**: one deal is reportable | §4.2 schedules DAC7 at P4/Series A. That is right for the subscription side and wrong for the sponsorship side, which is **already built** | Seller due diligence (TIN, address, business registration) has to be collected **before the first paid deal**, not in Y4. Cheap if designed in, expensive as a retrofit against a live roster |
 
@@ -1311,7 +1311,7 @@ Ordered by how much the plan would change if the answer surprised us.
 - **Financial model:** `business-plan/model.py`. Ten-year projection, real
   working capital, capex, amortisation, loss carry-forward, Spanish Startup Law
   tax step (15% for four profitable years, then 25%).
-- **Consistency:** an automated guard checks **310 prose claims across 16 documents** against the model, plus the evidence chain from published
+- **Consistency:** an automated guard checks **320 prose claims across 16 documents** against the model, plus the evidence chain from published
   comparables → derived assumptions. The build fails if any figure drifts, including this sentence, whose two numbers are themselves pinned to the
   guard's own contents.
 - **Workbook:** `Stride_Financial_Model.xlsx`, 15 sheets, 1,992 formulas,

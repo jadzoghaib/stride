@@ -69,16 +69,16 @@ Three things in it are worth two minutes of a technical diligence call:
 <!-- MODEL:summary -->
 |  | Y3 | Y7 |
 |---|---|---|
-| Net revenue | €525k | €10.16M |
-| EBITDA | €-147k | €3.25M |
-| Active athletes | 3,000 | 22,000 |
-| Paying fans | 25,288 | 321,288 |
-| Gross margin | 64% | 68% |
+| Net revenue | €288k | €3.01M |
+| EBITDA | €-140k | €535k |
+| Active athletes | 1,700 | 6,300 |
+| Paying fans | 14,334 | 92,005 |
+| Gross margin | 63% | 69% |
 <!-- /MODEL:summary -->
 
 EBITDA turns positive in **Y5**. Take rates are published and fixed: **15% on
 fan revenue, 10% on sponsorship**, no monthly athlete fee. Gross margin climbs
-from 64% in Y3 to **69% by Y10** rather than reaching a SaaS 80%+, because the
+from 63% in Y3 to **70% by Y10** rather than reaching a SaaS 80%+, because the
 payment rail is real and no amount of engineering removes it.
 
 Every figure here is generated from the model, and a guard in the repository
@@ -94,8 +94,8 @@ Being wrong about it does not dent the revenue line, and we would rather explain
 that than have it found. This is a **target-driven model**: fan counts per
 athlete are the plan, and the model solves backwards for the acquisition needed
 to hit them. Churn therefore changes the *burden*, not the destination, at
-benchmark churn, holding the same Y10 fan base needs **0.79M gross adds a year
-instead of 0.64M**, a quarter more acquisition, every year, forever.
+benchmark churn, holding the same Y10 fan base needs **0.16M gross adds a year
+instead of 0.13M**, a quarter more acquisition, every year, forever.
 
 **The model understates this risk by construction**, because it does not charge
 for fan acquisition. Treat the 45% as what it is: an operating assumption that
@@ -107,27 +107,30 @@ definitively, which is why that, and not a feature, is the pre-seed gate.
 
 ## The ask
 
-**€150k pre-seed at €2.5M pre-money.**
+**€150k pre-seed at €1.8M pre-money.**
 
-The gate is evidence, not a milestone we can assert: 400 athletes, €10k MRR, an
-anchor athlete public, payments processing real money, and **fan churn measured
-for three months.** Use of funds: two hires, Spain go-to-market, the club
-channel.
+The gate is evidence, not a milestone we can assert: an anchor athlete public,
+payments processing real money, and **fan churn measured for three months.**
+Nothing in it is a headcount we have to reach first, because what the round buys
+is the answer to one question. Use of funds: Spain go-to-market, the club
+channel, founder runway. The €250k second tranche follows in Y2, against
+250 athletes and the first paying sponsors.
 
-The plan needs €392k: the **€280k cash trough in Y3** plus a 40% buffer, and
-the pre-seed clears the trough itself with €120k to spare. That is what asking
-for €400k buys: **the seed becomes optional.** It brings a
-second market forward; it is not the thing standing between the company and
-running out of cash. The rounds raise €2.4M before a Series A, and the
-honest answer to *"what if the next round does not come?"* is now "we grow more
-slowly", not "we die".
+The plan needs €409k: the **€292k cash trough in Y4** plus a 40% buffer, and
+the €400k pre-seed clears the trough itself with €108k to spare. That is what
+asking for €400k buys: **the growth round becomes optional.** It brings a third
+market forward; it is not the thing standing between the company and running out
+of cash. Including it, the plan raises €1.9M in total, which is the same order as
+the €2.17M Sponsoo has raised across eleven years, and the honest answer to
+*"what if the next round does not come?"* is "we grow more slowly", not "we
+die".
 
 ## What our decisions cost
 
 Each of these was the right call, and each closed something off. We would rather
 say so than be asked.
 
-- **15% flat, no athlete fee** forfeits €1.6M of Y7 revenue against a 20% take.
+- **15% flat, no athlete fee** forfeits €0.5M of Y7 revenue against a 20% take.
   Bought: a pricing argument that survives contact with the exact athlete we
   target: we beat the nearest comparable for anyone under €1,380/month, which
   is the whole long tail.

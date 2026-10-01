@@ -72,7 +72,7 @@ The model runs on **35 named assumptions**. Classifying them honestly matters mo
 | **Sport participation by country** | ESTIMATE | Medium | Eurobarometer 525, share who NEVER exercise: Finland 8%, Sweden 12%, Denmark 20%, Poland 65%, Greece 68%, Portugal 73%, EU-27 average 45%. Six of the 34 countries in the index are measured; the other 28 are estimates placed inside that distribution. | Special Eurobarometer 525, Sport and Physical Activity, September 2022 |
 | **Padel market size** | SOURCED | High | Spain has ~6.0M active players (12.7% of the population), 109,040 federation licences and 17,300+ courts; globally 35M+ players and 77,000+ courts. This is the clearest case for weighting a sport regionally rather than globally, padel scores 77.7 in Spain and 45.1 worldwide. | FIP World Padel Report 2025 |
 | **Sports fandom by country** | ESTIMATE | Low | The weakest layer of the sport index, and it drives both the `demand` and `appetite` signals. Commercial audience panels (Nielsen Sports, YouGov) cost more than the entire Y1-Y2 analytics budget. | None: reasoned estimates only |
-| **Athlete count trajectory** | ESTIMATE | Low | 400 rising to 40,000 over ten years. This is the PLAN, not a benchmark: marketing spend is derived from it at segment CAC, not the other way round. Everything in the model scales off this line. | None: it is a target |
+| **Athlete count trajectory** | ESTIMATE | Low | 250 rising to 8,500 over ten years. This is the PLAN, not a benchmark: marketing spend is derived from it at segment CAC, not the other way round. Everything in the model scales off this line. | None: it is a target |
 
 ### : Costs:
 

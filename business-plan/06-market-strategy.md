@@ -74,10 +74,10 @@ quantified argument, and it needs the niche cohort to exist first.
 
 | Phase | Segment | Target | Motion | Proves |
 |---|---|---|---|---|
-| **Y1** | 2–3 niche sports, Spain | 400 athletes | Anchor athlete → their club → their federation | **Fans pay.** The only assumption the business cannot survive being wrong about |
-| **Y2** | Broaden niche, add Portugal | 1,800 | Federation partnerships, ambassador referral | The model travels across sports and borders |
-| **Y3** | First popular-sport entry (lower-division football / basketball) | 5,500 | Disintermediation pitch, backed by Y1–Y2 earnings data | Agents are displaceable |
-| **Y4–Y5** | Both segments, EU-wide | 13k → 25k | Sales org + self-serve | Sponsorship engine compounds |
+| **Y1** | 2–3 niche sports, Spain | 250 athletes | Anchor athlete → their club → their federation | **Fans pay.** The only assumption the business cannot survive being wrong about |
+| **Y2** | Broaden niche, add Portugal | 750 | Federation partnerships, ambassador referral | The model travels across sports and borders |
+| **Y3** | First popular-sport entry (lower-division football / basketball) | 1,700 | Disintermediation pitch, backed by Y1–Y2 earnings data | Agents are displaceable |
+| **Y4–Y5** | Both segments, EU-wide | 2,800 → 4,000 | Sales org + self-serve | Sponsorship engine compounds |
 | **Y6–Y7** | Both, plus agency channel | 38k → 52k | Agencies as customers, not competitors | Category leadership |
 
 ---

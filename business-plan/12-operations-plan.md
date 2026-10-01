@@ -74,10 +74,10 @@ transactions.**
 
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| Applications | 2,000 | 8,375 | 20,337 | 30,164 |
-| Sent to human review | 500 | 1,977 | 4,600 | 6,654 |
+| Applications | 1,250 | 4,534 | 6,333 | 7,016 |
+| Sent to human review | 312 | 1,070 | 1,432 | 1,548 |
 | Admission rate | 20.0% | 25.0% | 28.5% | 30.5% |
-| **Review FTE required** | **0.02** | **0.08** | **0.18** | **0.26** |
+| **Review FTE required** | **0.01** | **0.04** | **0.06** | **0.06** |
 
 At four minutes per review, the entire manual burden of the business peaks at
 roughly **a quarter of one full-time person at Y7**, against 13 FTE total. The
@@ -118,7 +118,7 @@ allocation until Y4.
 The location decision is nonetheless a real one, taken for four reasons:
 
 1. **Ley de Startups** grants a 15% corporate tax rate for the first four
-   taxable years against the standard 25%, worth **€1.67M across Y6–Y9** in the
+   taxable years against the standard 25%, worth **€259k across Y7–Y10** in the
    model.
 2. **Loaded engineering cost.** A senior engineer at €72k loaded is roughly half
    the London or Amsterdam equivalent and a third of the Bay Area.
@@ -234,13 +234,13 @@ removes.**
 
 | Y7 cost of sales | Amount | % of revenue |
 |---|---|---|
-| Payment processing | €2.55M | 23.8% |
+| Payment processing | €0.75M | 23.8% |
 | Payouts to athletes | €237k | 2.2% |
-| Infrastructure | €336k | 3.1% |
+| Infrastructure | €78k | 3.1% |
 | Moderation | €70k | 0.7% |
 | Athlete verification | €18k | 0.2% |
 
-Infrastructure is 3.3% of revenue. **Payments are nearly eight times larger.**
+Infrastructure is 2.6% of revenue. **Payments are nearly eight times larger.**
 Any optimisation effort belongs there: tier pricing, annual billing and
 processor negotiation, not the AWS bill.
 
@@ -287,7 +287,7 @@ Sequenced by what unlocks revenue, not by what is easiest to build.
 | **P2.5** | Ballots, events with capacity, club publishing and revenue split | The club channel monetises |
 
 **Market sequence:** Spain through the pre-seed gate, second market at the seed,
-third and EU-wide from Series A. The reasoning is in [06](06-market-strategy.md):
+third and EU-wide from the growth round. The reasoning is in [06](06-market-strategy.md):
 we start where there is no incumbent, and what we learn there generalises upward.
 
 > [!important] The launch is gated on evidence, not on a date
