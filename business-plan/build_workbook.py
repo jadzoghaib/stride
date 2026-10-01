@@ -60,7 +60,8 @@ COLS = [get_column_letter(FIRST + k) for k in range(N)]
 #   LIGHT AMBER   sourced external fact (Stripe pricing, Spanish tax law, AWS
 #                 list price, Eurobarometer), change only if the source changed
 #   WHITE         a formula computed on this sheet
-#   LIGHT GREEN   a formula pulling from another sheet
+#   LIGHT GREEN   a dependent value: a formula pulling from another sheet,
+#                 or from the single input at the head of its own row
 #   LIGHT GREY    a subtotal or total
 #   LIGHT RED     a check that must read zero
 FILL_INPUT = PatternFill("solid", fgColor="DCE9F7")
@@ -96,7 +97,7 @@ EDGE = Border(left=Side(style="thin", color="D8DEE7"), right=Side(style="thin", 
 LEGEND = [("Input: change me", FILL_INPUT, FONT_INPUT),
           ("Sourced fact", FILL_HARD, FONT_HARD),
           ("Formula (this sheet)", FILL_CALC, FONT_CALC),
-          ("Formula (other sheet)", FILL_LINK, FONT_LINK),
+          ("Dependent value", FILL_LINK, FONT_LINK),
           ("Total", FILL_TOTAL, BOLD)]
 
 
@@ -313,7 +314,8 @@ def build() -> pathlib.Path:
         ("  LIGHT BLUE", "Estimated input", FILL_INPUT),
         ("  LIGHT YELLOW", "Sourced input (Stripe pricing, Spanish tax law, AWS list)", FILL_HARD),
         ("  WHITE", "Computed formula", None),
-        ("  LIGHT GREEN", "Dependent value, pulled from another sheet", FILL_LINK),
+        ("  LIGHT GREEN", "Dependent value, pulled from another sheet or from "
+          "the one input at the head of its row", FILL_LINK),
         ("  LIGHT GREY", "Total or subtotal", FILL_TOTAL),
         ("  LIGHT RED", "A check that must read zero", FILL_CHECK),
     ]
@@ -635,9 +637,19 @@ def build() -> pathlib.Path:
              formula=(f"=({{p}}{end}*{{c}}{ssum}"
                       f"+{{c}}{adds}/(1-{{c}}{rr})*(12-{{c}}{ssum}))/12"),
              bold=True)
-        drow(f"{tag} fans lost to churn", unit="avg x churn x 12",
-             formula=(f"={{c}}{D[f'{tag} average fans during year']}*12"
-                      f"*Assumptions!{{c}}{A_ROW[f'{t}_fchurn']}"))
+        # Opening + gross adds - closing, which is an identity rather than an
+        # approximation. Summing fans[t+1] = fans[t]*(1-churn) + adds over the
+        # twelve months gives closing = opening - churned + gross_adds, so
+        # churned is exactly what is left. The previous formula here was
+        # `average fans x 12 x churn`, and average is the mean of the CLOSING
+        # balances while the model charges churn on each month's OPENING one:
+        # the two differ by a month of growth, 15% in Y1. Nothing read this row,
+        # so nothing computed was wrong, but it printed a number model.py does
+        # not produce in the block that exists to show the cohort mechanics.
+        drow(f"{tag} fans lost to churn", unit="opening + gross adds - closing",
+             first=f"={{c}}{D[f'{tag} fans acquired (gross)']}-{{c}}{end}",
+             formula=(f"={{p}}{end}+{{c}}{D[f'{tag} fans acquired (gross)']}"
+                      f"-{{c}}{end}"))
         r += 1
 
     r = section(d, r, "TOTALS")
@@ -1093,10 +1105,25 @@ def build() -> pathlib.Path:
     ss = r
     r = row(hp, r, "Employer social security", "on gross",
             values=[0.32] * 10, fmt=PCT, hard=True)
+    # The gross salary per role used to live only inside these formulas, which
+    # made the largest controllable cost in the plan invisible and uneditable:
+    # seventy literals, no cell showing any of them. Each is now an input of its
+    # own, referenced absolutely, so changing an engineer's salary is one edit.
+    r = row(hp, r, "GROSS SALARY BY ROLE", "EUR, before employer SS")
+    salary_rows = {}
+    for label, _fte, gross in ROLES:
+        salary_rows[label] = r
+        # const=True: the input lives in Y1 and every later year links back to
+        # it, which is the sheet's idiom for a flat assumption and leaves one
+        # cell to edit rather than ten. The loaded row below reads its OWN
+        # year's cell, so a raise can still be modelled by breaking the link.
+        r = row(hp, r, f"  {label}", "EUR", values=[gross] * N, hard=True, const=True)
+    r += 1
     cost_first = r
     for label, _fte, gross in ROLES:
         r = row(hp, r, f"{label}: loaded", "EUR",
-                formula=f"={{c}}{role_rows[label]}*{gross}*(1+{{c}}{ss})")
+                formula=(f"={{c}}{role_rows[label]}*{{c}}${salary_rows[label]}"
+                         f"*(1+{{c}}{ss})"))
     cost_last = r - 1
     build_up = r
     r = row(hp, r, "TOTAL, role build-up", "EUR", bold=True, top=True,
@@ -1354,23 +1381,40 @@ def build() -> pathlib.Path:
     r = section(va, r, "SENSITIVITY: enterprise value by WACC and terminal growth")
     va.cell(r, 1, "Terminal growth \\ WACC").font = BOLD
     waccs = [0.18, 0.20, 0.22, 0.25, 0.28, 0.30]
+    wacc_row = r
     for j, w in enumerate(waccs):
         c = va.cell(r, 3 + j, w)
         c.number_format = PCT
         c.font = HEAD
         c.fill = HEAD_FILL
     r += 1
+    # A real two-way table: every cell reads the WACC from its own column header
+    # and the growth rate from its own row label, instead of carrying both as
+    # literals. The previous version baked the pair into each of the thirty
+    # formulas, so editing a header relabelled a column without recomputing it,
+    # on a sheet whose colour key invites exactly that edit.
     for g in (0.01, 0.02, 0.03, 0.04, 0.05):
-        va.cell(r, 1, g).number_format = PCT
-        va.cell(r, 1).font = BOLD
+        gl = va.cell(r, 1, g)
+        gl.number_format = PCT
+        gl.font, gl.fill = FONT_INPUT, FILL_INPUT
+        wref = f"{{wc}}${wacc_row}"
+        gref = f"$A{r}"
         for j, w in enumerate(waccs):
-            # PV of a 10-year FCF strip plus terminal value, at this (w, g) pair
-            terms = "+".join(f"CashFlow!{c}{F['FREE CASH FLOW']}/(1+{w})^{k+1}"
-                             for k, c in enumerate(COLS))
-            tv = (f"CashFlow!{lastc}{F['FREE CASH FLOW']}*(1+{g})/({w}-{g})/(1+{w})^{N}")
+            wc = get_column_letter(3 + j)
+            wr = wref.format(wc=wc)
+            terms = "+".join(
+                f"CashFlow!{c}{F['FREE CASH FLOW']}/(1+{wr})^{k + 1}"
+                for k, c in enumerate(COLS))
+            tv = (f"CashFlow!{lastc}{F['FREE CASH FLOW']}"
+                  f"*(1+{gref})/({wr}-{gref})/(1+{wr})^{N}")
             cell = va.cell(r, 3 + j, f"={terms}+{tv}")
             cell.number_format = MONEY
+            cell.fill, cell.font = FILL_CALC, FONT_CALC
         r += 1
+    va.cell(r, 1, "Both axes are live inputs: edit a WACC header or a growth "
+                  "label and the grid recomputes.").font = Font(
+        italic=True, size=9, color="6B7480")
+    r += 1
 
 
 
@@ -1811,7 +1855,13 @@ def build() -> pathlib.Path:
         c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
     rs.freeze_panes = "A5"
 
-    conf_fill = {"High": FILL_LINK, "Medium": FILL_HARD, "Low": FILL_CHECK}
+    # Its own palette. These three used to be FILL_LINK, FILL_HARD and
+    # FILL_CHECK, so on this one sheet green meant "high confidence" while the
+    # key on the README said green meant "pulled from another sheet". One colour
+    # cannot mean two things in one workbook.
+    conf_fill = {"High": PatternFill("solid", fgColor="E8E4F5"),
+                 "Medium": PatternFill("solid", fgColor="F2EDE2"),
+                 "Low": PatternFill("solid", fgColor="F7E8EC")}
     method_col = {"SOURCED": "1E7A3C", "BENCHMARKED": "1F4E9C",
                   "DERIVED": "1A1A1A", "ESTIMATE": "B3272D"}
 
