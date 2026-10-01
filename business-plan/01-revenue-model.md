@@ -279,7 +279,7 @@ with the take.
 > the 15% pair highlighted and the other two labelled by the competitor they
 > represent, not by the percentage alone. A sensitivity table nobody reads
 > becomes a picture of where we sit between two real companies.
-> **Data** · `attachments/chart-data/g9-take-rate-corridor.csv`
+> **Data** · the take-rate corridor, Figure 7
 > **Must say** · ==The downside is steeper than the upside.== Five points down
 > costs €478.65k of revenue and **82% of EBITDA**, because the cost
 > base does not shrink with the take. Draw the EBITDA

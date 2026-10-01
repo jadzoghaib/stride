@@ -272,7 +272,7 @@ python scripts/failure_drill.py                       # latency -> errors -> db 
 python scripts/admission_stress.py                    # the admission bar under a funnel sweep
 python scripts/doc_consistency.py                     # every figure in prose still matches model.py
 python scripts/verify_workbook.py                     # 2,520 formulas, no dangling refs, no cycles
-python scripts/recalc_workbook.py                     # evaluates them all; Check sheet variances must be 0
+python scripts/recalc_workbook.py                     # evaluates them all; every check row must be 0
 ```
 
 `journey.py` and `permissions.py` write to the demo database and restore it afterwards, so

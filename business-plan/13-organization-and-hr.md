@@ -1,8 +1,7 @@
 # 13: Organization and Human Resources Plan
 
-*ESADE outline §8. Headcount, loaded costs and the hiring sequence are generated
-by [`model.py`](model.py); the doc guard fails the build if the prose drifts
-from it.*
+*Headcount, loaded costs and the hiring sequence all come from the financial
+model, and the figures quoted here are checked against it rather than retyped.*
 
 The plan reaches **€3.0M of revenue at Y7 with 10 people.** That ratio is the
 central organisational claim, and it is only credible if the org design explains
@@ -154,7 +153,7 @@ because a specific bottleneck arrives at a specific time; none is a
   relationships are the asset.
 - **Non-discrimination.** Selection criteria are written before candidates are
   seen and applied identically. This is both a legal requirement in Spain and a
-  stated commitment (§13.5).
+  stated commitment (section 13.5).
 
 ### Management
 

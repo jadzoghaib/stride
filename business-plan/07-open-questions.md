@@ -128,7 +128,7 @@ of which federations will take a meeting beats any analysis I can do.**
 
 ### F3: Should the sport index ship *inside the product*?
 
-`model.py` is now segmented and `sport_index.py` classifies sports, so the
+The financial model is now segmented and the index classifies sports, so the
 business question is answered. The **product** question is not: today
 `audience_scale` is `logband(followers, 2, 7)` with no sport input at all, so a
 trail runner with 25k followers scores identically to a footballer with 25k.

@@ -1,11 +1,13 @@
-"""Compare every workbook row against model.py, not only the fifteen on Check.
+"""Compare every workbook row against model.py, not only the headline lines.
 
-The Check sheet proves fifteen lines agree with the model: net revenue, cost of
-sales, gross profit, operating costs, EBITDA, paying fans, average fans, GMV,
-deals, applications, verification, tax, net profit, free cash flow and the
-balance-sheet tie. That is a good spine and it is not coverage. A compensating
-error inside cost of sales, payment fees up and infrastructure down by the same
-amount, reproduces the total exactly and passes every existing check here.
+The workbook used to carry a Check sheet comparing fourteen of them: net
+revenue, cost of sales, gross profit, operating costs, EBITDA, paying fans,
+average fans, GMV, deals, applications, verification, tax, net profit and free
+cash flow, plus the balance-sheet tie. That is a good spine and it is not
+coverage. A compensating error inside cost of sales, payment fees up and
+infrastructure down by the same amount, reproduces the total exactly and would
+pass all of it. This is what replaced that sheet, and it covers every line the
+sheet did.
 
 So this walks the rows that should equal a model output, evaluates the
 workbook's own formulas with the recalculator, and compares magnitudes.
@@ -118,8 +120,9 @@ EXPECT: dict[str, dict[str, tuple[str, float]]] = {
     },
 }
 
-#: The lines the Check sheet already compares, by the model key they stand for.
-CHECKED_ON_CHECK_SHEET = {
+#: The headline lines, the ones a reader would check by hand. Kept so the
+#: summary can report what this audit adds beyond them.
+HEADLINE = {
     "revenue", "cogs", "gross", "opex", "ebitda", "paying_fans", "avg_fans",
     "gmv", "deals", "applications", "verification", "tax", "net_profit", "fcf",
 }
@@ -200,12 +203,12 @@ def main() -> int:
         for u in unmatched:
             print(f"  {u}")
 
-    # ── what the Check sheet leaves unguarded ────────────────────────────
+    # ── what checking the headline lines alone would leave unguarded ─────
     gaps = sorted({key for wanted in EXPECT.values() for key, _ in wanted.values()}
-                  - CHECKED_ON_CHECK_SHEET)
-    print(f"\nModel outputs this audit verifies that the Check sheet does NOT "
-          f"({len(gaps)}). A compensating error inside any of these reproduces its\n"
-          f"parent total exactly and passes recalc_workbook.py:")
+                  - HEADLINE)
+    print(f"\nModel outputs verified here and nowhere else ({len(gaps)}). A "
+          f"compensating error inside any of\nthese reproduces its parent total "
+          f"exactly and passes recalc_workbook.py:")
     for g in gaps:
         print(f"  {g}")
 

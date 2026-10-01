@@ -27,7 +27,6 @@ Sheets, in dependency order:
     BalanceSheet  with an explicit balance check
     Valuation     DCF, NPV, IRR, exit multiples, WACC/growth sensitivity
     Funding       rounds, dilution, ownership
-    Check         the Python model's numbers, to verify the formulas agree
 """
 
 from __future__ import annotations
@@ -288,9 +287,6 @@ SHEET_GUIDE: list[tuple[str, str, str]] = [
     ("CAC_CLV", "CAC_CLV", "Acquisition cost against lifetime value"),
     ("KPIs", "KPIs", "Scale, quality of revenue, efficiency"),
     ("", "", ""),
-    ("CONTROL", "", ""),
-    ("Check", "Check", "Internal quality checks. Every variance row must read zero"),
-    ("", "", ""),
     ("APPENDIX: RESEARCH AND MODELLING", "", ""),
     ("Comparables", "Comparables", "Published facts about Patreon, Passes and agents. The benchmarking source"),
     ("MarketModel", "MarketModel", "Modelled assumptions, per market dynamics"),
@@ -330,7 +326,7 @@ def build() -> pathlib.Path:
         ("  LIGHT GREEN", "Dependent value, pulled from another sheet or from "
           "the one input at the head of its row", FILL_LINK),
         ("  LIGHT GREY", "Total or subtotal", FILL_TOTAL),
-        ("  LIGHT RED", "A check that must read zero", FILL_CHECK),
+        ("  LIGHT RED", "The balance-sheet check, which must read zero", FILL_CHECK),
     ]
     r = 6
     for label, meaning, fill in key:
@@ -1178,14 +1174,11 @@ def build() -> pathlib.Path:
     hp = sheet(wb, "HiringPlan", "Hiring plan")
     r = 4
     r = section(hp, r, "FTE BY ROLE")
-    # Reconciles to M.A.headcount in every year, which the CHECK row below
-    # asserts and scripts/verify_workbook.py now enforces. The previous
-    # ladder was built for a 28-FTE Y10 and summed to 14.5 in Y6 against a
-    # model saying 7.0, with the CHECK row dutifully reporting 7.5 and
-    # nothing reading it.
-    # From model.py, which is where the hiring plan is decided. It used to be
-    # declared here as well, with the CHECK row below catching the two when they
-    # drifted apart. They did drift. One source is better than two and a guard.
+    # The role ladder is the only place headcount is declared. Assumptions used
+    # to declare it a second time and a CHECK row underneath this total caught
+    # the two when they drifted apart. They did drift, by 7.5 FTE in Y6, and the
+    # row reported it to nobody. Assumptions now reads this total instead, which
+    # is why the check below it is gone: it had become the total minus itself.
     ROLES = [(name, fte, M.ROLE_SALARY_EUR[name]) for name, fte in M.ROLES.items()]
     role_rows = {}
     first_role = r
@@ -1196,16 +1189,16 @@ def build() -> pathlib.Path:
     total_fte = r
     r = row(hp, r, "TOTAL FTE", "FTE", bold=True, top=True, fmt='0.0',
             formula=f"=SUM({{c}}{first_role}:{{c}}{last_role})")
-    model_hc = r
-    r = row(hp, r, "Model headcount", "Assumptions", fmt='0.0', font=LINK,
-            formula=f"=Assumptions!{{c}}{A_ROW['headcount']}")
-    # This used to reconcile two independently declared numbers: the role ladder
-    # here and the headcount in model.py. Both now come from model.ROLES, so what
-    # it verifies is narrower and still worth having: that the SUM formula above
-    # adds the role rows correctly, and that Assumptions carries the same total.
-    # A formula error in this sheet would still show up here.
-    r = row(hp, r, "CHECK", "sheet arithmetic, must be zero", bold=True, fmt='0.0',
-            formula=f"=ROUND({{c}}{total_fte}-{{c}}{model_hc},3)")
+    # Assumptions points back here, now that the ladder above is the only
+    # declaration of headcount in the workbook. Written after the fact because
+    # Assumptions is built first and cannot know this row number in advance.
+    for k, col in enumerate(COLS):
+        cell = wb["Assumptions"].cell(A_ROW["headcount"], FIRST + k)
+        assert cell.value == M.A.headcount[k], (
+            f"Assumptions headcount Y{k + 1} is {cell.value!r}, so the row this "
+            f"links to is not the one that was written")
+        cell.value = f"=HiringPlan!{col}{total_fte}"
+        cell.fill, cell.font = FILL_LINK, FONT_LINK
 
     r += 1
     r = section(hp, r, "COST: ROLE BUILD-UP AGAINST THE MODEL")
@@ -1259,6 +1252,9 @@ def build() -> pathlib.Path:
 
     # ══ CAC & CLV ═══════════════════════════════════════════════════════════
     cl = sheet(wb, "CAC_CLV", "Customer acquisition cost and lifetime value")
+    # Set in the author's copy. It is narrow enough to print as it stands, which
+    # none of the ten-year sheets are.
+    cl.page_setup.orientation = "portrait"
     r = 4
     r = section(cl, r, "ATHLETE: BLENDED ACROSS SEGMENTS")
     n_share = r
@@ -1370,7 +1366,7 @@ def build() -> pathlib.Path:
     r = row(cl, r, "Contribution per sponsor per year", "EUR",
             formula=f"={{c}}{s_saas}+{{c}}{s_spo}")
     s_gross = r
-    r = row(cl, r, "  at gross margin", "EUR",
+    r = row(cl, r, "at gross margin", "EUR",
             formula=f"={{c}}{s_con}*'P&L'!{{c}}{P['Gross margin']}")
     r = row(cl, r, "CAC payback", "months", bold=True, top=True, fmt='0.0',
             formula=f"=IF({{c}}{s_gross}<=0,0,12*{{c}}{s_cac}/{{c}}{s_gross})")
@@ -2013,47 +2009,6 @@ def build() -> pathlib.Path:
         rs.merge_cells(start_row=r, start_column=1, end_row=r, end_column=7)
         rs.row_dimensions[r].height = 30
         r += 1
-
-    # ══ CHECK ═══════════════════════════════════════════════════════════════
-    ck = sheet(wb, "Check", "Check: Excel's own answers against the Python model")
-    r = 4
-    ck.cell(2, 1, "Each pair is the Python model's figure and the workbook's own calculation. "
-                  "VARIANCE must be zero: if a formula is wrong, it shows up here on open.").font =         Font(italic=True, size=9, color="6B7480")
-
-    CHECKS = [
-        ("Net revenue", "revenue", f"=Revenue!{{c}}{R['NET REVENUE']}", MONEY),
-        ("Cost of sales", "cogs", f"=Costs!{{c}}{C['TOTAL COST OF SALES']}", MONEY),
-        ("Gross profit", "gross", f"=P&L!{{c}}{P['GROSS PROFIT']}", MONEY),
-        ("Operating costs", "opex", f"=Costs!{{c}}{C['TOTAL OPERATING COSTS']}", MONEY),
-        ("EBITDA", "ebitda", f"=P&L!{{c}}{P['EBITDA']}", MONEY),
-        ("Paying fans (year end)", "paying_fans", f"=Drivers!{{c}}{D['Paying fans (year end)']}", NUM),
-        ("Average paying fans", "avg_fans", f"=Drivers!{{c}}{D['Average paying fans']}", NUM),
-        ("Total GMV", "gmv", f"=Revenue!{{c}}{R['TOTAL GMV']}", MONEY),
-        ("Deals", "deals", f"=Drivers!{{c}}{D['Total deals']}", NUM),
-        ("Applications required", "applications", f"=Drivers!{{c}}{D['Applications required']}", NUM),
-        ("Athlete verification", "verification", f"=Costs!{{c}}{C['Athlete verification']}", MONEY),
-        # The three lines below the EBITDA line. Leaving them out is how the two
-        # models drifted apart unnoticed: Python taxed a flat 15% forever and
-        # called EBITDA-less-tax "free cash flow", while the workbook ran a loss
-        # carry-forward, a 15%->25% step, working capital and capex. Both were
-        # internally consistent and they disagreed, and nothing compared them.
-        ("Tax charge", "tax", f"=-P&L!{{c}}{P['Tax charge']}", MONEY),
-        ("Net profit", "net_profit", f"=P&L!{{c}}{P['NET PROFIT']}", MONEY),
-        ("Free cash flow", "fcf", f"=CashFlow!{{c}}{F['FREE CASH FLOW']}", MONEY),
-    ]
-    for label, key, formula, fmt in CHECKS:
-        r = section(ck, r, label.upper())
-        py = r
-        r = row(ck, r, "  Python model", "model.py", values=[x[key] for x in rows], fmt=fmt)
-        xl = r
-        r = row(ck, r, "  This workbook", "recalculated", formula=formula, fmt=fmt)
-        r = row(ck, r, "  VARIANCE", "must be 0", fmt=fmt, check=True, bold=True,
-                formula=f"=ROUND({{c}}{xl}-{{c}}{py},0)")
-        r += 1
-
-    ck.cell(r, 1, "Balance sheet check (from BalanceSheet, must be zero):").font = BOLD
-    r = row(ck, r + 1, "  Assets less liabilities and equity", "must be 0", check=True, bold=True,
-            formula=f"=BalanceSheet!{{c}}{B['BALANCE CHECK']}", fmt=MONEY)
 
     # Sheets are created in dependency order, which is not the order a reader
     # wants them in. Reordering here, from the same list the README is built

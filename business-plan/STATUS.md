@@ -9,16 +9,19 @@ Last updated 1 October 2026.*
 
 | What | Where |
 |---|---|
-| **The submission** | `business-plan/Stride_Business_Plan.docx`, 42-page body, 112 total, TOC populated |
+| **The submission** | `business-plan/Stride_Business_Plan.docx`, 43-page body, 117 total, TOC populated |
 | Same, without Word | `business-plan/Stride_Business_Plan.pdf` |
-| **The financial model** | `business-plan/Stride_Financial_Model.xlsx`, 18 sheets, 2,812 formulas |
+| **The financial model** | `business-plan/Stride_Financial_Model.xlsx`, 17 sheets, 2,512 formulas |
 | The body's source | `business-plan/esade-body.md` |
 | The exhibits | `business-plan/attachments/charts/`, 12 PNGs, and `attachments/ui/`: 6 screens |
 | School material | `Desktop\Business Track MSc Thesis\` (outside this repo) |
 
-**One thing on opening.** In Excel, go to the **Check** sheet first: every
-VARIANCE row must read zero. The Word table of contents is already populated
-(it is a field, so it needs F9 only if you edit headings after this).
+**One thing on opening.** The Word table of contents is already populated (it
+is a field, so it needs F9 only if you edit headings after this). The workbook
+has no Check tab any more: it was fifteen rows comparing the workbook to the
+Python model, which is build scaffolding and does not belong in a document being
+handed over. `scripts/audit_coverage.py` does that comparison over 580 cells
+instead, and the balance sheet still proves it balances on its own sheet.
 
 ---
 
@@ -31,8 +34,8 @@ VARIANCE row must read zero. The Word table of contents is already populated
 | Week of 12 Oct | Online defence, 15 min + 10 min Q&A |
 
 Document is **70%** of the grade, presentation **30%**. Body must stay **under
-50 pages** excluding appendices. Measured in Word on 1 Oct 2026: **47 body
-pages** (Appendix A opens on page 48) out of 120 in total.
+50 pages** excluding appendices. Measured in Word on 1 Oct 2026: **43 body
+pages** (Appendix A opens on page 44) out of 117 in total.
 
 ---
 
@@ -152,7 +155,9 @@ next time: **a green guard covers the pinned figures and nothing else.**
 - The **HiringPlan role ladder** summed to 14.5 FTE in Y6 against a model saying
   7.0. The sheet has a row labelled CHECK, "must be zero", reading 7.5:
   `recalc_workbook.py` only walked the Check sheet, so nothing read it. It now
-  walks CHECK rows on every sheet, and that is verified by breaking it
+  walks CHECK rows on every sheet, and that is verified by breaking it. The two
+  declarations are since down to one: Assumptions reads the role ladder, so the
+  row that caught them has nothing left to catch and is gone
 - **Appendix C carried a second scenario table**, hand-typed, with different
   case names and different numbers from the generated one in §7.6
 - The **valuation headline** said €11–25M with an €8.4M floor, and §7.7 quoted a

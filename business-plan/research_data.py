@@ -155,11 +155,10 @@ ROWS: list[tuple] = [
      "Low", "Measured CAC by channel from the first federation partnership."),
     ("Admission rate, direct applicants", "admit_direct", "DERIVED",
      "20% of direct applicants are admitted, 25% go to a human, 40% are refused and 15% never "
-     "finish the form. Not a judgement: it is the ops-load output of "
-     "scripts/admission_stress.py run over the admission policy itself, so retuning a threshold "
-     "moves this figure. The sweep asserts the model and the policy stay in step and fails if "
-     "they drift.",
-     "scripts/admission_stress.py, section 7, over a modelled applicant mix",
+     "finish the form. Not a judgement: it is what the admission policy itself produces when "
+     "the stress test is run over a modelled applicant mix, so retuning a threshold moves this "
+     "figure. The sweep holds the model and the policy in step.",
+     "Admission stress test, section 7, over a modelled applicant mix",
      "Medium", "Real intake data. The mix the sweep assumes is the soft part, not the arithmetic."),
     ("Admission rate, club-nominated", "admit_club", "ESTIMATE",
      "45% admitted against 20% direct. A verified club's nomination confers a credibility floor "

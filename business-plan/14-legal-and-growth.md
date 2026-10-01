@@ -1,12 +1,11 @@
 # 14: Legal Form and Intellectual Property
 
-*ESADE outline §10. The growth strategy that used to sit here is now its own
-section: see [16](16-growth-strategy.md), which the outline separates and which
-an examiner grades separately. The regulatory analysis (VAT, GDPR, the age
-model and sponsorship rules) is in
-[§8 of the full plan](stride-business-plan-draft.md) and is not repeated here.
-This section covers the corporate and intellectual property questions the
-full plan does not.*
+*The growth strategy that used to sit alongside this is now its own section:
+see [16](16-growth-strategy.md). The regulatory work (VAT, DAC7, GDPR, the age
+model and the sponsorship rules) is not gathered here either: it is priced in
+the operating costs in section 5.9, carried as risk R5 in section 9, and set out
+as policy in [11](11-admission-and-matching.md). What follows is the corporate
+and intellectual property side.*
 
 ---
 

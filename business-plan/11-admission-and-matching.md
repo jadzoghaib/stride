@@ -5,8 +5,8 @@ ranks the people who got in. Cold start is the problem all three solve: before
 there are outcomes to learn from, the only evidence is what an applicant
 submits and what their public accounts show.
 
-Implemented in `apps/api/stride_api/admission.py` and `matching.py`. Swept
-adversarially by `scripts/admission_stress.py`.
+Implemented in the deployed platform's admission and matching services, and
+swept adversarially by an automated stress test over the whole input space.
 
 ---
 
@@ -35,7 +35,7 @@ it through and the gate does the opposite of what the product promises.
 A compensatory gate lets reach buy legitimacy, which admits exactly the person
 Stride exists not to be, and rejects exactly the person it exists to serve.
 Worse, it does the second by treating *unmeasured* analytics as a zero: the
-error `matching.py` already refuses to make.
+error the matching engine already refuses to make.
 
 So: **credibility decides admission. The social score can only route a case to
 human review, never raise it.** What the social score actually governs is
@@ -52,7 +52,7 @@ claim with a dead link outscored a verified `regional` one. As a multiplier it
 cannot: the strongest possible unevidenced application scores **24.0** and is
 rejected: just under the 25 review floor, by construction.
 
-**2. Missing is zero here: the opposite of `matching.py`, on purpose.** That
+**2. Missing is zero here: the opposite of the matching engine, on purpose.** That
 module renormalises weights over the analytics it could measure, because the
 athlete does not control whether Instagram returned data. Everything on an
 application form is the reverse: the applicant chooses what to supply.
@@ -174,7 +174,7 @@ not by the test suite, which had encoded the behaviour rather than questioned it
 
 So the promise is now a rule with a stated end. **A listing granted before the
 gate survives a shortage of evidence and ends only on a finding.** Two things
-count as a finding, and they are named in `DISQUALIFYING_RULES` next to the
+count as a finding, and the platform holds them as named rules alongside the
 decisions that produce them:
 
 | | | |
@@ -200,7 +200,7 @@ supports.
 
 ## Matching
 
-The existing eight-component model in `matching.py` is unchanged. What changed
+The existing eight-component model in the matching engine is unchanged. What changed
 is the shape around it.
 
 **Hard constraints moved into retrieval.** A weighted blend is compensatory by
@@ -270,7 +270,7 @@ with.
 
 ## Stress test
 
-`scripts/admission_stress.py` sweeps the discrete input space exhaustively
+The stress test sweeps the discrete input space exhaustively
 rather than spot-checking: 8,960 applications × the questions below. It found
 two failures that the hand-written test cases did not, two more turned up only
 by driving the running API, and a sixth appeared the moment the harness itself
@@ -364,7 +364,7 @@ because a stress harness that cries wolf gets switched off.
 
 ## What the policy costs in humans
 
-> The rates below are consumed by `business-plan/model.py`, which prices
+> The rates below are consumed by the financial model, which prices
 > reviewer time off them. The sweep asserts the two stay in step and fails if a
 > retuned threshold leaves the workbook costing a funnel that no longer exists.
 
@@ -409,8 +409,8 @@ higher-yielding channel, not merely a cheaper one.
 
 The threshold is otherwise on a plateau between 45 and 60, which is a comfortable
 place to sit. The nearest edge is verified regional football at **60.2**; raising
-`DENSITY_SENSITIVITY` much above 0.12 would push it under the line, so that
-constant should not be retuned without re-running the sweep.
+the agent-density sensitivity much above 0.12 would push it under the line, so
+that setting should not be retuned without re-running the sweep.
 
 ---
 
@@ -418,14 +418,14 @@ constant should not be retuned without re-running the sweep.
 
 | | State |
 |---|---|
-| Credibility, legitimacy, nomination, decisions | **Built**: `admission.py` |
-| Applications, review queue, proof review, revocation | **Built**: `routers/admission.py` |
-| Hard retrieval filters, congestion, slate logging | **Built**: `matching.py` |
-| Adversarial sweep | **Built**: `scripts/admission_stress.py` |
+| Credibility, legitimacy, nomination, decisions | **Built**: admission service |
+| Applications, review queue, proof review, revocation | **Built**: admission API |
+| Hard retrieval filters, congestion, slate logging | **Built**: matching engine |
+| Adversarial sweep | **Built**: automated stress test |
 | Athlete eligibility, club eligibility + nomination, ops review queue | **Built**: see below |
 | Automated proof-link checking | **Specified**: needs live HTTP; see above |
 | Learned ranker | **Deliberately deferred**: no labels yet |
-| The funnel in the financial model | **Built**: `model.py`, `Stride_Financial_Model.xlsx` |
+| The funnel in the financial model | **Built**: model and workbook |
 | Topic embeddings for narrative fit | **Deferred**: needs real post text and a model dependency |
 
 ---

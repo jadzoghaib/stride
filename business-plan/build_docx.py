@@ -75,7 +75,35 @@ APPENDICES: list[tuple[str, str]] = [
 # Included documents are renumbered into the body's own scheme. Any of them may
 # cite any other, so the map has to be global rather than per-file: rewriting
 # only the file being rendered left `[12.11]` standing inside section 8.
-SECTION_MAP = {"12": "5", "13": "6", "14": "8", "15": "3.1", "16": "10"}
+SECTION_MAP = {"12": "5", "13": "6", "14": "8", "15": "3.1.5", "16": "10"}
+
+# Where each source document ends up once the plan is assembled. The body's own
+# sections keep their outline numbers; everything else becomes a lettered
+# appendix. Used to resolve cross references, which are written as links to a
+# filename and would otherwise print as that file's number.
+CROSSREF = {no: f"section {dest}" for no, dest in SECTION_MAP.items()}
+CROSSREF.update({f: f"Appendix {letter}" for letter, name in APPENDICES
+                 for f in [name.split("-")[0]]})
+
+# [07](07-open-questions.md), [12.11](12-operations-plan.md), [01 Revenue](...)
+# and the one written as a code span. The label is discarded: whatever it said,
+# the destination is what the reader needs.
+LINK_TO_DOC = re.compile(
+    r"\[`?(\d\d)(\.\d+)?[^\]]*`?\]\((\d\d)-[a-z0-9-]+\.md(?:#[a-z0-9-]+)?\)")
+
+
+def crossrefs(md: str) -> str:
+    """Rewrite links to another document into the name it carries in the plan."""
+    def name(m: re.Match) -> str:
+        label = CROSSREF.get(m.group(3))
+        if not label:
+            return m.group(0)
+        # A subsection survives only where the destination is numbered: section
+        # 12.11 becomes section 5.11, but an appendix has no 7.2 to point at.
+        if m.group(2) and label.startswith("section"):
+            return label + m.group(2)
+        return label
+    return LINK_TO_DOC.sub(name, md)
 
 INLINE = re.compile(
     r"(\*\*.+?\*\*|\*[^*]+?\*|`[^`]+?`|\[\[?[^\]]+?\]\]?\([^)]+?\)|~~.+?~~|==.+?==)")
@@ -197,7 +225,7 @@ class Renderer:
         self.renumber = renumber
 
     def render(self, md: str) -> None:
-        lines = md.split("\n")
+        lines = crossrefs(md).split("\n")
         i = 0
         while i < len(lines):
             line = lines[i]
@@ -245,8 +273,8 @@ class Renderer:
                         # Every included document is remapped, not just
                         # this one, because they cite each other.
                         for src_no, dest in SECTION_MAP.items():
-                            body = re.sub(rf"§{src_no}\.(\d+)",
-                                          rf"§{dest}.\1", body)
+                            body = re.sub(rf"([Ss]ection ){src_no}\.(\d+)",
+                                          rf"\g<1>{dest}.\2", body)
                             body = re.sub(rf"\[{src_no}\.(\d+)\]",
                                           rf"[{dest}.\1]", body)
                             # bare labels too: [12](12-operations-plan.md)
@@ -335,7 +363,16 @@ class Renderer:
         # A real Word Heading style, not a bold paragraph. Without an outline
         # level the TOC field indexes nothing and the Contents page stays empty
         # however many times it is refreshed.
-        par = self.doc.add_paragraph(style=f"Heading {min(level, 4)}")
+        # The Contents lists the body in full and each appendix by its title
+        # only. Listing every appendix subsection as well ran it to 162 lines
+        # over four pages, which is longer than several of the sections it
+        # indexes. The TOC field collects outline levels 1 and 2, so these are
+        # styled below that range. Everything visible about them, size, weight,
+        # colour and spacing, is set here rather than inherited, so the page is
+        # unchanged and only the field's reach is.
+        style_level = min(level + 3, 9) if (self.appendix and level >= 2) \
+            else min(level, 4)
+        par = self.doc.add_paragraph(style=f"Heading {style_level}")
         par.paragraph_format.space_before = Pt(16 if level <= 2 else 10)
         par.paragraph_format.space_after = Pt(5)
         par.paragraph_format.keep_with_next = True
@@ -501,7 +538,9 @@ def cover(doc: Document, title: str, student: str, tutor: str, course: str) -> N
 
     # Template sizes: the degree line is the largest thing on the page.
     for text, size, bold, colour in (
-            ("BACHELOR/MASTER's Final Project", 20, False, INK),
+            # The template offers both; this is a master's project, so it
+            # carries the half that applies rather than the slash.
+            ("MASTER's Final Project", 20, False, INK),
             ("BUSINESS PLAN", 14, True, INK)):
         par = doc.add_paragraph()
         par.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -568,11 +607,6 @@ def contents(doc: Document) -> None:
     par = doc.add_paragraph()
     field(par, r'TOC \o "1-2" \h \z \u')
 
-    par = doc.add_paragraph()
-    par.paragraph_format.space_before = Pt(14)
-    inline(par, "Word populates this table on opening the document: right-click "
-                "anywhere in it and choose Update Field, or press F9.",
-           size=8, colour=MUTED)
     doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
 
 

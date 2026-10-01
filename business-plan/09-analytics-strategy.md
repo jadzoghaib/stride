@@ -59,7 +59,7 @@ engagement per sport per country, drawn from the athletes already on the
 platform.
 
 **This is the phase where the index stops being a spreadsheet and starts being a
-moat.** Anyone can copy the method in `sport_index.py`. Nobody can copy a
+moat.** Anyone can copy the method behind the index. Nobody can copy a
 measured dataset of what athlete audiences actually do.
 
 Still no analytics hire. This is instrumentation and queries, done by whoever
@@ -70,13 +70,13 @@ built the pipeline.
 Now the interesting questions become answerable, because you have outcomes:
 
 - Which matches converted into deals, at what price, against what score?
-- Do the eight matching weights in `matching.py` predict conversion, or are they
+- Do the eight matching weights in the engine predict conversion, or are they
   a plausible guess that happens to be stable?
 - Which fan cohorts retain, by sport, tier, price and content type?
 - Does the content guidance in [08](08-sport-index.md) actually raise conversion?
 
 **First analytics hire, and it should be one person who both models and ships**, an analyst-engineer, not a data scientist and not a BI contractor. The job is to
-turn `matching.py`'s hand-set constants into learned weights and to build the
+turn the matching engine's hand-set constants into learned weights and to build the
 cohort reporting the board will ask for.
 
 The matching engine was deliberately built as a transparent weighted sum. That

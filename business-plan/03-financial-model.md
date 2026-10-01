@@ -1,10 +1,6 @@
 # 03: Seven-Year Financial Model
 
-Every table here is emitted by [`model.py`](model.py). Y1 = 2027, EUR.
-
-```bash
-python business-plan/model.py
-```
+Every table here comes from the financial model that also produces the accompanying workbook. Y1 = 2027, EUR.
 
 ---
 
@@ -54,7 +50,7 @@ machine, and it was invisible until churn was modelled explicitly.
 
 The model runs **niche** and **popular** as separate cohorts, because they differ
 in kind rather than in size. Sports are assigned by
-[`sport_index.py`](sport_index.py); the strategy is in
+the Sport Opportunity Index in Appendix H; the strategy is in
 [06](06-market-strategy.md).
 
 | Assumption at Y7 | Niche | Popular | Why |
@@ -224,14 +220,13 @@ be wrong are **fans per athlete** and **share of athletes who monetise**.
 | **Base** | As modelled | €3.01M | €743k | €414k |
 | Optimistic | Fans/athlete +25%, monetise +20% | €3.59M | €829k | €347k |
 
-These are the same three cases as §7.6 of the body, generated from
-`model.scenario_table()`, which re-runs the whole model against changed drivers
-rather than adjusting the base result. A fourth case, hiring twelve months ahead
+These are the same three cases as section 7.6 of the body. Each one re-runs
+the whole model against changed drivers rather than adjusting the base result. A fourth case, hiring twelve months ahead
 and opening three markets from Y2, used to sit in this table with figures nothing
 produced. It is a real upside and it needs capital the plan has not raised, so it
 belongs in the growth section rather than in a sensitivity table.
 
-To run these, edit `Assumptions` in `model.py` and rerun. The pessimistic case
+Each case is the whole model re-run on a changed assumption rather than a figure adjusted by hand, and the workbook's Assumptions sheet is where the change is made. The pessimistic case
 **reaches profitability in Y5 rather than Y4**, two years later than the base
 case, and needs €541k rather than €414k. That is the
 honest shape of the downside: survivable on a bridge, not free. The

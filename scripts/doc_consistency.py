@@ -741,7 +741,7 @@ r"Together they are €(\d+)k",
     ("03-financial-model.md", "pessimistic capital need in the prose",
      r"needs €([\d,]+)k rather than", SCEN["Pessimistic"]["capital_need"] / 1e3, 1.0),
     ("04-capital-and-valuation.md", "pessimistic need beside the optional round",
-     r"scenario in §7\.6 needs\s+€([\d,]+)k against the €400k raised",
+     r"scenario in section 7\.6 needs\s+€([\d,]+)k against the €400k raised",
      SCEN["Pessimistic"]["capital_need"] / 1e3, 1.0),
     # growth rates: only Y2 was pinned, so Y3 to Y6 sat a whole trajectory stale
     *[("03-financial-model.md", f"revenue growth Y{y}",

@@ -1,9 +1,9 @@
 # 15: Primary Research
 
-*ESADE outline §5.1.4. Two strands of qualitative primary research: one expert
-interview inside Olympic broadcasting, and conversations with athletes in the
-segment the plan targets. This section reports what was said, what it changed,
-and what it does not settle.*
+*Two strands of qualitative primary research: one expert interview inside
+Olympic broadcasting, and conversations with athletes in the segment the plan
+targets. This section reports what was said, what it changed, and what it does
+not settle.*
 
 ---
 
@@ -63,23 +63,30 @@ perspective of the Olympic Channel in Europe.
 **The headline: he liked it.** Three pieces of substantive advice followed, and
 two of them changed the plan.
 
-### Finding 1: Phase it. Content first, sponsorship second.
+### Finding 1: Phase it. Athletes first, then the business layer.
 
-His advice was to prioritise the content side, and to roll out the sponsorship
-and business layer as real data accumulated or once a reasonable athlete base
-existed. He suggested the two could even be treated as separable products.
+His advice was to prioritise the athlete and content side, and to roll out the
+sponsorship and business layer as real data accumulated or once a reasonable
+athlete base existed. He suggested the two could even be treated as separable
+products.
 
-**Effect on the plan: confirmatory.** The revenue thesis already sequences fan
-monetisation ahead of sponsorship, and [01](01-revenue-model.md) states that
-fan revenue leads and funds the early years while sponsorship compounds behind
-it. The interview independently reached the same ordering from an operator's
-perspective rather than a financial one.
+**Effect on the plan: taken on acquisition, declined on monetisation.** The
+first half is what Year 1 is: one salary spent on recruiting athletes into two
+or three niche sports, with the business layer following the roster. The second
+half the plan does not follow. He was describing which product to grow first,
+and the question the plan has to answer is which product to *charge* for first,
+which is a different question and one an operator inside a broadcaster has no
+particular reason to weigh. Commission is invoiced against a signed deal, needs
+no content moderation and no minors safeguarding, and rides on a deal object
+that already exists, so it is both the cheapest thing to build and the only one
+that earns inside the first year. The fan tier is built last and earns from Y2.
+The build sequence in [12.11](12-operations-plan.md) sets this out in full.
 
-It also exposes an inconsistency worth naming: **the deployed demo shows the
-sponsorship engine, not the fan product.** That is deliberate, because the
-matching engine is what proves the analytics are real, but it means the thing a
-viewer clicks is the second-phase product. The build sequence in
-[12.11](12-operations-plan.md) corrects the order; the demo has not caught up.
+One consequence is worth naming, because it reads as an inconsistency and is
+not: **the deployed demo shows the sponsorship engine, not the fan product.**
+Under the old ordering that was the second-phase product shipped first. Under
+this one it is the first-phase product, and the demo is the part of the plan
+that is already where the sequence says it should be.
 
 ### Finding 2: Open it to everyone, but filter it
 
@@ -199,35 +206,7 @@ that the mechanism for expansion is exactly the one the product supplies.
 
 ---
 
-## 15.4 What the research settles, and what it does not
-
-**Supported by primary research:**
-
-- Niche-sport athletes at this tier earn nothing from their audience, and
-  experience that as a structural absence rather than a pricing problem
-- There is no mechanism for brands to find them through their sport
-- An open platform with a real admission filter is the right shape, per an
-  expert with a decade inside Olympic broadcast
-- Content and fan monetisation should lead; sponsorship should follow the data
-
-**Not supported, and not claimed:**
-
-- **Will fans actually pay?** No interview answers this. It is the assumption
-  the whole plan rests on; it is named as such in [07](07-open-questions.md) as
-  risk R1, and only three months of real subscription data from one anchor
-  athlete resolves it. That is the extension gate, and it is a gate precisely
-  because the research does not clear it.
-- **Sponsor-side willingness to pay.** No sponsor or brand-side interviews have
-  been conducted. This is the largest hole in the research and is acknowledged
-  rather than papered over.
-- **Spanish market specifics.** Part of the sample competes in Spain, but five
-  athletes recruited through one network cannot describe a market. The
-  structural finding transfers (§15.1); the pricing and budget figures do not,
-  and none of them rests on this research.
-
----
-
-## 15.5 Research roadmap
+## 15.4 Research roadmap
 
 In priority order, and sized to what actually changes a decision:
 

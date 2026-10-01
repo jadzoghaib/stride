@@ -55,7 +55,7 @@ Ordered by what blocks revenue soonest.
 | 8 | **DAC7 reporting** | EU legal | M | Platforms must report seller income to tax authorities |
 | 9 | **Notifications** | Conversion | S | Email exists as a cost line, not as code |
 | 10 | **Refunds & disputes** | Operations | M | Chargeback handling, partial refunds, deal disputes |
-| 11 | **Athlete churn tracking** | The model itself | S | The weakest assumption in `model.py` is unmeasurable today |
+| 11 | **Athlete churn tracking** | The model itself | S | The weakest assumption in the financial model is unmeasurable today |
 | ~~12~~ | ~~**Campaign measurement**~~ | ~~Sponsor renewal; learned matching~~ |  | **Shipped**: see below |
 
 **Effort: S ≈ days · M ≈ 2–4 weeks · L ≈ 1–2 months · XL ≈ 3+ months**, at the
@@ -302,7 +302,7 @@ is genuinely outstanding:
 > sponsorship first moves this obligation forward with it, and that is a real
 > cost of the reordering rather than a detail.
 > Subscription content is a different matter and probably outside scope. See
-> §8.1 **L3** of the plan.
+> section 8.1 **L3** of the plan.
 
 **B2 is still the whole ballgame, and it is now a smaller bet.** The question
 has not changed: *will fans of a semi-professional athlete pay €9.99 a month?*

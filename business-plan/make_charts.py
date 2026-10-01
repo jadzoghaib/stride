@@ -117,7 +117,7 @@ def g1() -> None:
     ax.legend(loc="upper left")
     title(ax, "The plan in one frame",
           "Net revenue and EBITDA, Y1–Y7. Losses are small and end early.")
-    save(fig, "g1-revenue-ebitda.png", "Source: model.py via g1-revenue-ebitda.csv")
+    save(fig, "g1-revenue-ebitda.png", "Source: Stride financial model, Appendix C.")
 
 
 # ── G2 · the decoupling (illustrative) ──────────────────────────────────────
@@ -147,11 +147,12 @@ def g2() -> None:
     ax.set_axisbelow(True)
     ax.legend(loc="upper right")
     title(ax, "The decoupling",
-          "ILLUSTRATIVE: the argument of §2.3 drawn, not a measurement. "
+          "ILLUSTRATIVE: the argument of section 2.3 drawn, not a measurement. "
           "In one sport the axes are the same line; in the other they are unrelated.")
     save(fig, "g2-decoupling.png",
-         "Illustrative. Nothing in the repository measures athlete income; a real "
-         "version needs the federation and income data §9.1 asks for.")
+         "Illustrative, and deliberately so. No athlete income is measured "
+         "anywhere in this plan; a real version of this chart needs the "
+         "federation and income data set out in Appendix I.")
 
 
 # ── G3 · the market funnel ──────────────────────────────────────────────────
@@ -173,7 +174,7 @@ def g3() -> None:
     ax.tick_params(axis="y", labelsize=7.5)
     title(ax, "From 520 million people to the athletes we can serve",
           "Logarithmic: four orders of magnitude. The last two bars are the plan.")
-    save(fig, "g3-market-funnel.png", "Source: g3-market-funnel.csv")
+    save(fig, "g3-market-funnel.png", "Sources: Eurostat population; Special Eurobarometer 525 (2022) for participation; Sport Opportunity Index, Appendix H, for the niche share; athlete target from the Stride financial model.")
 
 
 # ── G4 · the sport index ────────────────────────────────────────────────────
@@ -202,7 +203,7 @@ def g4() -> None:
     ax.legend(loc="lower right")
     title(ax, "714 country × sport pairs, and where Spain sits",
           "The wedge is the left edge: high opportunity, no incumbent to fight.")
-    save(fig, "g4-sport-index.png", "Source: sport_index.py via g4-sport-index.csv")
+    save(fig, "g4-sport-index.png", "Source: Sport Opportunity Index, Appendix H, built on Special Eurobarometer 525 (2022), FIP World Padel Report 2025 and national federation licence counts.")
 
 
 # ── G5 · the competitive map ────────────────────────────────────────────────
@@ -263,7 +264,7 @@ def g5() -> None:
           "Patreon sits on our exact point on these two axes, nudged apart here "
           "to stay visible: and it has no sponsor side and no sport context. "
           "The gap is the combination, not either axis alone.")
-    save(fig, "g5-competitive-map.png", "Source: g5-competitive-map.csv")
+    save(fig, "g5-competitive-map.png", "Positions are an editorial reading of the competitor comparison in section 3.5. Company facts from Patreon, Passes, Fanfix and OnlyFans published terms and reported accounts.")
 
 
 # ── G6 · revenue mix ────────────────────────────────────────────────────────
@@ -289,7 +290,7 @@ def g6() -> None:
     title(ax, "The business changes shape",
           f"Fan revenue leads throughout, falling from {first:.0f}% to {last:.0f}% "
           "of the mix as the other two compound behind it.")
-    save(fig, "g6-revenue-mix.png", "Source: g6-revenue-mix.csv")
+    save(fig, "g6-revenue-mix.png", "Source: Stride financial model, Appendix C.")
 
 
 # ── G7 · unit economics ─────────────────────────────────────────────────────
@@ -326,7 +327,7 @@ def g7() -> None:
     fig.suptitle("Why niche first, in two lines", x=0.005, ha="left",
                  fontsize=10.5, fontweight="bold", color=INK)
     fig.tight_layout(rect=[0, 0.02, 1, 0.94])
-    save(fig, "g7-unit-economics.png", "Source: g7-unit-economics.csv")
+    save(fig, "g7-unit-economics.png", "Source: Stride financial model, Appendix C.")
 
 
 # ── G8 · the trough and the buffer ──────────────────────────────────────────
@@ -376,7 +377,7 @@ def g8() -> None:
     title(ax, "The hole, and the buffer over it",
           "Y1–Y5, where the trough lives. The shaded band is the margin the "
           "pre-seed clears it by; cash turns positive in Y5.")
-    save(fig, "g8-cash-and-capital.png", "Source: g8-cash-and-capital.csv")
+    save(fig, "g8-cash-and-capital.png", "Source: Stride financial model, Appendix C; funding stages and gates from Appendix D.")
 
 
 # ── G9 · the take-rate corridor ─────────────────────────────────────────────
@@ -407,7 +408,7 @@ def g9() -> None:
     title(ax, "The take-rate corridor",
           "Both ends are real competitor rates. Five points down costs "
           "nearly half of EBITDA, because the cost base does not shrink with the take.")
-    save(fig, "g9-take-rate-corridor.png", "Source: g9-take-rate-corridor.csv")
+    save(fig, "g9-take-rate-corridor.png", "Source: Stride financial model, Appendix C. Corridor ends are published competitor rates: Patreon's pricing page and reported agency commissions.")
 
 
 # ── G10 · the football field ────────────────────────────────────────────────
@@ -430,7 +431,7 @@ def g10() -> None:
     ax.tick_params(axis="y", labelsize=7.5)
     title(ax, "Two methods that disagree, for a reason",
           "The DCF is the floor: it assumes growth stops dead after Y10.")
-    save(fig, "g10-valuation.png", "Source: g10-valuation.csv")
+    save(fig, "g10-valuation.png", "Source: Stride financial model, Appendix C. Multiples from the comparable transactions in Appendix D.")
 
 
 # ── G11 · what cost of revenue is made of ───────────────────────────────────
@@ -465,7 +466,7 @@ def g11() -> None:
     title(ax, "It is a payments bill",
           f"Payment processing is {share:.0f}% of cost of revenue at Y7. "
           "The dashed line is the infrastructure we chose not to buy.")
-    save(fig, "g11-cogs-composition.png", "Source: g11-cogs-composition.csv")
+    save(fig, "g11-cogs-composition.png", "Source: Stride financial model, Appendix C; payment pricing from Stripe's published European rates.")
 
 
 # ── G12 · the risk map, parsed from the register itself ─────────────────────
@@ -528,7 +529,8 @@ def g12() -> None:
           f"{', '.join(top)} clear 12; nothing is rated more likely than 3, "
           "which is why the map has no far-right column.")
     save(fig, "g12-risk-map.png",
-         "Parsed directly from the risk register in §7 of the plan, not from a copy.")
+         "Scored from the risk register in section 9, read directly from it so "
+         "the map and the register cannot disagree.")
 
 
 def main() -> None:

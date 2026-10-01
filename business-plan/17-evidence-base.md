@@ -1,6 +1,6 @@
 # 17: Evidence Base: Where Every Assumption Comes From
 
-*Generated from `research_data.py`, which also produces the Research
+*Built from the same record that produces the Research
 sheet of the financial model. Every driver the model runs on appears
 here with its method and the comparable behind it. A driver appears*
 *twice where two separate decisions rest on it.*
@@ -79,7 +79,7 @@ The model runs on **35 named assumptions**. Classifying them honestly matters mo
 | Assumption | Method | Confidence | Benchmark or comparable | Source |
 |---|---|---|---|---|
 | **Athlete CAC** | ESTIMATE | Low | EUR 16-36 for niche, EUR 40-88 for popular. The gap reflects displacing an existing agent relationship versus reaching someone with no representation at all. No published comparable exists for athlete acquisition in this segment. | None found |
-| **Admission rate, direct applicants** | DERIVED | Medium | 20% of direct applicants are admitted, 25% go to a human, 40% are refused and 15% never finish the form. Not a judgement: it is the ops-load output of scripts/admission_stress.py run over the admission policy itself, so retuning a threshold moves this figure. The sweep asserts the model and the policy stay in step and fails if they drift. | scripts/admission_stress.py, section 7, over a modelled applicant mix |
+| **Admission rate, direct applicants** | DERIVED | Medium | 20% of direct applicants are admitted, 25% go to a human, 40% are refused and 15% never finish the form. Not a judgement: it is what the admission policy itself produces when the stress test is run over a modelled applicant mix, so retuning a threshold moves this figure. The sweep holds the model and the policy in step. | Admission stress test, section 7, over a modelled applicant mix |
 | **Admission rate, club-nominated** | ESTIMATE | Low | 45% admitted against 20% direct. A verified club's nomination confers a credibility floor of 0.75 x its own legitimacy score, which carries a completed application over the admit line that would otherwise have gone to review. It cannot carry an empty one: no club can supply someone else's date of birth, so the uplift is real but bounded. | None: the mechanism is built and tested, the conversion is not yet measured |
 | **Athlete verification cost** | DERIVED | Medium | Four minutes per manual review, priced at the same loaded salary the People line uses, over 1,700 productive hours. Peaks at EUR 47k and 0.64 reviewer-FTE in Y10, which is the finding rather than the cost: verification is not a money problem at this scale. The reason to automate it is latency: an athlete sitting in the queue is not listed, not matchable and not earning. | Derived from the sweep's review volume and the model's own salary line |
 | **Athlete CAC vs the funnel** | ESTIMATE | Low | Deliberately NOT multiplied by the admission funnel. Segment CAC is defined as the cost of landing one athlete ON the platform, so scaling it by 1/admission-rate would charge the same money twice. The Costs sheet carries a memo line showing what that CAC works out to per application (EUR 3.40 in Y1 rising to EUR 22), the figure to hold against what a channel actually charges per name reached. | None: this is a definitional choice, made explicit so it is not silently reversed |
@@ -109,5 +109,5 @@ The model runs on **35 named assumptions**. Classifying them honestly matters mo
 
 ## 17.3 How this table is kept true
 
-This appendix is generated, not maintained. `research_data.py` is the single source for both this table and the workbook's Research sheet, so the document and the model cannot disagree about where a number came from. What it records is provenance, not value: the numbers themselves live in the Assumptions sheet, which the workbook references live, and the prose figures are pinned separately by `scripts/doc_consistency.py`. Changing a driver therefore updates the model and the pinned prose, and leaves this table's method and source columns standing, which is correct only for as long as the reasoning behind them still holds. That judgement is not automatable.
+This table and the workbook's Research sheet are built from one record, so the document and the model cannot disagree about where a number came from. What it records is provenance, not value: the numbers themselves live in the Assumptions sheet, which the workbook references live, and every figure quoted in the prose is checked against the model separately. Changing a driver therefore updates the model and the prose together, and leaves this table's method and source columns standing, which is correct only for as long as the reasoning behind them still holds. That judgement is not automatable.
 

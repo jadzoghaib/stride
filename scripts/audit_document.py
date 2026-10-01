@@ -365,7 +365,7 @@ def main() -> int:
     # thing on the page at 20pt, BUSINESS PLAN sits at 14, the title at 18 and
     # the metadata at 14. The licence line is 9pt. Both images are the school's
     # own, extracted from that file.
-    COVER = [("BACHELOR/MASTER", 20.0), ("BUSINESS PLAN", 14.0),
+    COVER = [("MASTER's Final Project", 20.0), ("BUSINESS PLAN", 14.0),
              ("MSc Programmes in Management", 14.0), ("Course ", 14.0),
              ("Student:", 14.0), ("Tutor:", 14.0),
              ("This work is licensed under a Creative Commons", 9.0)]

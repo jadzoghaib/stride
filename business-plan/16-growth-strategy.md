@@ -1,8 +1,8 @@
 # 16: Growth and Business Development Strategy
 
-*ESADE outline §12. Sequenced from the same model that produces the financial
-plan: each trigger below is a figure the plan already commits to, not a
-milestone invented for this section.*
+*Sequenced from the same model that produces the financial plan: each trigger
+below is a figure the plan already commits to, not a milestone invented for this
+section.*
 
 ---
 
