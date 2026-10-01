@@ -20,7 +20,7 @@ from __future__ import annotations
 
 # (label, assumptions_key, method, benchmark, source, confidence, what_would_improve_it)
 ROWS: list[tuple] = [
-    (": PRICING & TAKE RATE: ",),
+    ("PRICING & TAKE RATE",),
     ("Take rate on fan revenue", "take_fan", "BENCHMARKED",
      "Passes charges 10% but adds $0.30/txn and a $29/month creator fee; OnlyFans, Fansly and "
      "Fanfix are all 20%; Patreon 8-12%. A flat 15% with no monthly fee pays an athlete more "
@@ -65,7 +65,7 @@ ROWS: list[tuple] = [
      "Patreon 2024 Transparency Report",
      "High", "Already strong. Confirm on our own cohorts."),
 
-    (": FAN ECONOMICS: ",),
+    ("FAN ECONOMICS",),
     ("Fan ARPU per month", "niche_arpu", "BENCHMARKED",
      "Patreon's average monthly support rose from $5.40 to $6.10 during 2024, with typical "
      "patronage quoted at $8-12. Our EUR 8.00-9.50 sits in the upper-middle of that range.",
@@ -96,7 +96,7 @@ ROWS: list[tuple] = [
      "None: introduced to fix a modelling flaw found by stress testing",
      "Low", "Observed gross adds per athlete per year."),
 
-    (": PAYMENT RAILS: ",),
+    ("PAYMENT RAILS",),
     ("PSP percentage fee", "psp_pct", "SOURCED",
      "Stripe for a Spanish entity: 1.5% + EUR 0.25 on EEA domestic cards, 2.5% on UK cards, "
      "3.25% on non-EEA. 1.9% is the blend for a mostly-European fan base. CORRECTION: an "
@@ -115,7 +115,7 @@ ROWS: list[tuple] = [
      "Stripe Connect pricing, 2026",
      "Medium", "Actual payout frequency once athletes are onboarded."),
 
-    (": MARKET SIZING: ",),
+    ("MARKET SIZING",),
     # Six of 34 measured is not a sourced figure, whatever the six are worth.
     # The row said so in its own benchmark text while claiming SOURCED/High,
     # which is the kind of disagreement this table exists to prevent.
@@ -146,7 +146,7 @@ ROWS: list[tuple] = [
      "None: it is a target",
      "Low", "The pre-seed gate tests it directly: 250 athletes and the first paying sponsors."),
 
-    (": COSTS: ",),
+    ("COSTS",),
     ("Athlete CAC", "niche_cac", "ESTIMATE",
      "EUR 16-36 for niche, EUR 40-88 for popular. The gap reflects displacing an existing agent "
      "relationship versus reaching someone with no representation at all. No published "
@@ -209,7 +209,7 @@ ROWS: list[tuple] = [
      "None cited",
      "Low", "Vendor quotes once P2 scope is fixed."),
 
-    (": TAX, CAPITAL & VALUATION: ",),
+    ("TAX, CAPITAL & VALUATION",),
     ("Corporate tax rates", "tax_low", "SOURCED",
      "15% for the first four profitable years under the Spanish Startup Law, then the 25% "
      "standard rate. Modelled with loss carryforward against the Y1-Y4 losses.",
@@ -242,7 +242,7 @@ ROWS: list[tuple] = [
      "Standard DCF convention",
      "Medium", "Nothing: it is a convention, and the grid shows its effect."),
 
-    (": COMPLIANCE: ",),
+    ("COMPLIANCE",),
     ("Payout age floor", "", "SOURCED",
      "Stripe Express and Custom Connect require 18. Standard Connect allows 13+, but a legal "
      "guardian must own the account and hold the bank account the money lands in.",

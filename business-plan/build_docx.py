@@ -117,35 +117,61 @@ def field(par, instr: str) -> None:
             run._r.append(it)
 
 
-def inline(par, text: str, *, size: float = 10, colour=INK, bold=False) -> None:
-    """Render one line of inline markdown into runs."""
+def inline(par, text: str, *, size: float = 10, colour=INK, bold=False,
+           italic: bool = False, _depth: int = 0) -> None:
+    """Render one line of inline markdown into runs.
+
+    Recursive, because markdown nests. The previous version handled each piece
+    once and wrote the inside of an emphasis span verbatim, so a link, a bold
+    phrase or a code span inside italics reached the page as source: five
+    paragraphs of the submitted document displayed `[\u0060model.py\u0060](model.py)`
+    with every bracket showing, including the opening line of three appendices.
+
+    `_depth` bounds it: a malformed line should come out as plain text rather
+    than recurse until the stack gives up.
+    """
     text = text.replace("&nbsp;", " ")
+
+    def emit(content: str, *, b=bold, i=italic, mono=False, amber=False,
+             strike=False) -> None:
+        run = par.add_run()
+        run.text = content
+        run.font.size = Pt(size - 1) if mono else Pt(size)
+        run.font.color.rgb = AMBER if amber else colour
+        run.bold = b
+        run.italic = i
+        if mono:
+            run.font.name = "Consolas"
+        if strike:
+            run.font.strike = True
+
+    def descend(content: str, **kw) -> None:
+        if _depth >= 4 or not INLINE.search(content):
+            emit(content, **kw)
+            return
+        inline(par, content, size=size, colour=colour, _depth=_depth + 1,
+               bold=kw.get("b", bold), italic=kw.get("i", italic))
+
     for piece in INLINE.split(text):
         if not piece:
             continue
-        run = par.add_run()
-        run.font.size = Pt(size)
-        run.font.color.rgb = colour
-        run.bold = bold
         if piece.startswith("**") and piece.endswith("**"):
-            run.text, run.bold = piece[2:-2], True
+            descend(piece[2:-2], b=True, i=italic)
         elif piece.startswith("==") and piece.endswith("=="):
-            run.text, run.bold = piece[2:-2], True
-            run.font.color.rgb = AMBER
+            emit(piece[2:-2], b=True, i=italic, amber=True)
         elif piece.startswith("~~") and piece.endswith("~~"):
-            run.text = piece[2:-2]
-            run.font.strike = True
+            emit(piece[2:-2], b=bold, i=italic, strike=True)
         elif piece.startswith("*") and piece.endswith("*") and len(piece) > 2:
-            run.text, run.italic = piece[1:-1], True
+            descend(piece[1:-1], b=bold, i=True)
         elif piece.startswith("`") and piece.endswith("`"):
-            run.text = piece[1:-1]
-            run.font.name = "Consolas"
-            run.font.size = Pt(size - 1)
+            emit(piece[1:-1], b=bold, i=italic, mono=True)
         elif piece.startswith("["):
             m = re.match(r"\[\[?([^\]]+?)\]?\]\(([^)]+)\)", piece)
-            run.text = m.group(1) if m else piece
+            # The label only. A printed plan carries no clickable targets, and
+            # the bare URL beside the text is noise on the page.
+            descend(m.group(1) if m else piece, b=bold, i=italic)
         else:
-            run.text = piece
+            emit(piece, b=bold, i=italic)
 
 
 def spacer(doc, pts: int = 4) -> None:
@@ -288,6 +314,12 @@ class Renderer:
             # Base" becomes "Appendix L: Evidence Base". The class is written
             # out rather than as a range so a stray space cannot join it.
             text = f"Appendix {self.appendix}: {re.sub(r'^\d+\s*[:-]\s*', '', text)}"
+        elif self.appendix and level >= 2:
+            # And the levels below it, which were left alone: Appendix L shipped
+            # containing sections 17.1 to 17.3 and Appendix M sections 18.1 to
+            # 18.7, because those are the numbers on the generator's filenames.
+            # An appendix numbers its subsections after its own letter.
+            text = re.sub(r"^\d+\.(\d+)", rf"{self.appendix}.\1", text)
         sizes = {1: 16, 2: 12.5, 3: 11, 4: 10}
         # A real Word Heading style, not a bold paragraph. Without an outline
         # level the TOC field indexes nothing and the Contents page stays empty

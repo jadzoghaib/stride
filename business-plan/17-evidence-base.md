@@ -35,7 +35,7 @@ The model runs on **35 named assumptions**. Classifying them honestly matters mo
 ## 17.2 The assumptions, in full
 
 
-### : Pricing & Take Rate:
+### Pricing & Take Rate
 
 | Assumption | Method | Confidence | Benchmark or comparable | Source |
 |---|---|---|---|---|
@@ -47,7 +47,7 @@ The model runs on **35 named assumptions**. Classifying them honestly matters mo
 | **Suggested tiers 4.99 / 9.99 / 24.99** | BENCHMARKED | Medium | Patreon's typical patronage is quoted at $8-12/month, so the EUR 9.99 anchor sits inside the observed band. EUR 4.99 retains only 54% of our take after payment fees, against 71% at EUR 9.99: which is why the floor matters more than the take rate. | Patreon 2024 Transparency Report; independent audits of ~1,200 creators |
 | **Season pass / annual billing** | SOURCED | High | Patreon reports that annual patrons churn at ONE THIRD the rate of monthly patrons. This is the single strongest piece of evidence in the plan for pushing annual billing. | Patreon 2024 Transparency Report |
 
-### : Fan Economics:
+### Fan Economics
 
 | Assumption | Method | Confidence | Benchmark or comparable | Source |
 |---|---|---|---|---|
@@ -57,7 +57,7 @@ The model runs on **35 named assumptions**. Classifying them honestly matters mo
 | **Share of athletes who monetise** | ESTIMATE | Low | 28% rising to 50% for niche sports. No direct comparable exists: neither Patreon nor OnlyFans publishes activation rates for creators who sign up but never charge. | None found |
 | **Fan acquisition capacity** | ESTIMATE | Low | An athlete can recruit 30-69 new paying fans a year depending on segment. This ceiling is what makes churn bite in the model: without it, higher churn perversely RAISED revenue, because the year-end target was reachable at any churn rate. | None: introduced to fix a modelling flaw found by stress testing |
 
-### : Payment Rails:
+### Payment Rails
 
 | Assumption | Method | Confidence | Benchmark or comparable | Source |
 |---|---|---|---|---|
@@ -65,7 +65,7 @@ The model runs on **35 named assumptions**. Classifying them honestly matters mo
 | **PSP fixed fee per transaction** | SOURCED | High | EUR 0.25 per transaction. On a EUR 4.99 tier that single fee is a third of our take, which is why the tier floor and annual billing move more margin than the take rate does. | Stripe published pricing, 2026 |
 | **Payout fees** | SOURCED | Medium | Stripe Connect Express: roughly 0.25% + EUR 0.25 per payout, plus a monthly active-account fee that is not modelled as a separate line. | Stripe Connect pricing, 2026 |
 
-### : Market Sizing:
+### Market Sizing
 
 | Assumption | Method | Confidence | Benchmark or comparable | Source |
 |---|---|---|---|---|
@@ -74,7 +74,7 @@ The model runs on **35 named assumptions**. Classifying them honestly matters mo
 | **Sports fandom by country** | ESTIMATE | Low | The weakest layer of the sport index, and it drives both the `demand` and `appetite` signals. Commercial audience panels (Nielsen Sports, YouGov) cost more than the entire Y1-Y2 analytics budget. | None: reasoned estimates only |
 | **Athlete count trajectory** | ESTIMATE | Low | 250 rising to 8,500 over ten years. This is the PLAN, not a benchmark: marketing spend is derived from it at segment CAC, not the other way round. Everything in the model scales off this line. | None: it is a target |
 
-### : Costs:
+### Costs
 
 | Assumption | Method | Confidence | Benchmark or comparable | Source |
 |---|---|---|---|---|
@@ -88,7 +88,7 @@ The model runs on **35 named assumptions**. Classifying them honestly matters mo
 | **Media egress** | SOURCED | High | EUR 0.008/GB behind a zero-egress object store versus EUR 0.075/GB at CloudFront list price. At Y10 volumes that single architectural choice is worth over EUR 1M a year, the largest cost decision in the plan that is settled by engineering rather than negotiation. | Cloudflare R2 and Backblaze B2 pricing; AWS CloudFront list price |
 | **Moderation cost** | ESTIMATE | Low | EUR 22 per 1,000 items reviewed, on a hybrid of automated classification and human review. Vendor pricing varies widely with SLA and content type. | None cited |
 
-### : Tax, Capital & Valuation:
+### Tax, Capital & Valuation
 
 | Assumption | Method | Confidence | Benchmark or comparable | Source |
 |---|---|---|---|---|
@@ -98,7 +98,7 @@ The model runs on **35 named assumptions**. Classifying them honestly matters mo
 | **Exit revenue multiple** | BENCHMARKED | Medium | 6.5x blended. Marketplace comparables trade around 4x revenue and high-growth SaaS around 9x; our Y10 mix is roughly 55% marketplace take and 12% SaaS. | Public marketplace and SaaS trading multiples |
 | **Terminal growth** | BENCHMARKED | Medium | 3%, approximating long-run nominal GDP. Ten explicit forecast years were chosen partly so this assumption carries less of the valuation than it would at Y7. | Standard DCF convention |
 
-### : Compliance:
+### Compliance
 
 | Assumption | Method | Confidence | Benchmark or comparable | Source |
 |---|---|---|---|---|

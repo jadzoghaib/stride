@@ -890,6 +890,7 @@ def scenario_table() -> list[dict]:
 
 def render(rows: list[dict]) -> dict[str, str]:
     ys = [f"Y{r['year']}" for r in rows]
+    _ratios = ratios(rows)
 
     def line(label, key, fmt=eur):
         return [label] + [fmt(r[key]) for r in rows]
@@ -1077,7 +1078,8 @@ def render(rows: list[dict]) -> dict[str, str]:
                 summary=summary, unit_economics=unit_economics(),
                 valuation=val, multiples=mult, cash=cash, funding=funding,
                 segments=segments, churn=churn,
-                costs_y7=costs_y7, cac=cac, sensitivity=sensitivity)
+                costs_y7=costs_y7, cac=cac, sensitivity=sensitivity,
+                ratios=_ratios)
 
 
 def unit_economics() -> str:
@@ -1124,11 +1126,53 @@ DOC_TABLES = {
     # The submission body carries the same block. It sat between MODEL
     # markers while being hand-maintained, which is the worst of both:
     # it looked generated and was one EBITDA cell stale.
-    "esade-body.md": ["summary"],
+    "esade-body.md": ["summary", "ratios"],
     "02-cost-model.md": ["costs_y7", "cac", "unit_economics"],
     "03-financial-model.md": ["drivers", "churn", "segments", "gmv", "revenue", "pl", "cash", "funding"],
     "04-capital-and-valuation.md": ["valuation", "multiples", "sensitivity"],
 }
+
+
+def ratios(rows: list[dict]) -> str:
+    """The feasibility ratios, for outline item 9.6.
+
+    Four columns rather than ten: a ratio table is read for its shape, and Y1
+    and Y2 ratios on a near-zero revenue base are noise that crowds out the
+    trend. The years shown are the ones the rest of the plan quotes.
+    """
+    pick = [2, 4, 6, 9]                      # Y3, Y5, Y7, Y10
+    head = ["Ratio"] + [f"Y{rows[i]['year']}" for i in pick] + ["What it says"]
+
+    def growth(i: int) -> float:
+        return rows[i]["revenue"] / rows[i - 1]["revenue"] - 1
+
+    def burn_multiple(i: int) -> float:
+        """Net burn divided by net new revenue. Undefined once profitable."""
+        burn = -rows[i]["fcf"] if rows[i]["fcf"] < 0 else 0.0
+        net_new = rows[i]["revenue"] - rows[i - 1]["revenue"]
+        return burn / net_new if burn > 0 and net_new > 0 else 0.0
+
+    body = [
+        ["Gross margin"] + [f"{rows[i]['gross'] / rows[i]['revenue']:.0%}" for i in pick]
+        + ["Capped by the payment rail, not by engineering"],
+        ["EBITDA margin"] + [f"{rows[i]['ebitda'] / rows[i]['revenue']:.0%}" for i in pick]
+        + ["Turns positive in Y5"],
+        ["Net margin"] + [f"{rows[i]['net_profit'] / rows[i]['revenue']:.0%}" for i in pick]
+        + ["Below EBITDA by amortisation and tax"],
+        ["Cost of sales / revenue"] + [f"{rows[i]['cogs'] / rows[i]['revenue']:.0%}" for i in pick]
+        + ["Falls as fan subscriptions outgrow one-off payments"],
+        ["Revenue growth"] + [f"{growth(i):.0%}" for i in pick]
+        + ["Decelerating, which is the shape a marketplace should have"],
+        ["Revenue per FTE"] + [eur(rows[i]["revenue"] / rows[i]["headcount"]) for i in pick]
+        + ["Above the sector's top quartile; defended in 3.2.2"],
+        ["**Rule of 40**"] + [f"**{(growth(i) + rows[i]['ebitda'] / rows[i]['revenue']) * 100:.0f}**"
+                              for i in pick]
+        + ["**Growth plus EBITDA margin. Above 40 in every year shown**"],
+        ["Burn multiple"] + [(f"{burn_multiple(i):.2f}" if burn_multiple(i) else "n/a")
+                             for i in pick]
+        + ["Net burn per euro of new revenue. n/a once cash-generative"],
+    ]
+    return table(head, body)
 
 
 def write_docs(rendered: dict[str, str]) -> None:

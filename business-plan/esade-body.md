@@ -751,10 +751,43 @@ rate is already in the model and is worth €259k across Y7–Y10.
 **Dilution.** The founder holds 84% after both pre-seed tranches and the 2% advisory
 grant, 75% after the growth round, and **~67%** after the 10% ESOP.
 
-## 7.6 Break-even and sensitivity
+## 7.6 Break-even, ratios and sensitivity
 
 **Break-even is Y5 on EBITDA** and Y5 on free cash flow. The single most
 sensitive input is fan churn.
+
+### Feasibility ratios
+
+<!-- MODEL:ratios -->
+| Ratio | Y3 | Y5 | Y7 | Y10 | What it says |
+|---|---|---|---|---|---|
+| Gross margin | 63% | 68% | 69% | 70% | Capped by the payment rail, not by engineering |
+| EBITDA margin | -48% | 1% | 18% | 27% | Turns positive in Y5 |
+| Net margin | -55% | -2% | 13% | 18% | Below EBITDA by amortisation and tax |
+| Cost of sales / revenue | 37% | 32% | 31% | 30% | Falls as fan subscriptions outgrow one-off payments |
+| Revenue growth | 268% | 88% | 42% | 16% | Decelerating, which is the shape a marketplace should have |
+| Revenue per FTE | €192k | €330k | €301k | €328k | Above the sector's top quartile; defended in 3.2.2 |
+| **Rule of 40** | **220** | **89** | **60** | **43** | **Growth plus EBITDA margin. Above 40 in every year shown** |
+| Burn multiple | 0.50 | n/a | n/a | n/a | Net burn per euro of new revenue. n/a once cash-generative |
+<!-- /MODEL:ratios -->
+
+Three of these are worth reading together rather than one at a time.
+
+**Gross margin stops at 70% and the plan says why.** A pure SaaS business reaches
+85%. This one cannot, because a marketplace moves money and the payment rail
+charges on every euro of it. That ceiling is a fact about the business model, not
+a cost to be engineered away, and section 5.10 sizes it.
+
+**The Rule of 40 is the ratio a software investor reaches for**, and it is the
+plan's strongest: growth plus EBITDA margin stays above 40 in every year from Y3
+to Y10. It is flattered by a small base early on, which is why the Y10 figure of
+43 is the one to judge it by.
+
+**The burn multiple is the unflattering one and it is in the table for that
+reason.** It is net burn per euro of new revenue, and in Y3 the company spends
+50 cents to add a euro. That is good by venture standards and it is only
+measurable while the company is burning: from Y5 there is no burn to divide, so
+the ratio stops existing rather than improving.
 
 Each scenario below is the whole model re-run against changed drivers, not an
 adjustment applied to the base result. The three levers are the plan's own
