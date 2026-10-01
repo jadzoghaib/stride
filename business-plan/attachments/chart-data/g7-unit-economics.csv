@@ -1,5 +1,5 @@
 year,niche_cac_eur,popular_cac_eur,niche_monetise_pct,popular_monetise_pct,niche_athlete_churn_pct,popular_athlete_churn_pct,niche_share_of_athletes_pct
-1,16,40,28.0,14.0,30.0,35.0,95.0
+1,16,40,0.0,0.0,30.0,35.0,95.0
 2,18,46,32.0,17.0,27.0,32.0,92.0
 3,21,53,37.0,20.0,24.0,30.0,80.0
 4,24,60,41.0,23.0,22.0,27.0,68.0

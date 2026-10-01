@@ -327,7 +327,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("03-financial-model.md", "scenarios base-case Y7 revenue",
      r"\| \*\*Base\*\* \| As modelled \| €([\d.]+)M", Y7["revenue"] / 1e6, 0.02),
     ("03-financial-model.md", "scenarios base-case Y7 EBITDA",
-     r"\| \*\*Base\*\* \| As modelled \| €[\d.]+M \| €([\d.]+)M", Y7["ebitda"] / 1e6, 0.02),
+     r"\| \*\*Base\*\* \| As modelled \| €[\d.]+M \| €([\d,]+)k", Y7["ebitda"] / 1e3, 1.0),
     ("04-capital-and-valuation.md", "DCF in the prose",
      r"The DCF says €([\d.]+)M", VAL["enterprise_value"] / 1e6, 0.05),
     ("04-capital-and-valuation.md", "terminal value share of the DCF",
@@ -795,6 +795,35 @@ r"Together they are €(\d+)k",
      (sum(rd["amount"] for rd in model.ROUNDS if "Pre-seed" in rd["stage"]) - peak_funding()) / 1e3, 0.6),
     ("esade-body.md", "Y1 cash need in 7.5",
      r"the first covers Y1's €(\d+)k", -ROWS[0]["fcf"] / 1e3, 0.6),
+
+    # ── the unpinned figures the fan-to-Y2 change moved ────────────────────
+    # The same lesson twice: a pin matches one sentence and the same number is
+    # written again elsewhere in another. "The plan needs EUR Xk" was pinned;
+    # "required is EUR Xk" two hundred lines later was not.
+    ("esade-body.md", "capital required, second statement",
+     r"required is \*\*€([\d,]+)k\*\*", peak_funding() * 1.4 / 1e3, 1.0),
+    ("esade-body.md", "the trough, second statement",
+     r"cash ever goes is \*\*€([\d,]+)k", peak_funding() / 1e3, 1.0),
+    ("esade-body.md", "the trough the grant stack covers",
+     r"covers the whole €([\d,]+)k trough", peak_funding() / 1e3, 1.0),
+    ("esade-body.md", "the DCF floor in 7.7",
+     r"\*\*€([\d,]+)k floor\*\*", VAL["enterprise_value"] / 1e3, 1.0),
+    ("04-capital-and-valuation.md", "the DCF floor in the headline",
+     r"with a\s+€([\d,]+)k floor under a no-growth", VAL["enterprise_value"] / 1e3, 1.0),
+    ("04-capital-and-valuation.md", "capital required beside the equity raised",
+     r"against a €([\d,]+)k requirement", peak_funding() * 1.4 / 1e3, 1.0),
+    ("04-capital-and-valuation.md", "capital required, restated",
+     r"on top of it\*\*, which is €([\d,]+)k", peak_funding() * 1.4 / 1e3, 1.0),
+    ("13-organization-and-hr.md", "the trough in the hiring note",
+     r"takes the trough to €([\d,]+)k", peak_funding() / 1e3, 1.0),
+    # the scenario table in appendix C, cell by cell
+    *[("03-financial-model.md", f"{name} capital need in the scenario table",
+       rf"\| {lab} \|[^|]*\|[^|]*\|[^|]*\| €([\d,]+)k \|",
+       SCEN[name]["capital_need"] / 1e3, 1.0)
+      for name, lab in (("Pessimistic", "Pessimistic"), ("Base", r"\*\*Base\*\*"),
+                        ("Optimistic", "Optimistic"))],
+    ("03-financial-model.md", "base need in the paragraph under the table",
+     r"rather than €([\d,]+)k\. That is the", peak_funding() * 1.4 / 1e3, 1.0),
 
     ("README.md", "peak burn",
      r"peak burn €(\d+)k", peak_funding() / 1e3, 1.0),

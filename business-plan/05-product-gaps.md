@@ -270,7 +270,7 @@ the platform has a moderation team rather than before.
 
 - **Age assurance is a B3 build, not optional**, see the sequencing below.
 - The anchor athlete filter in [04](04-capital-and-valuation.md#the-anchor-athlete)
-  stays: **the first partner should be over 18**, because the pre-seed gate tests
+  stays: **the first partner should be over 18**, because the extension gate tests
   fan subscriptions and that surface is 18+ in v1.
 - Under-18 athletes are still worth onboarding from day one. They build the
   analytics pool, they attract sponsors, and they convert to fan monetisation
@@ -290,7 +290,7 @@ is genuinely outstanding:
 |---|---|---|---|
 | **B0**: the rail | Stripe Connect, athlete KYC | EUR migration | |
 | **B1**: sponsorship monetised | **Deal payments, escrow, sponsor billing plans**, DAC7 seller due diligence | Deals, deliverables, measurement against the offer-time projection | First commission revenue |
-| **B2**: the thesis test | **A tier entity with a price**, recurring billing, entitlement expiry, dunning | Posts, courses, events, products, polls, free-vs-locked, subscribe as its own relationship, fan feed, fan DMs | **Pre-seed gate** |
+| **B2**: the thesis test | **A tier entity with a price**, recurring billing, entitlement expiry, dunning | Posts, courses, events, products, polls, free-vs-locked, subscribe as its own relationship, fan feed, fan DMs | **Extension gate** |
 | **B3**: content at scale | Transcode, object storage, CDN, automated classification ahead of the human queue, age assurance | Image **and video** upload, locked delivery, age gate at 16, block, report, admin review queue | Pre-seed extension |
 | **B4**: scale and clubs | Refunds/disputes, multi-currency, notifications | Ballots, events with capacity, club publishing and revenue split | Growth-round gate |
 

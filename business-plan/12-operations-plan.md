@@ -120,7 +120,7 @@ allocation until Y4.
 The location decision is nonetheless a real one, taken for four reasons:
 
 1. **Ley de Startups** grants a 15% corporate tax rate for the first four
-   taxable years against the standard 25%, worth **€259k across Y7–Y10** in the
+   taxable years against the standard 25%, worth **€258k across Y7–Y10** in the
    model.
 2. **Loaded engineering cost.** A senior engineer at €72k loaded is roughly half
    the London or Amsterdam equivalent and a third of the Bay Area.
@@ -286,7 +286,7 @@ Sequenced by what unlocks revenue, not by what is easiest to build.
 |---|---|---|
 | **B0** | Stripe Connect, wallet, payout rail, athlete KYC | A euro can move. Everything else needs this |
 | **B1** | Deal payments, escrow, sponsor billing plans, DAC7 seller due diligence | **Commission revenue starts.** Contractual, no content obligations |
-| **B2** | Tier entity with a price, recurring billing, entitlement expiry, dunning | **Fan revenue starts. This is the pre-seed gate** |
+| **B2** | Tier entity with a price, recurring billing, entitlement expiry, dunning | **Fan revenue starts, in Y2. This is the extension gate** |
 | **B3** | Transcode, object storage, CDN, automated classification, age assurance | Video, and the moderation obligation that comes with it |
 | **B4** | Ballots, events with capacity, club publishing and revenue split, refunds and disputes, multi-currency | Growth-round gate |
 
@@ -315,7 +315,9 @@ third and EU-wide from the growth round. The reasoning is in [06](06-market-stra
 we start where there is no incumbent, and what we learn there generalises upward.
 
 > [!important] The launch is gated on evidence, not on a date
-> The pre-seed gate requires **three months of real subscription data from one
-> anchor athlete**. Nothing in the product proves fans will pay, and no amount
+> The **extension** gate requires **three months of real subscription data from
+> one anchor athlete**. The pre-seed gate, one round earlier, requires the rail
+> working and real sponsorship deals, because the fan tier is B2 and earns from
+> Y2. Nothing in the product proves fans will pay, and no amount
 > of further engineering will. That measurement, not a feature, is what
 > unlocks the next stage.

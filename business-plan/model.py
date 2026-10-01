@@ -64,7 +64,10 @@ class Segment:
 
 NICHE = Segment(
     name="niche",
-    monetise_rate=[0.28, 0.32, 0.37, 0.41, 0.44, 0.46, 0.48, 0.49, 0.50, 0.50],
+    #: Zero in Y1: the fan tier is B2, behind the payment rail and sponsorship
+    #: monetisation, so the first subscription charge lands in Y2. See the
+    #: launch plan in section 5.11.
+    monetise_rate=[0.00, 0.32, 0.37, 0.41, 0.44, 0.46, 0.48, 0.49, 0.50, 0.50],
     fans_per_athlete=[20, 22, 25, 28, 30, 32, 34, 35, 36, 37],
     fan_arpu_month=[8.00, 8.30, 8.60, 8.80, 9.00, 9.10, 9.20, 9.30, 9.40, 9.50],
     # Niche fans churn less: they subscribed for knowledge, and training is a
@@ -80,7 +83,8 @@ NICHE = Segment(
 
 POPULAR = Segment(
     name="popular",
-    monetise_rate=[0.14, 0.17, 0.20, 0.23, 0.26, 0.28, 0.30, 0.31, 0.32, 0.32],
+    #: Zero in Y1, for the same reason as niche: fan monetisation is B2.
+    monetise_rate=[0.00, 0.17, 0.20, 0.23, 0.26, 0.28, 0.30, 0.31, 0.32, 0.32],
     fans_per_athlete=[26, 29, 32, 35, 38, 41, 44, 46, 47, 48],
     fan_arpu_month=[7.00, 7.20, 7.40, 7.60, 7.80, 7.90, 8.00, 8.10, 8.20, 8.30],
     # Popular-sport fans churn harder: an impulse follow after a result, with
@@ -354,9 +358,14 @@ ROUNDS: list[dict] = [
     #: Priced against the comparable rather than the ambition: PitchBook puts
     #: Sponsoo's 2016 seed at a EUR 1.55M pre-money, and Spanish pre-seed
     #: rounds of this size sit between EUR 1M and EUR 3M.
+    #:
+    #: Gated on the rail working and sponsorship deals processing real money,
+    #: not on fan churn. Fan monetisation is B2 and earns from Y2, so churn
+    #: evidence cannot exist before the money that funds building it.
     {"year": 1, "stage": "Pre-seed", "amount": 150_000, "pre": 1_800_000},
-    #: Roughly double, against a year of real subscription revenue. A step-up,
-    #: not a re-rating.
+    #: Roughly double, against three months of real subscription revenue. A
+    #: step-up, not a re-rating. This is now the tranche that waits for the
+    #: answer to the question the whole plan turns on.
     {"year": 2, "stage": "Pre-seed extension", "amount": 250_000, "pre": 3_500_000},
     # One optional growth round, replacing the EUR 2M seed and EUR 8M Series A
     # the plan carried until 1 Oct 2026. Those priced a company reaching EUR

@@ -1,7 +1,7 @@
 year,payments_eur_k,infrastructure_eur_k,moderation_eur_k,verification_eur_k,infrastructure_naive_eur_k
-1,5,2,1,0,3
-2,25,6,2,1,11
-3,79,14,5,3,30
+1,0,2,1,0,2
+2,21,6,2,1,10
+3,78,14,5,3,30
 4,180,28,9,3,61
 5,331,45,13,4,102
 6,528,62,16,4,149

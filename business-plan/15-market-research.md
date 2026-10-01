@@ -215,7 +215,7 @@ that the mechanism for expansion is exactly the one the product supplies.
 - **Will fans actually pay?** No interview answers this. It is the assumption
   the whole plan rests on; it is named as such in [07](07-open-questions.md) as
   risk R1, and only three months of real subscription data from one anchor
-  athlete resolves it. That is the pre-seed gate, and it is a gate precisely
+  athlete resolves it. That is the extension gate, and it is a gate precisely
   because the research does not clear it.
 - **Sponsor-side willingness to pay.** No sponsor or brand-side interviews have
   been conducted. This is the largest hole in the research and is acknowledged
@@ -238,6 +238,6 @@ In priority order, and sized to what actually changes a decision:
 | **3** | Spanish athlete interviews, 5–8 | Tests whether the structural finding holds in the launch market specifically | 2 weeks |
 | **4** | Athlete365 / federation exploratory contact | Partnership route, and a credibility signal for the club channel | Opportunistic |
 
-The pre-seed gate does what none of the above can: it measures whether fans pay,
+The extension gate does what none of the above can: it measures whether fans pay,
 with real money, over three months. Every item here reduces uncertainty around
 that test. None of them substitutes for it.

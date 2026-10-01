@@ -53,8 +53,8 @@ price aggressively.
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
 | AWS + zero-egress CDN | €2k | €14k | €45k | **€78k** |
-| AWS + CloudFront list price | €4k | €30k | €102k | **€198k** |
-| **Annual difference** | €2k | €16k | €57k | **€120k** |
+| AWS + CloudFront list price | €2k | €30k | €102k | **€198k** |
+| **Annual difference** | €0k | €16k | €57k | **€120k** |
 
 At 1.8 GB per paying fan per month and an average of 83k paying fans through
 the year, Y7 moves ~1.8 PB. At CloudFront list (~€0.075/GB after volume tiers)
@@ -72,7 +72,7 @@ the rows themselves, that the egress decision moves.
 > its own cohort model documents on the revenue side and had already fixed
 > there.
 
-**€120k a year is most of this plan's entire €292k cash trough, spent annually
+**€120k a year is most of this plan's entire €305k cash trough, spent annually
 and decided by one architectural choice**, €0.8M across the ten years.
 
 The recommendation is AWS for compute and database, where its managed services
@@ -200,7 +200,7 @@ those applications need a human to open a link
 **The euros are not the point and the model says so.** Verification peaks at
 €4.2k a year and 0.06 of one person, and the whole
 discounted stream is worth €9k against a
-€965k enterprise value, 0.9%. Two things follow, and they
+€956k enterprise value, 0.9%. Two things follow, and they
 matter more than the line item:
 
 - **The admission rate is a real driver of marketing efficiency.** It climbs

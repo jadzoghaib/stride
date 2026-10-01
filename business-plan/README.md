@@ -59,12 +59,12 @@ python business-plan/model.py
 | | Y1 | Y3 | Y5 | Y7 | Y10 |
 |---|---|---|---|---|---|
 | Active athletes (year end) | 250 | 1,700 | 4,000 | 6,300 | 8,500 |
-| Paying fans (year end) | 1k | 14k | 46k | 92k | 142k |
-| **Net revenue** | **€0.02M** | **€0.29M** | **€1.32M** | **€3.01M** | **€5.25M** |
-| EBITDA | −€71k | −€140k | €0.02M | €0.53M | €1.40M |
+| Paying fans (year end) | 0k | 14k | 46k | 92k | 142k |
+| **Net revenue** | **€0.00M** | **€0.29M** | **€1.32M** | **€3.01M** | **€5.25M** |
+| EBITDA | −€78k | −€140k | €0.02M | €0.53M | €1.40M |
 | Headcount | 1.0 | 1.5 | 4.0 | 10.0 | 16.0 |
 
-**Capital required to fund it: €409k** (peak burn €292k plus a 40% buffer)**.** EBITDA turns positive in **Y5**.
+**Capital required to fund it: €426k** (peak burn €305k plus a 40% buffer)**.** EBITDA turns positive in **Y5**.
 
 **Ten years, not seven**: at Y7 the business is still compounding above 50%, so
 a terminal value placed there does most of the valuation work and does it badly.
@@ -101,7 +101,7 @@ analytics: compute is a rounding error, which `docs/costs.md` correctly says.
 The moment fans pay for video, that stops being true. Served naively from
 CloudFront, egress alone costs **€120k more in Y7**, and €0.8M across the
 plan than the same bytes behind a zero-egress CDN. The Y7 figure is
-41% of this plan's entire €292k cash trough, spent
+41% of this plan's entire €305k cash trough, spent
 annually, on one architecture decision.
 
 **3. The age model is tiered, not a single number.** 16 is the floor for an

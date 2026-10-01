@@ -69,10 +69,10 @@ Three things in it are worth two minutes of a technical diligence call:
 <!-- MODEL:summary -->
 |  | Y3 | Y7 |
 |---|---|---|
-| Net revenue | €288k | €3.01M |
+| Net revenue | €287k | €3.01M |
 | EBITDA | €-140k | €535k |
 | Active athletes | 1,700 | 6,300 |
-| Paying fans | 14,334 | 92,005 |
+| Paying fans | 14,333 | 92,005 |
 | Gross margin | 63% | 69% |
 <!-- /MODEL:summary -->
 
@@ -103,7 +103,10 @@ decides how hard the plan is to hold, not a line item.
 
 Nothing in the product proves it today, and no amount of further engineering
 will. Three months of real subscription data from one anchor athlete answers it
-definitively, which is why that, and not a feature, is the pre-seed gate.
+definitively, which is why that, and not a feature, is the gate on the €250k
+extension. It is not the pre-seed gate: fan monetisation is the third thing built
+(§5.11) and earns from Y2, so the pre-seed is gated on the payment rail working
+and real sponsorship deals instead.
 
 ## The ask
 
@@ -116,9 +119,9 @@ is the answer to one question. Use of funds: Spain go-to-market, the club
 channel, founder runway. The €250k second tranche follows in Y2, against
 250 athletes and the first paying sponsors.
 
-The plan needs €409k: the **€292k cash trough in Y4** plus a
+The plan needs €426k: the **€305k cash trough in Y4** plus a
 40% buffer. The €400k pre-seed clears the trough itself with
-€108k to spare, a 37% buffer
+€95k to spare, a 37% buffer
 rather than the full 40%; the €9k difference is covered by
 the ENISA loan in Appendix D, which is non-dilutive. That is what
 asking for €400k buys: **the growth round becomes optional.** It brings a third

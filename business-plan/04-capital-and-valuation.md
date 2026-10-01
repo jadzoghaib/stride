@@ -38,7 +38,7 @@ that cannot be diversified away.
 
 **On the base case, this is close to a coin flip, and the plan says so.** A
 founder and team retaining **67%** through the growth round hold that share of
-the enterprise value: **€651k against the DCF of €0.97M**. That is marginally
+the enterprise value: **€644k against the DCF of €0.96M**. That is marginally
 *under* the €672k break-even. Against the exit multiples discounted back it is
 **€1.4M to €3.4M**, which clears it.
 
@@ -52,7 +52,7 @@ things, and both are now stated rather than assumed:
 2. **A much lower probability of total loss than 70%.** That figure was set
    against a plan needing €10.4M across four rounds, where failure to raise any
    one of them was fatal. This plan raises **€400k** of equity
-   against a €409k requirement, turns EBITDA positive in **Y5**, and
+   against a €426k requirement, turns EBITDA positive in **Y5**, and
    depends on no round after the pre-seed extension. At a 50%
    failure probability the break-even return is €403k, which the base case
    clears comfortably.
@@ -71,11 +71,11 @@ fact you can demonstrate, not a milestone you can assert.
 | Stage | Amount | Pre-money | Gate: what must be true before raising | Use of funds |
 |---|---|---|---|---|
 | **Internal** | €80k cash + time |  | Product exists (it does) | Payments, subscriptions, one anchor athlete live |
-| **Pre-seed** | **€150k** | €1.8M | Anchor athlete public · payments processing real money · **3 months of measured fan churn** | Spain go-to-market, club channel, founder runway |
-| **Pre-seed extension** | **€250k** | €3.5M | 250 athletes · 1,286 paying fans · fan churn inside the modelled band · first paying sponsors | First two hires, second market opened |
+| **Pre-seed** | **€150k** | €1.8M | Anchor athlete public · payment rail live · **first sponsorship deals processing real money** | Spain go-to-market, club channel, founder runway |
+| **Pre-seed extension** | **€250k** | €3.5M | 250 athletes · **three months of measured fan churn** · churn inside the modelled band | First two hires, second market opened |
 | **Growth** *(optional)* | €1.5M | €12M | €150k MRR · net revenue retention > 110% · CAC payback < 9mo · unit economics stable across 2 markets | Team to 16, third and fourth market, moderation infrastructure |
 
-**The plan needs €409k. The two pre-seed tranches raise €400k, and the growth
+**The plan needs €426k. The two pre-seed tranches raise €400k, and the growth
 round is not part of that number.** The €9k shortfall is covered by the ENISA
 participative loan below, which is non-dilutive. It does not come *before* the
 first tranche: ENISA asks for an own-funds ratio of roughly 50%, so the €150k of
@@ -83,36 +83,52 @@ equity is what makes the €75k loan available, and the two are raised together.
 The equity alone covers the trough with a 37% buffer
 rather than the 40% the requirement asks for.
 
-The two tranches together cover the **€292k trough in Y4** with €108k to spare,
+The two tranches together cover the **€305k trough in Y4** with €95k to spare,
 which is why the growth round is marked optional above. It is growth capital: a
 third market sooner, not rescue capital. **Optional in the base case, to be
 precise:** the pessimistic scenario in §7.6 needs
-€827k against the €400k raised, so if that case
+€835k against the €400k raised, so if that case
 materialises the shortfall is bridged rather than ignored, and §7.6 says so. **Optional in the base case, to be
 precise:** the pessimistic scenario in §7.6 needs
-€827k against the €400k raised, so if that case
+€835k against the €400k raised, so if that case
 materialises the shortfall is bridged rather than ignored, and §7.6 says so. A plan whose survival does not depend
 on the next round arriving on schedule is a materially stronger one to raise
 against, and for a first-time founder it is close to the only version worth
 attempting.
 
 Be precise about what that claims. **€400k clears the trough the model produces
-and almost all of the 40% buffer on top of it**, which is €409k. The earlier
+and most of the 40% buffer on top of it**, which is €426k. The earlier
 version of this plan asked for €600k against a requirement of €711k and left the
 buffer partly unfunded; moving the hiring ramp out closed the gap from the cost
 side rather than the raise side. The growth round is therefore optional against
 the conservative case as well as the modelled one.
 
-### Why the pre-seed gate is the one that matters
+### Why the extension gate is the one that matters
 
-Every gate after it is a scaling question. The pre-seed gate is the **only** one
+Every gate after it is a scaling question. The extension gate is the **only** one
 that tests the thesis: *will fans of a semi-professional athlete actually pay?*
 
 Nothing in the product proves that today. Three months of real subscription data
 from one anchor athlete answers it definitively, and if the answer is no, you
-have spent €80k and a year, not €1.9M and six.
+have spent €80k of your own money and €150k of someone else's, not €1.9M and six
+years.
 
-**That is the single most important sequencing decision in this plan.**
+**That test used to sit on the pre-seed gate and it has moved.** Fan monetisation
+is the third thing built, behind the payment rail and sponsorship billing (§5.11),
+so the first subscription charge lands in Y2. Churn evidence cannot be a condition
+of raising the Y1 money that funds building the thing which produces it.
+
+So the pre-seed is gated on what Y1 can actually demonstrate: a working payment
+rail and real sponsorship deals moving real money. **The staging logic is
+unchanged**, because it never depended on which evidence came first, only on the
+larger tranche waiting for the harder evidence. €150k against commission revenue;
+€250k against fan retention.
+
+**Be clear about what that concedes.** The question the plan turns on is now
+answered in Y2, and the pre-seed is raised before it is answered. The defence is
+that €150k is the cheap tranche and what it buys is the answer, which is the same
+argument this plan has always made about the €80k of internal money, one round
+further along.
 
 ---
 
@@ -142,11 +158,11 @@ with no personal guarantees, to companies whose majority shareholders are
 conditions hold. The loan runs up to seven years with up to five years of
 grace, at Euribor plus 3.25% on the first tranche.
 
-Against a **Y1 cash need of €72k**, that is the whole of the first year at no
+Against a **Y1 cash need of €83k**, that is the whole of the first year at no
 equity cost. The two are complementary rather than alternatives: ENISA asks for
 an own-funds ratio of roughly 50%, so the €150k equity tranche is what makes the
 €75k loan available. Together they are €225k against a cumulative need of
-**€175k** to the end of Y2.
+**€190k** to the end of Y2.
 
 **The product exists.** Most pre-seed rounds are raised on a deck. This one is
 raised on a deployed application with connected analytics, an admission gate
@@ -193,10 +209,10 @@ Taking dilution before exhausting these is leaving money on the table.
 | **ENISA Crecimiento** | up to €300k | Participative loan, no equity | Y2–Y3 |
 | **CDTI Neotec** | up to €250k (70% of budget) | **Grant**, no equity | Y2: requires R&D framing; the analytics engine qualifies |
 | **Startup Capital (regional, Catalunya)** | €25k–€100k | Grant / soft loan | Y1–Y2 |
-| **Ley de Startups** tax regime |  | **15% corporate tax** for the first four taxable years vs 25% | Modelled: worth €259k across Y7–Y10 |
+| **Ley de Startups** tax regime |  | **15% corporate tax** for the first four taxable years vs 25% | Modelled: worth €258k across Y7–Y10 |
 | Beckham Law |  | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
 
-**A realistic non-dilutive stack is €300–500k**, which covers the whole €292k
+**A realistic non-dilutive stack is €300–500k**, which covers the whole €305k
 trough on its own. Combined with a smaller pre-seed, the founder could reach the
 growth-round gate holding materially more equity, or skip the growth round
 entirely.
@@ -252,10 +268,10 @@ it is why the sensitivity below runs 20 to 30%.
 <!-- MODEL:valuation -->
 | Valuation (DCF) | Value |
 |---|---|
-| PV of explicit FCF, Y1–Y10 | €414k |
+| PV of explicit FCF, Y1–Y10 | €405k |
 | Terminal value (g=3%) | €5.13M |
 | PV of terminal value | €551k |
-| **Enterprise value (WACC 25%)** | **€965k** |
+| **Enterprise value (WACC 25%)** | **€956k** |
 <!-- /MODEL:valuation -->
 
 ### Exit multiple
@@ -280,7 +296,7 @@ The DCF's terminal value assumes growth collapses to 3% the day after Y10, from
 a year that still grew 16%. For a marketplace that has reached
 €5.25M of revenue at a 70% gross
 margin with a network effect, that is not a neutral assumption; it is a
-pessimistic one. The terminal value is 57% of the DCF's total, so that
+pessimistic one. The terminal value is 58% of the DCF's total, so that
 single assumption carries most of the answer.
 
 **For a venture-stage company, the exit-multiple method discounted back is the
@@ -291,14 +307,14 @@ worth €1.0M today.
 <!-- MODEL:sensitivity -->
 | Enterprise value | WACC 20% | WACC 25% | WACC 30% |
 |---|---|---|---|
-| Terminal growth 2% | €1.63M | €936k | €560k |
-| Terminal growth 3% | €1.70M | **€965k** | €573k |
-| Terminal growth 4% | €1.78M | €997k | €588k |
+| Terminal growth 2% | €1.62M | €926k | €550k |
+| Terminal growth 3% | €1.69M | **€956k** | €564k |
+| Terminal growth 4% | €1.77M | €987k | €579k |
 <!-- /MODEL:sensitivity -->
 
 **Defensible headline: €2.1–5.1M enterprise
 value, the Y10 exit multiples discounted to today at the same 25% WACC**, with a
-€965k floor under a no-growth-after-Y10 assumption.
+€956k floor under a no-growth-after-Y10 assumption.
 
 Be honest about which end of that range the plan supports. Revenue grows
 16% in Y10, so the **9.0x** multiple labelled high-growth SaaS is not a

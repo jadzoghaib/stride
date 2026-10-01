@@ -52,7 +52,7 @@ uv run python business-plan/build_workbook.py                  # the .xlsx
 Then check it:
 
 ```bash
-uv run python scripts/doc_consistency.py    # 309 prose claims against the model
+uv run python scripts/doc_consistency.py    # 321 prose claims against the model
 uv run python scripts/verify_workbook.py    # structure: refs, cycles, parsing
 uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 ```
@@ -106,7 +106,7 @@ and `18-product-walkthrough.md`.
   eighteen months rather than building less. Scaling the plan down was tried
   first and does not work: halving the athlete trajectory leaves the trough
   within €15k of where it was, because cutting growth cuts income and
-  outgoings in the same proportion. Trough €292k, requirement €409k
+  outgoings in the same proportion. Trough €305k, requirement €426k
 - **WACC cited to Damodaran**, NYU Stern European cost of capital, 5 January
   2026: Software (Internet) at 6.01% in euros, with the 19-point gap to our
   25% stated as a stage premium rather than hidden
@@ -131,7 +131,7 @@ and `18-product-walkthrough.md`.
 - **Pre-seed repriced to €1.8M then €3.5M pre-money**, below the €2–4M European
   band rather than inside it. €400k is still the only capital the plan depends on
 - **The founder hurdle no longer clears on the base case, and §Appendix D says
-  so.** 67% of a €965k DCF is €651k against a €672k break-even at a 70% failure
+  so.** 67% of a €956k DCF is €644k against a €672k break-even at a 70% failure
   probability. The case now rests on the exit multiples (€1.4M to €3.4M to the
   founder) and on a much lower failure probability than 70%, both stated
 - **Revenue per employee is stated and defended** rather than left implicit:
