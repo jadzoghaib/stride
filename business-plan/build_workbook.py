@@ -1430,6 +1430,69 @@ def build() -> pathlib.Path:
         r += 1
 
     r += 1
+    cp.cell(r, 1, "SPONSORSHIP MARKET - top down, for context not for sizing").font = Font(
+        bold=True, size=10, color="8A5200")
+    r += 1
+    cp.cell(r, 1, "European Sponsorship Association, analysis by Nielsen Sports, published "
+                  "12 Mar 2026. NOTE: none of it breaks below the professional tier, so it is "
+                  "context rather than our addressable market. The athlete funnel on Research "
+                  "is what sizes the business.").font = Font(italic=True, size=9, color="6B7480")
+    cp.merge_cells(start_row=r, start_column=1, end_row=r, end_column=6)
+    r += 1
+    for j, h in enumerate(["Metric", "Value", "Unit", "Scope", "Period", "Source"]):
+        c = cp.cell(r, 1 + j, h); c.font, c.fill = HEAD, HEAD_FILL
+        c.alignment = Alignment(horizontal="center", wrap_text=True)
+    r += 1
+    for metric, value, unit, scope, period, source in CD.SPONSORSHIP_MARKET:
+        cp.cell(r, 1, metric).font = Font(size=10, name="Calibri")
+        c = cp.cell(r, 2, value); c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, MONEY
+        for j, t in ((3, unit), (4, scope), (5, period), (6, source)):
+            cell = cp.cell(r, j, t)
+            cell.font = Font(size=9, name="Calibri", color="4A525E")
+            cell.alignment = Alignment(wrap_text=True, vertical="top")
+        for j in range(6):
+            cp.cell(r, 1 + j).border = EDGE
+        r += 1
+
+    r += 1
+    cp.cell(r, 1, "European SPORT sponsorship by year, EUR bn").font = Font(
+        bold=True, size=10, color="8A5200")
+    r += 1
+    years = sorted(CD.SPONSORSHIP_SPORT_EUROPE_BN)
+    for j, y in enumerate(years):
+        c = cp.cell(r, 1 + j, y); c.font, c.fill = HEAD, HEAD_FILL
+        c.alignment = Alignment(horizontal="center")
+    r += 1
+    for j, y in enumerate(years):
+        c = cp.cell(r, 1 + j, CD.SPONSORSHIP_SPORT_EUROPE_BN[y])
+        c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, '#,##0.00'
+    r += 1
+    cp.cell(r, 1, "2020 is not published in the ESA series. Source: ESA via Statista, "
+                  "retrieved 1 Oct 2026.").font = Font(italic=True, size=9, color="6B7480")
+    cp.merge_cells(start_row=r, start_column=1, end_row=r, end_column=6)
+    r += 2
+
+    cp.cell(r, 1, "FAN DEMAND - published surveys bearing on the fan thesis").font = Font(
+        bold=True, size=10, color="8A5200")
+    r += 1
+    for j, h in enumerate(["Metric", "Value", "Unit", "Scope", "Period", "Source"]):
+        c = cp.cell(r, 1 + j, h); c.font, c.fill = HEAD, HEAD_FILL
+        c.alignment = Alignment(horizontal="center", wrap_text=True)
+    r += 1
+    for metric, value, unit, scope, period, source in CD.FAN_CONSUMPTION:
+        cp.cell(r, 1, metric).font = Font(size=10, name="Calibri")
+        c = cp.cell(r, 2, value)
+        c.fill, c.font = FILL_HARD, FONT_HARD
+        c.number_format = PCT if unit == "share" else '#,##0'
+        for j, t in ((3, unit), (4, scope), (5, period), (6, source)):
+            cell = cp.cell(r, j, t)
+            cell.font = Font(size=9, name="Calibri", color="4A525E")
+            cell.alignment = Alignment(wrap_text=True, vertical="top")
+        for j in range(6):
+            cp.cell(r, 1 + j).border = EDGE
+        r += 1
+
+    r += 1
     cp.cell(r, 1, "SPONSORSHIP MARKETPLACES - the direct competitor set").font = Font(
         bold=True, size=10, color="8A5200")
     r += 1
@@ -1439,7 +1502,7 @@ def build() -> pathlib.Path:
         italic=True, size=9, color="6B7480")
     cp.merge_cells(start_row=r, start_column=1, end_row=r, end_column=6)
     r += 1
-    for j, h in enumerate(["Company", "Founded", "Employees", "Total raised",
+    for j, h in enumerate(["Company", "Founded", "Employees (as of)", "Total raised",
                            "Largest round pre-money", "Status"]):
         c = cp.cell(r, 1 + j, h); c.font, c.fill = HEAD, HEAD_FILL
         c.alignment = Alignment(horizontal="center", wrap_text=True)
@@ -1454,11 +1517,11 @@ def build() -> pathlib.Path:
                  (pre or None, MONEY)], start=2):
             c = cp.cell(r, j, val)
             c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, fmt
-        note = status
+        note = f"Headcount as of {emp_asof}. {status}"
         if name in CD.PREMONEY_ESTIMATED:
             note += f". {rnd} {rnd_date}; pre-money is a PitchBook ESTIMATE"
         else:
-            note += f". {rnd} {rnd_date}" if pre else f". Last priced round not disclosed"
+            note += f". {rnd} {rnd_date}" if pre else ". Last priced round not disclosed"
         cp.cell(r, 6, note).font = Font(size=9, name="Calibri", color="4A525E")
         cp.cell(r, 6).alignment = Alignment(wrap_text=True, vertical="top")
         for j in range(6):
@@ -1467,12 +1530,18 @@ def build() -> pathlib.Path:
 
     # Our own line, for the comparison the sheet exists to make. Grey: an
     # output of the model, not a published fact about anyone.
+    # Formulas, not constants: this sheet's whole design is that an input moved on
+    # Assumptions moves everything downstream, and a hardcoded comparison row
+    # silently stops agreeing with the model the moment anyone edits a driver.
     cp.cell(r, 1, "Stride (this plan, at Y10)").font = BOLD
-    for j, (val, fmt) in enumerate(
-            [(2026, '0'), (M.A.headcount[9], '#,##0.0'),
-             (sum(rd["amount"] for rd in M.ROUNDS), MONEY),
-             (next(rd["pre"] for rd in M.ROUNDS if rd["stage"] == "Growth (optional)"), MONEY)],
-            start=2):
+    growth_year = next(rd["year"] for rd in M.ROUNDS if rd["stage"] == "Growth (optional)")
+    cells = [
+        (2026, '0'),
+        (f"=Assumptions!{COLS[9]}{A_ROW['headcount']}", '#,##0.0'),
+        (f"=SUM(Funding!{COLS[0]}{U['Equity raised']}:{COLS[N-1]}{U['Equity raised']})", MONEY),
+        (f"=Funding!{COLS[growth_year - 1]}{U['Pre-money valuation']}", MONEY),
+    ]
+    for j, (val, fmt) in enumerate(cells, start=2):
         c = cp.cell(r, j, val)
         c.fill, c.font, c.number_format = FILL_TOTAL, BOLD, fmt
     cp.cell(r, 6, "Deliberately sized near Sponsoo. Only EUR 400k of the total is capital the "

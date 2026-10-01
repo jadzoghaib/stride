@@ -8,6 +8,23 @@ company: Stride · Barcelona, Spain
 tags: [business-plan, draft, stride, sports-tech, creator-economy]
 ---
 
+> [!caution] SUPERSEDED. Do not cite any figure in this file.
+> This is **v0.2, 6 September 2026**, kept as the record of where the plan
+> started. It is **not part of the submission**: `build_docx.py` builds
+> `Stride_Business_Plan.docx` from `esade-body.md` and the numbered appendices
+> and never reads this file.
+>
+> Its numbers describe a plan that no longer exists. The trajectory was moderated
+> on 1 October 2026 from a Y10 of 40,000 athletes and €23.9M of revenue to 8,500
+> and €5.25M, the €2M seed and €8M Series A were replaced by one optional €1.5M
+> round, and the DCF fell from €8.6M to €965k. Roughly twenty figures here still
+> reflect the old plan and **the doc guard no longer checks them**, deliberately:
+> pinning a superseded draft meant every model change had to be applied twice.
+>
+> **The current plan is `esade-body.md`.** The current numbers are in
+> `Stride_Financial_Model.xlsx` and on the Check sheet.
+
+
 > [!abstract] How to read this
 > This is a **preliminary draft** assembled for review, not a finished document.
 > Every euro figure is generated from the financial model in this repository and

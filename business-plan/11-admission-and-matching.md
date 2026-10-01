@@ -394,10 +394,11 @@ than built here: every connector in this codebase is mocked.
 
 **A correction to the earlier framing, now that the financial model carries the
 funnel.** This was described as the highest-leverage *ops* investment, which
-implied cost. It is not: verification peaks at €25k a year and 0.06 of one
-reviewer, and the whole discounted stream is 0.28% of enterprise value
-([02](02-cost-model.md#compliance-and-moderation)). Nobody automates a 0.6-FTE
-task to save the salary. **The leverage is latency**: an athlete sitting in the
+implied cost. It is not: verification peaks at €4.2k a year and
+0.06 of one reviewer, and the whole discounted stream is
+0.9% of enterprise value
+([02](02-cost-model.md#compliance-and-moderation)). Nobody automates a
+0.06-FTE task to save the salary. **The leverage is latency**: an athlete sitting in the
 queue is not listed, not matchable and not earning, so the automation buys
 time-to-supply rather than headcount.
 

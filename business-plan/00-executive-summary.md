@@ -116,8 +116,11 @@ is the answer to one question. Use of funds: Spain go-to-market, the club
 channel, founder runway. The €250k second tranche follows in Y2, against
 250 athletes and the first paying sponsors.
 
-The plan needs €409k: the **€292k cash trough in Y4** plus a 40% buffer, and
-the €400k pre-seed clears the trough itself with €108k to spare. That is what
+The plan needs €409k: the **€292k cash trough in Y4** plus a
+40% buffer. The €400k pre-seed clears the trough itself with
+€108k to spare, a 37% buffer
+rather than the full 40%; the €9k difference is covered by
+the ENISA loan in Appendix D, which is non-dilutive. That is what
 asking for €400k buys: **the growth round becomes optional.** It brings a third
 market forward; it is not the thing standing between the company and running out
 of cash. Including it, the plan raises €1.9M in total, which is the same order as

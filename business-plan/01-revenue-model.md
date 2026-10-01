@@ -85,11 +85,12 @@ raising the take rate by a point, without asking athletes for anything.
 
 **Why an entry tier exists, and why it is €99.** In Y1 the average sponsor runs
 about €931 of deals through the platform, so the 10% commission on them is
-roughly €93. Scout Pro at €2,988 a year is twenty-eight times that. A sponsor
+roughly €93. Scout Pro at €2,988 a year is
+32 times that. A sponsor
 is being asked to multiply their total spend with us by a large factor to buy
 software, at exactly the point when the directory is thinnest and the software
 is worth least. €99 a month is credible against that; €249 is not. The ratio
-only reaches parity around Y7, when the average sponsor runs €18,334 of deals
+closes by Y7, when the average sponsor runs €18,334 of deals
 and the commission alone is €1,833.
 
 **This is what the ARPU path has always assumed.** Blended revenue per paying
@@ -109,8 +110,9 @@ brands become the larger buyer.
 
 SaaS matters disproportionately: it is **100% margin** (no GMV, no payment
 rail), and it converts the analytics engine into revenue that does not depend on
-a deal closing. By Y7 it is €0.60M of the €3.01M: 18% of revenue at close to
-100% gross margin, which is roughly 28% of gross profit.
+a deal closing. By Y7 it is €595k of the €3.01M:
+20% of revenue at close to 100% gross margin, which
+is roughly 28% of gross profit.
 
 ---
 
@@ -278,9 +280,9 @@ with the take.
 > represent, not by the percentage alone. A sensitivity table nobody reads
 > becomes a picture of where we sit between two real companies.
 > **Data** · `attachments/chart-data/g9-take-rate-corridor.csv`
-> **Must say** · ==The downside is steeper than the upside.== Five points up
-> adds €1.6M of revenue; five points down costs €1.6M of revenue and **47% of
-> EBITDA**, because the cost base does not shrink with the take. Draw the EBITDA
+> **Must say** · ==The downside is steeper than the upside.== Five points down
+> costs €478.65k of revenue and **82% of EBITDA**, because the cost
+> base does not shrink with the take. Draw the EBITDA
 > series so that asymmetry is the thing the eye lands on.
 
 **Recommendation: hold 15%, and never add a monthly creator fee.** But hold it

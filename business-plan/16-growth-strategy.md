@@ -18,8 +18,8 @@ of move.
 | Stage | Markets | Trigger to move |
 |---|---|---|
 | Pre-seed | **Spain only** |  |
-| Seed | +1 market (Portugal) | 3 months of fan churn data; €80k recurring MRR |
-| Growth round | +1–2 markets (Italy first) | Unit economics stable across 2 markets |
+| Pre-seed extension | +1 market (Portugal) | 3 months of fan churn data |
+| Growth round | +1–2 markets (Italy first), then EU-wide | Unit economics stable across 2 markets; €150k MRR |
 | Y8+ | Selective non-EU | Regulatory review per market |
 
 The second market is chosen for **sport-mix similarity, not size**: the sport

@@ -144,7 +144,7 @@ ROWS: list[tuple] = [
      "is derived from it at segment CAC, not the other way round. Everything in the model "
      "scales off this line.",
      "None: it is a target",
-     "Low", "The pre-seed gate tests it directly: 400 athletes and EUR 10k MRR."),
+     "Low", "The pre-seed gate tests it directly: 250 athletes and the first paying sponsors."),
 
     (": COSTS: ",),
     ("Athlete CAC", "niche_cac", "ESTIMATE",

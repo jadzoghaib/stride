@@ -53,7 +53,9 @@ either way, and staging it is worth about two points of equity, because the
 second tranche is sold on evidence rather than on the same promise as the
 first.
 
-The Spanish non-dilutive instruments in Appendix D come before either of them.
+The Spanish non-dilutive instruments in Appendix D are raised alongside the
+first tranche rather than before it: ENISA asks for an own-funds ratio of roughly
+50%, so the €150k of equity is what makes the €75k loan available.
 An ENISA participative loan is €25k to €75k against a Y1 need of
 €72k, which is the whole of the first year at no equity cost at all.
 
@@ -178,6 +180,45 @@ across six launch markets, and a Y7 target of **6,300**,
 plan reaching a tenth of its SAM in seven years is a deliberately modest claim,
 and section 3.2.2 explains why it is set there.
 
+**The money the market moves, top down.** The European Sponsorship Association
+puts total European sponsorship at **€34.45bn in 2025**, of which
+**sport is €24.79bn**, 72% of it, growing 5.9% year on year. Their
+series for sport runs back to 2019 and shows the shape rather than a single
+number: €20.26bn in 2019, €19.8bn in 2021 after the pandemic,
+and €24.79bn in 2025, a **5.8% compound annual rate** across the
+recovery.
+
+**Spain is the fastest-growing major market in it**, at **€2.18bn and
++14%**, ahead of the United Kingdom's +10.5% and France's +10.3%, and the
+association attributes the growth partly to increased investment in women's
+sport. Launching in Spain is therefore not only the founder's location; it is
+the market moving fastest.
+
+> [!warning] What that figure does not measure, and why the funnel exists
+> **None of it breaks below the professional tier.** The ESA report is a
+> macro-level overview and the trade coverage of it says so explicitly: there is
+> no published figure for sponsorship of individual athletes, of grassroots
+> sport, or of smaller rights holders, in this source or any other in Appendix L.
+> So **€24.79bn is context, not our addressable market**, and the plan
+> does not divide it by anything to produce one. The bottom-up funnel above
+> exists precisely because the top-down number stops where Stride's market
+> starts. That gap is also the opportunity: a segment nobody measures is a
+> segment nobody has sized a product for.
+
+**On the fan side, two published surveys bear on the plan's largest assumption.**
+Fan-generated sports content, which is the category an athlete's own channel sits
+in rather than the broadcaster's, already takes **115 minutes a week** across
+France, Germany, Italy, Spain, the UK and the US, the same as highlights and
+clips, and **YouTube carries more of it than linear television or streaming
+services do** (Altman Solon and IRIS Sport, December 2025, 6,000 respondents).
+And subscribing does not cannibalise the habit: **70% of people who subscribe to
+sports content say they then watch more sport**, against 7% who watch less
+(YouGov and Strive, November 2022, 19,000 respondents). Neither proves that fans
+of a semi-professional athlete will pay. They establish that the attention and
+the willingness to subscribe both exist in the format the product uses, which is
+the most a secondary source can do, and section 1 is explicit that only the
+anchor athlete settles the rest.
+
 > [!note] The softest number in the plan, named as such
 > The 3% step from "competes at club level" to "has 5,000 followers" is an
 > estimate, not a measurement. It is the number most likely to be wrong, and the
@@ -298,8 +339,12 @@ history and the athlete relationships, which take time nobody can buy.
 
 #### What the comparable set says about how big this gets
 
-Four companies have built a two-sided sponsorship marketplace before us. Their
-funding histories are public, and they are the most useful evidence in this plan
+Four companies have built in this space before us: **Sponsoo and
+OpenSponsorship are two-sided sponsorship marketplaces**, the same model as
+Stride, while **SponsorUnited and Hookit are adjacent sponsorship data
+businesses** selling analytics to brands and rights holders rather than executing
+deals. The distinction matters for what each one is evidence about. Their funding
+histories are public, and they are the most useful evidence in this plan
 about what the model is capable of. Figures from PitchBook company profiles,
 retrieved 1 October 2026, reported in euros.
 
@@ -500,7 +545,7 @@ arithmetic shown, not a media pack.
 | | Y1 | Y3 | Y5 | Y7 | Y10 |
 |---|---|---|---|---|---|
 | Active athletes (year end) | 250 | 1,700 | 4,000 | 6,300 | 8,500 |
-| Paying fans (year end) | 2k | 25k | 120k | 321k | 666k |
+| Paying fans (year end) | 1,286 | 14,334 | 46,066 | 92,005 | 141,503 |
 | Sponsors on the platform | 18 | 125 | 380 | 620 | 850 |
 | of which paying SaaS | 0 | 18 | 76 | 124 | 170 |
 | **Net revenue** | **€0.02M** | **€0.29M** | **€1.32M** | **€3.01M** | **€5.25M** |
@@ -592,8 +637,8 @@ knew.
 
 Every figure in this plan is generated by a Python model and cross-checked
 against an Excel workbook that reproduces it independently. **A consistency
-guard checks 320 prose claims across 16 documents** against the model and fails
-the build if any figure drifts; a second guard evaluates all 2,646 workbook
+guard checks 309 prose claims across 15 documents** against the model and fails
+the build if any figure drifts; a second guard evaluates all 2,649 workbook
 formulas and requires every variance against the Python model to be zero.
 
 The assumptions that matter most:
@@ -662,14 +707,14 @@ counted as cash.
 
 | €, indirect method | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| Net profit | −€101k | −€265k | €153k | €2.38M |
-| Add back amortisation | €6k | €37k | €125k | €322k |
-| Change in working capital | €16k | €110k | €516k | €1.09M |
-| **Operating Cash Flow** | **−€79k** | **−€118k** | **€794k** | **€0.79M** |
-| Capital expenditure | −€17k | −€63k | −€198k | −€210k |
-| **Free Cash Flow** | **−€96k** | **−€181k** | **€596k** | **€0.58M** |
-| Equity raised | €400k | 0 | 0 | 0 |
-| **Closing Cash** | **€504k** | **€161k** | **€2.73M** | **€15.93M** |
+| Net profit | −€75k | −€158k | −€31k | €384k |
+| Add back amortisation | €4k | €18k | €48k | €144k |
+| Change in working capital | €11k | €61k | €175k | €260k |
+| **Operating Cash Flow** | **−€60k** | **−€78k** | **€192k** | **€788k** |
+| Capital expenditure | −€11k | −€27k | −€79k | −€210k |
+| **Free Cash Flow** | **−€72k** | **−€105k** | **€113k** | **€578k** |
+| Equity raised | €150k | 0 | 0 | 0 |
+| **Closing Cash** | **€78k** | **€120k** | **€221k** | **€2.63M** |
 
 Free cash flow turns positive in **Y5**, one year after the trough. The working
 capital line is a source of cash rather than a use of it, which is unusual and
@@ -683,10 +728,10 @@ treats it as both.
 ![Figure 10: The hole, and the buffer over it. Y1 to Y5, where the trough lives.](attachments/charts/g8-cash-and-capital.png)
 
 The deepest the cash ever goes is **€292k, in Y4**. The two tranches together
-are €400k, which covers that with €120k to spare, and free cash flow turns
-positive in Y5. Neither tranche is sized to the trough on its own: the first
-covers Y1's €73k, and the second arrives in Y2, before the trough
-does.
+are €400k, which covers that with €108k to spare, and
+free cash flow turns positive in Y5. Neither tranche is sized to the trough on
+its own: the first covers Y1's €72k, and the second arrives in
+Y2, before the trough does.
 
 | Stage | Amount | Pre-money | Gate |
 |---|---|---|---|
@@ -863,6 +908,6 @@ so that the uncertainty is cheap to resolve and everything else is already done.
 
 **Project artefacts**
 
-- Financial model: `Stride_Financial_Model.xlsx`, 2,646 formulas.
+- Financial model: `Stride_Financial_Model.xlsx`, 2,649 formulas.
 - Source and model: github.com/jadzoghaib/stride
 - Deployed demo: stride-demo.onrender.com

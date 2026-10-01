@@ -240,9 +240,6 @@ def rounds_total() -> float:
 
 
 DILUTION = {d["stage"]: d for d in model.dilution()}
-#: The scenario table, keyed by name, so the prose interpreting it can be
-#: pinned to the same numbers the table is generated from.
-SCEN = {s["scenario"]: s for s in model.scenario_table()}
 
 
 def _trough_year() -> int:
@@ -257,6 +254,9 @@ def _trough_year() -> int:
 
 
 TROUGH_YEAR = _trough_year()
+
+#: Scout Pro's annual list price, for the entry-tier argument in 01.
+SCOUT_PRO_YEAR = model.SCOUT_PRO * 12
 
 # The "discounted to today" column of the exit-multiple table in 04. Rebuilding
 # the arithmetic here was a second source of truth: changing a multiple in
@@ -339,11 +339,11 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("01-revenue-model.md", "EUR 4.99 retains x% of take",
      r"€4\.99 tier retains (\d+)% of our take", retained(4.99) * 100, 0.5),
     ("01-revenue-model.md", "Y7 SaaS revenue",
-     r"By Y7 it is €([\d.]+)M of the", Y7["rev_saas"] / 1e6, 0.01),
+     r"By Y7 it is €([\d,]+)k of the", Y7["rev_saas"] / 1e3, 1.0),
     ("01-revenue-model.md", "Y7 total revenue",
-     r"By Y7 it is €[\d.]+M of the €([\d.]+)M", Y7["revenue"] / 1e6, 0.02),
+     r"By Y7 it is €[\d,]+k of the €([\d.]+)M", Y7["revenue"] / 1e6, 0.02),
     ("01-revenue-model.md", "SaaS as share of Y7 gross profit",
-     r"which is roughly ([\d.]+)% of gross profit", Y7["rev_saas"] / Y7["gross"] * 100, 0.6),
+     r"which\s+is roughly ([\d.]+)% of gross profit", Y7["rev_saas"] / Y7["gross"] * 100, 0.6),
     # This one went stale twice: it is a Y7 figure in a model that runs to Y10,
     # so it reads plausibly whichever year it was last computed from.
     ("01-revenue-model.md", "value of one point of fan take at Y7",
@@ -386,7 +386,7 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
     ("12-operations-plan.md", "what the startup tax rate is worth",
      r"worth \*\*€(\d+)k across Y7–Y10\*\*", startup_tax_saving() / 1e3, 1.0),
     ("12-operations-plan.md", "Y7 payment processing",
-     r"\| Payment processing \| €([\d.]+)M \|", Y7["psp"] / 1e6, 0.005),
+     r"\| Payment processing \| €([\d,]+)k \|", Y7["psp"] / 1e3, 1.0),
     ("12-operations-plan.md", "Y7 infrastructure",
      r"\| Infrastructure \| €(\d+)k \|", Y7["infra"] / 1e3, 0.5),
     ("12-operations-plan.md", "infrastructure as a share of Y7 revenue",
@@ -474,10 +474,6 @@ CLAIMS: list[tuple[str, str, str, float, float]] = [
 
     # The risk register restates two cost figures the recalibration moved and
     # nothing watched: R6 quoted PSP at Y7 and R10 infra as a share of revenue.
-    ("stride-business-plan-draft.md", "R6 payment processing at Y7",
-     r"€([\d.]+)M at Y7\. Multi-PSP", Y7["psp"] / 1e6, 0.005),
-    ("stride-business-plan-draft.md", "R10 infrastructure as a share of revenue",
-     r"Infra is ([\d.]+)% of Y7 revenue", 100 * Y7["infra"] / Y7["revenue"], 0.05),
 
     # --- the ESADE submission body ----------------------------------------
     # The document that gets marked. It restates figures from fourteen other
@@ -623,11 +619,11 @@ r"Together they are €(\d+)k",
     # The pro forma cash flow the outline requires at 9.3. Read from the
     # workbook, so the body cannot disagree with the statement it came from.
     ("esade-body.md", "Y7 free cash flow",
-     r"\| \*\*Free Cash Flow\*\* \|(?: \*\*−?€[\d.,]+[kM]\*\* \|){3} \*\*€([\d.]+)M\*\*",
-     ROWS[6]["fcf"] / 1e6, 0.005),
+     r"\| \*\*Free Cash Flow\*\* \|(?: \*\*−?€[\d.,]+[kM]\*\* \|){3} \*\*€([\d,]+)k\*\*",
+     ROWS[6]["fcf"] / 1e3, 1.0),
     ("esade-body.md", "Y7 operating cash flow",
-     r"\| \*\*Operating Cash Flow\*\* \|(?: \*\*−?€[\d.,]+[kM]\*\* \|){3} \*\*€([\d.]+)M\*\*",
-     ROWS[6]["operating_cf"] / 1e6, 0.005),
+     r"\| \*\*Operating Cash Flow\*\* \|(?: \*\*−?€[\d.,]+[kM]\*\* \|){3} \*\*€([\d,]+)k\*\*",
+     ROWS[6]["operating_cf"] / 1e3, 1.0),
     ("esade-body.md", "Y7 capital expenditure",
      r"\| Capital expenditure \|(?: −€[\d.,]+k \|){3} −€(\d+)k",
      ROWS[6]["capex"] / 1e3, 0.5),
@@ -709,8 +705,6 @@ r"Together they are €(\d+)k",
      model.ROUNDS[0]["pre"] / 1e6, 0.05),
     ("04-capital-and-valuation.md", "the pre-seed ask",
      r"\| \*\*Pre-seed\*\* \| \*\*€(\d+)k\*\*", model.ROUNDS[0]["amount"] / 1e3, 1.0),
-    ("stride-business-plan-draft.md", "the pre-seed ask",
-     r"\| \*\*Pre-seed\*\* \| \*\*€(\d+)k\*\*", model.ROUNDS[0]["amount"] / 1e3, 1.0),
 
     ("00-executive-summary.md", "total raised across every tranche",
      r"the plan raises €([\d.]+)M in total", rounds_total() / 1e6, 0.05),
@@ -735,6 +729,72 @@ r"Together they are €(\d+)k",
       for doc in ("esade-body.md", "00-executive-summary.md")],
     ("04-capital-and-valuation.md", "the year the cash trough falls in",
      r"trough in Y(\d)", TROUGH_YEAR, 0.1),
+
+    # ── the figures cubic found stale on PR 71 ─────────────────────────────
+    # Every one of these was wrong and unwatched. They are mostly derived
+    # percentages and interpretive sentences, which is the class the guard was
+    # thinnest on: it pinned the table and not the paragraph reading it.
+    ("03-financial-model.md", "the year the pessimistic case turns profitable",
+     r"\*\*reaches profitability in Y(\d) rather than", SCEN["Pessimistic"]["first_profit_year"], 0.1),
+    ("03-financial-model.md", "the year the base case turns profitable",
+     r"rather than Y(\d)\*\*, two years later", SCEN["Base"]["first_profit_year"], 0.1),
+    ("03-financial-model.md", "pessimistic capital need in the prose",
+     r"needs €([\d,]+)k rather than", SCEN["Pessimistic"]["capital_need"] / 1e3, 1.0),
+    ("04-capital-and-valuation.md", "pessimistic need beside the optional round",
+     r"scenario in §7\.6 needs\s+€([\d,]+)k against the €400k raised",
+     SCEN["Pessimistic"]["capital_need"] / 1e3, 1.0),
+    # growth rates: only Y2 was pinned, so Y3 to Y6 sat a whole trajectory stale
+    *[("03-financial-model.md", f"revenue growth Y{y}",
+       rf"Y{y} \+(\d+)%", (ROWS[y - 1]["revenue"] / ROWS[y - 2]["revenue"] - 1) * 100, 0.6)
+      for y in (3, 4, 5, 6)],
+    # the niche share row, relabelled to say which denominator it uses
+    ("03-financial-model.md", "niche share of total revenue, Y1",
+     r"\| \*\*Niche share of total revenue\*\* \| \*\*(\d+)%\*\*",
+     ROWS[0]["segs"]["niche"]["revenue"] / ROWS[0]["revenue"] * 100, 0.6),
+    ("03-financial-model.md", "niche share of total revenue in the prose, Y1",
+     r"Niche sports carry\s+(\d+)% of total revenue in Y1",
+     ROWS[0]["segs"]["niche"]["revenue"] / ROWS[0]["revenue"] * 100, 0.6),
+    ("03-financial-model.md", "niche share of total revenue in the prose, Y7",
+     r"fall to (\d+)% by\s*\n?Y7", ROWS[6]["segs"]["niche"]["revenue"] / ROWS[6]["revenue"] * 100, 0.6),
+    # the review workload, quoted in three documents and wrong in all three
+    *[(doc, "peak reviewer FTE in the prose", r"(0\.\d\d) of one",
+       max(r["review_fte"] for r in ROWS), 0.005)
+      for doc in ("02-cost-model.md", "11-admission-and-matching.md")],
+    ("12-operations-plan.md", "peak reviewer FTE against total headcount",
+     r"roughly \*\*(0\.\d\d) of one full-time person\*\*",
+     max(r["review_fte"] for r in ROWS), 0.005),
+    # verification, whose euros and share of enterprise value both moved
+    ("02-cost-model.md", "verification peak",
+     r"Verification peaks at\s*\n?€([\d.]+)k a year",
+     max(r["verification"] for r in ROWS) / 1e3, 0.05),
+    ("11-admission-and-matching.md", "verification peak",
+     r"verification peaks at €([\d.]+)k a year",
+     max(r["verification"] for r in ROWS) / 1e3, 0.05),
+    # Y7 cost of sales as shares of revenue, the table and the sentence under it
+    ("12-operations-plan.md", "payment processing as a share of Y7 revenue",
+     r"\| Payment processing \| €[\d,]+k \| ([\d.]+)% \|",
+     ROWS[6]["psp"] / ROWS[6]["revenue"] * 100, 0.06),
+    ("12-operations-plan.md", "infrastructure as a share of Y7 revenue",
+     r"Infrastructure is ([\d.]+)% of revenue", ROWS[6]["infra"] / ROWS[6]["revenue"] * 100, 0.06),
+    ("12-operations-plan.md", "payments against infrastructure",
+     r"nearly (\d+) times larger", ROWS[6]["psp"] / ROWS[6]["infra"], 0.6),
+    # egress, which the plan quotes as petabytes
+    ("02-cost-model.md", "Y7 egress in petabytes",
+     r"Y7 moves ~([\d.]+) PB",
+     ROWS[6]["avg_fans"] * A.gb_per_fan_month * 12 / 1e6, 0.06),
+    # the entry-tier argument, whose multiple moved with the commission
+    ("01-revenue-model.md", "Scout Pro against the Y1 commission",
+     r"a year is\s*\n?(\d+) times that",
+     SCOUT_PRO_YEAR / (ROWS[0]["sponsorship_gmv"] / A.sponsors[0] * A.take_sponsorship), 0.6),
+    # the spare over the trough, quoted in three places
+    *[(doc, "spare over the trough", r"with\s*\n?€(\d+)k to spare",
+       (sum(rd["amount"] for rd in model.ROUNDS if "Pre-seed" in rd["stage"]) - peak_funding()) / 1e3, 0.6)
+      for doc in ("00-executive-summary.md", "04-capital-and-valuation.md")],
+    ("esade-body.md", "spare over the trough",
+     r"covers that with €(\d+)k to spare",
+     (sum(rd["amount"] for rd in model.ROUNDS if "Pre-seed" in rd["stage"]) - peak_funding()) / 1e3, 0.6),
+    ("esade-body.md", "Y1 cash need in 7.5",
+     r"the first covers Y1's €(\d+)k", -ROWS[0]["fcf"] / 1e3, 0.6),
 
     ("README.md", "peak burn",
      r"peak burn €(\d+)k", peak_funding() / 1e3, 1.0),
@@ -797,8 +857,6 @@ r"Together they are €(\d+)k",
     # Unpinned figures that the egress correction moved and review caught:
     # the gap between the ask and the pre-seed, and G11's restatement of the
     # Y7 infrastructure number from the table three sections above it.
-    ("stride-business-plan-draft.md", "Y7 infrastructure in the G11 callout",
-     r"€2\.55M against €(\d+)k at Y7", Y7["infra"] / 1e3, 1.0),
 
     ("04-capital-and-valuation.md", "what the startup tax rate is worth",
      r"worth €(\d+)k across Y7–Y10", startup_tax_saving() / 1e3, 1.0),
@@ -845,16 +903,6 @@ r"Together they are €(\d+)k",
      r"costs \*\*€(\d+)k more in Y7\*\*", egress_delta(7) / 1e3, 1.0),
     ("README.md", "the egress difference across the plan",
      r"more in Y7\*\*, and €([\d.]+)M", egress_cumulative() / 1e6, 0.05),
-    ("stride-business-plan-draft.md", "the Y7 egress difference",
-     r"is \*\*€(\d+)k a year at Y7\*\*", egress_delta(7) / 1e3, 1.0),
-    ("stride-business-plan-draft.md", "the egress difference across the plan",
-     r"\*\*€([\d.]+)M cumulative across the plan\*\*", egress_cumulative() / 1e6, 0.05),
-    ("stride-business-plan-draft.md", "the infrastructure ratio",
-     r"infrastructure differs by \*\*([\d.]+)×\*\*",
-     Y7["infra_naive"] / Y7["infra"], 0.05),
-    ("stride-business-plan-draft.md", "gross margin points lost to naive egress",
-     r"\*\*([\d.]+) points of gross margin at Y7\*\*",
-     100 * egress_delta(7) / Y7["revenue"], 0.1),
 
     # --- the acquisition machine ------------------------------------------
     # Stated in thousands of fans and left on the old ramp, where it read as
@@ -877,25 +925,11 @@ r"Together they are €(\d+)k",
     # The tier prices, pinned to the one place they are defined. They had already
     # diverged once: model.py's unit-economics table carried a EUR 14.99 tier
     # that exists nowhere else and priced the season pass at 99 against 89.
-    ("stride-business-plan-draft.md", "Insider tier price",
-     r"\| \*\*Insider\*\* \| €([\d.]+) \|", lambda: __import__("market_model").TIER_PRICES[1], 0.001),
-    ("stride-business-plan-draft.md", "Inner circle tier price",
-     r"\| \*\*Inner circle\*\* \| €([\d.]+) \|", lambda: __import__("market_model").TIER_PRICES[2], 0.001),
-    ("stride-business-plan-draft.md", "season pass price",
-     r"\| \*\*Season pass\*\* \| €(\d+)/yr", lambda: __import__("market_model").SEASON_PASS_EUR, 0.001),
 
-    ("stride-business-plan-draft.md", "capital the plan needs",
-     r"The plan needs €(\d+)k", peak_funding() * 1.4 / 1e3, 1.0),
     # Y5, Y6 and Y7 each anchored by position rather than by quoting their
     # neighbours. The first version hardcoded "EUR 8.40M | EUR 16.20M |" as the
     # anchor for Y7, which made two unwatched figures load-bearing: drift in Y5
     # would have failed the *Y7* claim as "not found" and named the wrong column.
-    ("stride-business-plan-draft.md", "Y5 net revenue in the seven-year table",
-     r"\| Net revenue \|(?: €[\d.]+M \|){4} €([\d.]+)M", ROWS[4]["revenue"] / 1e6, 0.02),
-    ("stride-business-plan-draft.md", "Y6 net revenue in the seven-year table",
-     r"\| Net revenue \|(?: €[\d.]+M \|){5} €([\d.]+)M", ROWS[5]["revenue"] / 1e6, 0.02),
-    ("stride-business-plan-draft.md", "Y7 net revenue in the seven-year table",
-     r"\| Net revenue \|(?: €[\d.]+M \|){6} €([\d.]+)M", ROWS[6]["revenue"] / 1e6, 0.02),
 
     # The document describes the guard that checks it, so the guard checks that
     # description too. Self-referential on purpose: this count is exactly the
@@ -907,16 +941,6 @@ r"Together they are €(\d+)k",
       for doc in ("esade-body.md", "STATUS.md")],
     ("esade-body.md", "number of documents checked",
      r"prose claims across (\d+) documents", lambda: len({c[0] for c in CLAIMS}), 0.1),
-    ("stride-business-plan-draft.md", "number of pinned claims",
-     r"checks \*\*(\d+) prose\s+claims", lambda: len(CLAIMS), 0.1),
-    ("stride-business-plan-draft.md", "number of documents checked",
-     r"prose\s+claims across (\d+)\s+documents", lambda: len({c[0] for c in CLAIMS}), 0.1),
-    ("stride-business-plan-draft.md", "Y7 infrastructure, engineered",
-     r"\*\*€0\.008\*\* \| \*\*€(\d+)k\*\*", ROWS[6]["infra"] / 1e3, 1.0),
-    ("stride-business-plan-draft.md", "Y7 infrastructure, naive",
-     r"€0\.075 \| €([\d.]+)M", ROWS[6]["infra_naive"] / 1e6, 0.02),
-    ("stride-business-plan-draft.md", "Y10 gross adds at benchmark churn",
-     r"needs \*\*([\d.]+)M gross adds", churn_gross_adds()[1] / 1e6, 0.02),
 
     ("07-open-questions.md", "EUR 4.99 retention",
      r"€4\.99 retains (\d+)% of our take", retained(4.99) * 100, 0.5),
@@ -960,26 +984,10 @@ r"Together they are €(\d+)k",
     # --- the two headline tables, cell by cell -----------------------------
     # Generated from ROWS so adding a year cannot leave a stale column behind,
     # and so no row of either table is left unwatched while its neighbour moves.
-    *[("stride-business-plan-draft.md", f"seven-year table, Y{y['year']} EBITDA",
-       r"\| EBITDA \|" + r" €-?[\d.]+M \|" * (y["year"] - 1) + r" €(-?[\d.]+)M",
-       y["ebitda"] / 1e6, 0.02) for y in ROWS[:7]],
     # Paying-fan counts are deliberately not pinned here: they are targets the
     # model solves toward rather than anything a pricing assumption can move,
     # and the row label appears in two tables with different column counts, so
     # a regex for one matches the other. EBITDA is the row that drifted.
-
-    ("stride-business-plan-draft.md", "summary table, Y3 net revenue",
-     r"\| Net revenue \| €([\d.]+)M \| €[\d.]+M \|", ROWS[2]["revenue"] / 1e6, 0.02),
-    ("stride-business-plan-draft.md", "summary table, Y7 net revenue",
-     r"\| Net revenue \| €[\d.]+M \| €([\d.]+)M \|", ROWS[6]["revenue"] / 1e6, 0.02),
-    ("stride-business-plan-draft.md", "summary table, Y3 EBITDA",
-     r"\| EBITDA \| €(-?\d+)k \| €[\d.]+M \|", ROWS[2]["ebitda"] / 1e3, 2.0),
-    ("stride-business-plan-draft.md", "summary table, Y7 EBITDA",
-     r"\| EBITDA \| €-?\d+k \| €([\d.]+)M \|", ROWS[6]["ebitda"] / 1e6, 0.02),
-    ("stride-business-plan-draft.md", "summary table, Y3 gross margin",
-     r"\| Gross margin \| (\d+)% \|", 100 * ROWS[2]["gross"] / ROWS[2]["revenue"], 0.6),
-    ("stride-business-plan-draft.md", "summary table, Y7 gross margin",
-     r"\| Gross margin \| \d+% \| (\d+)% \|", 100 * ROWS[6]["gross"] / ROWS[6]["revenue"], 0.6),
 
     # --- derived prose that drifted when the growth curve changed -----------
     # Each of these was written out of the model once and then left behind by a
@@ -1008,13 +1016,6 @@ r"Together they are €(\d+)k",
     # carries Spanish VAT on fan prices, so what a reader needs is the size of
     # what that costs -- which is also the upside if the deemed-supplier reading
     # turns out to be wrong.
-    ("stride-business-plan-draft.md", "Y7 revenue if we were not the deemed supplier",
-     r"Y7 revenue would be €([\d.]+)M", NO_VAT_Y7["revenue"] / 1e6, 0.05),
-    ("stride-business-plan-draft.md", "Y7 EBITDA if we were not the deemed supplier",
-     r"and Y7 EBITDA €([\d.]+)M", NO_VAT_Y7["ebitda"] / 1e6, 0.05),
-    ("stride-business-plan-draft.md", "what carrying VAT costs Y7 EBITDA, as a share",
-     r"carrying it costs (\d+)% of Y7 EBITDA",
-     100 * (NO_VAT_Y7["ebitda"] - Y7["ebitda"]) / NO_VAT_Y7["ebitda"], 0.6),
 ]
 
 WORDS = {"five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,

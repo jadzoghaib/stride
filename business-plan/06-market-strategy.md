@@ -78,7 +78,7 @@ quantified argument, and it needs the niche cohort to exist first.
 | **Y2** | Broaden niche, add Portugal | 750 | Federation partnerships, ambassador referral | The model travels across sports and borders |
 | **Y3** | First popular-sport entry (lower-division football / basketball) | 1,700 | Disintermediation pitch, backed by Y1–Y2 earnings data | Agents are displaceable |
 | **Y4–Y5** | Both segments, EU-wide | 2,800 → 4,000 | Sales org + self-serve | Sponsorship engine compounds |
-| **Y6–Y7** | Both, plus agency channel | 38k → 52k | Agencies as customers, not competitors | Category leadership |
+| **Y6–Y7** | Both, plus agency channel | 5,200 → 6,300 | Agencies as customers, not competitors | Category leadership |
 
 ---
 

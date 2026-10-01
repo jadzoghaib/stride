@@ -46,12 +46,14 @@ So the financial case does not rest on the discounted base case. It rests on two
 things, and both are now stated rather than assumed:
 
 1. **The upside cases.** A DCF values the plan as written. An equity investor,
-   and a founder, are buying the cases above it, which is why the multiples
-   matter and why section 7.6 computes three of them instead of asserting one.
+   and a founder, are buying the cases above it, which is why the exit section
+   below prices four methods, and why section 7.6 re-runs the whole model under
+   three scenarios instead of asserting one.
 2. **A much lower probability of total loss than 70%.** That figure was set
    against a plan needing €10.4M across four rounds, where failure to raise any
-   one of them was fatal. This plan needs **€400k**, turns EBITDA positive in
-   **Y5**, and depends on no round after the pre-seed extension. At a 50%
+   one of them was fatal. This plan raises **€400k** of equity
+   against a €409k requirement, turns EBITDA positive in **Y5**, and
+   depends on no round after the pre-seed extension. At a 50%
    failure probability the break-even return is €403k, which the base case
    clears comfortably.
 
@@ -75,13 +77,21 @@ fact you can demonstrate, not a milestone you can assert.
 
 **The plan needs €409k. The two pre-seed tranches raise €400k, and the growth
 round is not part of that number.** The €9k shortfall is covered by the ENISA
-participative loan below, which is non-dilutive and comes before either tranche;
-the equity alone covers the trough with a 37% buffer rather than the 40% the
-requirement asks for.
+participative loan below, which is non-dilutive. It does not come *before* the
+first tranche: ENISA asks for an own-funds ratio of roughly 50%, so the €150k of
+equity is what makes the €75k loan available, and the two are raised together.
+The equity alone covers the trough with a 37% buffer
+rather than the 40% the requirement asks for.
 
 The two tranches together cover the **€292k trough in Y4** with €108k to spare,
 which is why the growth round is marked optional above. It is growth capital: a
-third market sooner, not rescue capital. A plan whose survival does not depend
+third market sooner, not rescue capital. **Optional in the base case, to be
+precise:** the pessimistic scenario in §7.6 needs
+€827k against the €400k raised, so if that case
+materialises the shortfall is bridged rather than ignored, and §7.6 says so. **Optional in the base case, to be
+precise:** the pessimistic scenario in §7.6 needs
+€827k against the €400k raised, so if that case
+materialises the shortfall is bridged rather than ignored, and §7.6 says so. A plan whose survival does not depend
 on the next round arriving on schedule is a materially stronger one to raise
 against, and for a first-time founder it is close to the only version worth
 attempting.

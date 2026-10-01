@@ -80,7 +80,8 @@ transactions.**
 | **Review FTE required** | **0.01** | **0.04** | **0.06** | **0.06** |
 
 At four minutes per review, the entire manual burden of the business peaks at
-roughly **a quarter of one full-time person at Y7**, against 13 FTE total. The
+roughly **0.06 of one full-time person**, against
+10 FTE total at Y7. The
 admission gate is cheap. It is the *design* of the gate, not its cost, that
 carries the risk.
 
@@ -165,7 +166,7 @@ cost model:
 | Media egress | Paying fan per month (1.8 GB) | ~6.0 PB | €48k |
 | Moderation review | Athlete per month (12 items) | 3.2M items | €70k |
 | Verification check | Admitted athlete | 6,654 reviews | €18k |
-| Payment processing | Transaction | See §12.10 | €2.55M |
+| Payment processing | Transaction | See §12.10 | €752k |
 
 ---
 
@@ -234,13 +235,14 @@ removes.**
 
 | Y7 cost of sales | Amount | % of revenue |
 |---|---|---|
-| Payment processing | €0.75M | 23.8% |
-| Payouts to athletes | €237k | 2.2% |
-| Infrastructure | €78k | 3.1% |
-| Moderation | €70k | 0.7% |
-| Athlete verification | €18k | 0.2% |
+| Payment processing | €752k | 25.0% |
+| Payouts to athletes | €69k | 2.3% |
+| Infrastructure | €78k | 2.6% |
+| Moderation | €20k | 0.7% |
+| Athlete verification | €4k | 0.1% |
 
-Infrastructure is 2.6% of revenue. **Payments are nearly eight times larger.**
+Infrastructure is 2.6% of revenue. **Payments are
+nearly 10 times larger.**
 Any optimisation effort belongs there: tier pricing, annual billing and
 processor negotiation, not the AWS bill.
 

@@ -100,9 +100,9 @@ the rate of monthly ones, so the retention gain compounds the fee saving. See
 analytics: compute is a rounding error, which `docs/costs.md` correctly says.
 The moment fans pay for video, that stops being true. Served naively from
 CloudFront, egress alone costs **€120k more in Y7**, and €0.8M across the
-plan than the same bytes behind a zero-egress CDN. The Y7 figure is most of
-this plan's entire €292k cash trough, spent annually, on one architecture
-decision.
+plan than the same bytes behind a zero-egress CDN. The Y7 figure is
+41% of this plan's entire €292k cash trough, spent
+annually, on one architecture decision.
 
 **3. The age model is tiered, not a single number.** 16 is the floor for an
 account, and that choice is forward-compatible: Spain's draft Organic Law on

@@ -75,11 +75,13 @@ in kind rather than in size. Sports are assigned by
 | **Popular: paying fans** | 35 | 235 | 1,754 | 6,311 | 15,442 | 29,610 | 45,738 |
 | **Popular: net revenue** | €1k | €6k | €48k | €184k | €474k | €947k | €1.50M |
 | Niche share of athletes | 95% | 92% | 80% | 68% | 58% | 50% | 45% |
-| **Niche share of revenue** | **91%** | **82%** | **64%** | **51%** | **42%** | **35%** | **30%** |
+| **Niche share of total revenue** | **91%** | **82%** | **64%** | **51%** | **42%** | **35%** | **30%** |
 
-**Niche funds the company; popular scales it.** Niche sports carry 95% of
-revenue through Y2: the entire period before the first external raise, and
-fall to 38% by Y7 despite still being 45% of athletes, because popular-sport
+**Niche funds the company; popular scales it.** Niche sports carry
+91% of total revenue in Y1 and 82% in Y2,
+the entire period before the second tranche, and fall to 30% by
+Y7 despite still being 45%
+of athletes, because popular-sport
 deals are 2.4× larger. Neither segment alone produces this plan: without niche
 there is no Y1, and without popular the Y7 number is a third smaller.
 
@@ -128,8 +130,8 @@ other.
 | **Total net revenue** | €15k | €78k | €288k | €704k | €1.32M | €2.12M | €3.01M | €3.85M | €4.53M | €5.25M |
 <!-- /MODEL:revenue -->
 
-Growth: Y2 +414%, Y3 +298%, Y4 +181%, Y5 +128%, Y6 +90%, Y7 +42%. A decelerating
-curve that stays above 50% through Y7 is what a Series B buyer wants to see.
+Growth: Y2 +414%, Y3 +268%, Y4 +144%, Y5 +88%, Y6 +61%, Y7 +42%. A decelerating curve that stays above 50% through
+Y6 is the shape a marketplace should have.
 
 ---
 
@@ -229,8 +231,10 @@ and opening three markets from Y2, used to sit in this table with figures nothin
 produced. It is a real upside and it needs capital the plan has not raised, so it
 belongs in the growth section rather than in a sensitivity table.
 
-To run these, edit `Assumptions` in `model.py` and rerun. The conservative case
-**still reaches profitability in Y5, the same year as the base case**, the
+To run these, edit `Assumptions` in `model.py` and rerun. The pessimistic case
+**reaches profitability in Y7 rather than Y5**, two years later than the base
+case, and needs €827k rather than €409k. That is the
+honest shape of the downside: survivable on a bridge, not free. The
 robustness test that matters, and a stronger result than the old "later, at Y5
 rather than Y4". Carrying VAT moved the base case back a year; it did not move
 the conservative one, because that case is already thin enough in Y4 that the

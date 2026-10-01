@@ -488,17 +488,37 @@ def check_reconciliations(calc: Calculator) -> list[str]:
         ws = calc.wb[name]
         for row in ws.iter_rows(min_col=1, max_col=1):
             label = row[0].value
-            if not isinstance(label, str) or label.strip().upper() != "CHECK":
+            if not isinstance(label, str):
+                continue
+            name_u = label.strip().upper()
+            # "BALANCE CHECK" as well as "CHECK". Matching the bare word only
+            # left the balance sheet's own reconciliation unread, which is the
+            # same hole in a different place: a broken balance sheet passed.
+            if name_u not in ("CHECK", "BALANCE CHECK"):
                 continue
             for col in range(3, ws.max_column + 1):
                 if ws.cell(row=row[0].row, column=col).value is None:
+                    # Not a skip, for the reason check_variances() gives: a
+                    # reconciliation cell that stops existing is a check that
+                    # quietly covers less than it claims.
+                    problems.append(
+                        f"{name_u} {name} Y{col - 2}: cell is empty, so this "
+                        f"year is no longer reconciled")
                     continue
                 checked += 1
-                value = _num(calc.cell(name, col, row[0].row))
-                if abs(value) > 0.001:
+                raw = calc.cell(name, col, row[0].row)
+                # Reject non-numeric before testing against zero. _num() coerces
+                # anything it cannot read to 0.0, which would let a cell
+                # evaluating to an error string pass as a perfect reconciliation.
+                if isinstance(raw, bool) or not isinstance(raw, (int, float)):
                     problems.append(
-                        f"CHECK {name} Y{col - 2}: reconciliation row is "
-                        f"{value:,.3f}, not zero")
+                        f"{name_u} {name} Y{col - 2}: did not evaluate to a "
+                        f"number ({raw!r})")
+                    continue
+                if abs(float(raw)) > 0.001:
+                    problems.append(
+                        f"{name_u} {name} Y{col - 2}: reconciliation row is "
+                        f"{float(raw):,.3f}, not zero")
     if checked:
         print(f"Reconciliation rows on other sheets: {checked} cells computed")
     return problems

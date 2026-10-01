@@ -35,7 +35,7 @@ Three responses, in order of impact:
 
 At Y7 the payment rail costs **€752k against €3.01M of revenue**, 25% of
 revenue, our largest single cost line, larger than all salaries combined
-(€1.54M). The share rose when VAT entered the model: the processor charges on
+(€700.00k). The share rose when VAT entered the model: the processor charges on
 the price a fan pays, while the revenue it is measured against is net of the
 VAT that price includes.
 
@@ -57,7 +57,7 @@ price aggressively.
 | **Annual difference** | €2k | €16k | €57k | **€120k** |
 
 At 1.8 GB per paying fan per month and an average of 83k paying fans through
-the year, Y7 moves ~6.0 PB. At CloudFront list (~€0.075/GB after volume tiers)
+the year, Y7 moves ~1.8 PB. At CloudFront list (~€0.075/GB after volume tiers)
 **the bandwidth alone is €134k**; behind an object store with free egress
 (Cloudflare R2, Backblaze B2 + Bunny) the same bytes cost **€14k**. The table
 rows above are larger than both because they add the €64k of AWS compute and
@@ -145,9 +145,9 @@ figure below is loaded cost.
 | Senior engineer | €55k | €72k | Y2 |
 | BD / partnerships | €38k + commission | €50k+ | Y2 |
 | Athlete success | €30k | €39k | Y3 |
-| Content moderation lead | €34k | €45k | Y3 |
-| Finance / ops | €42k | €55k | Y4 |
-| DPO (fractional → hired) | €18k → €60k | €18k → €79k | Y3 fractional, Y5 hired |
+| Content moderation lead | €34k | €45k | Y5 |
+| Finance / ops | €42k | €55k | Y6, half an FTE until Y9 |
+| DPO (fractional) | €18k | €18k | Y7, half an FTE throughout |
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
@@ -156,8 +156,8 @@ figure below is loaded cost.
 
 **Spain is a structural cost advantage.** A senior engineer at €72k loaded costs
 roughly half the equivalent in London or Amsterdam and a third of the Bay Area,
-against a talent pool that is deep in Barcelona and Madrid. On a €23M-revenue
-plan that is worth several million euros cumulatively, and it is a legitimate
+against a talent pool that is deep in Barcelona and Madrid. On a €5.25M-revenue
+plan that is worth several hundred thousand euros cumulatively, and it is a legitimate
 argument to an investor for why the company is in Spain rather than an accident
 of where the founder studied.
 
@@ -192,14 +192,15 @@ those applications need a human to open a link
 
 | | Y1 | Y3 | Y5 | Y7 | Y10 |
 |---|---|---|---|---|---|
-| Applications behind the athlete plan | 1,250 | 16,563 | 51,958 | 70,820 | 72,199 |
-| Manual reviews | 312 | 3,909 | 11,753 | 15,623 | 15,674 |
+| Applications behind the athlete plan | 1,250 | 4,534 | 6,333 | 7,016 | 6,448 |
+| Manual reviews | 312 | 1,070 | 1,432 | 1,548 | 1,400 |
 | Blended admission rate | 20% | 25% | 29% | 31% | 32% |
-| **Reviewer FTE implied** | **0.02** | **0.15** | **0.46** | **0.61** | **0.61** |
+| **Reviewer FTE implied** | **0.01** | **0.04** | **0.06** | **0.06** | **0.05** |
 
 **The euros are not the point and the model says so.** Verification peaks at
-€4k a year and 0.33 of one person, and the whole discounted stream is worth
-€63k against a €22.5M enterprise value, 0.28%. Two things follow, and they
+€4.2k a year and 0.06 of one person, and the whole
+discounted stream is worth €9k against a
+€965k enterprise value, 0.9%. Two things follow, and they
 matter more than the line item:
 
 - **The admission rate is a real driver of marketing efficiency.** It climbs

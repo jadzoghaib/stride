@@ -104,12 +104,12 @@ class Assumptions:
     # The draft flagged the Y7 number as "close to the whole SAM" and never
     # mentioned that Y10 went straight through it.
     #
-    # This curve reaches 22,000 by Y7 (40% of SAM) and 40,000 by Y10 (73%). It
+    # This curve reaches 6,300 by Y7 (11% of SAM) and 8,500 by Y10 (15%). It
     # also matches the go-to-market the plan actually describes: club-by-club,
     # race-day, federation-led acquisition in sceptical communities, which is
-    # slow by construction. Growth still decelerates smoothly -- 3.0x, 2.5x,
-    # 2.0x, 1.75x, 1.52x, 1.38x -- it simply starts from a believable multiple
-    # rather than 4.5x in the first year after launch.
+    # slow by construction. Growth decelerates smoothly -- 3.0x, 2.3x, 1.6x,
+    # 1.4x, 1.3x, 1.2x -- from a believable multiple rather than 4.5x in the
+    # first year after launch.
     #: Moderated 1 Oct 2026, from a Y10 of 40,000. The comparable set
     #: (Sponsoo 13 people in 11 years, OpenSponsorship 23 in 12) says a
     #: two sided sponsorship marketplace does not reach tens of thousands
@@ -860,7 +860,16 @@ def scenario(name: str) -> dict:
             # the same convention the funding table uses, so the base column of
             # the scenario table reproduces the headline ask rather than a
             # second, smaller number that means something subtly different
-            "capital_need": -trough * (1 + CAPITAL_BUFFER)}
+            "capital_need": -trough * (1 + CAPITAL_BUFFER),
+            # The year EBITDA first turns positive, returned rather than
+            # asserted. Appendix C claimed the pessimistic case reached
+            # profitability in Y5 "the same year as the base case", which was
+            # true of the old trajectory and false of this one. That claim was
+            # the document's headline robustness argument and nothing watched
+            # it, because it was prose about a model behaviour rather than a
+            # figure taken from one.
+            "first_profit_year": next((r["year"] for r in rows
+                                       if r["ebitda"] > 0), 0)}
 
 
 def scenario_table() -> list[dict]:
@@ -872,7 +881,11 @@ def scenario_table() -> list[dict]:
         trough = min(trough, cum)
     base = {"scenario": "Base", "revenue_y7": rows[6]["revenue"],
             "ebitda_y7": rows[6]["ebitda"], "trough": -trough,
-            "capital_need": -trough * (1 + CAPITAL_BUFFER)}
+            "capital_need": -trough * (1 + CAPITAL_BUFFER),
+            # Same key as scenario() returns, so a caller can read the whole
+            # table without knowing which row was built by which function.
+            "first_profit_year": next((r["year"] for r in rows
+                                       if r["ebitda"] > 0), 0)}
     return [scenario("Pessimistic"), base, scenario("Optimistic")]
 
 def render(rows: list[dict]) -> dict[str, str]:

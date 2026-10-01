@@ -61,9 +61,10 @@ assumption, and testing an assumption does not need an organisation.
 ```
 
 **Three functions, not five.** Engineering, Growth and Operations carry the
-business; finance and compliance stays fractional for the whole plan, because at
-16 FTE it does not justify a full-time appointment and the plan is not going to
-invent one to look complete. There is no separate marketing team at any point,
+business; finance and operations is half a person from Y6 and a whole one only
+from Y9, and the data protection officer stays fractional for the entire plan,
+because at 16 FTE neither justifies a full-time appointment earlier and the plan
+is not going to invent one to look complete. There is no separate marketing team at any point,
 acquisition runs through the Growth function, because at this stage marketing
 *is* partnerships. And there are no VP titles anywhere in this structure: three
 function leads report to the founder, which is what a company this size actually
