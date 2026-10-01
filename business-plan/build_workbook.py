@@ -27,7 +27,6 @@ Sheets, in dependency order:
     BalanceSheet  with an explicit balance check
     Valuation     DCF, NPV, IRR, exit multiples, WACC/growth sensitivity
     Funding       rounds, dilution, ownership
-    Check         the Python model's numbers, to verify the formulas agree
 """
 
 from __future__ import annotations
@@ -60,7 +59,8 @@ COLS = [get_column_letter(FIRST + k) for k in range(N)]
 #   LIGHT AMBER   sourced external fact (Stripe pricing, Spanish tax law, AWS
 #                 list price, Eurobarometer), change only if the source changed
 #   WHITE         a formula computed on this sheet
-#   LIGHT GREEN   a formula pulling from another sheet
+#   LIGHT GREEN   a dependent value: a formula pulling from another sheet,
+#                 or from the single input at the head of its own row
 #   LIGHT GREY    a subtotal or total
 #   LIGHT RED     a check that must read zero
 FILL_INPUT = PatternFill("solid", fgColor="DCE9F7")
@@ -84,8 +84,21 @@ HEAD = Font(bold=True, color="FFFFFF", name="Calibri", size=10)
 HEAD_FILL = PatternFill("solid", fgColor="14181F")
 BAND = FILL_TOTAL
 ACCENT = PatternFill("solid", fgColor="FFB020")
-MONEY = '#,##0;[Red](#,##0)'
-MONEY2 = '#,##0.00;[Red](#,##0.00)'
+# The euro sign is QUOTED, not bare: a bare currency character in a number
+# format is resolved against the opening machine's locale, and this file gets
+# opened on a Spanish machine, an examiner's, and possibly a Mac. Quoted, it is
+# a literal everywhere. Prefix rather than the Spanish suffix convention,
+# because the plan this sits beside writes €1,234 throughout.
+#
+# Carrying the symbol in these two formats puts it on every monetary cell at
+# once, because a cell using MONEY is money by construction. Before this, money
+# was a bare number and a reader scanning a sheet could not tell a euro from a
+# headcount without reading the unit column.
+MONEY = '"€"#,##0;[Red]("€"#,##0)'
+MONEY2 = '"€"#,##0.00;[Red]("€"#,##0.00)'
+#: For rates quoted in fractions of a cent, such as egress per GB, where MONEY
+#: would round the number away entirely.
+MONEY3 = '"€"#,##0.000'
 PCT = '0.0%'
 NUM = '#,##0'
 THIN = Side(style="thin", color="D0D5DD")
@@ -96,7 +109,7 @@ EDGE = Border(left=Side(style="thin", color="D8DEE7"), right=Side(style="thin", 
 LEGEND = [("Input: change me", FILL_INPUT, FONT_INPUT),
           ("Sourced fact", FILL_HARD, FONT_HARD),
           ("Formula (this sheet)", FILL_CALC, FONT_CALC),
-          ("Formula (other sheet)", FILL_LINK, FONT_LINK),
+          ("Dependent value", FILL_LINK, FONT_LINK),
           ("Total", FILL_TOTAL, BOLD)]
 
 
@@ -223,7 +236,7 @@ FUNDING_ROWS = {
     "Pre-money valuation": 5,
     "Post-money valuation": 6,
     "New investor stake": 7,
-    "Advisory grant": 8,
+    "Athlete partner equity": 8,
     "ESOP pool": 9,
     "Founders + team retained": 10,
     "Cumulative dilution": 11,
@@ -274,9 +287,6 @@ SHEET_GUIDE: list[tuple[str, str, str]] = [
     ("CAC_CLV", "CAC_CLV", "Acquisition cost against lifetime value"),
     ("KPIs", "KPIs", "Scale, quality of revenue, efficiency"),
     ("", "", ""),
-    ("CONTROL", "", ""),
-    ("Check", "Check", "Internal quality checks. Every variance row must read zero"),
-    ("", "", ""),
     ("APPENDIX: RESEARCH AND MODELLING", "", ""),
     ("Comparables", "Comparables", "Published facts about Patreon, Passes and agents. The benchmarking source"),
     ("MarketModel", "MarketModel", "Modelled assumptions, per market dynamics"),
@@ -313,9 +323,10 @@ def build() -> pathlib.Path:
         ("  LIGHT BLUE", "Estimated input", FILL_INPUT),
         ("  LIGHT YELLOW", "Sourced input (Stripe pricing, Spanish tax law, AWS list)", FILL_HARD),
         ("  WHITE", "Computed formula", None),
-        ("  LIGHT GREEN", "Dependent value, pulled from another sheet", FILL_LINK),
+        ("  LIGHT GREEN", "Dependent value, pulled from another sheet or from "
+          "the one input at the head of its row", FILL_LINK),
         ("  LIGHT GREY", "Total or subtotal", FILL_TOTAL),
-        ("  LIGHT RED", "A check that must read zero", FILL_CHECK),
+        ("  LIGHT RED", "The balance-sheet check, which must read zero", FILL_CHECK),
     ]
     r = 6
     for label, meaning, fill in key:
@@ -434,9 +445,9 @@ def build() -> pathlib.Path:
         [A.subscriber_volume_multiple] * N, '0.00', "sub_vol_mult", const=True,
         note="Subscribers buy campaign capacity, so they run more volume than "
              "the average sponsor. The only estimate in the tiering")
-    put("Scout Starter price", "EUR/mo", [M.SCOUT_STARTER] * N, NUM, "p_starter", const=True)
-    put("Scout Pro price", "EUR/mo", [M.SCOUT_PRO] * N, NUM, "p_pro", const=True)
-    put("Scout Agency price", "EUR/mo", [M.SCOUT_AGENCY] * N, NUM, "p_agency", const=True)
+    put("Scout Starter price", "EUR/mo", [M.SCOUT_STARTER] * N, MONEY, "p_starter", const=True)
+    put("Scout Pro price", "EUR/mo", [M.SCOUT_PRO] * N, MONEY, "p_pro", const=True)
+    put("Scout Agency price", "EUR/mo", [M.SCOUT_AGENCY] * N, MONEY, "p_agency", const=True)
     put("VAT on fan subscriptions", "%", [A.vat_rate_fan] * N, PCT, "vat_fan", const=True,
         note="Spain's rate. Fan prices are displayed VAT-inclusive, so the take "
              "applies to price/(1+VAT) while the processor charges on the price")
@@ -456,9 +467,9 @@ def build() -> pathlib.Path:
     r = section(a, r, "INFRASTRUCTURE & CONTENT COSTS")
     put("AWS base cost per month", "EUR", A.aws_base_month, MONEY, "aws")
     put("Media GB per paying fan per month", "GB", [A.gb_per_fan_month] * N, '0.0', "gb", const=True)
-    put("Egress cost per GB (zero-egress CDN)", "EUR", [A.egress_eur_per_gb] * N, '0.000', "egress", hard=True, const=True,
+    put("Egress cost per GB (zero-egress CDN)", "EUR", [A.egress_eur_per_gb] * N, MONEY3, "egress", hard=True, const=True,
         note="Cloudflare R2 / Backblaze B2 list")
-    put("Egress cost per GB (CloudFront list)", "EUR", [A.egress_eur_per_gb_naive] * N, '0.000', "egress_naive", hard=True, const=True,
+    put("Egress cost per GB (CloudFront list)", "EUR", [A.egress_eur_per_gb_naive] * N, MONEY3, "egress_naive", hard=True, const=True,
         note="AWS CloudFront list price: the EUR 1.1M/yr trap")
     put("Moderation cost per 1,000 items", "EUR", [A.moderation_eur_per_1k_items] * N, MONEY2, "mod_rate", const=True)
     put("Items per athlete per month", "count", [A.items_per_athlete_month] * N, '0.0', "items", const=True)
@@ -466,8 +477,39 @@ def build() -> pathlib.Path:
 
     r = section(a, r, "PEOPLE & OVERHEAD")
     put("Headcount", "FTE", A.headcount, '0.0', "headcount")
-    put("Loaded salary (incl. ~31% employer SS)", "EUR", A.loaded_salary_eur, MONEY, "salary")
-    put("Legal & compliance", "EUR", A.legal_compliance_eur, MONEY, "legal")
+    put("Loaded salary (incl. ~32% employer SS)", "EUR", A.loaded_salary_eur, MONEY, "salary")
+    put("Markets live", "count", A.markets, NUM, "markets")
+    put("Legal: base compliance", "EUR/yr", [A.legal_base_eur] * N, MONEY,
+        "legal_base", hard=True)
+    put("Legal: base, per extra head", "EUR", [A.legal_base_per_head_eur] * N, MONEY,
+        "legal_head", hard=True)
+    put("Legal: incorporation", "EUR, Y1", [A.legal_incorporation_eur] * N, MONEY,
+        "legal_inc", hard=True)
+    put("Legal: launch pack", "EUR, Y1", [A.legal_launch_pack_eur] * N, MONEY,
+        "legal_launch", hard=True)
+    put("Legal: DAC7 annual", "EUR", [A.legal_dac7_annual_eur] * N, MONEY,
+        "legal_dac7", hard=True)
+    put("Legal: content and DSA", "EUR/yr from Y2",
+        [0] + [A.legal_content_setup_eur] + [A.legal_content_annual_eur
+                                             + A.legal_content_growth_eur * (y - 2)
+                                             for y in range(3, N + 1)], MONEY, "legal_content")
+    put("Legal: market entry", "EUR per new market", [A.legal_market_entry_eur] * N,
+        MONEY, "legal_mkt", hard=True)
+    put("Legal: VAT and tax per market", "EUR/yr", [A.legal_market_annual_eur] * N,
+        MONEY, "legal_vat", hard=True)
+    put("Legal: round documentation", "EUR",
+        [A.legal_round_eur.get(y, 0) for y in range(1, N + 1)], MONEY, "legal_round")
+    put("Legal: IP", "EUR",
+        [(A.legal_ip_initial_eur if y == 1 else A.legal_ip_annual_eur)
+         for y in range(1, N + 1)], MONEY, "legal_ip")
+    put("Legal: IP per new market", "EUR", [A.legal_ip_per_market_eur] * N, MONEY,
+        "legal_ipm", hard=True)
+    put("Legal: per hire", "EUR", [A.legal_per_hire_eur] * N, MONEY, "legal_hire", hard=True)
+    put("Legal: handbook", "EUR, once", [A.legal_handbook_eur] * N, MONEY, "legal_hb", hard=True)
+    put("Legal: handbook at", "FTE", [A.legal_handbook_at_fte] * N, '0.0', "legal_hb_at")
+    put("Legal: disputes", "share of GMV", [A.legal_dispute_pct_of_gmv] * N, '0.00%',
+        "legal_disp")
+    put("Legal: contingency", "on the whole", [A.legal_contingency] * N, PCT, "legal_cont")
     put("Other opex as % of revenue", "%", [A.other_opex_pct_of_revenue] * N, PCT, "other_pct", const=True)
     r += 1
 
@@ -635,9 +677,19 @@ def build() -> pathlib.Path:
              formula=(f"=({{p}}{end}*{{c}}{ssum}"
                       f"+{{c}}{adds}/(1-{{c}}{rr})*(12-{{c}}{ssum}))/12"),
              bold=True)
-        drow(f"{tag} fans lost to churn", unit="avg x churn x 12",
-             formula=(f"={{c}}{D[f'{tag} average fans during year']}*12"
-                      f"*Assumptions!{{c}}{A_ROW[f'{t}_fchurn']}"))
+        # Opening + gross adds - closing, which is an identity rather than an
+        # approximation. Summing fans[t+1] = fans[t]*(1-churn) + adds over the
+        # twelve months gives closing = opening - churned + gross_adds, so
+        # churned is exactly what is left. The previous formula here was
+        # `average fans x 12 x churn`, and average is the mean of the CLOSING
+        # balances while the model charges churn on each month's OPENING one:
+        # the two differ by a month of growth, 15% in Y1. Nothing read this row,
+        # so nothing computed was wrong, but it printed a number model.py does
+        # not produce in the block that exists to show the cohort mechanics.
+        drow(f"{tag} fans lost to churn", unit="opening + gross adds - closing",
+             first=f"={{c}}{D[f'{tag} fans acquired (gross)']}-{{c}}{end}",
+             formula=(f"={{p}}{end}+{{c}}{D[f'{tag} fans acquired (gross)']}"
+                      f"-{{c}}{end}"))
         r += 1
 
     r = section(d, r, "TOTALS")
@@ -856,7 +908,46 @@ def build() -> pathlib.Path:
          fmt=MONEY2, font=Font(color="6B7480", name="Calibri", size=10, italic=True),
          formula=(f"=({{c}}{C['Athlete acquisition: niche']}+{{c}}{C['Athlete acquisition: popular']})"
                   f"/Drivers!{{c}}{D['Applications required']}"))
-    crow("Legal & compliance", formula=f"=Assumptions!{{c}}{A_ROW['legal']}", font=LINK)
+    # Built from its obligations, the same eleven as model.py. A single row
+    # read off Assumptions would have agreed on the total and shown none of the
+    # reasoning, which is how the old flat number went four years unexamined.
+    mk = f"Assumptions!{{c}}{A_ROW['markets']}"
+    mk_prev = f"Assumptions!{{p}}{A_ROW['markets']}"
+    hc = f"Assumptions!{{c}}{A_ROW['headcount']}"
+    hc_prev = f"Assumptions!{{p}}{A_ROW['headcount']}"
+    newm = f"IF({{k}}=1,{mk},{mk}-{mk_prev})"
+    crow("  Legal: base", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_base']}"
+                 f"+Assumptions!{{c}}{A_ROW['legal_head']}*MAX(0,{hc}-1)")
+    crow("  Legal: incorporation and launch pack", font=LINK,
+         formula=f"=IF({{k}}=1,Assumptions!{{c}}{A_ROW['legal_inc']}"
+                 f"+Assumptions!{{c}}{A_ROW['legal_launch']},0)")
+    crow("  Legal: DAC7", font=LINK,
+         formula=f"=IF({{k}}=1,{A.legal_dac7_setup_eur},"
+                 f"Assumptions!{{c}}{A_ROW['legal_dac7']})")
+    crow("  Legal: content and DSA", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_content']}")
+    crow("  Legal: market entry", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_mkt']}*MAX(0,{newm})")
+    crow("  Legal: VAT and tax", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_vat']}*{mk}")
+    crow("  Legal: round documentation", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_round']}")
+    crow("  Legal: IP", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_ip']}"
+                 f"+Assumptions!{{c}}{A_ROW['legal_ipm']}*MAX(0,{newm})")
+    crow("  Legal: employment", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_hire']}"
+                 f"*MAX(0,IF({{k}}=1,{hc},{hc}-{hc_prev}))"
+                 f"+IF({hc}>=Assumptions!{{c}}{A_ROW['legal_hb_at']},"
+                 f"Assumptions!{{c}}{A_ROW['legal_hb']},0)")
+    crow("  Legal: disputes", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_disp']}*Revenue!{{c}}{R['TOTAL GMV']}")
+    first_legal = C["  Legal: base"]
+    last_legal = C["  Legal: disputes"]
+    crow("Legal & compliance", bold=True,
+         formula=f"=SUM({{c}}{first_legal}:{{c}}{last_legal})"
+                 f"*(1+Assumptions!{{c}}{A_ROW['legal_cont']})")
     crow("Other opex", unit="% of revenue",
          formula=f"=Revenue!{{c}}{R['NET REVENUE']}*Assumptions!{{c}}{A_ROW['other_pct']}")
     crow("TOTAL OPERATING COSTS", bold=True, top=True, band=True,
@@ -1044,14 +1135,38 @@ def build() -> pathlib.Path:
     _advisory_year, _esop_year = M.grant_years()
     advisory[_advisory_year - 1] = M.ADVISORY_GRANT
     esop[_esop_year - 1] = M.ESOP_POOL
-    urow("Advisory grant", "%", values=advisory, fmt=PCT)
+    urow("Athlete partner equity", "%", values=advisory, fmt=PCT)
     urow("ESOP pool", "%", values=esop, fmt=PCT)
     urow("Founders + team retained", "%", fmt=PCT, bold=True,
-         first=f"=(1-{{c}}{U['New investor stake']}-{{c}}{U['Advisory grant']})"
+         first=f"=(1-{{c}}{U['New investor stake']}-{{c}}{U['Athlete partner equity']})"
                f"*(1-{{c}}{U['ESOP pool']})",
          formula=f"=({{p}}{U['Founders + team retained']}"
                  f"*(1-{{c}}{U['New investor stake']})"
-                 f"-{{c}}{U['Advisory grant']})*(1-{{c}}{U['ESOP pool']})")
+                 f"-{{c}}{U['Athlete partner equity']})*(1-{{c}}{U['ESOP pool']})")
+    # The author's own notes, written into column M by hand and generated here
+    # so they survive a rebuild. A note that only exists in the output file lasts
+    # until the next run of this script.
+    NOTES = {
+        "Pre-money valuation":
+            "Both rounds are priced against Sponsoo, the closest comparable there "
+            "is: our pre-seed at EUR 1.8M against their EUR 1.55M seed, and the "
+            "growth round at EUR 12M against their EUR 15.9M Series A.",
+        "Athlete partner equity":
+            f"{M.ATHLETE_PARTNER_GRANT:.0%} to an athlete partner at the pre-seed, "
+            "paid in equity rather than cash. The anchor athlete the pre-seed gate "
+            "depends on: they put their name and their audience behind a product "
+            "that does not exist yet. Four-year vesting, one-year cliff.",
+        "ESOP pool":
+            f"Employee Stock Option Pool: {M.ESOP_POOL:.0%} reserved for employee "
+            "options at the growth round, which is when there is institutional "
+            "money and people worth keeping.",
+    }
+    fu.column_dimensions[get_column_letter(FIRST + N)].width = 64
+    for label, text in NOTES.items():
+        c = fu.cell(U[label], FIRST + N, text)
+        c.font = Font(italic=True, size=8, color="6B7480", name="Calibri")
+        c.alignment = Alignment(wrap_text=True, vertical="top")
+
     urow("Cumulative dilution", "%", fmt=PCT,
          formula=f"=1-{{c}}{U['Founders + team retained']}")
 
@@ -1059,15 +1174,12 @@ def build() -> pathlib.Path:
     hp = sheet(wb, "HiringPlan", "Hiring plan")
     r = 4
     r = section(hp, r, "FTE BY ROLE")
-    ROLES = [
-        ("Founder / CEO", [1.0] * 10, 45_000),
-        ("Engineering", [0.5, 1.0, 1.5, 2.0, 3.5, 5.0, 7.0, 9.0, 11.0, 13.0], 55_000),
-        ("BD / partnerships", [0, 0, 0.5, 1.0, 2.0, 3.0, 5.0, 6.0, 7.0, 8.0], 38_000),
-        ("Athlete success", [0, 0, 0.5, 1.0, 1.5, 2.5, 4.0, 5.0, 6.0, 7.0], 30_000),
-        ("Trust & safety / review", [0, 0, 0, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0], 34_000),
-        ("Finance / operations", [0, 0, 0, 0.5, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0], 42_000),
-        ("Data protection officer", [0, 0, 0, 0, 0, 0.5, 1.0, 1.0, 1.0, 1.0], 60_000),
-    ]
+    # The role ladder is the only place headcount is declared. Assumptions used
+    # to declare it a second time and a CHECK row underneath this total caught
+    # the two when they drifted apart. They did drift, by 7.5 FTE in Y6, and the
+    # row reported it to nobody. Assumptions now reads this total instead, which
+    # is why the check below it is gone: it had become the total minus itself.
+    ROLES = [(name, fte, M.ROLE_SALARY_EUR[name]) for name, fte in M.ROLES.items()]
     role_rows = {}
     first_role = r
     for label, fte, _g in ROLES:
@@ -1077,21 +1189,41 @@ def build() -> pathlib.Path:
     total_fte = r
     r = row(hp, r, "TOTAL FTE", "FTE", bold=True, top=True, fmt='0.0',
             formula=f"=SUM({{c}}{first_role}:{{c}}{last_role})")
-    model_hc = r
-    r = row(hp, r, "Model headcount", "Assumptions", fmt='0.0', font=LINK,
-            formula=f"=Assumptions!{{c}}{A_ROW['headcount']}")
-    r = row(hp, r, "CHECK", "must be zero", bold=True, fmt='0.0',
-            formula=f"=ROUND({{c}}{total_fte}-{{c}}{model_hc},3)")
+    # Assumptions points back here, now that the ladder above is the only
+    # declaration of headcount in the workbook. Written after the fact because
+    # Assumptions is built first and cannot know this row number in advance.
+    for k, col in enumerate(COLS):
+        cell = wb["Assumptions"].cell(A_ROW["headcount"], FIRST + k)
+        assert cell.value == M.A.headcount[k], (
+            f"Assumptions headcount Y{k + 1} is {cell.value!r}, so the row this "
+            f"links to is not the one that was written")
+        cell.value = f"=HiringPlan!{col}{total_fte}"
+        cell.fill, cell.font = FILL_LINK, FONT_LINK
 
     r += 1
     r = section(hp, r, "COST: ROLE BUILD-UP AGAINST THE MODEL")
     ss = r
     r = row(hp, r, "Employer social security", "on gross",
             values=[0.32] * 10, fmt=PCT, hard=True)
+    # The gross salary per role used to live only inside these formulas, which
+    # made the largest controllable cost in the plan invisible and uneditable:
+    # seventy literals, no cell showing any of them. Each is now an input of its
+    # own, referenced absolutely, so changing an engineer's salary is one edit.
+    r = row(hp, r, "GROSS SALARY BY ROLE", "EUR, before employer SS")
+    salary_rows = {}
+    for label, _fte, gross in ROLES:
+        salary_rows[label] = r
+        # const=True: the input lives in Y1 and every later year links back to
+        # it, which is the sheet's idiom for a flat assumption and leaves one
+        # cell to edit rather than ten. The loaded row below reads its OWN
+        # year's cell, so a raise can still be modelled by breaking the link.
+        r = row(hp, r, f"  {label}", "EUR", values=[gross] * N, hard=True, const=True)
+    r += 1
     cost_first = r
     for label, _fte, gross in ROLES:
         r = row(hp, r, f"{label}: loaded", "EUR",
-                formula=f"={{c}}{role_rows[label]}*{gross}*(1+{{c}}{ss})")
+                formula=(f"={{c}}{role_rows[label]}*{{c}}${salary_rows[label]}"
+                         f"*(1+{{c}}{ss})"))
     cost_last = r - 1
     build_up = r
     r = row(hp, r, "TOTAL, role build-up", "EUR", bold=True, top=True,
@@ -1120,6 +1252,9 @@ def build() -> pathlib.Path:
 
     # ══ CAC & CLV ═══════════════════════════════════════════════════════════
     cl = sheet(wb, "CAC_CLV", "Customer acquisition cost and lifetime value")
+    # Set in the author's copy. It is narrow enough to print as it stands, which
+    # none of the ten-year sheets are.
+    cl.page_setup.orientation = "portrait"
     r = 4
     r = section(cl, r, "ATHLETE: BLENDED ACROSS SEGMENTS")
     n_share = r
@@ -1231,7 +1366,7 @@ def build() -> pathlib.Path:
     r = row(cl, r, "Contribution per sponsor per year", "EUR",
             formula=f"={{c}}{s_saas}+{{c}}{s_spo}")
     s_gross = r
-    r = row(cl, r, "  at gross margin", "EUR",
+    r = row(cl, r, "at gross margin", "EUR",
             formula=f"={{c}}{s_con}*'P&L'!{{c}}{P['Gross margin']}")
     r = row(cl, r, "CAC payback", "months", bold=True, top=True, fmt='0.0',
             formula=f"=IF({{c}}{s_gross}<=0,0,12*{{c}}{s_cac}/{{c}}{s_gross})")
@@ -1268,6 +1403,7 @@ def build() -> pathlib.Path:
             formula=f"='P&L'!{{c}}{P['Gross margin']}")
     r = row(kp, r, "EBITDA margin", "%", fmt=PCT, font=LINK,
             formula=f"='P&L'!{{c}}{P['EBITDA margin']}")
+    kpi_rpe_row = r
     r = row(kp, r, "Revenue per FTE", "EUR",
             formula=f"=IF(Assumptions!{{c}}{A_ROW['headcount']}=0,0,"
                     f"Revenue!{{c}}{R['NET REVENUE']}"
@@ -1348,23 +1484,40 @@ def build() -> pathlib.Path:
     r = section(va, r, "SENSITIVITY: enterprise value by WACC and terminal growth")
     va.cell(r, 1, "Terminal growth \\ WACC").font = BOLD
     waccs = [0.18, 0.20, 0.22, 0.25, 0.28, 0.30]
+    wacc_row = r
     for j, w in enumerate(waccs):
         c = va.cell(r, 3 + j, w)
         c.number_format = PCT
         c.font = HEAD
         c.fill = HEAD_FILL
     r += 1
+    # A real two-way table: every cell reads the WACC from its own column header
+    # and the growth rate from its own row label, instead of carrying both as
+    # literals. The previous version baked the pair into each of the thirty
+    # formulas, so editing a header relabelled a column without recomputing it,
+    # on a sheet whose colour key invites exactly that edit.
     for g in (0.01, 0.02, 0.03, 0.04, 0.05):
-        va.cell(r, 1, g).number_format = PCT
-        va.cell(r, 1).font = BOLD
+        gl = va.cell(r, 1, g)
+        gl.number_format = PCT
+        gl.font, gl.fill = FONT_INPUT, FILL_INPUT
+        wref = f"{{wc}}${wacc_row}"
+        gref = f"$A{r}"
         for j, w in enumerate(waccs):
-            # PV of a 10-year FCF strip plus terminal value, at this (w, g) pair
-            terms = "+".join(f"CashFlow!{c}{F['FREE CASH FLOW']}/(1+{w})^{k+1}"
-                             for k, c in enumerate(COLS))
-            tv = (f"CashFlow!{lastc}{F['FREE CASH FLOW']}*(1+{g})/({w}-{g})/(1+{w})^{N}")
+            wc = get_column_letter(3 + j)
+            wr = wref.format(wc=wc)
+            terms = "+".join(
+                f"CashFlow!{c}{F['FREE CASH FLOW']}/(1+{wr})^{k + 1}"
+                for k, c in enumerate(COLS))
+            tv = (f"CashFlow!{lastc}{F['FREE CASH FLOW']}"
+                  f"*(1+{gref})/({wr}-{gref})/(1+{wr})^{N}")
             cell = va.cell(r, 3 + j, f"={terms}+{tv}")
             cell.number_format = MONEY
+            cell.fill, cell.font = FILL_CALC, FONT_CALC
         r += 1
+    va.cell(r, 1, "Both axes are live inputs: edit a WACC header or a growth "
+                  "label and the grid recomputes.").font = Font(
+        italic=True, size=9, color="6B7480")
+    r += 1
 
 
 
@@ -1422,6 +1575,163 @@ def build() -> pathlib.Path:
             c = cp.cell(r, j, val); c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, PCT
         cp.cell(r, 6, source).font = Font(size=9, color="4A525E", name="Calibri")
         r += 1
+
+    r += 1
+    cp.cell(r, 1, "SPONSORSHIP MARKET - top down, for context not for sizing").font = Font(
+        bold=True, size=10, color="8A5200")
+    r += 1
+    cp.cell(r, 1, "European Sponsorship Association, analysis by Nielsen Sports, published "
+                  "12 Mar 2026. NOTE: none of it breaks below the professional tier, so it is "
+                  "context rather than our addressable market. The athlete funnel on Research "
+                  "is what sizes the business.").font = Font(italic=True, size=9, color="6B7480")
+    cp.merge_cells(start_row=r, start_column=1, end_row=r, end_column=6)
+    r += 1
+    for j, h in enumerate(["Metric", "Value", "Unit", "Scope", "Period", "Source"]):
+        c = cp.cell(r, 1 + j, h); c.font, c.fill = HEAD, HEAD_FILL
+        c.alignment = Alignment(horizontal="center", wrap_text=True)
+    r += 1
+    for metric, value, unit, scope, period, source in CD.SPONSORSHIP_MARKET:
+        cp.cell(r, 1, metric).font = Font(size=10, name="Calibri")
+        c = cp.cell(r, 2, value); c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, MONEY
+        for j, t in ((3, unit), (4, scope), (5, period), (6, source)):
+            cell = cp.cell(r, j, t)
+            cell.font = Font(size=9, name="Calibri", color="4A525E")
+            cell.alignment = Alignment(wrap_text=True, vertical="top")
+        for j in range(6):
+            cp.cell(r, 1 + j).border = EDGE
+        r += 1
+
+    r += 1
+    cp.cell(r, 1, "European SPORT sponsorship by year, EUR bn").font = Font(
+        bold=True, size=10, color="8A5200")
+    r += 1
+    years = sorted(CD.SPONSORSHIP_SPORT_EUROPE_BN)
+    for j, y in enumerate(years):
+        c = cp.cell(r, 1 + j, y); c.font, c.fill = HEAD, HEAD_FILL
+        c.alignment = Alignment(horizontal="center")
+    r += 1
+    for j, y in enumerate(years):
+        c = cp.cell(r, 1 + j, CD.SPONSORSHIP_SPORT_EUROPE_BN[y])
+        c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, '#,##0.00'
+    r += 1
+    cp.cell(r, 1, "2020 is not published in the ESA series. Source: ESA via Statista, "
+                  "retrieved 1 Oct 2026.").font = Font(italic=True, size=9, color="6B7480")
+    cp.merge_cells(start_row=r, start_column=1, end_row=r, end_column=6)
+    r += 2
+
+    cp.cell(r, 1, "FAN DEMAND - published surveys bearing on the fan thesis").font = Font(
+        bold=True, size=10, color="8A5200")
+    r += 1
+    for j, h in enumerate(["Metric", "Value", "Unit", "Scope", "Period", "Source"]):
+        c = cp.cell(r, 1 + j, h); c.font, c.fill = HEAD, HEAD_FILL
+        c.alignment = Alignment(horizontal="center", wrap_text=True)
+    r += 1
+    for metric, value, unit, scope, period, source in CD.FAN_CONSUMPTION:
+        cp.cell(r, 1, metric).font = Font(size=10, name="Calibri")
+        c = cp.cell(r, 2, value)
+        c.fill, c.font = FILL_HARD, FONT_HARD
+        c.number_format = PCT if unit == "share" else '#,##0'
+        for j, t in ((3, unit), (4, scope), (5, period), (6, source)):
+            cell = cp.cell(r, j, t)
+            cell.font = Font(size=9, name="Calibri", color="4A525E")
+            cell.alignment = Alignment(wrap_text=True, vertical="top")
+        for j in range(6):
+            cp.cell(r, 1 + j).border = EDGE
+        r += 1
+
+    r += 1
+    cp.cell(r, 1, "SPONSORSHIP MARKETPLACES - the direct competitor set").font = Font(
+        bold=True, size=10, color="8A5200")
+    r += 1
+    cp.cell(r, 1, "PitchBook company profiles retrieved 1 Oct 2026, reported in EUR. None of the four "
+                  "discloses revenue, so headcount and capital raised are the only scale measures "
+                  "available. Links at the bottom of this sheet.").font = Font(
+        italic=True, size=9, color="6B7480")
+    cp.merge_cells(start_row=r, start_column=1, end_row=r, end_column=6)
+    r += 1
+    for j, h in enumerate(["Company", "Founded", "Employees (as of)", "Total raised",
+                           "Largest round pre-money", "Status"]):
+        c = cp.cell(r, 1 + j, h); c.font, c.fill = HEAD, HEAD_FILL
+        c.alignment = Alignment(horizontal="center", wrap_text=True)
+    r += 1
+    SP = {}
+    for (name, country, founded, emp, emp_asof, raised,
+         rnd, rnd_date, pre, status) in CD.SPONSORSHIP_PLATFORMS:
+        SP[name] = r
+        cp.cell(r, 1, f"{name} ({country})").font = BOLD
+        for j, (val, fmt) in enumerate(
+                [(founded, '0'), (emp, '#,##0'), (raised, MONEY),
+                 (pre or None, MONEY)], start=2):
+            c = cp.cell(r, j, val)
+            c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, fmt
+        note = f"Headcount as of {emp_asof}. {status}"
+        if name in CD.PREMONEY_ESTIMATED:
+            note += f". {rnd} {rnd_date}; pre-money is a PitchBook ESTIMATE"
+        else:
+            note += f". {rnd} {rnd_date}" if pre else ". Last priced round not disclosed"
+        cp.cell(r, 6, note).font = Font(size=9, name="Calibri", color="4A525E")
+        cp.cell(r, 6).alignment = Alignment(wrap_text=True, vertical="top")
+        for j in range(6):
+            cp.cell(r, 1 + j).border = EDGE
+        r += 1
+
+    # Our own line, for the comparison the sheet exists to make. Grey: an
+    # output of the model, not a published fact about anyone.
+    # Formulas, not constants: this sheet's whole design is that an input moved on
+    # Assumptions moves everything downstream, and a hardcoded comparison row
+    # silently stops agreeing with the model the moment anyone edits a driver.
+    cp.cell(r, 1, "Stride (this plan, at Y10)").font = BOLD
+    growth_year = next(rd["year"] for rd in M.ROUNDS if rd["stage"] == "Growth (optional)")
+    cells = [
+        (2026, '0'),
+        (f"=Assumptions!{COLS[9]}{A_ROW['headcount']}", '#,##0.0'),
+        (f"=SUM(Funding!{COLS[0]}{U['Equity raised']}:{COLS[N-1]}{U['Equity raised']})", MONEY),
+        (f"=Funding!{COLS[growth_year - 1]}{U['Pre-money valuation']}", MONEY),
+    ]
+    for j, (val, fmt) in enumerate(cells, start=2):
+        c = cp.cell(r, j, val)
+        c.fill, c.font, c.number_format = FILL_TOTAL, BOLD, fmt
+    cp.cell(r, 6, "Deliberately sized near Sponsoo. Only EUR 400k of the total is capital the "
+                  "plan depends on; the growth round is optional").font = Font(
+        size=9, name="Calibri", color="4A525E")
+    cp.cell(r, 6).alignment = Alignment(wrap_text=True, vertical="top")
+    for j in range(6):
+        cp.cell(r, 1 + j).border = EDGE
+    r += 2
+
+    cp.cell(r, 1, "REVENUE PER EMPLOYEE - what the plan is tested against").font = Font(
+        bold=True, size=10, color="8A5200")
+    r += 1
+    for j, h in enumerate(["Benchmark", "EUR per employee", "", "", "", "Source"]):
+        c = cp.cell(r, 1 + j, h); c.font, c.fill = HEAD, HEAD_FILL
+    r += 1
+    RPE = {}
+    for label, value, source in CD.REVENUE_PER_EMPLOYEE:
+        RPE[label] = r
+        cp.cell(r, 1, label).font = Font(size=10, name="Calibri")
+        c = cp.cell(r, 2, value); c.fill, c.font, c.number_format = FILL_HARD, FONT_HARD, MONEY
+        cp.cell(r, 6, source).font = Font(size=9, name="Calibri", color="4A525E")
+        cp.cell(r, 6).alignment = Alignment(wrap_text=True, vertical="top")
+        r += 1
+
+    # Ours, read off the KPIs sheet rather than restated, and the gap to the
+    # top quartile computed from the two cells above it.
+    y7col = COLS[6]
+    cp.cell(r, 1, "Stride (this plan, Y7)").font = BOLD
+    c = cp.cell(r, 2, f"=KPIs!{y7col}{kpi_rpe_row}")
+    c.fill, c.font, c.number_format = FILL_TOTAL, BOLD, MONEY
+    cp.cell(r, 6, "Above the top quartile. Defended in section 3.2.2: the fan side is "
+                  "self-serve and moderation is a variable cost, not headcount").font = Font(
+        size=9, name="Calibri", color="4A525E")
+    cp.cell(r, 6).alignment = Alignment(wrap_text=True, vertical="top")
+    stride_rpe_row = r
+    r += 1
+    cp.cell(r, 1, "Multiple of the top quartile").font = Font(size=10, name="Calibri")
+    c = cp.cell(r, 2, f"=B{stride_rpe_row}/B{RPE['Top quartile private B2B SaaS']}")
+    c.fill, c.font, c.number_format = FILL_TOTAL, BOLD, '0.00"x"'
+    cp.cell(r, 6, "The plan's second most aggressive assumption after fan churn").font = Font(
+        size=9, name="Calibri", color="4A525E")
+    r += 1
 
     r += 2
     cp.cell(r, 1, "SOURCES").font = BOLD
@@ -1648,7 +1958,13 @@ def build() -> pathlib.Path:
         c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
     rs.freeze_panes = "A5"
 
-    conf_fill = {"High": FILL_LINK, "Medium": FILL_HARD, "Low": FILL_CHECK}
+    # Its own palette. These three used to be FILL_LINK, FILL_HARD and
+    # FILL_CHECK, so on this one sheet green meant "high confidence" while the
+    # key on the README said green meant "pulled from another sheet". One colour
+    # cannot mean two things in one workbook.
+    conf_fill = {"High": PatternFill("solid", fgColor="E8E4F5"),
+                 "Medium": PatternFill("solid", fgColor="F2EDE2"),
+                 "Low": PatternFill("solid", fgColor="F7E8EC")}
     method_col = {"SOURCED": "1E7A3C", "BENCHMARKED": "1F4E9C",
                   "DERIVED": "1A1A1A", "ESTIMATE": "B3272D"}
 
@@ -1693,47 +2009,6 @@ def build() -> pathlib.Path:
         rs.merge_cells(start_row=r, start_column=1, end_row=r, end_column=7)
         rs.row_dimensions[r].height = 30
         r += 1
-
-    # ══ CHECK ═══════════════════════════════════════════════════════════════
-    ck = sheet(wb, "Check", "Check: Excel's own answers against the Python model")
-    r = 4
-    ck.cell(2, 1, "Each pair is the Python model's figure and the workbook's own calculation. "
-                  "VARIANCE must be zero: if a formula is wrong, it shows up here on open.").font =         Font(italic=True, size=9, color="6B7480")
-
-    CHECKS = [
-        ("Net revenue", "revenue", f"=Revenue!{{c}}{R['NET REVENUE']}", MONEY),
-        ("Cost of sales", "cogs", f"=Costs!{{c}}{C['TOTAL COST OF SALES']}", MONEY),
-        ("Gross profit", "gross", f"=P&L!{{c}}{P['GROSS PROFIT']}", MONEY),
-        ("Operating costs", "opex", f"=Costs!{{c}}{C['TOTAL OPERATING COSTS']}", MONEY),
-        ("EBITDA", "ebitda", f"=P&L!{{c}}{P['EBITDA']}", MONEY),
-        ("Paying fans (year end)", "paying_fans", f"=Drivers!{{c}}{D['Paying fans (year end)']}", NUM),
-        ("Average paying fans", "avg_fans", f"=Drivers!{{c}}{D['Average paying fans']}", NUM),
-        ("Total GMV", "gmv", f"=Revenue!{{c}}{R['TOTAL GMV']}", MONEY),
-        ("Deals", "deals", f"=Drivers!{{c}}{D['Total deals']}", NUM),
-        ("Applications required", "applications", f"=Drivers!{{c}}{D['Applications required']}", NUM),
-        ("Athlete verification", "verification", f"=Costs!{{c}}{C['Athlete verification']}", MONEY),
-        # The three lines below the EBITDA line. Leaving them out is how the two
-        # models drifted apart unnoticed: Python taxed a flat 15% forever and
-        # called EBITDA-less-tax "free cash flow", while the workbook ran a loss
-        # carry-forward, a 15%->25% step, working capital and capex. Both were
-        # internally consistent and they disagreed, and nothing compared them.
-        ("Tax charge", "tax", f"=-P&L!{{c}}{P['Tax charge']}", MONEY),
-        ("Net profit", "net_profit", f"=P&L!{{c}}{P['NET PROFIT']}", MONEY),
-        ("Free cash flow", "fcf", f"=CashFlow!{{c}}{F['FREE CASH FLOW']}", MONEY),
-    ]
-    for label, key, formula, fmt in CHECKS:
-        r = section(ck, r, label.upper())
-        py = r
-        r = row(ck, r, "  Python model", "model.py", values=[x[key] for x in rows], fmt=fmt)
-        xl = r
-        r = row(ck, r, "  This workbook", "recalculated", formula=formula, fmt=fmt)
-        r = row(ck, r, "  VARIANCE", "must be 0", fmt=fmt, check=True, bold=True,
-                formula=f"=ROUND({{c}}{xl}-{{c}}{py},0)")
-        r += 1
-
-    ck.cell(r, 1, "Balance sheet check (from BalanceSheet, must be zero):").font = BOLD
-    r = row(ck, r + 1, "  Assets less liabilities and equity", "must be 0", check=True, bold=True,
-            formula=f"=BalanceSheet!{{c}}{B['BALANCE CHECK']}", fmt=MONEY)
 
     # Sheets are created in dependency order, which is not the order a reader
     # wants them in. Reordering here, from the same list the README is built

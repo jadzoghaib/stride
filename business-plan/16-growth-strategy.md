@@ -1,8 +1,8 @@
 # 16: Growth and Business Development Strategy
 
-*ESADE outline §12. Sequenced from the same model that produces the financial
-plan: each trigger below is a figure the plan already commits to, not a
-milestone invented for this section.*
+*Sequenced from the same model that produces the financial plan: each trigger
+below is a figure the plan already commits to, not a milestone invented for this
+section.*
 
 ---
 
@@ -10,7 +10,7 @@ Growth is sequenced along four axes. Market and segment are the two that are
 gated: the market axis moves one step at a time and only through a funding
 round, and the segment mix moves only as fast as the evidence that earns it.
 Product and channel develop continuously alongside both. Y2 opens the club
-channel and the seed opens Portugal, and those are deliberately different kinds
+channel and the extension opens Portugal, and those are deliberately different kinds
 of move.
 
 ## 16.1 Axis 1: Market
@@ -18,8 +18,8 @@ of move.
 | Stage | Markets | Trigger to move |
 |---|---|---|
 | Pre-seed | **Spain only** |  |
-| Seed | +1 market (Portugal) | 3 months of fan churn data; €80k recurring MRR |
-| Series A | +3–4 markets (Italy first), EU-wide | Unit economics stable across 3 markets |
+| Pre-seed extension | +1 market (Portugal) | 3 months of fan churn data |
+| Growth round | +1–2 markets (Italy first), then EU-wide | Unit economics stable across 2 markets; €150k MRR |
 | Y8+ | Selective non-EU | Regulatory review per market |
 
 The second market is chosen for **sport-mix similarity, not size**: the sport
@@ -107,7 +107,7 @@ Stated because growth plans are judged as much by their exclusions:
 The plan is built to reach profitability without an exit, which is what makes
 the options real rather than hopeful:
 
-1. **Independent operation.** EBITDA-positive in Y5, €10.2M EBITDA by Y10.
+1. **Independent operation.** EBITDA-positive in Y5, €1.7M EBITDA by Y10.
 2. **Strategic acquisition.** The natural acquirers are creator platforms buying
    a vertical, sports-data companies buying a consumer surface, or a sponsorship
    agency buying disintermediation before it happens to them.

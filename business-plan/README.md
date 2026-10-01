@@ -58,13 +58,13 @@ python business-plan/model.py
 
 | | Y1 | Y3 | Y5 | Y7 | Y10 |
 |---|---|---|---|---|---|
-| Active athletes (year end) | 400 | 3,000 | 10,500 | 22,000 | 40,000 |
-| Paying fans (year end) | 2k | 25k | 120k | 321k | 666k |
-| **Net revenue** | **€0.02M** | **€0.53M** | **€3.29M** | **€10.16M** | **€23.91M** |
-| EBITDA | −€76k | −€147k | €0.42M | €3.25M | €10.20M |
-| Headcount | 1.0 | 2.0 | 6.0 | 13.0 | 28.0 |
+| Active athletes (year end) | 250 | 1,700 | 4,000 | 6,300 | 8,500 |
+| Paying fans (year end) | 0k | 14k | 46k | 92k | 142k |
+| **Net revenue** | **€0.00M** | **€0.29M** | **€1.32M** | **€3.01M** | **€5.25M** |
+| EBITDA | −€111k | −€72k | €0.17M | €0.74M | €1.68M |
+| Headcount | 1.0 | 1.5 | 4.0 | 10.0 | 16.0 |
 
-**Capital required to fund it: €392k** (peak burn €280k plus a 40% buffer)**.** EBITDA turns positive in **Y5**.
+**Capital required to fund it: €414k** (peak burn €296k plus a 40% buffer)**.** EBITDA turns positive in **Y4**.
 
 **Ten years, not seven**: at Y7 the business is still compounding above 50%, so
 a terminal value placed there does most of the valuation work and does it badly.
@@ -99,10 +99,10 @@ the rate of monthly ones, so the retention gain compounds the fee saving. See
 **2. Media egress, not compute.** The current product is deterministic
 analytics: compute is a rounding error, which `docs/costs.md` correctly says.
 The moment fans pay for video, that stops being true. Served naively from
-CloudFront, egress alone costs **€402k more in Y7**, and €3.1M across the
-plan than the same bytes behind a zero-egress CDN. The Y7 figure is most of
-this plan's entire €280k cash trough, spent annually, on one architecture
-decision.
+CloudFront, egress alone costs **€120k more in Y7**, and €0.8M across the
+plan than the same bytes behind a zero-egress CDN. The Y7 figure is
+41% of this plan's entire €296k cash trough, spent
+annually, on one architecture decision.
 
 **3. The age model is tiered, not a single number.** 16 is the floor for an
 account, and that choice is forward-compatible: Spain's draft Organic Law on

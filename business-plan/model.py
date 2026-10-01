@@ -64,7 +64,10 @@ class Segment:
 
 NICHE = Segment(
     name="niche",
-    monetise_rate=[0.28, 0.32, 0.37, 0.41, 0.44, 0.46, 0.48, 0.49, 0.50, 0.50],
+    #: Zero in Y1: the fan tier is B2, behind the payment rail and sponsorship
+    #: monetisation, so the first subscription charge lands in Y2. See the
+    #: launch plan in section 5.11.
+    monetise_rate=[0.00, 0.32, 0.37, 0.41, 0.44, 0.46, 0.48, 0.49, 0.50, 0.50],
     fans_per_athlete=[20, 22, 25, 28, 30, 32, 34, 35, 36, 37],
     fan_arpu_month=[8.00, 8.30, 8.60, 8.80, 9.00, 9.10, 9.20, 9.30, 9.40, 9.50],
     # Niche fans churn less: they subscribed for knowledge, and training is a
@@ -80,7 +83,8 @@ NICHE = Segment(
 
 POPULAR = Segment(
     name="popular",
-    monetise_rate=[0.14, 0.17, 0.20, 0.23, 0.26, 0.28, 0.30, 0.31, 0.32, 0.32],
+    #: Zero in Y1, for the same reason as niche: fan monetisation is B2.
+    monetise_rate=[0.00, 0.17, 0.20, 0.23, 0.26, 0.28, 0.30, 0.31, 0.32, 0.32],
     fans_per_athlete=[26, 29, 32, 35, 38, 41, 44, 46, 47, 48],
     fan_arpu_month=[7.00, 7.20, 7.40, 7.60, 7.80, 7.90, 8.00, 8.10, 8.20, 8.30],
     # Popular-sport fans churn harder: an impulse follow after a result, with
@@ -95,6 +99,47 @@ POPULAR = Segment(
 )
 
 
+#: The hiring plan, role by role, and the ONLY place headcount is decided.
+#:
+#: `Assumptions.headcount` is the column sums of this table, so the two cannot
+#: disagree. They used to be declared separately, here and in build_workbook.py,
+#: with a CHECK row on the HiringPlan sheet to catch it when they drifted. They
+#: did drift: that row read 7.5 for an unknown number of builds after the
+#: trajectory was moderated. One source is better than two and a guard.
+#:
+#: Engineering starts at half a head in Y2 rather than Y3. Y1 and Y2 ship the
+#: payment rail, sponsorship billing and the fan tier, and three builds on top of
+#: the applications, the sponsor conversations, incorporation and two raises is
+#: not one person's two years.
+ROLES: dict[str, list[float]] = {
+    "Founder / CEO":           [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+    "Engineering":             [0.0, 0.5, 0.5, 1.0, 1.5, 2.5, 3.5, 4.5, 5.0, 5.0],
+    "BD / partnerships":       [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 2.0, 2.5, 3.0, 3.5],
+    "Athlete success":         [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
+    "Trust & safety / review": [0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.5, 1.5, 2.0],
+    "Finance / operations":    [0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 1.0, 1.0],
+    "Data protection officer": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.5],
+}
+
+#: Gross annual salary by role, before the employer social security the hiring
+#: plan adds on top. Here rather than in the workbook for the same reason as
+#: ROLES: the sheet should render the model, not hold half of it.
+ROLE_SALARY_EUR: dict[str, int] = {
+    "Founder / CEO": 45_000,
+    "Engineering": 55_000,
+    "BD / partnerships": 38_000,
+    "Athlete success": 30_000,
+    "Trust & safety / review": 34_000,
+    "Finance / operations": 42_000,
+    "Data protection officer": 60_000,
+}
+
+
+def headcount_by_year() -> list[float]:
+    """Total FTE per year: the column sums of ROLES."""
+    return [round(sum(r[i] for r in ROLES.values()), 6) for i in range(len(YEARS))]
+
+
 @dataclass
 class Assumptions:
     # ---- demand side -------------------------------------------------------
@@ -104,13 +149,18 @@ class Assumptions:
     # The draft flagged the Y7 number as "close to the whole SAM" and never
     # mentioned that Y10 went straight through it.
     #
-    # This curve reaches 22,000 by Y7 (40% of SAM) and 40,000 by Y10 (73%). It
+    # This curve reaches 6,300 by Y7 (11% of SAM) and 8,500 by Y10 (15%). It
     # also matches the go-to-market the plan actually describes: club-by-club,
     # race-day, federation-led acquisition in sceptical communities, which is
-    # slow by construction. Growth still decelerates smoothly -- 3.0x, 2.5x,
-    # 2.0x, 1.75x, 1.52x, 1.38x -- it simply starts from a believable multiple
-    # rather than 4.5x in the first year after launch.
-    athletes: list[int] = field(default_factory=lambda: [400, 1_200, 3_000, 6_000, 10_500, 16_000, 22_000, 28_000, 34_000, 40_000])
+    # slow by construction. Growth decelerates smoothly -- 3.0x, 2.3x, 1.6x,
+    # 1.4x, 1.3x, 1.2x -- from a believable multiple rather than 4.5x in the
+    # first year after launch.
+    #: Moderated 1 Oct 2026, from a Y10 of 40,000. The comparable set
+    #: (Sponsoo 13 people in 11 years, OpenSponsorship 23 in 12) says a
+    #: two sided sponsorship marketplace does not reach tens of thousands
+    #: of athletes on a founder led cost base, and the plan should not
+    #: promise a company its founder does not intend to run.
+    athletes: list[int] = field(default_factory=lambda: [250, 750, 1_700, 2_800, 4_000, 5_200, 6_300, 7_200, 7_900, 8_500])
     # Niche first (no incumbent, acute need), popular entering from Y3 once the
     # niche cohort's earnings make the disintermediation pitch quantified.
     niche_share: list[float] = field(default_factory=lambda: [0.95, 0.92, 0.80, 0.68, 0.58, 0.50, 0.45, 0.43, 0.42, 0.41])
@@ -123,7 +173,9 @@ class Assumptions:
     # Sponsors follow athlete supply -- they arrive for the roster -- so this
     # curve is slowed in step with `athletes`. Left at the old numbers it would
     # have modelled demand densifying against a supply side half the size.
-    sponsors: list[int] = field(default_factory=lambda: [25, 90, 230, 500, 900, 1_400, 2_000, 2_600, 3_100, 3_600])
+    #: Scaled with the athlete base: a sponsor subscribes for access to
+    #: supply, so the two cannot be set independently.
+    sponsors: list[int] = field(default_factory=lambda: [18, 55, 125, 240, 380, 510, 620, 710, 790, 850])
     sponsor_paid_rate: list[float] = field(default_factory=lambda: [0.10, 0.14, 0.17, 0.19, 0.20, 0.20, 0.20, 0.20, 0.20, 0.20])
     sponsor_arpu_month: list[int] = field(default_factory=lambda: [199, 229, 260, 290, 320, 360, 400, 430, 455, 475])
     # A matching product is worth nothing without athletes to match. Below this
@@ -194,7 +246,8 @@ class Assumptions:
     avg_deal_txn_eur: float = 1_800
 
     # ---- infrastructure (AWS) ---------------------------------------------
-    aws_base_month: list[int] = field(default_factory=lambda: [180, 650, 2_100, 5_400, 11_000, 17_000, 24_000, 30_000, 35_000, 39_000])
+    #: Rescaled with the fan base it serves, which is what drives it.
+    aws_base_month: list[int] = field(default_factory=lambda: [150, 420, 1_000, 2_000, 3_200, 4_300, 5_300, 6_200, 7_000, 7_800])
     # media egress is the cost that separates a content platform from an
     # analytics one. GB per paying fan per month.
     gb_per_fan_month: float = 1.8
@@ -240,10 +293,78 @@ class Assumptions:
     #: to 22 FTE by Y7 and needed EUR 600k to do it. Payroll is the cost
     #: that lands earliest and scales least with revenue, so moving the
     #: ramp out is what takes the raise down without building less.
-    headcount: list[float] = field(default_factory=lambda: [1.0, 1.5, 2.0, 3.5, 6.0, 9.0, 13.0, 18.0, 23.0, 28.0])
+    #: NOT declared here. Summed from ROLES above, so the hiring plan and the
+    #: headcount are the same statement rather than two that have to agree.
+    #: Still a plain field rather than a property, because scenario() deep-copies
+    #: Assumptions and the sensitivity work assigns to it.
+    #:
+    #: Lean through Y4 because that is where the cash trough sits: the EUR 400k
+    #: ask depends on it, and nothing hired after the trough moves the number.
+    #: Y10 of 16 FTE is deliberately close to Sponsoo's 13. The resulting revenue
+    #: per employee is defended in section 3.2.2 rather than left implicit.
+    headcount: list[float] = field(default_factory=headcount_by_year)
     loaded_salary_eur: list[int] = field(default_factory=lambda: [38_000, 52_000, 60_000, 64_000, 66_000, 68_000, 70_000, 72_000, 74_000, 76_000])
     sponsor_cac_eur: list[int] = field(default_factory=lambda: [900, 1_050, 1_200, 1_400, 1_600, 1_750, 1_900, 2_000, 2_100, 2_200])
-    legal_compliance_eur: list[int] = field(default_factory=lambda: [18_000, 45_000, 90_000, 150_000, 200_000, 235_000, 270_000, 300_000, 325_000, 345_000])
+    #: Markets live, by year. Spain through the pre-seed, Portugal at the
+    #: extension, a third and then EU-wide from the growth round, which is the
+    #: sequence section 10 commits to.
+    markets: list[int] = field(default_factory=lambda: [1, 2, 2, 2, 3, 4, 5, 6, 6, 6])
+
+    # ---- legal and compliance, built rather than asserted -------------------
+    # Was a flat list reaching EUR 150,000 in Y4 against 2.0 FTE: 2.1x a senior
+    # engineer's loaded cost, on legal, at a two-person company, with nothing
+    # underneath it to check. Now one rate per obligation, so a reader can
+    # disagree with a line rather than with a number.
+    #
+    #: Gestoria, bookkeeping and annual filings at one person, then per extra
+    #: head. Open Spanish sources put ongoing gestoria plus legal advisory at
+    #: EUR 100-300/month; this takes the top of that band, because a two-sided
+    #: marketplace moving money is not a simple SL.
+    legal_base_eur: int = 3_600
+    legal_base_per_head_eur: int = 900
+    #: SL incorporation, all-in with professional services. Sources: EUR 1,500
+    #: to 3,000.
+    legal_incorporation_eur: int = 2_500
+    #: Terms of service, privacy policy, DPA, marketplace terms, athlete and
+    #: sponsor contracts. Above the EUR 950 commodity pack because none of this
+    #: is a template.
+    legal_launch_pack_eur: int = 8_000
+    #: DAC7 seller due diligence. Setup in Y1 because deal payments are B1, then
+    #: an annual reporting cost.
+    legal_dac7_setup_eur: int = 4_000
+    legal_dac7_annual_eur: int = 2_500
+    #: DSA moderation duties, minors safeguarding and age assurance policy. Zero
+    #: in Y1: content is B3 and ships in Y2. This zero is the compliance saving
+    #: that the sponsorship-first build order actually buys.
+    legal_content_setup_eur: int = 6_000
+    legal_content_annual_eur: int = 5_000
+    legal_content_growth_eur: int = 400
+    #: Local legal review on entering a market, and the annual VAT and tax
+    #: compliance of being in one.
+    legal_market_entry_eur: int = 7_000
+    legal_market_annual_eur: int = 2_500
+    #: Round documentation. Pre-seed with the ENISA application, the extension,
+    #: and the growth round, which is priced higher because it is institutional.
+    legal_round_eur: dict = field(default_factory=lambda: {1: 8_000, 2: 10_000, 6: 25_000})
+    #: Trade mark clearance and an EU filing, then maintenance, plus a filing
+    #: per new market. "Stride" has existing marks in apparel and fitness
+    #: software, which section 8.2 flags as unresolved.
+    legal_ip_initial_eur: int = 6_000
+    legal_ip_annual_eur: int = 1_500
+    legal_ip_per_market_eur: int = 2_000
+    #: Employment law per hire, plus a handbook once the team passes four.
+    legal_per_hire_eur: int = 500
+    legal_handbook_eur: int = 1_500
+    #: The headcount at which an employee handbook and formal HR policies
+    #: stop being optional. A named threshold rather than a 4 buried in a
+    #: formula, which is also what stopped the workbook audit confusing it
+    #: with the year index.
+    legal_handbook_at_fte: float = 4.0
+    #: Disputes, chargebacks and the argument that volume creates.
+    legal_dispute_pct_of_gmv: float = 0.0003
+    #: On the whole of it, because legal spend is lumpy and a base case that
+    #: assumes nothing goes wrong is not a base case.
+    legal_contingency: float = 0.15
     other_opex_pct_of_revenue: float = 0.08
 
     # ---- working capital, capex, amortisation ------------------------------
@@ -327,16 +448,38 @@ A = Assumptions()
 # regenerating it from this model never touched a list hardcoded in the
 # builder. Years are when the gate is met, not when the money is convenient.
 ROUNDS: list[dict] = [
-    # Staged deliberately. The cumulative cash need is only EUR 73k to the end
+    # Staged deliberately. The cumulative cash need is only EUR 72k to the end
     # of Y1, and Y1 is the year that settles whether fans pay at all. Raising
     # the whole runway against that question prices it as a promise; raising
     # the first tranche against it and the second against three months of real
-    # subscription revenue prices the second on evidence. Same EUR 400k, and
-    # the founder holds 55% through the Series A instead of 53%.
-    {"year": 1, "stage": "Pre-seed", "amount": 150_000, "pre": 2_500_000},
-    {"year": 2, "stage": "Pre-seed extension", "amount": 250_000, "pre": 5_000_000},
-    {"year": 4, "stage": "Seed (optional)", "amount": 2_000_000, "pre": 10_000_000},
-    {"year": 6, "stage": "Series A", "amount": 8_000_000, "pre": 40_000_000},
+    # subscription revenue prices the second on evidence.
+    #: Priced against the comparable rather than the ambition: PitchBook puts
+    #: Sponsoo's 2016 seed at a EUR 1.55M pre-money, and Spanish pre-seed
+    #: rounds of this size sit between EUR 1M and EUR 3M.
+    #:
+    #: Gated on the rail working and sponsorship deals processing real money,
+    #: not on fan churn. Fan monetisation is B2 and earns from Y2, so churn
+    #: evidence cannot exist before the money that funds building it.
+    {"year": 1, "stage": "Pre-seed", "amount": 150_000, "pre": 1_800_000},
+    #: Roughly double, against three months of real subscription revenue. A
+    #: step-up, not a re-rating. This is now the tranche that waits for the
+    #: answer to the question the whole plan turns on.
+    {"year": 2, "stage": "Pre-seed extension", "amount": 250_000, "pre": 3_500_000},
+    # One optional growth round, replacing the EUR 2M seed and EUR 8M Series A
+    # the plan carried until 1 Oct 2026. Those priced a company reaching EUR
+    # 23.9M of revenue; this one reaches EUR 5.25M, and a EUR 40M pre-money
+    # against that is not an aggressive assumption but a different company.
+    #
+    # Priced BELOW the nearest comparable rather than at it. PitchBook
+    # estimates Sponsoo's Series A pre-money at EUR 15.9M, for a seven year old
+    # company in the January 2021 market; EUR 12M is 5.7x our Y6 revenue of
+    # EUR 2.12M and under that estimate. Pricing beneath a bubble-era mark for
+    # a company further along is the conservative side of the comparable, which
+    # is where a first time founder with no exit history belongs.
+    #
+    # Optional in the real sense: EBITDA turns positive in Y5 and cumulative
+    # cash in Y6 without it. It buys speed, not survival.
+    {"year": 6, "stage": "Growth (optional)", "amount": 1_500_000, "pre": 12_000_000},
 ]
 
 #: The monthly recurring revenue each later round is gated on. These existed
@@ -344,15 +487,43 @@ ROUNDS: list[dict] = [
 #: was computed from numbers nobody could change in one place: moving a gate in
 #: the document would have left the multiple beside it silently stale.
 ROUND_GATE_MRR: dict[str, int] = {
-    "Seed (optional)": 80_000,
-    "Series A": 300_000,
+    # Y6 MRR is EUR 177k on plan, so the gate is met inside the year rather
+    # than at its start. Deliberately set below plan: a gate that only the plan
+    # itself clears is not a gate.
+    "Growth (optional)": 150_000,
 }
 
 
-# The two grants that dilute alongside the rounds: an advisory grant made at
-# the pre-seed, and the option pool topped up to 10% by the Series A.
-ADVISORY_GRANT: float = 0.02
+# The two grants that dilute alongside the rounds: equity to an athlete partner
+# at the pre-seed, and the option pool topped up to 10% at the growth round,
+# which is the point at which the company takes institutional money and has
+# employees worth retaining. With no Series A in the plan, grant_years() reaches
+# its fallback, and the fallback is the intended answer here rather than an
+# accident: the last round is the growth round.
+
+#: Equity to the ATHLETE PARTNER, granted at the pre-seed and vesting over four
+#: years with a one-year cliff. Section 2.3 already reserved this for "a
+#: sports-industry profile rather than a technical one"; naming it is the honest
+#: version of what it was always for, and it answers open question C3, "anchor
+#: athlete: equity or cash", with equity.
+#:
+#: Five percent rather than two. Two is an adviser who takes a call; five is
+#: someone putting their name and their audience behind a product that does not
+#: exist yet, which is exactly what the anchor athlete is asked to do and what
+#: the whole pre-seed gate depends on. Not ten, because ten is co-founder
+#: territory and a co-founder belongs in the headcount and the governance
+#: section rather than in a grant line.
+ATHLETE_PARTNER_GRANT: float = 0.05
+#: Kept as an alias so nothing that imported the old name breaks silently.
+ADVISORY_GRANT: float = ATHLETE_PARTNER_GRANT
 ESOP_POOL: float = 0.10
+
+
+# ROLES is the only place headcount is set, and this is what keeps it that way.
+# Stated as an assertion rather than a comment because a comment does not fail.
+assert A.headcount == headcount_by_year(), (
+    "Assumptions.headcount has been set to something other than the column sums "
+    "of ROLES. Change the role ladder, not the total.")
 
 
 def grant_years() -> tuple[int, int]:
@@ -390,7 +561,7 @@ def dilution() -> list[dict]:
         stake = rd["amount"] / post
         held *= 1 - stake
         if rd["stage"] == "Pre-seed":
-            held -= ADVISORY_GRANT
+            held -= ATHLETE_PARTNER_GRANT
         out.append({**rd, "post": post, "stake": stake, "held": held})
     out.append({"year": esop_year, "stage": "ESOP (cumulative)",
                 "amount": 0.0, "pre": 0.0, "post": 0.0,
@@ -628,7 +799,31 @@ def build() -> list[dict]:
         marketing = sum(by_name[s.name]["athlete_gross_adds"] * s.cac_eur[i_] for s in A.segments)
         new_sponsors = A.sponsors[i_] - (A.sponsors[i_ - 1] if y > 1 else 0)
         marketing += max(new_sponsors, 0) * A.sponsor_cac_eur[i_]
-        legal = A.legal_compliance_eur[i_]
+        # Legal and compliance, built from its obligations. See the rates on
+        # Assumptions above; each one is a line a reader can disagree with.
+        new_markets = A.markets[i_] - (A.markets[i_ - 1] if y > 1 else 0)
+        hc = A.headcount[i_]
+        hires = hc - (A.headcount[i_ - 1] if y > 1 else 0.0)
+        legal_parts = {
+            "base": A.legal_base_eur + A.legal_base_per_head_eur * max(0.0, hc - 1),
+            "incorporation": A.legal_incorporation_eur if y == 1 else 0,
+            "launch pack": A.legal_launch_pack_eur if y == 1 else 0,
+            "DAC7": A.legal_dac7_setup_eur if y == 1 else A.legal_dac7_annual_eur,
+            # Content obligations begin with B3, which ships in Y2.
+            "content and DSA": (0 if y == 1 else
+                                A.legal_content_setup_eur if y == 2 else
+                                A.legal_content_annual_eur
+                                + A.legal_content_growth_eur * (y - 2)),
+            "market entry": A.legal_market_entry_eur * max(0, new_markets),
+            "VAT and tax": A.legal_market_annual_eur * A.markets[i_],
+            "round": A.legal_round_eur.get(y, 0),
+            "IP": ((A.legal_ip_initial_eur if y == 1 else A.legal_ip_annual_eur)
+                   + A.legal_ip_per_market_eur * max(0, new_markets)),
+            "employment": (A.legal_per_hire_eur * max(0.0, hires)
+                           + (A.legal_handbook_eur if hc >= A.legal_handbook_at_fte else 0)),
+            "disputes": A.legal_dispute_pct_of_gmv * gmv,
+        }
+        legal = sum(legal_parts.values()) * (1 + A.legal_contingency)
         other = revenue * A.other_opex_pct_of_revenue
         opex = people + marketing + legal + other
 
@@ -818,7 +1013,16 @@ def scenario(name: str) -> dict:
             # the same convention the funding table uses, so the base column of
             # the scenario table reproduces the headline ask rather than a
             # second, smaller number that means something subtly different
-            "capital_need": -trough * (1 + CAPITAL_BUFFER)}
+            "capital_need": -trough * (1 + CAPITAL_BUFFER),
+            # The year EBITDA first turns positive, returned rather than
+            # asserted. Appendix C claimed the pessimistic case reached
+            # profitability in Y5 "the same year as the base case", which was
+            # true of the old trajectory and false of this one. That claim was
+            # the document's headline robustness argument and nothing watched
+            # it, because it was prose about a model behaviour rather than a
+            # figure taken from one.
+            "first_profit_year": next((r["year"] for r in rows
+                                       if r["ebitda"] > 0), 0)}
 
 
 def scenario_table() -> list[dict]:
@@ -830,11 +1034,16 @@ def scenario_table() -> list[dict]:
         trough = min(trough, cum)
     base = {"scenario": "Base", "revenue_y7": rows[6]["revenue"],
             "ebitda_y7": rows[6]["ebitda"], "trough": -trough,
-            "capital_need": -trough * (1 + CAPITAL_BUFFER)}
+            "capital_need": -trough * (1 + CAPITAL_BUFFER),
+            # Same key as scenario() returns, so a caller can read the whole
+            # table without knowing which row was built by which function.
+            "first_profit_year": next((r["year"] for r in rows
+                                       if r["ebitda"] > 0), 0)}
     return [scenario("Pessimistic"), base, scenario("Optimistic")]
 
 def render(rows: list[dict]) -> dict[str, str]:
     ys = [f"Y{r['year']}" for r in rows]
+    _ratios = ratios(rows)
 
     def line(label, key, fmt=eur):
         return [label] + [fmt(r[key]) for r in rows]
@@ -1022,7 +1231,8 @@ def render(rows: list[dict]) -> dict[str, str]:
                 summary=summary, unit_economics=unit_economics(),
                 valuation=val, multiples=mult, cash=cash, funding=funding,
                 segments=segments, churn=churn,
-                costs_y7=costs_y7, cac=cac, sensitivity=sensitivity)
+                costs_y7=costs_y7, cac=cac, sensitivity=sensitivity,
+                ratios=_ratios)
 
 
 def unit_economics() -> str:
@@ -1069,11 +1279,53 @@ DOC_TABLES = {
     # The submission body carries the same block. It sat between MODEL
     # markers while being hand-maintained, which is the worst of both:
     # it looked generated and was one EBITDA cell stale.
-    "esade-body.md": ["summary"],
+    "esade-body.md": ["summary", "ratios"],
     "02-cost-model.md": ["costs_y7", "cac", "unit_economics"],
     "03-financial-model.md": ["drivers", "churn", "segments", "gmv", "revenue", "pl", "cash", "funding"],
     "04-capital-and-valuation.md": ["valuation", "multiples", "sensitivity"],
 }
+
+
+def ratios(rows: list[dict]) -> str:
+    """The feasibility ratios, for outline item 9.6.
+
+    Four columns rather than ten: a ratio table is read for its shape, and Y1
+    and Y2 ratios on a near-zero revenue base are noise that crowds out the
+    trend. The years shown are the ones the rest of the plan quotes.
+    """
+    pick = [2, 4, 6, 9]                      # Y3, Y5, Y7, Y10
+    head = ["Ratio"] + [f"Y{rows[i]['year']}" for i in pick] + ["What it says"]
+
+    def growth(i: int) -> float:
+        return rows[i]["revenue"] / rows[i - 1]["revenue"] - 1
+
+    def burn_multiple(i: int) -> float:
+        """Net burn divided by net new revenue. Undefined once profitable."""
+        burn = -rows[i]["fcf"] if rows[i]["fcf"] < 0 else 0.0
+        net_new = rows[i]["revenue"] - rows[i - 1]["revenue"]
+        return burn / net_new if burn > 0 and net_new > 0 else 0.0
+
+    body = [
+        ["Gross margin"] + [f"{rows[i]['gross'] / rows[i]['revenue']:.0%}" for i in pick]
+        + ["Capped by the payment rail, not by engineering"],
+        ["EBITDA margin"] + [f"{rows[i]['ebitda'] / rows[i]['revenue']:.0%}" for i in pick]
+        + [f"Turns positive in Y{next((r['year'] for r in rows if r['ebitda'] > 0), 0)}"],
+        ["Net margin"] + [f"{rows[i]['net_profit'] / rows[i]['revenue']:.0%}" for i in pick]
+        + ["Below EBITDA by amortisation and tax"],
+        ["Cost of sales / revenue"] + [f"{rows[i]['cogs'] / rows[i]['revenue']:.0%}" for i in pick]
+        + ["Falls as fan subscriptions outgrow one-off payments"],
+        ["Revenue growth"] + [f"{growth(i):.0%}" for i in pick]
+        + ["Decelerating, which is the shape a marketplace should have"],
+        ["Revenue per FTE"] + [eur(rows[i]["revenue"] / rows[i]["headcount"]) for i in pick]
+        + ["Above the sector's top quartile; defended in 3.2.2"],
+        ["**Rule of 40**"] + [f"**{(growth(i) + rows[i]['ebitda'] / rows[i]['revenue']) * 100:.0f}**"
+                              for i in pick]
+        + ["**Growth plus EBITDA margin. Above 40 in every year shown**"],
+        ["Burn multiple"] + [(f"{burn_multiple(i):.2f}" if burn_multiple(i) else "n/a")
+                             for i in pick]
+        + ["Net burn per euro of new revenue. n/a once cash-generative"],
+    ]
+    return table(head, body)
 
 
 def write_docs(rendered: dict[str, str]) -> None:

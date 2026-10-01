@@ -15,7 +15,7 @@
 
 Each was the right call, and each closed off something worth naming:
 
-- **15% flat** forfeits €1.6M of Y7 revenue versus 20%. Bought: a pricing
+- **15% flat** forfeits €0.5M of Y7 revenue versus 20%. Bought: a pricing
   argument that survives contact with the exact athlete we target.
 - **18+ for fan subscriptions** forfeits the 16–17 cohort's fan revenue for the
   first year or two. Bought: distance from the risk that has produced litigation
@@ -45,13 +45,13 @@ season pass retains 82%.
 
 **Recommendation: €9.99 default, €4.99 available but unsuggested, and push the
 season pass hard.** Worth more than a take-rate change and costs nothing.
-Needs a decision before P1 ships because it shapes the tier UI.
+Needs a decision before B2 ships because it shapes the tier UI.
 
 ### B1: Video, or text and photo first?
 
-**Recommendation: text and photo in P1.** It answers the only question that
+**Recommendation: text and photo in B2.** It answers the only question that
 matters, *will fans pay?*, without a transcoding pipeline, a CDN decision, or
-video's moderation exposure. Commit to video only once P1 has three months of
+video's moderation exposure. Commit to video only once B2 has three months of
 churn data. See [05](05-product-gaps.md#sequenced-build).
 
 ### B3: Sponsorship payments through Stride, or record-only?
@@ -71,8 +71,10 @@ Y2 as the cheapest test of whether the model travels.
 
 ### C3: Anchor athlete: equity or cash?
 
-**Recommendation: 1% advisory equity, 2-year vest, 6-month cliff, +0.5%
-performance trigger.** Now with an added filter from [06](06-market-strategy.md):
+**Settled: 5% athlete partner equity**, 4% base plus 1% on a performance
+trigger, four-year vest, one-year cliff. Sized as a partner rather than an
+adviser because the pre-seed gate rests entirely on this person. With an added
+filter from [06](06-market-strategy.md):
 they should come from a **niche sport, and be over 18**. A famous name would
 prove the wrong thing and cost more.
 
@@ -86,7 +88,7 @@ in popular sports. The honest reconciliation is that we disintermediate the
 *deal-finding*, not the *representation*, an agent still negotiates, we just
 make the introduction on evidence instead of on their contact list.
 
-### D1: Raise €392k, or the €2.4M the rounds imply?
+### D1: Raise €414k, or the €1.9M the rounds imply?
 
 **Recommendation: non-dilutive stack first** (ENISA + Neotec, €300–500k), then a
 smaller pre-seed. Every grant euro is equity retained.
@@ -99,10 +101,13 @@ sustainability. **Worth deciding deliberately rather than by default.**
 
 ### D3: Which valuation do we present?
 
-**Recommendation: lead with the exit multiple discounted back (€11–25M), present
-the DCF (€8.6M) as the conservative floor**, and explain why they differ. An
-examiner who spots a perpetuity-growth DCF applied to a company still growing
-27% in the terminal year will discount everything else.
+**Recommendation: lead with the exit multiple discounted back
+(€2.1–5.1M), present the DCF (€1226k) as the
+conservative floor**, and explain why they differ. An examiner who spots a
+perpetuity-growth DCF applied to a company still growing 16% in the
+terminal year will discount everything else. Appendix D also names which end of
+the multiple range the plan's own growth rate supports, which is the lower
+one.
 
 ---
 
@@ -123,7 +128,7 @@ of which federations will take a meeting beats any analysis I can do.**
 
 ### F3: Should the sport index ship *inside the product*?
 
-`model.py` is now segmented and `sport_index.py` classifies sports, so the
+The financial model is now segmented and the index classifies sports, so the
 business question is answered. The **product** question is not: today
 `audience_scale` is `logband(followers, 2, 7)` with no sport input at all, so a
 trail runner with 25k followers scores identically to a footballer with 25k.
@@ -135,7 +140,7 @@ change in the plan**, because it makes the algorithm agree with the strategy.
 ### F4: What happens to the sponsorship marketplace if fans don't pay?
 
 The fallback is good and should be stated: **the product already works as a
-sponsorship marketplace today.** If P1 shows fans won't pay, the company becomes
+sponsorship marketplace today.** If B2 shows fans won't pay, the company becomes
 a smaller, viable, analytics-led B2B business rather than a failure. Worth
 naming explicitly in any investor conversation; it is a genuine floor under the
 downside, and few pre-seed companies have one.

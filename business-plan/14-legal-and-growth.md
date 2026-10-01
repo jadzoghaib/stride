@@ -1,12 +1,11 @@
 # 14: Legal Form and Intellectual Property
 
-*ESADE outline §10. The growth strategy that used to sit here is now its own
-section: see [16](16-growth-strategy.md), which the outline separates and which
-an examiner grades separately. The regulatory analysis (VAT, GDPR, the age
-model and sponsorship rules) is in
-[§8 of the full plan](stride-business-plan-draft.md) and is not repeated here.
-This section covers the corporate and intellectual property questions the
-full plan does not.*
+*The growth strategy that used to sit alongside this is now its own section:
+see [16](16-growth-strategy.md). The regulatory work (VAT, DAC7, GDPR, the age
+model and the sponsorship rules) is not gathered here either: it is priced in
+the operating costs in section 5.9, carried as risk R5 in section 9, and set out
+as policy in [11](11-admission-and-matching.md). What follows is the corporate
+and intellectual property side.*
 
 ---
 
@@ -17,14 +16,14 @@ full plan does not.*
 | Form | Minimum capital | Fit |
 |---|---|---|
 | **Sociedad Limitada (S.L.)** | **€1** since *Ley 18/2022, Crea y Crece* | **Chosen.** Standard for Spanish venture-backed startups; investors expect it |
-| Sociedad Anónima (S.A.) | €60,000, 25% paid up | Rejected. Capital requirement and formality serve no purpose pre-Series A |
+| Sociedad Anónima (S.A.) | €60,000, 25% paid up | Rejected. Capital requirement and formality serve no purpose at this stage |
 | Autónomo (sole trader) |  | Rejected. No limited liability; cannot issue shares, so cannot raise |
 | Foreign holding (Delaware, Estonia) |  | Rejected for now. See below |
 
 **Why S.L.** Limited liability, share issuance for the pre-seed, and
 eligibility for the **Ley 28/2022, Ley de Startups** regime, which is a
 separate statute from the one that cut the capital floor (15% corporate tax for
-the first four taxable years, worth €1.67M across Y6–Y9 in the model), and
+the first four taxable years, worth €263k across Y7–Y10 in the model), and
 eligibility for ENISA
 participative loans and CDTI Neotec grants, which are the non-dilutive stack in
 [04](04-capital-and-valuation.md).
@@ -33,7 +32,7 @@ participative loans and CDTI Neotec grants, which are the non-dilutive stack in
 Spanish operating company is the standard structure *if* US venture capital
 leads a round. Doing it now would forfeit the Ley de Startups rate and the
 Spanish grant eligibility, for an outcome that may never happen. The decision
-point is the Series A, and the structure is designed to be flippable: a clean
+point is the growth round, and the structure is designed to be flippable: a clean
 cap table with one share class and no convertible instruments makes a later
 reorganisation mechanical rather than fraught.
 
@@ -45,7 +44,7 @@ reorganisation mechanical rather than fraught.
 - **Founder vesting**: four years, one-year cliff, applied to the founder's own
   shares. Unusual to self-impose, and exactly what a pre-seed investor will ask
   for.
-- **ESOP to 10%** by the Series A, via a Spanish *plan de incentivos*. Note the
+- **ESOP to 10%** at the growth round, via a Spanish *plan de incentivos*. Note the
   friction honestly: Spain has no equivalent of a US-style option pool held at
   the company, so the pool is contractual and its tax treatment for employees is
   less favourable than in the UK or US. The Ley de Startups improved this

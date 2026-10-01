@@ -1,10 +1,9 @@
 # 13: Organization and Human Resources Plan
 
-*ESADE outline §8. Headcount, loaded costs and the hiring sequence are generated
-by [`model.py`](model.py); the doc guard fails the build if the prose drifts
-from it.*
+*Headcount, loaded costs and the hiring sequence all come from the financial
+model, and the figures quoted here are checked against it rather than retyped.*
 
-The plan reaches **€10.2M of revenue at Y7 with 13 people.** That ratio is the
+The plan reaches **€3.0M of revenue at Y7 with 10 people.** That ratio is the
 central organisational claim, and it is only credible if the org design explains
 *why* it holds. It holds because the only human step in the value chain is
 admission review (see [12](12-operations-plan.md)), and admission review scales
@@ -21,17 +20,17 @@ who decides what.
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
-| Headcount (FTE) | 1 | 1.5 | 2 | 3.5 | 6 | 9 | 13 |
-| People cost | €38k | €78k | €120k | €224k | €396k | €612k | €910k |
+| Headcount (FTE) | 1.0 | 1.5 | 1.5 | 2.0 | 4.0 | 7.0 | 10.0 |
+| People cost | €38k | €78k | €90k | €128k | €264k | €476k | €700k |
 
-Growth to 28 FTE by Y10. The shape is deliberate: **the team stays below
-four people until fan revenue is proven**, because the pre-seed gate tests an
+Growth to 16 FTE by Y10. The shape is deliberate: **the team stays below
+four people until fan revenue is proven**, because the extension gate tests an
 assumption, and testing an assumption does not need an organisation.
 
 > [!warning] This ramp is what a €400k raise buys, and the model flatters it
 > An earlier version of this plan reached 22 FTE by Y7 and asked for €600k.
 > With the tiered commission that ramp put the cash trough at €508k. Moving
-> it out by roughly eighteen months takes the trough to €280k without
+> it out by roughly eighteen months takes the trough to €296k without
 > changing the athlete, fan or sponsor plan at all, because payroll is the
 > cost that arrives earliest and scales least with revenue.
 >
@@ -46,24 +45,29 @@ assumption, and testing an assumption does not need an organisation.
 ### Functional structure by stage
 
 ```
-  Y1–Y3  ── FOUNDER / CEO ──┬── Full-stack engineer (part-time from Y2)
-  (1→2 FTE)             └── the founder carries review, BD and product
+  Y1–Y4   ── FOUNDER / CEO ──┬── Full-stack engineer (part-time from Y3)
+  (1 → 2 FTE)                └── the founder carries review, BD and product
 
-  Y4–Y6  ── FOUNDER / CEO ──┬── ENGINEERING ── senior eng · full-stack
-  (3.5→9)                ├── GROWTH ────── BD/partnerships · athlete success
-                            ├── OPERATIONS ── moderation lead · review
-                            └── FINANCE & COMPLIANCE ── finance/ops · DPO (frac.)
+  Y5–Y6   ── FOUNDER / CEO ──┬── ENGINEERING ──── senior eng · full-stack
+  (4 → 7 FTE)                ├── GROWTH ───────── BD/partnerships · athlete success
+                             ├── OPERATIONS ───── moderation lead · review
+                             └── FINANCE ──────── finance/ops (from Y6)
 
-  Y7+    ── FOUNDER / CEO ──┬── VP ENGINEERING ── platform · data · mobile
-  (13→28)               ├── VP GROWTH ────── sales · partnerships · marketing
-                            ├── HEAD OF OPS ──── trust & safety · support · review
-                            └── HEAD OF FINANCE ─ finance · legal · DPO (hired)
+  Y7–Y10  ── FOUNDER / CEO ──┬── ENGINEERING ──── platform · data · mobile
+  (10 → 16 FTE)              ├── GROWTH ───────── partnerships · sponsor accounts
+                             ├── OPERATIONS ───── trust & safety · support · review
+                             └── FINANCE ──────── finance/ops · DPO (fractional)
 ```
 
 **Three functions, not five.** Engineering, Growth and Operations carry the
-business; Finance & Compliance is fractional until Y6 and a function only from
-Y7. There is no separate marketing team before Y6, acquisition runs through the
-Growth function, because at this stage marketing *is* partnerships.
+business; finance and operations is half a person from Y6 and a whole one only
+from Y9, and the data protection officer stays fractional for the entire plan,
+because at 16 FTE neither justifies a full-time appointment earlier and the plan
+is not going to invent one to look complete. There is no separate marketing team at any point,
+acquisition runs through the Growth function, because at this stage marketing
+*is* partnerships. And there are no VP titles anywhere in this structure: three
+function leads report to the founder, which is what a company this size actually
+looks like.
 
 > [!note] Why the org chart is flat for longer than is comfortable
 > The temptation in a marketplace is to hire sales ahead of supply. We
@@ -93,7 +97,7 @@ suite running on two databases.
 *Requires:* Python/TypeScript, Postgres, cloud deployment. Payments integration
 experience is the single most valuable specialism at this stage.
 
-### BD / partnerships: Y4
+### BD / partnerships: Y5
 **Gross €38k + commission · Loaded €50k+**
 Opens the club channel and the first sponsor accounts. Commission-weighted
 because the role is measurable and the early pipeline is the company's riskiest
@@ -122,10 +126,12 @@ capital cycle. The first hire whose absence would become a control weakness
 rather than a workload problem.
 *Requires:* multi-jurisdiction VAT, marketplace payment flows.
 
-### Data protection officer: Y5 fractional → Y7 hired
-**Fractional €18k → Hired gross €60k / loaded €79k**
-GDPR Article 37 exposure arrives with scale, not with launch. Fractional until
-the athlete base and the media pipeline justify a full-time appointment.
+### Data protection officer: Y7 fractional
+**Fractional €18k, half an FTE from Y7**
+GDPR Article 37 exposure arrives with scale, not with launch. It stays
+fractional for the whole plan: at 16 FTE and 8,500
+athletes by Y10, a full-time appointment is not yet justified, and the plan says
+so rather than padding the headcount to look responsible.
 *Requires:* GDPR practice, ideally with platform or minors experience given the
 16–18 age model.
 
@@ -147,14 +153,14 @@ because a specific bottleneck arrives at a specific time; none is a
   relationships are the asset.
 - **Non-discrimination.** Selection criteria are written before candidates are
   seen and applied identically. This is both a legal requirement in Spain and a
-  stated commitment (§13.5).
+  stated commitment (section 13.5).
 
 ### Management
 
 - **Remote-first, asynchronous by default.** The company is distributed from Y1
   and hires from a wider pool than Barcelona from Y4.
 - **Quarterly objectives tied to the gates**, not to the calendar. The pre-seed,
-  seed and Series A gates in [04](04-capital-and-valuation.md) are evidence
+  growth-round gate in [04](04-capital-and-valuation.md) is evidence
   thresholds; team objectives are the components of those thresholds.
 - **One-to-ones fortnightly, written.** Small teams lose context faster than
   they lose alignment.
@@ -165,13 +171,13 @@ because a specific bottleneck arrives at a specific time; none is a
 |---|---|
 | **Base** | Benchmarked to Barcelona market, at or slightly below median, with equity making up the difference |
 | **Employer cost** | Spanish social security at ~30–32%; every figure in the plan is loaded, not gross |
-| **Equity** | ESOP topped to **10%** by the Series A. All employees participate; four-year vesting, one-year cliff |
+| **Equity** | ESOP topped to **10%** at the growth round. All employees participate; four-year vesting, one-year cliff |
 | **Commission** | BD only, and only on closed sponsorship revenue |
 | **Relocation** | Beckham Law (24% flat IRPF) actively used for senior hires from Y4 |
 | **Founder salary** | €0 in Y1, rising to €45k. Deliberately below market; the return is equity, and the opportunity cost is disclosed in [04](04-capital-and-valuation.md) |
 
 > [!note] Why below-median base with real equity
-> The plan's whole argument is that a small team can reach €10.16M of revenue.
+> The plan's whole argument is that a small team can reach €3.01M of revenue.
 > If that is true, equity is worth more than the salary gap, and if a candidate
 > does not believe it, they are the wrong hire for a company whose central
 > claim is exactly that.
@@ -189,10 +195,9 @@ alternatives considered are in [14](14-legal-and-growth.md).
 | Stage | Board | Founder control |
 |---|---|---|
 | Pre-incorporation | Founder only | 100% |
-| **Pre-seed** (€400k) | Founder + 1 investor observer | 92% held after the 2% advisory grant |
-| **Seed** (€2.0M, optional) | Founder + 1 investor director + 1 independent | 73% |
-| **Series A** (€8.0M) | Founder + 2 investor directors + 1 independent | 61% |
-| Post-ESOP | As above | **~55%** |
+| **Pre-seed** (€400k, two tranches) | Founder + 1 investor observer | 81% held after the 5% athlete partner grant |
+| **Growth** (€1.5M, optional) | Founder + 1 investor director + 1 independent | 72% |
+| Post-ESOP | As above | **~65%** |
 
 ### Reserved matters
 From the pre-seed onward, the following require investor consent: new share
@@ -201,12 +206,15 @@ threshold, and any change to the athlete age policy. **The last one is on the
 list deliberately**; it is the decision most likely to be pressured commercially
 and least reversible reputationally.
 
-### Advisory
-A **2% advisory pool** is opened at the pre-seed, vesting over two years. It
-covers two grants: the anchor-athlete advisor, which
-[04](04-capital-and-valuation.md) sizes at **1%** within a 0.5–1.5% range and
-against a performance trigger, and a sports-industry board advisor of similar
-size. The dilution table above models the **full 2%**, which is deliberately
+### The athlete partner
+A **5% grant** is made at the pre-seed to a named athlete partner, vesting
+over four years with a one-year cliff: 4% base and 1% against a performance
+trigger, sized in [04](04-capital-and-valuation.md). This is the anchor athlete
+the pre-seed gate depends on, not an adviser who takes a call, and the grant is
+sized for what is being asked rather than for the title. A board advisor, if one
+is appointed, comes from the ESOP at the growth round rather than a second pool
+here: one pool, one named person, one number in the cap table. The dilution table
+above models the **full 5%**, which is deliberately
 the expensive assumption, if only one grant is ever made the founder retains
 more than the table shows, not less. The
 intended profile is sports-industry rather than technology: the plan's weakest
@@ -235,7 +243,7 @@ whether the above is real:
    for a year or two. Adults paying for private access to a minor is a
    categorically different risk from a sponsor paying for a post, and we treat
    it that way.
-2. **15% flat, no athlete fee.** This forfeits **€1.6M of Y7 revenue** against a
+2. **15% flat, no athlete fee.** This forfeits **€0.5M of Y7 revenue** against a
    20% take. It buys a pricing argument that survives contact with the exact
    athlete we target.
 

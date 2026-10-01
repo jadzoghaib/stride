@@ -55,7 +55,7 @@ Ordered by what blocks revenue soonest.
 | 8 | **DAC7 reporting** | EU legal | M | Platforms must report seller income to tax authorities |
 | 9 | **Notifications** | Conversion | S | Email exists as a cost line, not as code |
 | 10 | **Refunds & disputes** | Operations | M | Chargeback handling, partial refunds, deal disputes |
-| 11 | **Athlete churn tracking** | The model itself | S | The weakest assumption in `model.py` is unmeasurable today |
+| 11 | **Athlete churn tracking** | The model itself | S | The weakest assumption in the financial model is unmeasurable today |
 | ~~12~~ | ~~**Campaign measurement**~~ | ~~Sponsor renewal; learned matching~~ |  | **Shipped**: see below |
 
 **Effort: S ≈ days · M ≈ 2–4 weeks · L ≈ 1–2 months · XL ≈ 3+ months**, at the
@@ -142,7 +142,7 @@ problem and not a decision the athlete made.
 attached, so no deal can *reach* `completed` through the API without something a
 sponsor can open. Rows written before that guard existed are not retrofitted, the seeded Rio event deal is deliberately one of them, because the honest
 demonstration of an unmeasured deal is an unmeasured deal. A sponsor opening it
-sees `: ` rather than a zero, which is the rule the whole measurement view
+sees a dash rather than a zero, which is the rule the whole measurement view
 follows: unmeasured, not free.
 
 That rule was written here before the endpoint kept it. Delivered reach and
@@ -159,7 +159,7 @@ numbers" reproduces the same zero through a different door.
 `projected_reach` is captured **when the offer is sent**, from the athlete's
 median reach across platforms. Without it there is nothing to measure against,
 and it cannot be reconstructed later once the athlete's following has moved.
-Deals that predate the column read as `, ` rather than as a zero variance: unmeasured, not free, the same rule the cost figures follow.
+Deals that predate the column read as a dash rather than as a zero variance: unmeasured, not free, the same rule the cost figures follow.
 
 **Interface.** The athlete's Deals page gains a *Delivering* lane between open
 offers and history; the sponsor's pipeline gains an inline performance panel on
@@ -268,9 +268,9 @@ the platform has a moderation team rather than before.
 
 ### Consequences for the plan
 
-- **Age assurance is a P2 build, not optional**, see the sequencing below.
+- **Age assurance is a B3 build, not optional**, see the sequencing below.
 - The anchor athlete filter in [04](04-capital-and-valuation.md#the-anchor-athlete)
-  stays: **the first partner should be over 18**, because the pre-seed gate tests
+  stays: **the first partner should be over 18**, because the extension gate tests
   fan subscriptions and that surface is 18+ in v1.
 - Under-18 athletes are still worth onboarding from day one. They build the
   analytics pool, they attract sponsors, and they convert to fan monetisation
@@ -281,34 +281,37 @@ the platform has a moderation team rather than before.
 
 ## Sequenced build
 
-The content halves of P1 and P2 have shipped since this table was first
+The content halves of B2 and B3 have shipped since this table was first
 written. What has not shipped is every part of them that charges, which is the
 useful way to read the table now, so the *Ships* column below carries only what
 is genuinely outstanding:
 
 | Phase | Still to ship | Already shipped | Gate it serves |
 |---|---|---|---|
-| **P0**: pre-revenue | Stripe Connect, athlete KYC | EUR migration |  |
-| **P1**: first revenue | **A tier entity with a price**, recurring billing, entitlement expiry, dunning | Posts, courses, events, products, polls, free-vs-locked, subscribe as its own relationship, fan feed, fan DMs | **Pre-seed gate** |
-| **P2**: the thesis test | Transcode, object storage, CDN, automated classification ahead of the human queue | Image **and video** upload, locked delivery, age gate at 16, block, report, admin review queue | Pre-seed → Seed |
-| **P3**: second engine | Deal payments, escrow, sponsor billing plans | Deals, deliverables, measurement against the offer-time projection | Seed gate |
-| **P4**: scale | Refunds/disputes, multi-currency, notifications |  | Series A gate |
+| **B0**: the rail | Stripe Connect, athlete KYC | EUR migration | |
+| **B1**: sponsorship monetised | **Deal payments, escrow, sponsor billing plans**, DAC7 seller due diligence | Deals, deliverables, measurement against the offer-time projection | First commission revenue |
+| **B2**: the thesis test | **A tier entity with a price**, recurring billing, entitlement expiry, dunning | Posts, courses, events, products, polls, free-vs-locked, subscribe as its own relationship, fan feed, fan DMs | **Extension gate** |
+| **B3**: content at scale | Transcode, object storage, CDN, automated classification ahead of the human queue, age assurance | Image **and video** upload, locked delivery, age gate at 16, block, report, admin review queue | Pre-seed extension |
+| **B4**: scale and clubs | Refunds/disputes, multi-currency, notifications | Ballots, events with capacity, club publishing and revenue split | Growth-round gate |
 
-> [!warning] DAC7 has moved out of P4
+> [!warning] DAC7 now sits in B1, the first phase after the rail
 > Sponsorship deliverables are "personal services" under the reporting
 > directive, and personal services carry **no de minimis**, one paid deal is
-> reportable. Seller due diligence therefore belongs with **P3**, not P4.
+> reportable. Seller due diligence therefore belongs with **deal payments**,
+> which the reordered sequence puts at **B1** rather than third. Moving
+> sponsorship first moves this obligation forward with it, and that is a real
+> cost of the reordering rather than a detail.
 > Subscription content is a different matter and probably outside scope. See
-> §8.1 **L3** of the plan.
+> section 8.1 **L3** of the plan.
 
-**P1 is still the whole ballgame, and it is now a smaller bet.** The question
+**B2 is still the whole ballgame, and it is now a smaller bet.** The question
 has not changed: *will fans of a semi-professional athlete pay €9.99 a month?*
 What has changed is the cost of asking it. This table used to put a content
 layer, a paywall and a billing system between here and the answer. Two of the
 three exist; the paywall works and has nothing behind it to charge.
 
 **Ship a tier with a price, get three months of churn data from one anchor
-athlete, and only then commit to P2's remaining cost structure.**
+athlete, and only then commit to B3's remaining cost structure.**
 
 If the answer is no, the sponsorship marketplace still works and the plan
 becomes a different, smaller, entirely viable business, one the product already

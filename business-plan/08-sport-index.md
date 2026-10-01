@@ -1,17 +1,14 @@
 # 08: Sport Opportunity Index
 
 **714 country × sport pairs**: 34 countries (EU-27 + UK, US, Canada, Mexico,
-Brazil, Australia, India) × 21 sports. Built by
-[`sport_index.py`](sport_index.py) on data in [`sport_data.py`](sport_data.py).
+Brazil, Australia, India) × 21 sports, scored from published
+participation and media data rather than enumerated by hand.
 
-```bash
-python business-plan/sport_index.py                     # top opportunities
-python business-plan/sport_index.py --country Spain     # one country ranked
-python business-plan/sport_index.py --sport padel       # one sport across countries
-python business-plan/sport_index.py --athlete Spain football   # content guidance
-python business-plan/sport_index.py --sponsor Spain padel      # tier visibility
-python business-plan/sport_index.py --coverage          # data confidence audit
-```
+The index is built to be asked questions, not read as a table. It ranks the
+opportunities in one country, follows one sport across countries, tells an
+athlete what their audience type converts on, tells a sponsor what visibility
+to expect at each tier, and reports how much of its own input is measured
+rather than estimated. The three uses that matter commercially are in H.3.
 
 **There is no launch sport.** The index is *context*, not a gate. Early athletes
 are judged on everything: audience, consistency, professionalism, willingness
@@ -110,9 +107,9 @@ The athlete sees their audience type and what converts for it. Not "your sport
 is niche": that is a positioning risk and tells them nothing useful, but
 **what to publish.**
 
-```
-$ python sport_index.py --athlete Spain football
+Asked about a footballer in Spain, it answers:
 
+```
 Your followers watch your sport; they do not play it. (spectator, appetite 0.16)
 They pay for proximity and personality, not for instruction.
 

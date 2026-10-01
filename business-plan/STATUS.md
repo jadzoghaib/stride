@@ -1,7 +1,7 @@
 # Stride: MSc Business Plan · status
 
 *ESADE MSc Final Project, Business Plan track, October 2026 session.
-Last updated 30 September 2026.*
+Last updated 1 October 2026.*
 
 ---
 
@@ -9,16 +9,19 @@ Last updated 30 September 2026.*
 
 | What | Where |
 |---|---|
-| **The submission** | `business-plan/Stride_Business_Plan.docx`, 40-page body, 108 total, TOC populated |
+| **The submission** | `business-plan/Stride_Business_Plan.docx`, 43-page body, 117 total, TOC populated |
 | Same, without Word | `business-plan/Stride_Business_Plan.pdf` |
-| **The financial model** | `business-plan/Stride_Financial_Model.xlsx`, 18 sheets, 2,617 formulas |
+| **The financial model** | `business-plan/Stride_Financial_Model.xlsx`, 17 sheets, 2,512 formulas |
 | The body's source | `business-plan/esade-body.md` |
 | The exhibits | `business-plan/attachments/charts/`, 12 PNGs, and `attachments/ui/`: 6 screens |
 | School material | `Desktop\Business Track MSc Thesis\` (outside this repo) |
 
-**One thing on opening.** In Excel, go to the **Check** sheet first: every
-VARIANCE row must read zero. The Word table of contents is already populated
-(it is a field, so it needs F9 only if you edit headings after this).
+**One thing on opening.** The Word table of contents is already populated (it
+is a field, so it needs F9 only if you edit headings after this). The workbook
+has no Check tab any more: it was fifteen rows comparing the workbook to the
+Python model, which is build scaffolding and does not belong in a document being
+handed over. `scripts/audit_coverage.py` does that comparison over 580 cells
+instead, and the balance sheet still proves it balances on its own sheet.
 
 ---
 
@@ -31,7 +34,8 @@ VARIANCE row must read zero. The Word table of contents is already populated
 | Week of 12 Oct | Online defence, 15 min + 10 min Q&A |
 
 Document is **70%** of the grade, presentation **30%**. Body must stay **under
-50 pages** excluding appendices.
+50 pages** excluding appendices. Measured in Word on 1 Oct 2026: **43 body
+pages** (Appendix A opens on page 44) out of 117 in total.
 
 ---
 
@@ -52,7 +56,7 @@ uv run python business-plan/build_workbook.py                  # the .xlsx
 Then check it:
 
 ```bash
-uv run python scripts/doc_consistency.py    # 310 prose claims against the model
+uv run python scripts/doc_consistency.py    # 342 prose claims against the model
 uv run python scripts/verify_workbook.py    # structure: refs, cycles, parsing
 uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 ```
@@ -106,11 +110,72 @@ and `18-product-walkthrough.md`.
   eighteen months rather than building less. Scaling the plan down was tried
   first and does not work: halving the athlete trajectory leaves the trough
   within €15k of where it was, because cutting growth cuts income and
-  outgoings in the same proportion. Trough €280k, requirement €392k
+  outgoings in the same proportion. Trough €296k, requirement €414k
 - **WACC cited to Damodaran**, NYU Stern European cost of capital, 5 January
   2026: Software (Internet) at 6.01% in euros, with the 19-point gap to our
   25% stated as a stage premium rather than hidden
 - **Zero em-dashes** in the document and the workbook
+
+## Changed 1 October
+
+- **The plan is a third of the size it was.** Y10 revenue
+  €5.25M from 16 FTE, against €23.9M from 28. Two
+  reasons, and the second is the real one: nothing in the comparable set supports
+  the operating efficiency the old plan assumed, and the author does not intend
+  to run a company that size
+- **Four real competitors, named for the first time.** Sponsoo, OpenSponsorship,
+  SponsorUnited and Hookit, from PitchBook profiles retrieved 1 Oct 2026, on the
+  Comparables sheet with their profile links and in §3.2.2. The competition
+  section had listed agents and Patreon and no sponsorship marketplace at all
+- **The €2M seed and €8M Series A are gone**, replaced by one optional €1.5M
+  round at a €12M pre-money, which is below PitchBook's €15.9M estimate for
+  Sponsoo's own Series A. Total if every tranche is taken: €1.9M, against
+  Sponsoo's €2.17M over eleven years. Founder and team retain
+  65% rather than 55%
+- **Pre-seed repriced to €1.8M then €3.5M pre-money**, below the €2–4M European
+  band rather than inside it. €400k is still the only capital the plan depends on
+- **The founder hurdle no longer clears on the base case, and §Appendix D says
+  so, until the legal line was built rather than asserted.** 65% of a €1.23M DCF is €799k against a €672k break-even at a 70% failure
+  probability. The case now rests on the exit multiples (€1.4M to €3.4M to the
+  founder) and on a much lower failure probability than 70%, both stated
+- **Revenue per employee is stated and defended** rather than left implicit:
+  €301k in Y7 against a €215k top quartile for private B2B SaaS,
+  with the two reasons it is defensible and the admission that it is the plan's
+  second most aggressive assumption
+
+### What the sweep found, beyond the model change
+
+The guard was green at 313 claims while nine figures in the documents still
+described the old trajectory, because nothing pinned them. Worth knowing for
+next time: **a green guard covers the pinned figures and nothing else.**
+
+- The body's **P&L table** had one pinned row. It moved; the four around it did
+  not, so it showed a Y7 cost of sales above Y7 revenue
+- The **revenue mix table** had a pinned Y7 column beside three unpinned ones
+- The **HiringPlan role ladder** summed to 14.5 FTE in Y6 against a model saying
+  7.0. The sheet has a row labelled CHECK, "must be zero", reading 7.5:
+  `recalc_workbook.py` only walked the Check sheet, so nothing read it. It now
+  walks CHECK rows on every sheet, and that is verified by breaking it. The two
+  declarations are since down to one: Assumptions reads the role ladder, so the
+  row that caught them has nothing left to catch and is gone
+- **Appendix C carried a second scenario table**, hand-typed, with different
+  case names and different numbers from the generated one in §7.6
+- The **valuation headline** said €11–25M with an €8.4M floor, and §7.7 quoted a
+  blended exit multiple of €165.0M that no version of the model produced
+- The **trough year** was pinned as `Y\d` and the amount checked separately, so
+  three documents said Y3 after the trough moved to Y4
+- `restate.py` wrote an **ASCII hyphen** where the documents use U+2212, which
+  unhooked the six EBITDA pins that each match the cells before them
+
+The guard is now at **320 claims**, including the trough year, the four figures
+interpreting the scenario table, and the round prices.
+
+### Still carrying the old plan
+
+`stride-business-plan-draft.md`, the working draft, has roughly eighteen stale
+figures. It is **not part of the submission**: `build_docx.py` does not read it.
+It is still pinned by ten claims, which is maintenance for a document nobody
+grades, and the cheapest fix is to drop those pins or delete the file.
 
 ## What is not done
 
@@ -126,11 +191,12 @@ and `18-product-walkthrough.md`.
 ## Decisions worth not relitigating
 
 - **A staged pre-seed: €150k now, €250k in Y2.**
-  The cumulative cash need to the end of Y1 is only €73k, and Y1 is the year
+  The cumulative cash need to the end of Y1 is €113k, and Y2 is the year
   that settles whether fans pay. Raising the whole runway against that question
   prices it as a promise; raising the second tranche against three months of
   real revenue prices it on evidence. Same €400k total, founder holds
-  55% through the Series A instead of 53%. ENISA
+  about two points of equity, because the second tranche is sold on evidence.
+  ENISA
   participative loans come before either tranche.
 - The plan asked €600k until 30 September. Moving the hiring ramp out closed the
   gap from the cost side; scaling the plan down was tried first and does not

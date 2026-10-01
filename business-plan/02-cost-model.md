@@ -33,9 +33,9 @@ Three responses, in order of impact:
 3. **Renegotiate at volume.** Above ~€5M/yr processed, interchange-plus pricing is
    available. Not modelled: upside.
 
-At Y7 the payment rail costs **€2.55M against €10.16M of revenue**, 25% of
+At Y7 the payment rail costs **€752k against €3.01M of revenue**, 25% of
 revenue, our largest single cost line, larger than all salaries combined
-(€1.54M). The share rose when VAT entered the model: the processor charges on
+(€700.00k). The share rose when VAT entered the model: the processor charges on
 the price a fan pays, while the revenue it is measured against is net of the
 VAT that price includes.
 
@@ -52,15 +52,15 @@ price aggressively.
 
 | | Y1 | Y3 | Y5 | Y7 |
 |---|---|---|---|---|
-| AWS + zero-egress CDN | €2k | €28k | €149k | **€336k** |
-| AWS + CloudFront list price | €4k | €56k | €290k | **€738k** |
-| **Annual difference** | €2k | €27k | €142k | **€402k** |
+| AWS + zero-egress CDN | €2k | €14k | €45k | **€78k** |
+| AWS + CloudFront list price | €2k | €30k | €102k | **€198k** |
+| **Annual difference** | €0k | €16k | €57k | **€120k** |
 
-At 1.8 GB per paying fan per month and an average of 278k paying fans through
-the year, Y7 moves ~6.0 PB. At CloudFront list (~€0.075/GB after volume tiers)
-**the bandwidth alone is €450k**; behind an object store with free egress
-(Cloudflare R2, Backblaze B2 + Bunny) the same bytes cost **€48k**. The table
-rows above are larger than both because they add the €288k of AWS compute and
+At 1.8 GB per paying fan per month and an average of 83k paying fans through
+the year, Y7 moves ~1.8 PB. At CloudFront list (~€0.075/GB after volume tiers)
+**the bandwidth alone is €134k**; behind an object store with free egress
+(Cloudflare R2, Backblaze B2 + Bunny) the same bytes cost **€14k**. The table
+rows above are larger than both because they add the €64k of AWS compute and
 storage that neither choice avoids: it is the difference between the rows, not
 the rows themselves, that the egress decision moves.
 
@@ -72,8 +72,8 @@ the rows themselves, that the egress decision moves.
 > its own cohort model documents on the revenue side and had already fixed
 > there.
 
-**€402k a year is most of this plan's entire €280k cash trough, spent annually
-and decided by one architectural choice**, €3.1M across the ten years.
+**€120k a year is most of this plan's entire €296k cash trough, spent annually
+and decided by one architectural choice**, €0.8M across the ten years.
 
 The recommendation is AWS for compute and database, where its managed services
 genuinely earn their premium, and a zero-egress provider for media delivery.
@@ -145,19 +145,19 @@ figure below is loaded cost.
 | Senior engineer | €55k | €72k | Y2 |
 | BD / partnerships | €38k + commission | €50k+ | Y2 |
 | Athlete success | €30k | €39k | Y3 |
-| Content moderation lead | €34k | €45k | Y3 |
-| Finance / ops | €42k | €55k | Y4 |
-| DPO (fractional → hired) | €18k → €60k | €18k → €79k | Y3 fractional, Y5 hired |
+| Content moderation lead | €34k | €45k | Y5 |
+| Finance / ops | €42k | €55k | Y6, half an FTE until Y9 |
+| DPO (fractional) | €18k | €18k | Y7, half an FTE throughout |
 
 | | Y1 | Y2 | Y3 | Y4 | Y5 | Y6 | Y7 |
 |---|---|---|---|---|---|---|---|
-| Headcount (FTE) | 1.0 | 1.5 | 2.0 | 3.5 | 6.0 | 9.0 | 13.0 |
-| People cost | €38k | €78k | €120k | €224k | €396k | €0.61M | €0.91M |
+| Headcount (FTE) | 1.0 | 1.5 | 1.5 | 2.0 | 4.0 | 7.0 | 10.0 |
+| People cost | €38k | €78k | €90k | €128k | €264k | €0.48M | €0.70M |
 
 **Spain is a structural cost advantage.** A senior engineer at €72k loaded costs
 roughly half the equivalent in London or Amsterdam and a third of the Bay Area,
-against a talent pool that is deep in Barcelona and Madrid. On a €23M-revenue
-plan that is worth several million euros cumulatively, and it is a legitimate
+against a talent pool that is deep in Barcelona and Madrid. On a €5.25M-revenue
+plan that is worth several hundred thousand euros cumulatively, and it is a legitimate
 argument to an investor for why the company is in Spain rather than an accident
 of where the founder studied.
 
@@ -192,14 +192,15 @@ those applications need a human to open a link
 
 | | Y1 | Y3 | Y5 | Y7 | Y10 |
 |---|---|---|---|---|---|
-| Applications behind the athlete plan | 2,000 | 16,563 | 51,958 | 70,820 | 72,199 |
-| Manual reviews | 500 | 3,909 | 11,753 | 15,623 | 15,674 |
+| Applications behind the athlete plan | 1,250 | 4,534 | 6,333 | 7,016 | 6,448 |
+| Manual reviews | 312 | 1,070 | 1,432 | 1,548 | 1,400 |
 | Blended admission rate | 20% | 25% | 29% | 31% | 32% |
-| **Reviewer FTE implied** | **0.02** | **0.15** | **0.46** | **0.61** | **0.61** |
+| **Reviewer FTE implied** | **0.01** | **0.04** | **0.06** | **0.06** | **0.05** |
 
 **The euros are not the point and the model says so.** Verification peaks at
-€25k a year and 0.33 of one person, and the whole discounted stream is worth
-€63k against a €22.5M enterprise value, 0.28%. Two things follow, and they
+€4.2k a year and 0.06 of one person, and the whole
+discounted stream is worth €9k against a
+€1.25M enterprise value, 0.7%. Two things follow, and they
 matter more than the line item:
 
 - **The admission rate is a real driver of marketing efficiency.** It climbs
@@ -220,7 +221,7 @@ matter more than the line item:
 |  | Athlete | Fan | Sponsor |
 |---|---|---|---|
 | Y1 CAC | €17 | ~€0 | €900 |
-| Y7 CAC | €61 | ~€0 | €1,900 |
+| Y7 CAC | €63 | ~€0 | €1,900 |
 | Applications behind one athlete | 5.0x in Y1, 3.3x in Y7 |  |  |
 | Channel | Clubs, federations, ambassador referral | **Brought by the athlete** | Outbound, events, agency partnerships |
 <!-- /MODEL:cac -->
@@ -241,18 +242,18 @@ roster.
 <!-- MODEL:costs_y7 -->
 | Line | Y7 amount | % of revenue |
 |---|---|---|
-| Payment processing | €2.55M | 25.1% |
-| Marketing / CAC | €1.70M | 16.8% |
-| People | €910k | 9.0% |
-| Other opex | €813k | 8.0% |
-| Infrastructure | €336k | 3.3% |
-| Legal & compliance | €270k | 2.7% |
-| Payouts | €237k | 2.3% |
-| Moderation | €70k | 0.7% |
-| Athlete verification | €18k | 0.2% |
-| **EBITDA** | **€3.25M** | **32.0%** |
+| Payment processing | €752k | 25.0% |
+| People | €700k | 23.2% |
+| Marketing / CAC | €344k | 11.4% |
+| Other opex | €241k | 8.0% |
+| Infrastructure | €78k | 2.6% |
+| Payouts | €69k | 2.3% |
+| Legal & compliance | €62k | 2.0% |
+| Moderation | €20k | 0.7% |
+| Athlete verification | €4k | 0.1% |
+| **EBITDA** | **€743k** | **24.7%** |
 <!-- /MODEL:costs_y7 -->
 
-Infrastructure is 3.3% of revenue. **Payments are nearly eight times larger.** Any
+Infrastructure is 2.6% of revenue. **Payments are nearly ten times larger.** Any
 optimisation effort belongs there: tier pricing, annual billing, processor
 negotiation, not in the AWS bill.

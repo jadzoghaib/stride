@@ -5,9 +5,12 @@ This module is the bottom of the evidence chain:
     comparables_data.py  ->  MarketModel sheet  ->  Assumptions sheet  ->  model
     (published facts)        (derives ours)         (what the model uses)
 
-Nothing in this file is an estimate. Every figure is a published number with a
-citation, so it can be checked and refreshed independently of anything we
-concluded from it. Where a derived ratio disagrees with a platform's own
+Almost nothing in this file is an estimate, and the exceptions are labelled.
+Every figure is a published number with a citation, so it can be checked and
+refreshed independently of anything we concluded from it. The one documented
+exception is PREMONEY_ESTIMATED: PitchBook flags Sponsoo's and Hookit's
+pre-money valuations "E" for estimated, and those are carried as estimates
+rather than silently promoted to reported terms. Where a derived ratio disagrees with a platform's own
 reported average, both are carried: the disagreement is usually definitional
 (accounts vs active creators, gross vs net, memberships vs members) and hiding
 it would make the model look more certain than it is.
@@ -70,6 +73,137 @@ PLATFORM_FACTS: list[tuple] = [
      "Publicis Groupe press release"),
     ("Claimed speed-to-market gain", 0.60, "share faster", "TEKTA", "Aug 2026",
      "Publicis: stated 50-70% vs a traditional agency process"),
+]
+
+# -- The sponsorship market, top down ---------------------------------------
+# The plan sizes its market bottom up, from athlete counts and a follower
+# threshold. These are the top down figures it is checked against. All are
+# published; none of them breaks below the professional tier, which is itself
+# the finding that justifies the bottom up approach.
+#
+# (metric, value, unit, scope, period, source)
+SPONSORSHIP_MARKET: list[tuple] = [
+    ("Total sponsorship market", 34_450_000_000, "EUR", "Europe", "2025",
+     "European Sponsorship Association, analysis by Nielsen Sports, 12 Mar 2026"),
+    ("Sport sponsorship market", 24_790_000_000, "EUR", "Europe", "2025",
+     "ESA / Nielsen Sports: 72% of the total, +5.9% YoY"),
+    ("Non-sport sponsorship", 9_660_000_000, "EUR", "Europe", "2025",
+     "ESA / Nielsen Sports: +1.8% YoY"),
+    ("Sport sponsorship market", 2_180_000_000, "EUR", "Spain", "2025",
+     "ESA / Nielsen Sports: +14%, the fastest growing major European market"),
+    ("Sport sponsorship market", 6_260_000_000, "EUR", "Germany", "2025",
+     "ESA / Nielsen Sports: the largest European market"),
+    ("Sport sponsorship market", 6_150_000_000, "EUR", "United Kingdom", "2025",
+     "ESA / Nielsen Sports: +10.5%"),
+    ("Sport sponsorship market", 2_010_000_000, "EUR", "Italy", "2025",
+     "ESA / Nielsen Sports: +5%"),
+    ("Sport sponsorship market", 1_850_000_000, "EUR", "France", "2025",
+     "ESA / Nielsen Sports: +10.3%"),
+]
+
+#: European SPORT sponsorship, EUR bn, by year. Source: European Sponsorship
+#: Association via Statista, retrieved 1 Oct 2026. 2020 is not published in the
+#: series, which is why the chart jumps from 2019 to 2021.
+SPONSORSHIP_SPORT_EUROPE_BN: dict[int, float] = {
+    2019: 20.26, 2021: 19.80, 2022: 20.69, 2023: 21.98, 2024: 23.41, 2025: 24.79,
+}
+
+#: NOT PUBLISHED, and the absence is the point. Neither the ESA report nor the
+#: trade coverage of it breaks the market below the professional tier: there is
+#: no figure anywhere in this set for sponsorship of individual athletes, of
+#: grassroots sport, or of smaller rights holders. The plan's bottom-up sizing
+#: exists because the top-down number stops exactly where Stride's market
+#: starts, and the plan says so rather than implying the ESA figure covers it.
+SPONSORSHIP_LONGTAIL_PUBLISHED: bool = False
+
+# -- Demand side: what sports fans actually consume and pay for --------------
+# (metric, value, unit, scope, period, source)
+FAN_CONSUMPTION: list[tuple] = [
+    # The relevant line is "fan-generated content", which is the category Stride
+    # sits in: not the broadcaster's feed, the athlete's own.
+    ("Weekly minutes, fan-generated content", 115, "minutes/week",
+     "FR DE IT ES UK US", "Dec 2025",
+     "Altman Solon / IRIS Sport, 6,000 respondents who watch sports video monthly"),
+    ("Weekly minutes, highlights and clips", 115, "minutes/week",
+     "FR DE IT ES UK US", "Dec 2025", "Altman Solon / IRIS Sport"),
+    ("Weekly minutes, live games and events", 245, "minutes/week",
+     "FR DE IT ES UK US", "Dec 2025", "Altman Solon / IRIS Sport"),
+    ("YouTube share of fan-generated viewing", 0.35, "share",
+     "FR DE IT ES UK US", "Dec 2025",
+     "Altman Solon / IRIS Sport: 40 of 115 minutes, more than linear TV or streaming"),
+    # Subscription does not cannibalise engagement, which is the objection a
+    # reader raises first about putting an athlete's content behind a paywall.
+    ("Subscribers watching MORE sport after subscribing", 0.70, "share",
+     "Worldwide", "Nov 2022",
+     "YouGov / Strive, 19,000 respondents: 38% much more + 32% somewhat more"),
+    ("Subscribers watching LESS sport after subscribing", 0.07, "share",
+     "Worldwide", "Nov 2022", "YouGov / Strive: 3% much less + 4% somewhat less"),
+]
+
+# -- Sponsorship marketplaces: the direct comparable set --------------------
+# The platforms above are creator-economy comparables, which is where the fan
+# subscription model comes from. These four are the actual competitors: two
+# sided sponsorship marketplaces, matching brands to athletes. They are listed
+# here because they answer a question the creator platforms cannot, which is
+# how large a company of this exact shape has managed to become, and on how
+# much capital.
+#
+# Every figure is from a PitchBook company profile retrieved 1 October 2026.
+# PitchBook reports in EUR. None of the four discloses revenue, so headcount
+# and capital raised are the only scale measures available, and the plan says
+# so rather than inventing a revenue line for them.
+#
+# (company, country, founded, employees, employees_asof, total_raised_eur,
+#  largest_round, largest_round_date, largest_pre_eur, status)
+SPONSORSHIP_PLATFORMS: list[tuple] = [
+    # The closest comparable by model and by market: a European two sided
+    # sponsorship marketplace, athlete and club side supply, brand side demand.
+    # Eleven years old, thirteen people, EUR 2.17M raised in total. The FY2023
+    # filing shows total equity of zero against total assets of EUR 1.055M,
+    # which is to say the accumulated losses have consumed the paid in capital.
+    # PitchBook's own exit model puts it at 94% probability of no exit.
+    ("Sponsoo", "Germany", 2014, 13, "14 Nov 2025", 2_170_000,
+     "Series A", "28 Jan 2021", 15_900_000, "Privately held, venture backed"),
+    # Same founding year as Sponsoo, United States, backed by 500 Global and
+    # Serena Ventures. Twelve years to 23 people on EUR 5.40M.
+    ("OpenSponsorship", "United States", 2014, 23, "9 Mar 2026", 5_400_000,
+     "Later Stage VC", "21 Oct 2021", 0, "Privately held, venture backed"),
+    # The outlier, and the reason the set is not simply discouraging: a
+    # Series A of EUR 37.47M at a EUR 89.38M pre money in 2022, and 355 people
+    # by May 2026, ten years from founding. (The Series A is the six-year mark;
+    # the headcount is not, and conflating them overstated how fast it grew.)
+    # It is a sponsorship DATA business selling to rights holders and agencies,
+    # not a marketplace that executes deals, which is the part worth noticing
+    # about what got funded at that size.
+    ("SponsorUnited", "United States", 2016, 355, "28 May 2026", 38_760_000,
+     "Series A", "21 Nov 2022", 89_380_000, "Privately held, venture backed"),
+    # The cautionary one. Founded 2001, raised EUR 21.47M across eighteen
+    # years, reached 47 people, and ended in a buyout in February 2022 rather
+    # than an exit anyone would describe as a success. Sponsorship analytics
+    # for brands, having started as an athlete social network.
+    ("Hookit", "United States", 2001, 47, "8 Feb 2022", 21_470_000,
+     "Series C2", "24 Feb 2020", 38_400_000, "Acquired, operating subsidiary"),
+]
+
+#: Sponsoo's and Hookit's pre money figures above are PitchBook estimates
+#: (flagged "E" on the source profiles), not reported terms. SponsorUnited's
+#: and OpenSponsorship's rounds are reported. The distinction matters when the
+#: plan prices its own round against them, so it is recorded here rather than
+#: smoothed away.
+PREMONEY_ESTIMATED: set[str] = {"Sponsoo", "Hookit"}
+
+#: Revenue per employee benchmarks, for sanity checking our own. None of the
+#: four comparables discloses revenue, so the benchmark has to come from the
+#: wider software industry, where it is published. These are the figures the
+#: plan tests its own headcount against.
+#: (label, eur_per_employee, source)
+REVENUE_PER_EMPLOYEE: list[tuple] = [
+    ("Median private B2B SaaS, all stages", 135_000,
+     "SaaS Capital 2025 survey of ~1,000 private B2B SaaS companies"),
+    ("Top quartile private B2B SaaS", 215_000,
+     "SaaS Capital 2025 survey, 75th percentile"),
+    ("Efficient public SaaS at scale", 300_000,
+     "Public SaaS medians, widely reported range EUR 250-350k"),
 ]
 
 # ── Take rates: what each platform actually costs a creator ──────────────────
@@ -159,4 +293,14 @@ SOURCE_URLS = {
     "Stripe EU pricing": "https://stripe.com/es/pricing",
     "TEKTA launch": "https://www.publicisgroupe.com/en/news/press-releases/publicis-sports-and-travis-kelce-s-tekta-join-forces-to-reimagine-the-future-of-nil-marketing",
     "Stripe Connect age": "https://support.stripe.com/questions/age-requirement-to-create-a-stripe-account",
+    "PitchBook: Sponsoo GmbH": "https://pitchbook.com/profiles/company/103066-39",
+    "PitchBook: OpenSponsorship": "https://pitchbook.com/profiles/company/113575-96",
+    "PitchBook: SponsorUnited": "https://pitchbook.com/profiles/company/169635-43",
+    "PitchBook: Hookit": "https://pitchbook.com/profiles/company/55307-17",
+    "ESA European sponsorship market 2025": "https://sponsorship.org/european-sponsorship-market-reaches-e34-45bn-in-2025-as-growth-continues-across-all-sectors/",
+    "SportsPro on the ESA 2026 market overview": "https://www.sportspro.com/news/sponsorship-marketing/sports-sponsorship-european-market-valuation-esa-march-2026/",
+    "European sport sponsorship 2019-2025 (ESA via Statista)": "https://www.statista.com/statistics/1430225/sports-sponsorship-market-size-europe/",
+    "Sports content formats by channel (Altman Solon / IRIS Sport)": "https://www.statista.com/statistics/1660170/time-spent-weekly-watching-sports-formats-by-channel/",
+    "Impact of subscriptions on sports consumption (YouGov / Strive)": "https://www.statista.com/statistics/1413187/impact-subscriptions-sports-content-consumption/",
+    "SaaS Capital revenue per employee benchmarks": "https://www.saas-capital.com/blog-posts/revenue-per-employee-benchmarks-for-private-saas-companies/",
 }

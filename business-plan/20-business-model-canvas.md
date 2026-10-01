@@ -1,0 +1,105 @@
+# 20: Business Model Canvas
+
+*The school provides a Business Model Canvas template with the track materials.
+This is that canvas, filled from the plan rather than written separately: every
+figure in it comes from the financial model and appears elsewhere in this
+document with its workings. It is a one-page summary of what sections 3 to 7
+argue at length, and it is here because a canvas is read in a minute and a
+business plan is not.*
+
+---
+
+## Customer segments
+
+| Segment | Who | Why they are here |
+|---|---|---|
+| **Athletes, niche sports** | Semi-professional competitors in sports with no agent layer: rugby league, CrossFit, padel, trail running, rowing | No intermediary exists. Their alternative to Stride is nothing |
+| **Athletes, popular sports** | Lower-division football, basketball, handball | An agent takes 10 to 20% to make an introduction. Their alternative is expensive |
+| **Fans** | Participants in the same sport, who pay for knowledge rather than celebrity | They already follow the athlete and get nothing for it |
+| **Sponsors** | Regional brands, equipment makers, local businesses too small for an agency | Agencies will not serve them. They are buying attention they cannot otherwise price |
+| **Clubs** | Amateur and semi-professional clubs | They hold the relationships and the licence data, and need revenue |
+
+The athlete is the constraint. Fans and sponsors follow supply, and supply in
+this market is not scarce; it is unserved.
+
+## Value propositions
+
+| To | The proposition |
+|---|---|
+| **Athletes** | Income from an audience they already have, without an agent and without a monthly fee. Free to join, always |
+| **Fans** | Access and training content from an athlete they already follow, at €4.99, €9.99 or €24.99 a month |
+| **Sponsors** | Athletes matched on evidence rather than on a relationship, with delivery measured against the projection made at offer time |
+| **Clubs** | A revenue share on their own athletes, and a reason for athletes to stay |
+
+**The one-line version:** a creator platform with a sponsorship feature, for
+athletes the industry ignores.
+
+## Channels
+
+| Channel | How it works | From |
+|---|---|---|
+| **Anchor athlete** | One credible athlete goes public, their audience follows, their teammates ask | Y1 |
+| **Club** | The club signs, and brings its roster with it | Y1 |
+| **Federation** | National body endorses, which solves credibility at scale | Y3 |
+| **Self-serve sponsor** | Brands find the roster and transact without a salesperson | Y2 |
+| **Agency** | Agencies as customers buying access, not competitors to fight | Y6 |
+
+No separate marketing function at any point: acquisition runs through
+partnerships, because at this stage marketing *is* partnerships.
+
+## Customer relationships
+
+Self-serve on the fan side, which is what makes the cost structure work:
+subscriptions renew without a human touching them. Human on admission only, and
+that step is bounded by applications rather than by revenue, peaking at **0.06
+of one full-time reviewer**. Sponsors are self-serve to start and
+relationship-led only at the agency tier.
+
+## Revenue streams
+
+| Stream | Rate | Y7 share |
+|---|---|---|
+| **Fan subscriptions and one-off unlocks** | 15% of what the fan pays | 48% |
+| **Sponsorship commission** | 10% base, 7% on Scout Pro, 5% on Scout Agency | 33% |
+| **Sponsor SaaS** | €99, €249 or €999 a month | 20% |
+
+Athletes pay nothing, ever. The two sponsor streams add rather than substitute:
+a subscriber pays a lower commission and runs more deal volume.
+
+## Key resources
+
+- The **deployed application**: admission gate, versioned marketability scoring, explainable matching, deals, delivery measurement
+- The **accumulated scoring history**, which is the thing a funded competitor cannot buy
+- The **athlete relationships**, which take time nobody can compress
+- The **sport opportunity index**, scoring 714 country by sport pairs
+- The founder, and a team reaching **16 people by Y10**
+
+## Key activities
+
+Admission review, which is the only human step in the core process. Matching and
+measurement, which are automated. Athlete and club acquisition. Sponsor
+acquisition. Trust and safety, which runs continuously across the other three.
+
+## Key partnerships
+
+| Partner | What they provide | Switching cost |
+|---|---|---|
+| **Stripe Connect** | Regulated money movement, KYC, payouts in 30+ countries | High. Our unit economics are hostage to their pricing |
+| **Zero-egress CDN** | Media delivery without the egress bill | Low, and the architecture keeps it low deliberately |
+| **AWS** | Compute and storage | Low |
+| **Clubs and federations** | Supply, credibility and licence data | Not a supplier relationship: a channel |
+
+## Cost structure
+
+| Driver | Y7 | Share of revenue |
+|---|---|---|
+| **Payment processing** | €752k | 25% |
+| People | €700k | 23% |
+| Marketing and acquisition | €344k | 11% |
+| Legal and compliance | €62k | 9% |
+| Infrastructure | €78k | 3% |
+| Moderation and verification | €24k | 1% |
+
+**The payment rail is the largest single cost line and no amount of engineering
+removes it.** That is why gross margin stops at 70% rather than reaching a SaaS
+85%, and why the plan says so rather than modelling it away.

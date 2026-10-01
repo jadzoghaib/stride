@@ -6,7 +6,7 @@ resolve, no cycles, every formula parses. That is not the same as proving it
 
 openpyxl writes formulas but never evaluates them, so a workbook built this way
 ships with no cached values at all -- every cell is a formula string and nothing
-has ever run it. The workbook carries a Check sheet whose VARIANCE rows compare
+has ever run it. The workbook carries check rows that compare
 Excel's own answers against model.py and are documented as "must be zero", but
 those rows are themselves formulas: until a spreadsheet application opens the
 file, nobody has ever computed them. The check existed and had never once run.
@@ -18,7 +18,8 @@ this machine's Application Control blocks anyway).
 
     python scripts/recalc_workbook.py
 
-Exit code 0 when every formula evaluates and every VARIANCE row is zero.
+Exit code 0 when every formula evaluates and every check row is zero.
+Agreement with the model itself is audit_coverage.py's job, over 580 cells.
 """
 
 from __future__ import annotations
@@ -440,34 +441,54 @@ def _irr(flows: list[float], guess: float = 0.1) -> float:
     return (lo + hi) / 2
 
 
-def check_variances(calc: Calculator) -> list[str]:
-    """Every row on the Check sheet labelled VARIANCE must compute to zero."""
-    ws = calc.wb["Check"]
+def check_reconciliations(calc: Calculator) -> list[str]:
+    """Rows labelled CHECK on any OTHER sheet must compute to zero too.
+
+    The balance sheet carries one. HiringPlan used to carry another, comparing
+    its role ladder against a headcount declared a second time in Assumptions,
+    and nothing read it: the row sat at 7.5 while this script reported the
+    workbook agreeing with the model. A cell that says "must be zero" and is
+    never read is worse than no cell, because it tells a reader the work was
+    done. That one is gone, because Assumptions now reads the ladder.
+    """
     problems, checked = [], 0
-    for row in ws.iter_rows(min_col=1, max_col=1):
-        label = row[0].value
-        # An exact match, not a substring one. The sheet's own explanatory
-        # sentence contains the word VARIANCE, so a substring test picked up a
-        # prose row and computed five meaningless "variance" cells out of it --
-        # which is where the odd count of 145 came from. There are 140.
-        if not isinstance(label, str) or label.strip().upper() != "VARIANCE":
-            continue
-        heading = _heading_above(ws, row[0].row)
-        for col in range(3, ws.max_column + 1):
-            if ws.cell(row=row[0].row, column=col).value is None:
-                # Not a skip: a variance cell that stops existing is a check
-                # that quietly covers less than it says it does.
-                problems.append(
-                    f"VARIANCE {heading} Y{col - 2}: cell is empty, so this "
-                    f"year is no longer compared against model.py")
+    for name in calc.wb.sheetnames:
+        ws = calc.wb[name]
+        for row in ws.iter_rows(min_col=1, max_col=1):
+            label = row[0].value
+            if not isinstance(label, str):
                 continue
-            checked += 1
-            value = _num(calc.cell("Check", col, row[0].row))
-            if abs(value) > 0.5:
-                problems.append(
-                    f"VARIANCE {heading} Y{col - 2}: workbook differs from "
-                    f"model.py by {value:,.0f}")
-    print(f"Check sheet: {checked} variance cells computed")
+            name_u = label.strip().upper()
+            # "BALANCE CHECK" as well as "CHECK". Matching the bare word only
+            # left the balance sheet's own reconciliation unread, which is the
+            # same hole in a different place: a broken balance sheet passed.
+            if name_u not in ("CHECK", "BALANCE CHECK"):
+                continue
+            for col in range(3, ws.max_column + 1):
+                if ws.cell(row=row[0].row, column=col).value is None:
+                    # Not a skip, for the reason check_variances() gives: a
+                    # reconciliation cell that stops existing is a check that
+                    # quietly covers less than it claims.
+                    problems.append(
+                        f"{name_u} {name} Y{col - 2}: cell is empty, so this "
+                        f"year is no longer reconciled")
+                    continue
+                checked += 1
+                raw = calc.cell(name, col, row[0].row)
+                # Reject non-numeric before testing against zero. _num() coerces
+                # anything it cannot read to 0.0, which would let a cell
+                # evaluating to an error string pass as a perfect reconciliation.
+                if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+                    problems.append(
+                        f"{name_u} {name} Y{col - 2}: did not evaluate to a "
+                        f"number ({raw!r})")
+                    continue
+                if abs(float(raw)) > 0.001:
+                    problems.append(
+                        f"{name_u} {name} Y{col - 2}: reconciliation row is "
+                        f"{float(raw):,.3f}, not zero")
+    if checked:
+        print(f"Check rows: {checked} cells computed")
     return problems
 
 
@@ -490,7 +511,7 @@ def main() -> int:
 
     problems = list(calc.errors)
     if not problems:
-        problems += check_variances(calc)
+        problems += check_reconciliations(calc)
 
     if problems:
         print(f"\n{len(problems)} problems:")
@@ -500,8 +521,7 @@ def main() -> int:
             print(f"  ... and {len(problems) - 25} more")
         return 1
 
-    print("every formula evaluates, and every VARIANCE row on the Check sheet "
-          "is zero: the workbook computes what model.py computes.")
+    print("every formula evaluates and every check row reconciles to zero.")
     return 0
 
 

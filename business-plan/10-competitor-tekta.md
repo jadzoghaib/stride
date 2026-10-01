@@ -109,7 +109,7 @@ academies**, and Spain's federation structure is unusually accessible.
 ### 4. Athlete education as retention, not charity, MEDIUM
 
 TEKTA offers financial literacy and brand development. Stride's weakest
-assumption is churn ([Research tab](Stride_Financial_Model.xlsx)); education is
+assumption is churn (Research tab of the workbook); education is
 cheap retention. The sport index already generates **content guidance per
 athlete**, extending it into what to charge, how to read your own analytics, tax
 basics for a Spanish athlete, what a fair deal looks like.
