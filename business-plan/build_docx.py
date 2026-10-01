@@ -476,11 +476,33 @@ def page_setup(doc: Document) -> None:
 
 
 def cover(doc: Document, title: str, student: str, tutor: str, course: str) -> None:
-    for _ in range(4):
+    """The cover page, matched to Portada_Eng_TFG_TFM - BUSINESS PLAN.docx.
+
+    Sizes, order and both images come from the school's template. The previous
+    version inverted the hierarchy, making BUSINESS PLAN the largest line at 26pt
+    where the template gives that weight to the degree line at 20pt, and carried
+    neither the esade logo nor the Creative Commons badge.
+    """
+    logo = HERE / "attachments" / "esade-logo.jpeg"
+    badge = HERE / "attachments" / "cc-licence-badge.png"
+
+    spacer(doc, 6)
+    if logo.exists():
+        par = doc.add_paragraph()
+        par.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        par.paragraph_format.space_after = Pt(18)
+        # The template anchors it at 6.02 x 3.39 cm. Placed inline instead:
+        # python-docx cannot write a float anchor without hand-built XML, and an
+        # inline image at the same width is indistinguishable on a centred page.
+        par.add_run().add_picture(str(logo), width=Cm(6.02))
+
+    for _ in range(2):
         spacer(doc, 10)
+
+    # Template sizes: the degree line is the largest thing on the page.
     for text, size, bold, colour in (
-            ("BACHELOR/MASTER's Final Project", 12, False, MUTED),
-            ("BUSINESS PLAN", 26, True, INK)):
+            ("BACHELOR/MASTER's Final Project", 20, False, INK),
+            ("BUSINESS PLAN", 14, True, INK)):
         par = doc.add_paragraph()
         par.alignment = WD_ALIGN_PARAGRAPH.CENTER
         par.paragraph_format.space_after = Pt(6)
@@ -490,7 +512,7 @@ def cover(doc: Document, title: str, student: str, tutor: str, course: str) -> N
     par = doc.add_paragraph()
     par.alignment = WD_ALIGN_PARAGRAPH.CENTER
     par.paragraph_format.space_after = Pt(30)
-    inline(par, title, size=15, bold=True)
+    inline(par, title, size=18, bold=True)
 
     for label, value in (("MSc Programmes in Management", ""),
                          (f"Course {course}", ""),
@@ -501,18 +523,40 @@ def cover(doc: Document, title: str, student: str, tutor: str, course: str) -> N
         par.alignment = WD_ALIGN_PARAGRAPH.CENTER
         par.paragraph_format.space_after = Pt(5)
         if value:
-            inline(par, f"{label} ", size=10.5, colour=MUTED)
-            inline(par, value, size=10.5, bold=True)
+            inline(par, f"{label} ", size=14, colour=MUTED)
+            inline(par, value, size=14, bold=True)
         elif label:
-            inline(par, label, size=10.5, colour=MUTED)
+            inline(par, label, size=14, bold=True, colour=INK)
 
-    spacer(doc, 30)
+    spacer(doc, 24)
+    par = doc.add_paragraph()
+    par.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    if badge.exists():
+        par.add_run().add_picture(str(badge), width=Cm(2.32))
     par = doc.add_paragraph()
     par.alignment = WD_ALIGN_PARAGRAPH.CENTER
     inline(par, "This work is licensed under a Creative Commons "
                 "Attribution-NonCommercial-NoDerivatives 4.0 International License.",
-           size=7.5, colour=MUTED)
+           size=9, colour=MUTED)
     doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+
+
+def suppress_first_page_number(doc: Document) -> None:
+    """Different first page, so the cover carries no number.
+
+    A section break before the contents would do it too and would renumber
+    everything after it; the titlePg flag does not touch the rest of the
+    document.
+    """
+    for section in doc.sections:
+        section.different_first_page_header_footer = True
+        # The first-page footer exists and is left empty, which is what makes
+        # the number disappear rather than inherit.
+        section.first_page_footer.is_linked_to_previous = False
+        for par in section.first_page_footer.paragraphs:
+            for run in list(par.runs):
+                run.text = ""
+        break
 
 
 def contents(doc: Document) -> None:
@@ -557,6 +601,7 @@ def main() -> int:
                 "Platform Built on Analytics",
           student="Jad Zoghaib", tutor="Ignacio Gallardo Albajar",
           course="2025-2026")
+    suppress_first_page_number(doc)
     contents(doc)
 
     Renderer(doc).render(BODY.read_text(encoding="utf-8"))

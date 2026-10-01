@@ -204,9 +204,8 @@ def main() -> int:
 
     # The declaration of AI use must not ship with its placeholder in it.
     if "TO BE COMPLETED BY THE AUTHOR" in full:
-        add("ERROR", "Appendix N",
-            "the declaration of AI use still carries its placeholder box and has "
-            "not been written")
+        add("ERROR", "declaration of AI use",
+            "Appendix O still carries its placeholder box and has not been written")
 
     # ── 2. numbering ─────────────────────────────────────────────────────
     # An appendix subsection must not be numbered from its source filename.
@@ -360,6 +359,76 @@ def main() -> int:
           f"          Everything else is prose a human has to read. That is the "
           f"blind spot, and it\n"
           f"          is where every stale figure found on 1 October was living.")
+
+    # ── 8. the cover page, against the school's template ────────────────
+    # Portada_Eng_TFG_TFM - BUSINESS PLAN.docx: the degree line is the largest
+    # thing on the page at 20pt, BUSINESS PLAN sits at 14, the title at 18 and
+    # the metadata at 14. The licence line is 9pt. Both images are the school's
+    # own, extracted from that file.
+    COVER = [("BACHELOR/MASTER", 20.0), ("BUSINESS PLAN", 14.0),
+             ("MSc Programmes in Management", 14.0), ("Course ", 14.0),
+             ("Student:", 14.0), ("Tutor:", 14.0),
+             ("This work is licensed under a Creative Commons", 9.0)]
+    front = []
+    for par in d.paragraphs[:16]:
+        t = par.text.strip()
+        if t:
+            r = par.runs[0] if par.runs else None
+            front.append((t, r.font.size.pt if (r and r.font.size) else None))
+    for needle, want in COVER:
+        hit = next((sz for t, sz in front if t.startswith(needle)), "absent")
+        if hit == "absent":
+            add("ERROR", "cover page", f"{needle!r} is missing")
+        elif hit != want:
+            add("ERROR", "cover page",
+                f"{needle!r} is {hit}pt; the template sets it at {want}pt")
+
+    imgs_on_cover = sum(par._p.xml.count("<pic:pic") for par in d.paragraphs[:16])
+    if imgs_on_cover < 2:
+        add("ERROR", "cover page",
+            f"{imgs_on_cover} image(s) on the cover; the template carries two, "
+            f"the esade logo and the Creative Commons badge")
+
+    sec = d.sections[0]
+    if not sec.different_first_page_header_footer:
+        add("WARN", "cover page", "the cover is numbered; it should not be")
+    else:
+        fp = "".join(par._p.xml for par in sec.first_page_footer.paragraphs)
+        if "PAGE" in fp:
+            add("WARN", "cover page", "the first-page footer still carries a page field")
+    if "PAGE" not in "".join(par._p.xml for par in sec.footer.paragraphs):
+        add("ERROR", "format", "the body has no page numbers")
+
+    if abs(sec.page_width.inches - 8.27) > 0.05 or abs(sec.page_height.inches - 11.69) > 0.05:
+        add("ERROR", "format",
+            f"page is {sec.page_width.inches:.2f} x {sec.page_height.inches:.2f} in, not A4")
+
+    # ── 9. the contents ──────────────────────────────────────────────────
+    toc = [par for par in d.paragraphs if par.style.name.lower().startswith("toc")]
+    has_field = r"TOC \o" in d.element.xml or r"TOC \h" in d.element.xml
+    if not toc and not has_field:
+        add("ERROR", "contents", "there is no table of contents")
+    elif not toc:
+        # python-docx writes the field; only Word can populate it. Running this
+        # audit straight after build_docx.py and before the Word pass is the
+        # normal order, so an empty field is a state rather than a defect.
+        add("NOTE", "contents",
+            "the TOC field is present but not populated: run the Word pass "
+            "(fields update, then save) before submitting")
+    else:
+        broken = [par.text[:50] for par in toc
+                  if "Error!" in par.text or "Bookmark not defined" in par.text]
+        for b in broken:
+            add("ERROR", "contents", f"unresolved entry: {b}")
+        unpaged = [par.text[:50] for par in toc if not re.search(r"\t\d+\s*$", par.text)]
+        for u in unpaged[:5]:
+            add("ERROR", "contents", f"entry with no page number: {u}")
+        listed = {m.group(1) for par in toc
+                  if (m := re.match(r"Appendix ([A-Z]):", par.text.strip()))}
+        for letter in sorted(appendix_letters - listed):
+            add("ERROR", "contents", f"Appendix {letter} is not in the table of contents")
+        print(f"Contents: {len(toc)} entries, all paged, "
+              f"{len(listed)}/{len(appendix_letters)} appendices listed.")
 
     # ── report ───────────────────────────────────────────────────────────
     order = {"ERROR": 0, "WARN": 1, "NOTE": 2}
