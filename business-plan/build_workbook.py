@@ -85,8 +85,21 @@ HEAD = Font(bold=True, color="FFFFFF", name="Calibri", size=10)
 HEAD_FILL = PatternFill("solid", fgColor="14181F")
 BAND = FILL_TOTAL
 ACCENT = PatternFill("solid", fgColor="FFB020")
-MONEY = '#,##0;[Red](#,##0)'
-MONEY2 = '#,##0.00;[Red](#,##0.00)'
+# The euro sign is QUOTED, not bare: a bare currency character in a number
+# format is resolved against the opening machine's locale, and this file gets
+# opened on a Spanish machine, an examiner's, and possibly a Mac. Quoted, it is
+# a literal everywhere. Prefix rather than the Spanish suffix convention,
+# because the plan this sits beside writes €1,234 throughout.
+#
+# Carrying the symbol in these two formats puts it on every monetary cell at
+# once, because a cell using MONEY is money by construction. Before this, money
+# was a bare number and a reader scanning a sheet could not tell a euro from a
+# headcount without reading the unit column.
+MONEY = '"€"#,##0;[Red]("€"#,##0)'
+MONEY2 = '"€"#,##0.00;[Red]("€"#,##0.00)'
+#: For rates quoted in fractions of a cent, such as egress per GB, where MONEY
+#: would round the number away entirely.
+MONEY3 = '"€"#,##0.000'
 PCT = '0.0%'
 NUM = '#,##0'
 THIN = Side(style="thin", color="D0D5DD")
@@ -436,9 +449,9 @@ def build() -> pathlib.Path:
         [A.subscriber_volume_multiple] * N, '0.00', "sub_vol_mult", const=True,
         note="Subscribers buy campaign capacity, so they run more volume than "
              "the average sponsor. The only estimate in the tiering")
-    put("Scout Starter price", "EUR/mo", [M.SCOUT_STARTER] * N, NUM, "p_starter", const=True)
-    put("Scout Pro price", "EUR/mo", [M.SCOUT_PRO] * N, NUM, "p_pro", const=True)
-    put("Scout Agency price", "EUR/mo", [M.SCOUT_AGENCY] * N, NUM, "p_agency", const=True)
+    put("Scout Starter price", "EUR/mo", [M.SCOUT_STARTER] * N, MONEY, "p_starter", const=True)
+    put("Scout Pro price", "EUR/mo", [M.SCOUT_PRO] * N, MONEY, "p_pro", const=True)
+    put("Scout Agency price", "EUR/mo", [M.SCOUT_AGENCY] * N, MONEY, "p_agency", const=True)
     put("VAT on fan subscriptions", "%", [A.vat_rate_fan] * N, PCT, "vat_fan", const=True,
         note="Spain's rate. Fan prices are displayed VAT-inclusive, so the take "
              "applies to price/(1+VAT) while the processor charges on the price")
@@ -458,9 +471,9 @@ def build() -> pathlib.Path:
     r = section(a, r, "INFRASTRUCTURE & CONTENT COSTS")
     put("AWS base cost per month", "EUR", A.aws_base_month, MONEY, "aws")
     put("Media GB per paying fan per month", "GB", [A.gb_per_fan_month] * N, '0.0', "gb", const=True)
-    put("Egress cost per GB (zero-egress CDN)", "EUR", [A.egress_eur_per_gb] * N, '0.000', "egress", hard=True, const=True,
+    put("Egress cost per GB (zero-egress CDN)", "EUR", [A.egress_eur_per_gb] * N, MONEY3, "egress", hard=True, const=True,
         note="Cloudflare R2 / Backblaze B2 list")
-    put("Egress cost per GB (CloudFront list)", "EUR", [A.egress_eur_per_gb_naive] * N, '0.000', "egress_naive", hard=True, const=True,
+    put("Egress cost per GB (CloudFront list)", "EUR", [A.egress_eur_per_gb_naive] * N, MONEY3, "egress_naive", hard=True, const=True,
         note="AWS CloudFront list price: the EUR 1.1M/yr trap")
     put("Moderation cost per 1,000 items", "EUR", [A.moderation_eur_per_1k_items] * N, MONEY2, "mod_rate", const=True)
     put("Items per athlete per month", "count", [A.items_per_athlete_month] * N, '0.0', "items", const=True)

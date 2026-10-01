@@ -364,6 +364,37 @@ def main() -> int:
     if hidden > 10:
         add("ERROR", "hidden precision", f"{hidden} cells total (first 10 listed)")
 
+    # ── 6b. money cells carry the euro sign ──────────────────────────────
+    # A cell whose unit column says EUR must be formatted as currency. Before
+    # this, money was a bare number and a reader scanning a sheet could not tell
+    # a euro from a headcount without reading the unit. The reverse is not
+    # checked: plenty of money cells have a unit that describes how they are
+    # built rather than saying "EUR".
+    money_missing = 0
+    for ws in wb.worksheets:
+        for row in ws.iter_rows(min_col=1, max_col=2 + N):
+            lab, unit = row[0].value, row[1].value
+            if not isinstance(lab, str) or not isinstance(unit, str):
+                continue
+            u = unit.upper()
+            # "not the euros" is a sentence about a row that is NOT money, so
+            # the unit must START with EUR to count as a currency declaration.
+            if not (u.startswith("EUR") or u.startswith("€")):
+                continue
+            for c in row[2:]:
+                if not isinstance(c.value, (int, float)) or isinstance(c.value, bool):
+                    continue
+                if "€" not in (c.number_format or ""):
+                    money_missing += 1
+                    if money_missing <= 6:
+                        add("ERROR", f"{ws.title}!{c.coordinate}",
+                            f"unit is {unit!r} but the format carries no euro sign: "
+                            f"{c.number_format}")
+    if money_missing > 6:
+        add("ERROR", "euro formatting",
+            f"{money_missing} EUR-unit cells without a currency format "
+            f"(first 6 listed)")
+
     # ── 7. the data blocks against their source modules ──────────────────
     cp = wb["Comparables"]
     seen = {}
