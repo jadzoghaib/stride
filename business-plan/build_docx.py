@@ -63,6 +63,13 @@ APPENDICES: list[tuple[str, str]] = [
     # from the screenshot list, so neither can drift from its source.
     ("L", "17-evidence-base.md"),
     ("M", "18-product-walkthrough.md"),
+    # Last, and deliberately empty. The declaration of AI use is the author's
+    # statement about their own work; it carries a placeholder box until they
+    # write it, and `scripts/audit_document.py` fails while that box is still
+    # there so it cannot be submitted unwritten.
+    # The canvas the school supplies a template for, filled from the plan.
+    ("N", "20-business-model-canvas.md"),
+    ("O", "19-ai-declaration.md"),
 ]
 
 # Included documents are renumbered into the body's own scheme. Any of them may
@@ -299,8 +306,12 @@ class Renderer:
     def heading(self, line: str) -> None:
         raw_level = len(line) - len(line.lstrip("#"))
         # An included file carries its own H1 title; the body supplies the
-        # numbered heading, so the file's would be a duplicate.
-        if self.shift and raw_level == 1:
+        # numbered heading, so the file's would be a duplicate. Keyed on
+        # `renumber` rather than on `shift`, because renumber is what marks a
+        # file as spliced into the body's scheme. Keying it on shift meant a
+        # section-level include had to demote its subsections to drop its title,
+        # which put 5.1 and 6.1 at H3 while 3.1 and 7.1 sat at H2.
+        if self.renumber and raw_level == 1:
             return
         level = raw_level + self.shift
         text = line.lstrip("#").strip()

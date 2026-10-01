@@ -118,6 +118,41 @@ REQUIRED: list[tuple[str, tuple[str, ...]]] = [
 ]
 
 
+#: `Checklist First Partial Submission.doc`, the form the tutor completes. Some
+#: items are headings and some are statements inside a section, so each is
+#: searched for in the whole document rather than only in the heading list.
+CHECKLIST: list[tuple[str, tuple[str, ...]]] = [
+    ("The need", ("the need",)),
+    ("The valued customer", ("the client", "valued customer")),
+    ("The value proposition", ("value proposition",)),
+    ("Key success factors", ("key success factors",)),
+    ("Major cost drivers", ("costs and investment", "cost drivers")),
+    ("Revenue streams", ("revenue sources", "revenue streams")),
+    ("General environment", ("the general environment",)),
+    ("Competitors, entrants, substitutes", ("substitutes and new entrants",)),
+    ("Suppliers", ("suppliers",)),
+    ("Source of advantage", ("competitive advantage", "source of advantage")),
+    ("Market overview and trends", ("market size",)),
+    ("Segmentation", ("segmentation",)),
+    ("Positioning strategy", ("positioning",)),
+    ("Marketing mix", ("product strategy", "marketing mix")),
+    ("Sales forecasts", ("sales forecast",)),
+    ("Sales plan", ("sales plan",)),
+]
+
+#: `esade BP-FINAL EVALUATION FORM v5.docx`, the eight learning objectives. Only
+#: the ones naming something checkable are tested; "communicate persuasively" is
+#: a judgement an examiner makes and not a string this can look for.
+OBJECTIVES: list[tuple[str, tuple[str, ...]]] = [
+    ("Operating locally and internationally", ("second market", "eu-wide", "internationally")),
+    ("UN Sustainable Development Goals", ("sustainable development goal", "sdg")),
+    ("Equality and non-discrimination", ("non-discrimination", "gender equality")),
+    ("Ethically responsible business model", ("responsible business", "social impact")),
+    ("Tools to validate market opportunities", ("market research", "primary research")),
+    ("Positive social impact", ("social impact",)),
+]
+
+
 def main() -> int:
     if not DOCX.exists():
         print(f"{DOCX} not found")
@@ -152,6 +187,26 @@ def main() -> int:
         add("ERROR", "ESADE outline", f"no heading covers {item}")
     print(f"Outline: {len(REQUIRED) - len(missing)}/{len(REQUIRED)} required "
           f"items have a heading.")
+
+    low = full.lower()
+    miss_c = [item for item, ph in CHECKLIST
+              if not any(x in low for x in ph)]
+    for item in miss_c:
+        add("ERROR", "tutor checklist", f"nothing in the document covers {item!r}")
+    print(f"Checklist: {len(CHECKLIST) - len(miss_c)}/{len(CHECKLIST)} tutor "
+          f"checklist items found.")
+
+    miss_o = [item for item, ph in OBJECTIVES if not any(x in low for x in ph)]
+    for item in miss_o:
+        add("ERROR", "learning objectives", f"nothing addresses {item!r}")
+    print(f"Objectives: {len(OBJECTIVES) - len(miss_o)}/{len(OBJECTIVES)} "
+          f"checkable learning objectives addressed.")
+
+    # The declaration of AI use must not ship with its placeholder in it.
+    if "TO BE COMPLETED BY THE AUTHOR" in full:
+        add("ERROR", "Appendix N",
+            "the declaration of AI use still carries its placeholder box and has "
+            "not been written")
 
     # ── 2. numbering ─────────────────────────────────────────────────────
     # An appendix subsection must not be numbered from its source filename.
