@@ -36,11 +36,19 @@ total loss. At a 70% probability of failure, the surviving case has to return
 **€672k** for the expected values to meet, before any premium for bearing risk
 that cannot be diversified away.
 
-**On the base case, this is close to a coin flip, and the plan says so.** A
-founder and team retaining **67%** through the growth round hold that share of
-the enterprise value: **€644k against the DCF of €0.96M**. That is marginally
-*under* the €672k break-even. Against the exit multiples discounted back it is
-**€1.4M to €3.4M**, which clears it.
+**On the base case it clears, and it is worth saying exactly why.** A founder and
+team retaining **67%** through the growth round hold that share of the enterprise
+value: **€840k against the DCF of €1.25M**, comfortably over the €672k
+break-even. Against the exit multiples discounted back it is **€1.5M to €3.4M**.
+
+Until the legal and compliance line was built from its obligations rather than
+asserted, this paragraph said the opposite: €651k against €672k, marginally
+under, with the case resting entirely on the upside. **Nothing was earned to
+change that.** One cost line was examined and found to be roughly twice what the
+obligations behind it support, and the base case moved from a coin flip to a
+clear pass on that alone. The lesson belongs to the first version rather than the
+second: a plan carrying a large unexamined number is not being conservative, it
+is wrong in a direction nobody has checked.
 
 So the financial case does not rest on the discounted base case. It rests on two
 things, and both are now stated rather than assumed:
@@ -52,7 +60,7 @@ things, and both are now stated rather than assumed:
 2. **A much lower probability of total loss than 70%.** That figure was set
    against a plan needing €10.4M across four rounds, where failure to raise any
    one of them was fatal. This plan raises **€400k** of equity
-   against a €426k requirement, turns EBITDA positive in **Y5**, and
+   against a €366k requirement, turns EBITDA positive in **Y4**, and
    depends on no round after the pre-seed extension. At a 50%
    failure probability the break-even return is €403k, which the base case
    clears comfortably.
@@ -75,7 +83,7 @@ fact you can demonstrate, not a milestone you can assert.
 | **Pre-seed extension** | **€250k** | €3.5M | 250 athletes · **three months of measured fan churn** · churn inside the modelled band | First two hires, second market opened |
 | **Growth** *(optional)* | €1.5M | €12M | €150k MRR · net revenue retention > 110% · CAC payback < 9mo · unit economics stable across 2 markets | Team to 16, third and fourth market, moderation infrastructure |
 
-**The plan needs €426k. The two pre-seed tranches raise €400k, and the growth
+**The plan needs €366k. The two pre-seed tranches raise €400k, and the growth
 round is not part of that number.** The €9k shortfall is covered by the ENISA
 participative loan below, which is non-dilutive. It does not come *before* the
 first tranche: ENISA asks for an own-funds ratio of roughly 50%, so the €150k of
@@ -83,21 +91,21 @@ equity is what makes the €75k loan available, and the two are raised together.
 The equity alone covers the trough with a 37% buffer
 rather than the 40% the requirement asks for.
 
-The two tranches together cover the **€305k trough in Y4** with €95k to spare,
+The two tranches together cover the **€261k trough in Y3** with €139k to spare,
 which is why the growth round is marked optional above. It is growth capital: a
 third market sooner, not rescue capital. **Optional in the base case, to be
 precise:** the pessimistic scenario in §7.6 needs
-€835k against the €400k raised, so if that case
+€493k against the €400k raised, so if that case
 materialises the shortfall is bridged rather than ignored, and §7.6 says so. **Optional in the base case, to be
 precise:** the pessimistic scenario in §7.6 needs
-€835k against the €400k raised, so if that case
+€493k against the €400k raised, so if that case
 materialises the shortfall is bridged rather than ignored, and §7.6 says so. A plan whose survival does not depend
 on the next round arriving on schedule is a materially stronger one to raise
 against, and for a first-time founder it is close to the only version worth
 attempting.
 
 Be precise about what that claims. **€400k clears the trough the model produces
-and most of the 40% buffer on top of it**, which is €426k. The earlier
+and most of the 40% buffer on top of it**, which is €366k. The earlier
 version of this plan asked for €600k against a requirement of €711k and left the
 buffer partly unfunded; moving the hiring ramp out closed the gap from the cost
 side rather than the raise side. The growth round is therefore optional against
@@ -158,11 +166,11 @@ with no personal guarantees, to companies whose majority shareholders are
 conditions hold. The loan runs up to seven years with up to five years of
 grace, at Euribor plus 3.25% on the first tranche.
 
-Against a **Y1 cash need of €83k**, that is the whole of the first year at no
+Against a **Y1 cash need of €113k**, that is the whole of the first year at no
 equity cost. The two are complementary rather than alternatives: ENISA asks for
 an own-funds ratio of roughly 50%, so the €150k equity tranche is what makes the
 €75k loan available. Together they are €225k against a cumulative need of
-**€190k** to the end of Y2.
+**€221k** to the end of Y2.
 
 **The product exists.** Most pre-seed rounds are raised on a deck. This one is
 raised on a deployed application with connected analytics, an admission gate
@@ -209,10 +217,10 @@ Taking dilution before exhausting these is leaving money on the table.
 | **ENISA Crecimiento** | up to €300k | Participative loan, no equity | Y2–Y3 |
 | **CDTI Neotec** | up to €250k (70% of budget) | **Grant**, no equity | Y2: requires R&D framing; the analytics engine qualifies |
 | **Startup Capital (regional, Catalunya)** | €25k–€100k | Grant / soft loan | Y1–Y2 |
-| **Ley de Startups** tax regime |  | **15% corporate tax** for the first four taxable years vs 25% | Modelled: worth €258k across Y7–Y10 |
+| **Ley de Startups** tax regime |  | **15% corporate tax** for the first four taxable years vs 25% | Modelled: worth €267k across Y7–Y10 |
 | Beckham Law |  | 24% flat IRPF for relocated hires | Recruiting senior talent from abroad |
 
-**A realistic non-dilutive stack is €300–500k**, which covers the whole €305k
+**A realistic non-dilutive stack is €300–500k**, which covers the whole €261k
 trough on its own. Combined with a smaller pre-seed, the founder could reach the
 growth-round gate holding materially more equity, or skip the growth round
 entirely.
@@ -268,10 +276,10 @@ it is why the sensitivity below runs 20 to 30%.
 <!-- MODEL:valuation -->
 | Valuation (DCF) | Value |
 |---|---|
-| PV of explicit FCF, Y1–Y10 | €405k |
-| Terminal value (g=3%) | €5.13M |
-| PV of terminal value | €551k |
-| **Enterprise value (WACC 25%)** | **€956k** |
+| PV of explicit FCF, Y1–Y10 | €645k |
+| Terminal value (g=3%) | €5.59M |
+| PV of terminal value | €601k |
+| **Enterprise value (WACC 25%)** | **€1.25M** |
 <!-- /MODEL:valuation -->
 
 ### Exit multiple
@@ -283,12 +291,12 @@ it is why the sensitivity below runs 20 to 30%.
 | Marketplace comparables | 4.0x revenue | €21.02M | €2.26M |
 | Blended marketplace + SaaS | 6.5x revenue | €34.15M | €3.67M |
 | High-growth SaaS mix | 9.0x revenue | €47.28M | €5.08M |
-| EBITDA multiple | 14x EBITDA | €19.67M | €2.11M |
+| EBITDA multiple | 14x EBITDA | €23.57M | €2.53M |
 <!-- /MODEL:multiples -->
 
 ### Why they disagree, and which to believe
 
-The DCF says €1.0M; the blended exit multiple says €34.1M. **This is not an
+The DCF says €1.2M; the blended exit multiple says €34.1M. **This is not an
 error in either: it is the standard failure of perpetuity-growth DCF applied to
 a company that has not finished growing.**
 
@@ -296,25 +304,25 @@ The DCF's terminal value assumes growth collapses to 3% the day after Y10, from
 a year that still grew 16%. For a marketplace that has reached
 €5.25M of revenue at a 70% gross
 margin with a network effect, that is not a neutral assumption; it is a
-pessimistic one. The terminal value is 58% of the DCF's total, so that
+pessimistic one. The terminal value is 48% of the DCF's total, so that
 single assumption carries most of the answer.
 
 **For a venture-stage company, the exit-multiple method discounted back is the
 more informative number.** The DCF is worth presenting precisely because it is
 the conservative floor: *even if growth stops dead after Y10*, the business is
-worth €1.0M today.
+worth €1.2M today.
 
 <!-- MODEL:sensitivity -->
 | Enterprise value | WACC 20% | WACC 25% | WACC 30% |
 |---|---|---|---|
-| Terminal growth 2% | €1.62M | €926k | €550k |
-| Terminal growth 3% | €1.69M | **€956k** | €564k |
-| Terminal growth 4% | €1.77M | €987k | €579k |
+| Terminal growth 2% | €2.02M | €1.21M | €764k |
+| Terminal growth 3% | €2.10M | **€1.25M** | €779k |
+| Terminal growth 4% | €2.18M | €1.28M | €795k |
 <!-- /MODEL:sensitivity -->
 
 **Defensible headline: €2.1–5.1M enterprise
 value, the Y10 exit multiples discounted to today at the same 25% WACC**, with a
-€956k floor under a no-growth-after-Y10 assumption.
+€1246k floor under a no-growth-after-Y10 assumption.
 
 Be honest about which end of that range the plan supports. Revenue grows
 16% in Y10, so the **9.0x** multiple labelled high-growth SaaS is not a

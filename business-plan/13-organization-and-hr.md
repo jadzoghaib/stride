@@ -31,7 +31,7 @@ assumption, and testing an assumption does not need an organisation.
 > [!warning] This ramp is what a €400k raise buys, and the model flatters it
 > An earlier version of this plan reached 22 FTE by Y7 and asked for €600k.
 > With the tiered commission that ramp put the cash trough at €508k. Moving
-> it out by roughly eighteen months takes the trough to €305k without
+> it out by roughly eighteen months takes the trough to €261k without
 > changing the athlete, fan or sponsor plan at all, because payroll is the
 > cost that arrives earliest and scales least with revenue.
 >

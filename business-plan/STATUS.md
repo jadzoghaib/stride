@@ -11,7 +11,7 @@ Last updated 1 October 2026.*
 |---|---|
 | **The submission** | `business-plan/Stride_Business_Plan.docx`, 42-page body, 112 total, TOC populated |
 | Same, without Word | `business-plan/Stride_Business_Plan.pdf` |
-| **The financial model** | `business-plan/Stride_Financial_Model.xlsx`, 18 sheets, 2,712 formulas |
+| **The financial model** | `business-plan/Stride_Financial_Model.xlsx`, 18 sheets, 2,812 formulas |
 | The body's source | `business-plan/esade-body.md` |
 | The exhibits | `business-plan/attachments/charts/`, 12 PNGs, and `attachments/ui/`: 6 screens |
 | School material | `Desktop\Business Track MSc Thesis\` (outside this repo) |
@@ -106,7 +106,7 @@ and `18-product-walkthrough.md`.
   eighteen months rather than building less. Scaling the plan down was tried
   first and does not work: halving the athlete trajectory leaves the trough
   within €15k of where it was, because cutting growth cuts income and
-  outgoings in the same proportion. Trough €305k, requirement €426k
+  outgoings in the same proportion. Trough €261k, requirement €366k
 - **WACC cited to Damodaran**, NYU Stern European cost of capital, 5 January
   2026: Software (Internet) at 6.01% in euros, with the 19-point gap to our
   25% stated as a stage premium rather than hidden
@@ -131,7 +131,7 @@ and `18-product-walkthrough.md`.
 - **Pre-seed repriced to €1.8M then €3.5M pre-money**, below the €2–4M European
   band rather than inside it. €400k is still the only capital the plan depends on
 - **The founder hurdle no longer clears on the base case, and §Appendix D says
-  so.** 67% of a €956k DCF is €644k against a €672k break-even at a 70% failure
+  so, until the legal line was built rather than asserted.** 67% of a €1.25M DCF is €840k against a €672k break-even at a 70% failure
   probability. The case now rests on the exit multiples (€1.4M to €3.4M to the
   founder) and on a much lower failure probability than 70%, both stated
 - **Revenue per employee is stated and defended** rather than left implicit:

@@ -266,7 +266,66 @@ class Assumptions:
     headcount: list[float] = field(default_factory=lambda: [1.0, 1.0, 1.5, 2.0, 4.0, 7.0, 10.0, 12.5, 14.5, 16.0])
     loaded_salary_eur: list[int] = field(default_factory=lambda: [38_000, 52_000, 60_000, 64_000, 66_000, 68_000, 70_000, 72_000, 74_000, 76_000])
     sponsor_cac_eur: list[int] = field(default_factory=lambda: [900, 1_050, 1_200, 1_400, 1_600, 1_750, 1_900, 2_000, 2_100, 2_200])
-    legal_compliance_eur: list[int] = field(default_factory=lambda: [18_000, 45_000, 90_000, 150_000, 200_000, 235_000, 270_000, 300_000, 325_000, 345_000])
+    #: Markets live, by year. Spain through the pre-seed, Portugal at the
+    #: extension, a third and then EU-wide from the growth round, which is the
+    #: sequence section 10 commits to.
+    markets: list[int] = field(default_factory=lambda: [1, 2, 2, 2, 3, 4, 5, 6, 6, 6])
+
+    # ---- legal and compliance, built rather than asserted -------------------
+    # Was a flat list reaching EUR 150,000 in Y4 against 2.0 FTE: 2.1x a senior
+    # engineer's loaded cost, on legal, at a two-person company, with nothing
+    # underneath it to check. Now one rate per obligation, so a reader can
+    # disagree with a line rather than with a number.
+    #
+    #: Gestoria, bookkeeping and annual filings at one person, then per extra
+    #: head. Open Spanish sources put ongoing gestoria plus legal advisory at
+    #: EUR 100-300/month; this takes the top of that band, because a two-sided
+    #: marketplace moving money is not a simple SL.
+    legal_base_eur: int = 3_600
+    legal_base_per_head_eur: int = 900
+    #: SL incorporation, all-in with professional services. Sources: EUR 1,500
+    #: to 3,000.
+    legal_incorporation_eur: int = 2_500
+    #: Terms of service, privacy policy, DPA, marketplace terms, athlete and
+    #: sponsor contracts. Above the EUR 950 commodity pack because none of this
+    #: is a template.
+    legal_launch_pack_eur: int = 8_000
+    #: DAC7 seller due diligence. Setup in Y1 because deal payments are B1, then
+    #: an annual reporting cost.
+    legal_dac7_setup_eur: int = 4_000
+    legal_dac7_annual_eur: int = 2_500
+    #: DSA moderation duties, minors safeguarding and age assurance policy. Zero
+    #: in Y1: content is B3 and ships in Y2. This zero is the compliance saving
+    #: that the sponsorship-first build order actually buys.
+    legal_content_setup_eur: int = 6_000
+    legal_content_annual_eur: int = 5_000
+    legal_content_growth_eur: int = 400
+    #: Local legal review on entering a market, and the annual VAT and tax
+    #: compliance of being in one.
+    legal_market_entry_eur: int = 7_000
+    legal_market_annual_eur: int = 2_500
+    #: Round documentation. Pre-seed with the ENISA application, the extension,
+    #: and the growth round, which is priced higher because it is institutional.
+    legal_round_eur: dict = field(default_factory=lambda: {1: 8_000, 2: 10_000, 6: 25_000})
+    #: Trade mark clearance and an EU filing, then maintenance, plus a filing
+    #: per new market. "Stride" has existing marks in apparel and fitness
+    #: software, which section 8.2 flags as unresolved.
+    legal_ip_initial_eur: int = 6_000
+    legal_ip_annual_eur: int = 1_500
+    legal_ip_per_market_eur: int = 2_000
+    #: Employment law per hire, plus a handbook once the team passes four.
+    legal_per_hire_eur: int = 500
+    legal_handbook_eur: int = 1_500
+    #: The headcount at which an employee handbook and formal HR policies
+    #: stop being optional. A named threshold rather than a 4 buried in a
+    #: formula, which is also what stopped the workbook audit confusing it
+    #: with the year index.
+    legal_handbook_at_fte: float = 4.0
+    #: Disputes, chargebacks and the argument that volume creates.
+    legal_dispute_pct_of_gmv: float = 0.0003
+    #: On the whole of it, because legal spend is lumpy and a base case that
+    #: assumes nothing goes wrong is not a base case.
+    legal_contingency: float = 0.15
     other_opex_pct_of_revenue: float = 0.08
 
     # ---- working capital, capex, amortisation ------------------------------
@@ -679,7 +738,31 @@ def build() -> list[dict]:
         marketing = sum(by_name[s.name]["athlete_gross_adds"] * s.cac_eur[i_] for s in A.segments)
         new_sponsors = A.sponsors[i_] - (A.sponsors[i_ - 1] if y > 1 else 0)
         marketing += max(new_sponsors, 0) * A.sponsor_cac_eur[i_]
-        legal = A.legal_compliance_eur[i_]
+        # Legal and compliance, built from its obligations. See the rates on
+        # Assumptions above; each one is a line a reader can disagree with.
+        new_markets = A.markets[i_] - (A.markets[i_ - 1] if y > 1 else 0)
+        hc = A.headcount[i_]
+        hires = hc - (A.headcount[i_ - 1] if y > 1 else 0.0)
+        legal_parts = {
+            "base": A.legal_base_eur + A.legal_base_per_head_eur * max(0.0, hc - 1),
+            "incorporation": A.legal_incorporation_eur if y == 1 else 0,
+            "launch pack": A.legal_launch_pack_eur if y == 1 else 0,
+            "DAC7": A.legal_dac7_setup_eur if y == 1 else A.legal_dac7_annual_eur,
+            # Content obligations begin with B3, which ships in Y2.
+            "content and DSA": (0 if y == 1 else
+                                A.legal_content_setup_eur if y == 2 else
+                                A.legal_content_annual_eur
+                                + A.legal_content_growth_eur * (y - 2)),
+            "market entry": A.legal_market_entry_eur * max(0, new_markets),
+            "VAT and tax": A.legal_market_annual_eur * A.markets[i_],
+            "round": A.legal_round_eur.get(y, 0),
+            "IP": ((A.legal_ip_initial_eur if y == 1 else A.legal_ip_annual_eur)
+                   + A.legal_ip_per_market_eur * max(0, new_markets)),
+            "employment": (A.legal_per_hire_eur * max(0.0, hires)
+                           + (A.legal_handbook_eur if hc >= A.legal_handbook_at_fte else 0)),
+            "disputes": A.legal_dispute_pct_of_gmv * gmv,
+        }
+        legal = sum(legal_parts.values()) * (1 + A.legal_contingency)
         other = revenue * A.other_opex_pct_of_revenue
         opex = people + marketing + legal + other
 

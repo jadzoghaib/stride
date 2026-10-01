@@ -120,7 +120,7 @@ allocation until Y4.
 The location decision is nonetheless a real one, taken for four reasons:
 
 1. **Ley de Startups** grants a 15% corporate tax rate for the first four
-   taxable years against the standard 25%, worth **€258k across Y7–Y10** in the
+   taxable years against the standard 25%, worth **€267k across Y7–Y10** in the
    model.
 2. **Loaded engineering cost.** A senior engineer at €72k loaded is roughly half
    the London or Amsterdam equivalent and a third of the Bay Area.

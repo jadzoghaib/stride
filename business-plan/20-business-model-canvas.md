@@ -96,7 +96,7 @@ acquisition. Trust and safety, which runs continuously across the other three.
 | **Payment processing** | €752k | 25% |
 | People | €700k | 23% |
 | Marketing and acquisition | €344k | 11% |
-| Legal and compliance | €270k | 9% |
+| Legal and compliance | €62k | 9% |
 | Infrastructure | €78k | 3% |
 | Moderation and verification | €24k | 1% |
 

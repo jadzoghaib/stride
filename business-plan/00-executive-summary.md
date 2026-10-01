@@ -70,13 +70,13 @@ Three things in it are worth two minutes of a technical diligence call:
 |  | Y3 | Y7 |
 |---|---|---|
 | Net revenue | €287k | €3.01M |
-| EBITDA | €-140k | €535k |
+| EBITDA | €-72k | €743k |
 | Active athletes | 1,700 | 6,300 |
 | Paying fans | 14,333 | 92,005 |
 | Gross margin | 63% | 69% |
 <!-- /MODEL:summary -->
 
-EBITDA turns positive in **Y5**. Take rates are published and fixed: **15% on
+EBITDA turns positive in **Y4**. Take rates are published and fixed: **15% on
 fan revenue, 10% on sponsorship**, no monthly athlete fee. Gross margin climbs
 from 63% in Y3 to **70% by Y10** rather than reaching a SaaS 80%+, because the
 payment rail is real and no amount of engineering removes it.
@@ -119,9 +119,9 @@ is the answer to one question. Use of funds: Spain go-to-market, the club
 channel, founder runway. The €250k second tranche follows in Y2, against
 250 athletes and the first paying sponsors.
 
-The plan needs €426k: the **€305k cash trough in Y4** plus a
+The plan needs €366k: the **€261k cash trough in Y3** plus a
 40% buffer. The €400k pre-seed clears the trough itself with
-€95k to spare, a 37% buffer
+€139k to spare, a 37% buffer
 rather than the full 40%; the €9k difference is covered by
 the ENISA loan in Appendix D, which is non-dilutive. That is what
 asking for €400k buys: **the growth round becomes optional.** It brings a third

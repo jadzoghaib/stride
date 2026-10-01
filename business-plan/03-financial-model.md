@@ -150,13 +150,13 @@ Y6 is the shape a marketplace should have.
 | Gross margin | -59% | 53% | 63% | 67% | 68% | 69% | 69% | 69% | 70% | 70% |
 | People | €38k | €52k | €90k | €128k | €264k | €476k | €700k | €900k | €1.07M | €1.22M |
 | Marketing / CAC | €20k | €51k | €117k | €220k | €313k | €344k | €344k | €317k | €307k | €276k |
-| Legal & compliance | €18k | €45k | €90k | €150k | €200k | €235k | €270k | €300k | €325k | €345k |
+| Legal & compliance | €51k | €43k | €22k | €24k | €44k | €82k | €62k | €69k | €63k | €67k |
 | Other opex | €172 | €5k | €23k | €56k | €106k | €170k | €241k | €308k | €362k | €420k |
-| **EBITDA** | €-78k | €-116k | €-140k | €-86k | €17k | €240k | €535k | €852k | €1.08M | €1.40M |
-| Tax | €0 | €0 | €0 | €0 | €0 | €0 | €5k | €97k | €122k | €163k |
-| Working capital movement | €-7k | €-25k | €-64k | €-112k | €-175k | €-233k | €-260k | €-247k | €-191k | €-219k |
+| **EBITDA** | €-111k | €-115k | €-72k | €40k | €173k | €393k | €743k | €1.08M | €1.34M | €1.68M |
+| Tax | €0 | €0 | €0 | €0 | €0 | €17k | €90k | €131k | €161k | €341k |
+| Working capital movement | €-9k | €-22k | €-59k | €-108k | €-173k | €-233k | €-255k | €-246k | €-188k | €-217k |
 | Capex (capitalised development) | €11k | €16k | €27k | €38k | €79k | €143k | €210k | €270k | €322k | €365k |
-| **Free cash flow** | €-83k | €-107k | €-103k | €-12k | €113k | €330k | €579k | €733k | €828k | €1.10M |
+| **Free cash flow** | €-113k | €-108k | €-40k | €109k | €267k | €466k | €699k | €927k | €1.05M | €1.19M |
 <!-- /MODEL:pl -->
 
 Free cash flow is EBITDA less tax, working capital movement and capex, not
@@ -181,30 +181,30 @@ parent (~85% at a 20% take on far larger tickets).
 <!-- MODEL:cash -->
 | Year | Free cash flow | Cumulative |
 |---|---|---|
-| Y1 | €-83k | €-83k |
-| Y2 | €-107k | €-190k |
-| Y3 | €-103k | €-293k |
-| Y4 | €-12k | €-305k |
-| Y5 | €113k | €-191k |
-| Y6 | €330k | €138k |
-| Y7 | €579k | €718k |
-| Y8 | €733k | €1.45M |
-| Y9 | €828k | €2.28M |
-| Y10 | €1.10M | €3.37M |
+| Y1 | €-113k | €-113k |
+| Y2 | €-108k | €-221k |
+| Y3 | €-40k | €-261k |
+| Y4 | €109k | €-152k |
+| Y5 | €267k | €115k |
+| Y6 | €466k | €581k |
+| Y7 | €699k | €1.28M |
+| Y8 | €927k | €2.21M |
+| Y9 | €1.05M | €3.26M |
+| Y10 | €1.19M | €4.45M |
 <!-- /MODEL:cash -->
 
 | Capital requirement | Value |
 <!-- MODEL:funding -->
 | Capital requirement | Value |
 |---|---|
-| Deepest cumulative cash position | €-305k |
-| Year it occurs | Y4 |
-| Buffer at 40% (hiring slips, churn worse) | €122k |
-| **Total capital to fund the plan** | **€426k** |
-| First EBITDA-positive year | Y5 |
+| Deepest cumulative cash position | €-261k |
+| Year it occurs | Y3 |
+| Buffer at 40% (hiring slips, churn worse) | €105k |
+| **Total capital to fund the plan** | **€366k** |
+| First EBITDA-positive year | Y4 |
 <!-- /MODEL:funding -->
 
-**€426k is a small number for a plan that reaches €3.01M of revenue by Y7,
+**€366k is a small number for a plan that reaches €3.01M of revenue by Y7,
 and that should be interrogated rather than celebrated.** It is small because
 the model hires behind revenue rather than ahead of it, and because fan
 acquisition is free. A growth-optimised version: hiring 12 months earlier,
@@ -220,9 +220,9 @@ be wrong are **fans per athlete** and **share of athletes who monetise**.
 
 | Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Capital need |
 |---|---|---|---|---|
-| Pessimistic | Fans/athlete −30%, monetise −25%, **niche churn at benchmark** | €2.34M | €189k | €835k |
-| **Base** | As modelled | €3.01M | €535k | €426k |
-| Optimistic | Fans/athlete +25%, monetise +20% | €3.59M | €829k | €342k |
+| Pessimistic | Fans/athlete −30%, monetise −25%, **niche churn at benchmark** | €2.34M | €189k | €493k |
+| **Base** | As modelled | €3.01M | €743k | €366k |
+| Optimistic | Fans/athlete +25%, monetise +20% | €3.59M | €829k | €299k |
 
 These are the same three cases as §7.6 of the body, generated from
 `model.scenario_table()`, which re-runs the whole model against changed drivers
@@ -232,8 +232,8 @@ produced. It is a real upside and it needs capital the plan has not raised, so i
 belongs in the growth section rather than in a sensitivity table.
 
 To run these, edit `Assumptions` in `model.py` and rerun. The pessimistic case
-**reaches profitability in Y7 rather than Y5**, two years later than the base
-case, and needs €835k rather than €426k. That is the
+**reaches profitability in Y5 rather than Y4**, two years later than the base
+case, and needs €493k rather than €366k. That is the
 honest shape of the downside: survivable on a bridge, not free. The
 robustness test that matters, and a stronger result than the old "later, at Y5
 rather than Y4". Carrying VAT moved the base case back a year; it did not move

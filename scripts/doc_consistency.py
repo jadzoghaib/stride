@@ -909,10 +909,10 @@ r"Together they are €(\d+)k",
     # from the dilution cascade and a generated table, and quoted in prose --
     # which is the combination that goes stale.
     ("04-capital-and-valuation.md", "founder stake at the lowest exit multiple",
-     r"\*\*€([\d.]+)M to €[\d.]+M\*\*, which clears it",
+     r"\*\*€([\d.]+)M to €[\d.]+M\*\*",
      DILUTION["ESOP (cumulative)"]["held"] * min(MULTIPLES) / 1e6, 0.08),
     ("04-capital-and-valuation.md", "founder stake at the highest exit multiple",
-     r"\*\*€[\d.]+M to €([\d.]+)M\*\*, which clears it",
+     r"\*\*€[\d.]+M to €([\d.]+)M\*\*",
      DILUTION["ESOP (cumulative)"]["held"] * max(MULTIPLES) / 1e6, 0.08),
 
     # Unpinned figures that the egress correction moved and review caught:

@@ -72,7 +72,7 @@ the rows themselves, that the egress decision moves.
 > its own cohort model documents on the revenue side and had already fixed
 > there.
 
-**€120k a year is most of this plan's entire €305k cash trough, spent annually
+**€120k a year is most of this plan's entire €261k cash trough, spent annually
 and decided by one architectural choice**, €0.8M across the ten years.
 
 The recommendation is AWS for compute and database, where its managed services
@@ -200,7 +200,7 @@ those applications need a human to open a link
 **The euros are not the point and the model says so.** Verification peaks at
 €4.2k a year and 0.06 of one person, and the whole
 discounted stream is worth €9k against a
-€956k enterprise value, 0.9%. Two things follow, and they
+€1.25M enterprise value, 0.7%. Two things follow, and they
 matter more than the line item:
 
 - **The admission rate is a real driver of marketing efficiency.** It climbs
@@ -245,13 +245,13 @@ roster.
 | Payment processing | €752k | 25.0% |
 | People | €700k | 23.2% |
 | Marketing / CAC | €344k | 11.4% |
-| Legal & compliance | €270k | 9.0% |
 | Other opex | €241k | 8.0% |
 | Infrastructure | €78k | 2.6% |
 | Payouts | €69k | 2.3% |
+| Legal & compliance | €62k | 2.0% |
 | Moderation | €20k | 0.7% |
 | Athlete verification | €4k | 0.1% |
-| **EBITDA** | **€535k** | **17.7%** |
+| **EBITDA** | **€743k** | **24.7%** |
 <!-- /MODEL:costs_y7 -->
 
 Infrastructure is 2.6% of revenue. **Payments are nearly ten times larger.** Any

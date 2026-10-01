@@ -469,7 +469,38 @@ def build() -> pathlib.Path:
     r = section(a, r, "PEOPLE & OVERHEAD")
     put("Headcount", "FTE", A.headcount, '0.0', "headcount")
     put("Loaded salary (incl. ~32% employer SS)", "EUR", A.loaded_salary_eur, MONEY, "salary")
-    put("Legal & compliance", "EUR", A.legal_compliance_eur, MONEY, "legal")
+    put("Markets live", "count", A.markets, NUM, "markets")
+    put("Legal: base compliance", "EUR/yr", [A.legal_base_eur] * N, MONEY,
+        "legal_base", hard=True)
+    put("Legal: base, per extra head", "EUR", [A.legal_base_per_head_eur] * N, MONEY,
+        "legal_head", hard=True)
+    put("Legal: incorporation", "EUR, Y1", [A.legal_incorporation_eur] * N, MONEY,
+        "legal_inc", hard=True)
+    put("Legal: launch pack", "EUR, Y1", [A.legal_launch_pack_eur] * N, MONEY,
+        "legal_launch", hard=True)
+    put("Legal: DAC7 annual", "EUR", [A.legal_dac7_annual_eur] * N, MONEY,
+        "legal_dac7", hard=True)
+    put("Legal: content and DSA", "EUR/yr from Y2",
+        [0] + [A.legal_content_setup_eur] + [A.legal_content_annual_eur
+                                             + A.legal_content_growth_eur * (y - 2)
+                                             for y in range(3, N + 1)], MONEY, "legal_content")
+    put("Legal: market entry", "EUR per new market", [A.legal_market_entry_eur] * N,
+        MONEY, "legal_mkt", hard=True)
+    put("Legal: VAT and tax per market", "EUR/yr", [A.legal_market_annual_eur] * N,
+        MONEY, "legal_vat", hard=True)
+    put("Legal: round documentation", "EUR",
+        [A.legal_round_eur.get(y, 0) for y in range(1, N + 1)], MONEY, "legal_round")
+    put("Legal: IP", "EUR",
+        [(A.legal_ip_initial_eur if y == 1 else A.legal_ip_annual_eur)
+         for y in range(1, N + 1)], MONEY, "legal_ip")
+    put("Legal: IP per new market", "EUR", [A.legal_ip_per_market_eur] * N, MONEY,
+        "legal_ipm", hard=True)
+    put("Legal: per hire", "EUR", [A.legal_per_hire_eur] * N, MONEY, "legal_hire", hard=True)
+    put("Legal: handbook", "EUR, once", [A.legal_handbook_eur] * N, MONEY, "legal_hb", hard=True)
+    put("Legal: handbook at", "FTE", [A.legal_handbook_at_fte] * N, '0.0', "legal_hb_at")
+    put("Legal: disputes", "share of GMV", [A.legal_dispute_pct_of_gmv] * N, '0.00%',
+        "legal_disp")
+    put("Legal: contingency", "on the whole", [A.legal_contingency] * N, PCT, "legal_cont")
     put("Other opex as % of revenue", "%", [A.other_opex_pct_of_revenue] * N, PCT, "other_pct", const=True)
     r += 1
 
@@ -868,7 +899,46 @@ def build() -> pathlib.Path:
          fmt=MONEY2, font=Font(color="6B7480", name="Calibri", size=10, italic=True),
          formula=(f"=({{c}}{C['Athlete acquisition: niche']}+{{c}}{C['Athlete acquisition: popular']})"
                   f"/Drivers!{{c}}{D['Applications required']}"))
-    crow("Legal & compliance", formula=f"=Assumptions!{{c}}{A_ROW['legal']}", font=LINK)
+    # Built from its obligations, the same eleven as model.py. A single row
+    # read off Assumptions would have agreed on the total and shown none of the
+    # reasoning, which is how the old flat number went four years unexamined.
+    mk = f"Assumptions!{{c}}{A_ROW['markets']}"
+    mk_prev = f"Assumptions!{{p}}{A_ROW['markets']}"
+    hc = f"Assumptions!{{c}}{A_ROW['headcount']}"
+    hc_prev = f"Assumptions!{{p}}{A_ROW['headcount']}"
+    newm = f"IF({{k}}=1,{mk},{mk}-{mk_prev})"
+    crow("  Legal: base", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_base']}"
+                 f"+Assumptions!{{c}}{A_ROW['legal_head']}*MAX(0,{hc}-1)")
+    crow("  Legal: incorporation and launch pack", font=LINK,
+         formula=f"=IF({{k}}=1,Assumptions!{{c}}{A_ROW['legal_inc']}"
+                 f"+Assumptions!{{c}}{A_ROW['legal_launch']},0)")
+    crow("  Legal: DAC7", font=LINK,
+         formula=f"=IF({{k}}=1,{A.legal_dac7_setup_eur},"
+                 f"Assumptions!{{c}}{A_ROW['legal_dac7']})")
+    crow("  Legal: content and DSA", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_content']}")
+    crow("  Legal: market entry", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_mkt']}*MAX(0,{newm})")
+    crow("  Legal: VAT and tax", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_vat']}*{mk}")
+    crow("  Legal: round documentation", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_round']}")
+    crow("  Legal: IP", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_ip']}"
+                 f"+Assumptions!{{c}}{A_ROW['legal_ipm']}*MAX(0,{newm})")
+    crow("  Legal: employment", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_hire']}"
+                 f"*MAX(0,IF({{k}}=1,{hc},{hc}-{hc_prev}))"
+                 f"+IF({hc}>=Assumptions!{{c}}{A_ROW['legal_hb_at']},"
+                 f"Assumptions!{{c}}{A_ROW['legal_hb']},0)")
+    crow("  Legal: disputes", font=LINK,
+         formula=f"=Assumptions!{{c}}{A_ROW['legal_disp']}*Revenue!{{c}}{R['TOTAL GMV']}")
+    first_legal = C["  Legal: base"]
+    last_legal = C["  Legal: disputes"]
+    crow("Legal & compliance", bold=True,
+         formula=f"=SUM({{c}}{first_legal}:{{c}}{last_legal})"
+                 f"*(1+Assumptions!{{c}}{A_ROW['legal_cont']})")
     crow("Other opex", unit="% of revenue",
          formula=f"=Revenue!{{c}}{R['NET REVENUE']}*Assumptions!{{c}}{A_ROW['other_pct']}")
     crow("TOTAL OPERATING COSTS", bold=True, top=True, band=True,

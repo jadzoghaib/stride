@@ -29,19 +29,19 @@ runs on two databases in continuous integration. Appendix M shows the screens.
 |  | Y3 | Y7 |
 |---|---|---|
 | Net revenue | €287k | €3.01M |
-| EBITDA | €-140k | €535k |
+| EBITDA | €-72k | €743k |
 | Active athletes | 1,700 | 6,300 |
 | Paying fans | 14,333 | 92,005 |
 | Gross margin | 63% | 69% |
 <!-- /MODEL:summary -->
 
-EBITDA turns positive in **Y5**. Take rates are published and fixed: **15% on
+EBITDA turns positive in **Y4**. Take rates are published and fixed: **15% on
 fan revenue, 10% on sponsorship**, with no monthly athlete fee. Gross margin
 climbs from 63% in Y3 to **70% by Y10** rather than reaching a SaaS 80%+,
 because the payment rail is real and no amount of engineering removes it.
 
 **The ask is €150k at €1.8M pre-money, and it is
-the first of two.** The plan needs €426k in total, a €305k cash trough in Y4
+the first of two.** The plan needs €366k in total, a €261k cash trough in Y3
 plus a 40% buffer, but it does not need it now: **the cumulative cash
 requirement to the end of Y1 is €83k**, and Y2 is the year that settles
 whether fans pay for a niche athlete at all. Y1 builds the rail and monetises the
@@ -454,7 +454,7 @@ sports that never had any.
 ## 3.4 Costs and investment required
 
 The product exists, which is what makes the launch cost small. Total capital
-required is **€426k**: a €305k cash trough in Y4 plus a 40% buffer. Against
+required is **€366k**: a €261k cash trough in Y4 plus a 40% buffer. Against
 that, **€80k** of founder time and direct cost is already spent. The gap between
 today and first revenue is one entity and one processor: there is no payment,
 tier-price or payout entity of any kind, and the €9.99 on the membership card is
@@ -566,10 +566,10 @@ a time at a cost that rises as the addressable pool of large sponsors thins.
 ### Supply: the funnel replaces churn before it adds growth
 
 The number that matters is not net growth. Athletes leave, and by Y7 the plan
-loses **3,200 a year**, so showing
-6,000 net additions requires
-**9,200 gross**. Sizing the funnel from net growth
-would under-book it by a third. Every figure below is gross.
+loses **1,040 a year**, so showing
+1,100 net additions requires
+**2,140 gross**. Sizing the funnel from net growth
+would under-book it by half. Every figure below is gross.
 
 Athletes arrive either directly or through a club, and the two convert very
 differently. **20% of direct applicants are admitted
@@ -581,18 +581,18 @@ applications rather than of admissions.
 
 | | Athletes lost | Gross adds needed | Applications | of which club-nominated | Blended admit rate | Headcount |
 |---|---|---|---|---|---|---|
-| **Y1** | 0 | 400 | 2,000 | 0 | 20.0% | 1.5 |
-| **Y3** | 294 | 2,094 | 8,375 | 1,675 | 25.0% | 3.5 |
-| **Y5** | 1,296 | 5,796 | 20,337 | 6,915 | 28.5% | 10 |
-| **Y7** | 3,200 | 9,200 | 30,164 | 12,669 | 30.5% | 22 |
-| **Y10** | 6,229 | 12,229 | 38,516 | 18,102 | 31.8% | 38 |
+| **Y1** | 0 | 250 | 1,250 | 0 | 20.0% | 1.0 |
+| **Y3** | 184 | 1,134 | 4,534 | 907 | 25.0% | 1.5 |
+| **Y5** | 605 | 1,805 | 6,333 | 2,153 | 28.5% | 4.0 |
+| **Y7** | 1,040 | 2,140 | 7,016 | 2,947 | 30.5% | 10.0 |
+| **Y10** | 1,447 | 2,047 | 6,448 | 3,031 | 31.8% | 16.0 |
 
 That application column is the same series the operations plan sizes review
 capacity against in §5, read from the same model rather than derived twice.
 
 > [!warning] Year 1 is the hardest year in the plan, and the table shows why
-> 2,000 applications must be sourced, reviewed and
-> admitted with **1.5 full time people and no club channel yet**.
+> 1,250 applications must be sourced, reviewed and
+> admitted with **one full time person and no club channel yet**.
 > Every later year has leverage Y1 does not: a partially built club pipeline, a
 > product with athletes already visible in it, and staff. The pre-seed is sized
 > to buy exactly this year, and if the plan fails it most likely fails here
@@ -611,6 +611,75 @@ transacting only moves from 10% to
 €900 to €1,900 per sponsor across the
 same period, which is the ordinary pattern: the most reachable brands are
 acquired first.
+
+### Sponsor discovery: the research gap, run as business development
+
+**The plan has no sponsor-side interviews and it now builds the sponsor side
+first.** That is the largest hole in the research and the reordering in §5.11
+put it directly in front of the first thing I ship. I am not going to describe it
+as a limitation and leave it there.
+
+So it is designed as a programme, and it is business development rather than
+research, because at this stage the two are the same activity. A brand that will
+answer questions about what it pays for athlete sponsorship is a brand that can
+be sold to, the brief that comes out of the conversation is the first campaign,
+and a sponsor who helped shape the product is the one who tolerates its first
+version.
+
+**Target: 20 conversations before the pre-seed gate, across four groups.**
+
+| Group | Who, concretely | Why them | Target |
+|---|---|---|---|
+| **Local and regional** | Businesses within reach of an anchor athlete's club: physiotherapy, gyms, car dealers, restaurants, regional insurers | The segment agencies will not serve, and the one the model is built on | 8 |
+| **Endemic brands** | Equipment, nutrition and apparel makers in rugby league, CrossFit, padel, trail running | They already sponsor, so they can price what we are selling against something real | 6 |
+| **Mid-market consumer** | Regional banks, telecoms, retail chains with a community budget | Tests whether the proposition survives contact with a marketing department that has a process | 4 |
+| **Agencies** | Sports marketing agencies in Spain | §J argues they are customers rather than competitors. This tests that | 2 |
+
+#### What I ask, and which number each question is trying to break
+
+Every question below targets an assumption that the model depends on. The
+purpose is to find the ones that are wrong, not to collect encouragement.
+
+| Question | Assumption it tests | What the model currently says |
+|---|---|---|
+| What did you spend on athlete or club sponsorship last year, and on what? | That a budget exists at all below the professional tier | Y1 average deal of €900 in niche, €2,200 in popular |
+| Who decided it, and how long did it take? | Sales cycle, and whether this is self-serve | No salesperson until Y5; sponsors acquired self-serve |
+| What did you get back, and how did you know? | That measurement is the unmet need | Delivery measured against the offer-time projection is the core differentiator |
+| If a platform took 10% of the deal, would you still use it? | The take rate | 10% base, 7% on Scout Pro, 5% on Agency |
+| Would you pay €99/month for search and shortlisting on top of that? | That SaaS and commission add rather than substitute | Sponsor SaaS is 20% of Y7 revenue |
+| How many athletes would you want to run at once? | Deals per sponsor, which drives the whole sponsorship line | 27 deals per paying sponsor at Y7 |
+| What would stop you using this? | The objection I have not thought of | Nothing. This is the question the other six exist to earn |
+
+#### What would falsify the plan
+
+Stated in advance, because a test with no failing answer is not a test.
+
+- **Budgets do not exist below the professional tier.** If local and endemic
+  brands say they have no sponsorship line at all, rather than a small one, the
+  sponsorship half of the marketplace has no demand side and the plan becomes a
+  fan subscription business with a directory attached.
+- **Measurement is not the unmet need.** If brands say they already know what
+  they get, the analytics engine is not a differentiator and §3.3's competitive
+  advantage argument fails.
+- **The commission is the blocker.** If 10% is consistently
+  the objection, the take rate corridor in Appendix A is wrong at the top and the
+  model's revenue falls with it.
+- **The cycle needs a salesperson.** If every conversation requires three
+  meetings and a procurement process, sponsors cannot be acquired self-serve, the
+  headcount in §6 is too low and the cost structure changes rather than the
+  revenue.
+
+#### How it feeds the plan
+
+Each conversation produces three things: a yes or no on a pilot, a written note
+against the seven assumptions above, and a named contact. The notes go into
+Appendix L beside the athlete interviews, with the same SOURCED, BENCHMARKED,
+DERIVED or ESTIMATE classification, so a reader can see which assumptions moved
+from estimate to evidence and which did not. **The pilots go into the Y1
+sponsorship line**, which the model puts at 15 deals and
+€1,609 of commission: small enough that twenty
+conversations converting at even a modest rate reaches it.
+
 
 ### Who sells
 
@@ -642,7 +711,7 @@ knew.
 Every figure in this plan is generated by a Python model and cross-checked
 against an Excel workbook that reproduces it independently. **A consistency
 guard checks 333 prose claims across 16 documents** against the model and fails
-the build if any figure drifts; a second guard evaluates all 2,712 workbook
+the build if any figure drifts; a second guard evaluates all 2,812 workbook
 formulas and requires every variance against the Python model to be zero.
 
 The assumptions that matter most:
@@ -666,7 +735,7 @@ The assumptions that matter most:
 | Cost of sales | 9 | 36 | 107 | 235 | 421 | 659 | 924 |
 | **Gross profit** | **6** | **42** | **181** | **468** | **900** | **1,465** | **2,089** |
 | Operating costs | 78 | 154 | 320 | 554 | 883 | 1,225 | 1,555 |
-| **EBITDA** | **−78** | **−116** | **−140** | **−86** | **17** | **240** | **535** |
+| **EBITDA** | **−111** | **−115** | **−72** | **40** | **173** | **393** | **743** |
 
 Growth decelerates from +414% in Y2 to
 +42% in Y7, which is the shape a
@@ -714,13 +783,13 @@ counted as cash.
 | Net profit | −€75k | −€158k | −€31k | €384k |
 | Add back amortisation | €4k | €18k | €48k | €144k |
 | Change in working capital | €11k | €61k | €175k | €260k |
-| **Operating Cash Flow** | **−€60k** | **−€78k** | **€192k** | **€789k** |
+| **Operating Cash Flow** | **−€60k** | **−€78k** | **€192k** | **€909k** |
 | Capital expenditure | −€11k | −€27k | −€79k | −€210k |
-| **Free Cash Flow** | **−€72k** | **−€105k** | **€113k** | **€579k** |
+| **Free Cash Flow** | **−€72k** | **−€105k** | **€113k** | **€699k** |
 | Equity raised | €150k | 0 | 0 | 0 |
 | **Closing Cash** | **€78k** | **€120k** | **€221k** | **€2.63M** |
 
-Free cash flow turns positive in **Y5**, one year after the trough. The working
+Free cash flow turns positive in **Y4**, the same year as the trough. The working
 capital line is a source of cash rather than a use of it, which is unusual and
 worth explaining: sponsors settle at 45 days while fans pay upfront, and the
 15-day athlete payout float means money is collected before it is disbursed.
@@ -731,10 +800,10 @@ treats it as both.
 
 ![Figure 10: The hole, and the buffer over it. Y1 to Y5, where the trough lives.](attachments/charts/g8-cash-and-capital.png)
 
-The deepest the cash ever goes is **€305k, in Y4**. The two tranches together
-are €400k, which covers that with €95k to spare, and
-free cash flow turns positive in Y5. Neither tranche is sized to the trough on
-its own: the first covers Y1's €83k, and the second arrives in
+The deepest the cash ever goes is **€261k, in Y4**. The two tranches together
+are €400k, which covers that with €139k to spare, and
+free cash flow turns positive in Y4. Neither tranche is sized to the trough on
+its own: the first covers Y1's €113k, and the second arrives in
 Y2, before the trough does.
 
 | Stage | Amount | Pre-money | Gate |
@@ -749,8 +818,8 @@ Y2, before the trough does.
 > That is a materially stronger position to raise from.
 
 **Non-dilutive capital first.** A realistic ENISA and CDTI Neotec stack of
-€300–500k covers the whole €305k trough on its own. The *Ley de Startups* 15%
-rate is already in the model and is worth €258k across Y7–Y10.
+€300–500k covers the whole €261k trough on its own. The *Ley de Startups* 15%
+rate is already in the model and is worth €267k across Y7–Y10.
 
 **Dilution.** The founder holds 84% after both pre-seed tranches and the 2% advisory
 grant, 75% after the growth round, and **~67%** after the 10% ESOP.
@@ -766,13 +835,13 @@ sensitive input is fan churn.
 | Ratio | Y3 | Y5 | Y7 | Y10 | What it says |
 |---|---|---|---|---|---|
 | Gross margin | 63% | 68% | 69% | 70% | Capped by the payment rail, not by engineering |
-| EBITDA margin | -49% | 1% | 18% | 27% | Turns positive in Y5 |
-| Net margin | -55% | -2% | 13% | 18% | Below EBITDA by amortisation and tax |
+| EBITDA margin | -25% | 13% | 25% | 32% | Turns positive in Y5 |
+| Net margin | -31% | 9% | 17% | 19% | Below EBITDA by amortisation and tax |
 | Cost of sales / revenue | 37% | 32% | 31% | 30% | Falls as fan subscriptions outgrow one-off payments |
 | Revenue growth | 319% | 88% | 42% | 16% | Decelerating, which is the shape a marketplace should have |
 | Revenue per FTE | €191k | €330k | €301k | €328k | Above the sector's top quartile; defended in 3.2.2 |
-| **Rule of 40** | **271** | **89** | **60** | **43** | **Growth plus EBITDA margin. Above 40 in every year shown** |
-| Burn multiple | 0.47 | n/a | n/a | n/a | Net burn per euro of new revenue. n/a once cash-generative |
+| **Rule of 40** | **294** | **101** | **67** | **48** | **Growth plus EBITDA margin. Above 40 in every year shown** |
+| Burn multiple | 0.18 | n/a | n/a | n/a | Net burn per euro of new revenue. n/a once cash-generative |
 <!-- /MODEL:ratios -->
 
 Three of these are worth reading together rather than one at a time.
@@ -803,14 +872,14 @@ something subtly different.
 
 | Scenario | Change vs base | Y7 revenue | Y7 EBITDA | Cash trough | Capital need |
 |---|---|---|---|---|---|
-| **Pessimistic** | Fans/athlete −30%, monetise −25%, **niche churn at benchmark** | €2.34M | €0.19M | €597k | €0.84M |
-| **Base** | As modelled | €3.01M | €0.53M | €305k | €426k |
-| **Optimistic** | Fans/athlete +25%, monetise +20% | €3.59M | €0.83M | €244k | €342k |
+| **Pessimistic** | Fans/athlete −30%, monetise −25%, **niche churn at benchmark** | €2.34M | €0.40M | €352k | €0.49M |
+| **Base** | As modelled | €3.01M | €0.74M | €261k | €366k |
+| **Optimistic** | Fans/athlete +25%, monetise +20% | €3.59M | €1.04M | €213k | €299k |
 
 **The downside is survivable and the upside is unspectacular, which is the
 honest shape of this business.** Losing a third of the fan thesis costs
 22% of Y7 revenue and multiplies the capital requirement by
-2.0, to €835k against a €400k raise. That is a
+1.3, to €493k against a €400k raise. That is a
 bridge round, not an extinction event. The optimistic case adds 19% to
 revenue, because the constraint is athlete supply rather than fan yield, and no
 fan assumption relieves it.
@@ -833,7 +902,7 @@ argue for it. That case is §10.
 
 ![Figure 11: Two methods that disagree, for a reason.](attachments/charts/g10-valuation.png)
 
-The DCF says **€956k** today; the blended exit
+The DCF says **€1246k** today; the blended exit
 multiple says €34.1M at Y10. This is not an error in
 either; it is the standard failure of a perpetuity-growth DCF applied to a
 company that has not finished growing. The terminal value assumes growth
@@ -841,7 +910,7 @@ collapses to 3% the day after Y10, from a year that still grew 16%.
 
 **Defensible headline: €2.1–5.1M enterprise value**, the Y10 exit
 multiples discounted back at the same 25% WACC, with a
-**€956k floor** under a no-growth-after-Y10
+**€1246k floor** under a no-growth-after-Y10
 assumption. Appendix D sets out why the lower half of that range is the half the
 plan's own growth rate supports.
 
@@ -945,6 +1014,6 @@ so that the uncertainty is cheap to resolve and everything else is already done.
 
 **Project artefacts**
 
-- Financial model: `Stride_Financial_Model.xlsx`, 2,712 formulas.
+- Financial model: `Stride_Financial_Model.xlsx`, 2,812 formulas.
 - Source and model: github.com/jadzoghaib/stride
 - Deployed demo: stride-demo.onrender.com
