@@ -31,7 +31,8 @@ VARIANCE row must read zero. The Word table of contents is already populated
 | Week of 12 Oct | Online defence, 15 min + 10 min Q&A |
 
 Document is **70%** of the grade, presentation **30%**. Body must stay **under
-50 pages** excluding appendices.
+50 pages** excluding appendices. Measured in Word on 1 Oct 2026: **47 body
+pages** (Appendix A opens on page 48) out of 120 in total.
 
 ---
 
@@ -52,7 +53,7 @@ uv run python business-plan/build_workbook.py                  # the .xlsx
 Then check it:
 
 ```bash
-uv run python scripts/doc_consistency.py    # 336 prose claims against the model
+uv run python scripts/doc_consistency.py    # 342 prose claims against the model
 uv run python scripts/verify_workbook.py    # structure: refs, cycles, parsing
 uv run python scripts/recalc_workbook.py    # arithmetic: every VARIANCE is zero
 ```

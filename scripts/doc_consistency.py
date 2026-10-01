@@ -867,6 +867,20 @@ r"Together they are €(\d+)k",
     ("04-capital-and-valuation.md", "Y1 cash need in the ENISA paragraph",
      r"Y1 cash need of €([\d,]+)k", -ROWS[0]["fcf"] / 1e3, 1.0),
 
+    # ── the year-one block in the executive summary ────────────────────────
+    ("esade-body.md", "Y1 athletes in the year-one block",
+     r"recruit\s+\*\*([\d,]+) athletes\*\* in two or three niche", ROWS[0]["athletes"], 0.5),
+    ("esade-body.md", "Y1 applications in the year-one block",
+     r"niche Spanish sports from\s+([\d,]+) applications", ROWS[0]["applications"], 1.0),
+    ("esade-body.md", "Y1 deals in the year-one block",
+     r"closing\s*\n?about \*\*(\d+) deals", ROWS[0]["deals"], 0.6),
+    ("esade-body.md", "Y1 commission in the year-one block",
+     r"deals for €([\d,]+) of commission", ROWS[0]["rev_sponsorship"], 1.0),
+    ("esade-body.md", "Y1 cash requirement in the year-one block",
+     r"cash requirement is \*\*€([\d,]+)k\*\*", -ROWS[0]["fcf"] / 1e3, 1.0),
+    ("esade-body.md", "Y1 need in the ENISA paragraph",
+     r"against a Y1 need of\s*\n?€([\d,]+)k", -ROWS[0]["fcf"] / 1e3, 1.0),
+
     ("README.md", "peak burn",
      r"peak burn €(\d+)k", peak_funding() / 1e3, 1.0),
 
