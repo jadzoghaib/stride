@@ -10,7 +10,7 @@ Growth is sequenced along four axes. Market and segment are the two that are
 gated: the market axis moves one step at a time and only through a funding
 round, and the segment mix moves only as fast as the evidence that earns it.
 Product and channel develop continuously alongside both. Y2 opens the club
-channel and the seed opens Portugal, and those are deliberately different kinds
+channel and the extension opens Portugal, and those are deliberately different kinds
 of move.
 
 ## 16.1 Axis 1: Market

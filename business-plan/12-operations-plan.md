@@ -288,7 +288,7 @@ Sequenced by what unlocks revenue, not by what is easiest to build.
 | **P2** | Transcode, object storage, CDN, automated classification | Video, and the thesis test at scale |
 | **P2.5** | Ballots, events with capacity, club publishing and revenue split | The club channel monetises |
 
-**Market sequence:** Spain through the pre-seed gate, second market at the seed,
+**Market sequence:** Spain through the pre-seed gate, second market at the pre-seed extension,
 third and EU-wide from the growth round. The reasoning is in [06](06-market-strategy.md):
 we start where there is no incumbent, and what we learn there generalises upward.
 

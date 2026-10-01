@@ -857,7 +857,7 @@ and **nothing is rated more likely than 3**.
 | # | Risk | Score | Contingency |
 |---|---|---|---|
 | **R1** | **Fans do not pay for niche athletes, the thesis fails** | **15** | P1 is built specifically to test this for €80k, not €2.6M. If false, the sponsorship marketplace remains a smaller, viable business |
-| **R2** | Churn is at benchmark, not 45% better | 12 | Measure early, on one athlete, before the seed. The model understates this |
+| **R2** | Churn is at benchmark, not 45% better | 12 | Measure early, on one athlete, before the extension. The model understates this |
 | **R3** | Athlete acquisition slower than modelled | 12 | Club and federation channels are multiplicative: one conversation is 20–40 athletes |
 | R5 | Regulatory: DAC7, age assurance, startup law changes | 9 | Compliance built in; DAC7 reporting is a data export, not a rebuild |
 | R7 | Moderation and content liability | 9 | Human review queue exists; prohibit adult content in the terms from day one |
