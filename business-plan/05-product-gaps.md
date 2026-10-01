@@ -142,7 +142,7 @@ problem and not a decision the athlete made.
 attached, so no deal can *reach* `completed` through the API without something a
 sponsor can open. Rows written before that guard existed are not retrofitted, the seeded Rio event deal is deliberately one of them, because the honest
 demonstration of an unmeasured deal is an unmeasured deal. A sponsor opening it
-sees `: ` rather than a zero, which is the rule the whole measurement view
+sees a dash rather than a zero, which is the rule the whole measurement view
 follows: unmeasured, not free.
 
 That rule was written here before the endpoint kept it. Delivered reach and
@@ -159,7 +159,7 @@ numbers" reproduces the same zero through a different door.
 `projected_reach` is captured **when the offer is sent**, from the athlete's
 median reach across platforms. Without it there is nothing to measure against,
 and it cannot be reconstructed later once the athlete's following has moved.
-Deals that predate the column read as `, ` rather than as a zero variance: unmeasured, not free, the same rule the cost figures follow.
+Deals that predate the column read as a dash rather than as a zero variance: unmeasured, not free, the same rule the cost figures follow.
 
 **Interface.** The athlete's Deals page gains a *Delivering* lane between open
 offers and history; the sponsor's pipeline gains an inline performance panel on
