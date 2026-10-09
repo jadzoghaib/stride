@@ -15,6 +15,13 @@
  * coherence, and "Look & Feel: Design, page number, layout". Hence the page
  * number on every slide, the single repeated motif, and a narrative that runs
  * problem, mechanism, product, proof, market, model, money, ask.
+ *
+ * The spine is two engines rather than one product. Fan monetisation and
+ * sponsor analytics are shown as peers that feed each other: two problems
+ * (slides 3 and 4), one missing layer that explains both (5), the two engines
+ * (6), the loop that joins them (7), and then each one proved against the
+ * running application in turn (8 and 9). Mechanics that used to sit in the
+ * main line are backup slides, because they are answers rather than beats.
  */
 const pptxgen = require("pptxgenjs");
 const path = require("path");
@@ -52,6 +59,9 @@ const M = 0.78;                       // side margin
 const COL = W - M * 2;
 
 const UI = path.resolve(__dirname, "../business-plan/attachments/ui");
+// Sponsor-side captures taken for this deck. The product appendix only ever
+// shot the athlete half, and the deck argues the other half is the same size.
+const SHOTS = path.resolve(__dirname, "shots");
 
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE";          // 13.333 x 7.5, must precede addSlide
@@ -192,8 +202,8 @@ pres.addSection({ title: "Open" });
     fontFace: DISPLAY, fontSize: 46, color: C.ink, lineSpacing: 50,
   });
   s.addText(
-    "Fan subscriptions, sponsorship and the analytics engine that makes the second payer possible. " +
-    "Built for the athletes no agent has ever called.", {
+    "Paid fan subscriptions on one side, measured sponsorship on the other, and each one produces what " +
+    "the other cannot buy. Built for the athletes no agent has ever called.", {
     x: M, y: 4.22, w: 8.6, h: 0.9, margin: 0, isTextBox: true, valign: "top",
     fontFace: BODY, fontSize: 15.5, color: C.ink2, lineSpacing: 23,
   });
@@ -328,16 +338,91 @@ pres.addSection({ title: "Problem" });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 4 — WHY IT HAPPENS
+// 4 — THE BUYER'S HALF
+// ════════════════════════════════════════════════════════════════════════════
+// The deck used to carry one problem, the athlete's. The company has two
+// customers with two different complaints, and the analytics engine answers
+// the second one. Showing only the first made the engine look like a feature.
+{
+  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Problem" });
+  eyebrow(s, "The buyer's half");
+  title(s, "A local brand spends on instinct, and never finds out");
+
+  s.addText("“What did you get back,\nand how did you know?”", {
+    x: M, y: 2.06, w: 6.4, h: 1.2, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 34, color: C.ink, lineSpacing: 38,
+  });
+  s.addShape(pres.ShapeType.rect, {
+    x: M, y: 3.34, w: 1.1, h: 0.02, fill: { color: C.accent }, line: { width: 0 },
+  });
+  body(s,
+    "The question the sponsor discovery programme is built around. It is the one the whole analytics " +
+    "engine exists to answer, and today nobody below the professional tier owns an instrument that can.", {
+    x: M, y: 3.52, w: 6.3, h: 0.9, fontSize: 13.5, color: C.ink2, lineSpacing: 18,
+  });
+
+  card(s, 7.45, 2.06, W - M - 7.45, 1.9, C.panel);
+  s.addText("WHO THE BUYER IS", {
+    x: 7.73, y: 2.28, w: W - M - 8.01, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 12, color: C.ink3, charSpacing: 2.6,
+  });
+  body(s,
+    "Physiotherapy clinics, gyms, car dealers, restaurants and regional insurers within reach of an " +
+    "anchor athlete's club. The segment the agencies will not serve, and the one this model is built on.", {
+    x: 7.73, y: 2.62, w: W - M - 8.01, h: 1.2, fontSize: 13, color: C.ink2, lineSpacing: 18,
+  });
+
+  const cannot = [
+    ["Choose", "Two athletes, and nothing to compare them on but follower count, which is the one number that can be bought."],
+    ["Price", "No rate card and no benchmark anywhere in the segment. The fee is whatever was asked for."],
+    ["Verify", "The campaign ends, and nothing is known that was not known before it started."],
+  ];
+  const cw = (COL - 0.6) / 3;
+  cannot.forEach(([head, text], i) => {
+    const x = M + i * (cw + 0.3);
+    card(s, x, 4.28, cw, 1.3);
+    s.addText(head.toUpperCase(), {
+      x: x + 0.26, y: 4.48, w: cw - 0.52, h: 0.28, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 16, color: C.accent, charSpacing: 2.2,
+    });
+    body(s, text, { x: x + 0.26, y: 4.82, w: cw - 0.52, h: 0.78, fontSize: 12.5, color: C.ink2, lineSpacing: 17 });
+  });
+
+  card(s, M, 5.76, COL, 0.88, C.raised);
+  s.addText("THE ASSUMPTION I TEST FIRST", {
+    x: M + 0.3, y: 5.96, w: 3.2, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 13.5, color: C.accent, charSpacing: 2.2,
+  });
+  body(s,
+    "Twenty sponsor conversations before the pre-seed gate, and the answer that kills it is written down " +
+    "in advance: if brands say they already know what they get, the analytics engine is not a differentiator.", {
+    x: M + 3.8, y: 5.92, w: COL - 4.1, h: 0.62, fontSize: 13, color: C.ink2, lineSpacing: 17,
+  });
+  source(s, "Sponsor discovery programme, section 4.6: four buyer groups, seven questions, each one aimed at an assumption the model depends on.");
+  s.addNotes(
+    "Now the other side, and this is the half of the company I care most about.\n\n" +
+    "The brand paying for this is not Nike. It is a physiotherapy clinic or a regional insurer near the " +
+    "athlete's club. They have a budget. What they do not have is any instrument at all: they cannot " +
+    "compare two athletes except on follower count, they have no benchmark to price against, and when " +
+    "the campaign ends they know nothing they did not know before.\n\n" +
+    "I want to be straight about status. I have interviewed athletes, not sponsors. This is the biggest " +
+    "hole in my research, so it is the first thing I build and the first thing I test, and I have written " +
+    "down in advance which answer would kill it. If brands tell me they already know what they get, " +
+    "my differentiator is gone."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 5 — WHY IT HAPPENS
 // ════════════════════════════════════════════════════════════════════════════
 {
   const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Problem" });
   eyebrow(s, "The mechanism");
-  title(s, "The layer that turns an audience into income was never built for these sports");
+  title(s, "One missing layer explains both halves");
 
   const halves = [
-    ["In a popular sport", "An agent takes 10 to 20% of an endorsement to make an introduction. The layer exists, and it is expensive.", C.ink2],
-    ["In a niche sport", "There is no agent at all. The athlete's alternative to Stride is not a worse deal. It is no deal.", C.accent],
+    ["In a popular sport", "An agent introduces the athlete and vouches for the audience. Ten to twenty per cent, and the brand gets a number it can defend.", C.ink2],
+    ["In a niche sport", "There is no agent. The athlete's alternative is not a worse deal, it is no deal. The brand's alternative is a guess.", C.accent],
   ];
   const hw = (COL - 0.3) / 2;
   halves.forEach(([head, text, colour], i) => {
@@ -376,72 +461,184 @@ pres.addSection({ title: "Problem" });
     }
   });
   body(s,
-    "So the market is sized under the very incentives that suppress it. The plan does not claim the " +
-    "expansion, and the honest error direction is understatement.", {
-    x: M, y: 5.48, w: COL, h: 0.6, fontSize: 14, color: C.ink2,
+    "An agent introduces, and an agent vouches. Below the professional tier neither function exists: " +
+    "no route to income on one side, no basis for a decision on the other. So the market is sized under " +
+    "the incentives that suppress it, and the honest error direction is understatement.", {
+    x: M, y: 5.42, w: COL, h: 0.84, fontSize: 14, color: C.ink2, lineSpacing: 19,
   });
   s.addNotes(
-    "Why does this happen? Because the intermediation layer that converts audience into income was " +
-    "never built below the professional tier.\n\n" +
-    "In football an agent takes 10 to 20 per cent. Expensive, but it exists. In trail running or " +
-    "rugby league there is no agent at all.\n\n" +
-    "And the absence compounds: no route to income, so no reason to build an audience, so the market " +
-    "counts smaller than it really is. That means every number I am about to show you is the " +
-    "conservative reading."
+    "So why does this happen, on both sides at once? Because one layer is missing, and it used to do " +
+    "two jobs.\n\n" +
+    "An agent introduces the athlete to the brand, and an agent vouches for what the brand is getting. " +
+    "In football that costs 10 to 20 per cent and it exists. In trail running or rugby league there is " +
+    "no agent at all, so the athlete has no route to income and the brand has no basis for a decision. " +
+    "One absence, two victims.\n\n" +
+    "And it compounds: no route to income, so no reason to build an audience, so the market counts " +
+    "smaller than it really is. Every number I am about to show you is therefore the conservative reading."
   );
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 5 — WHAT STRIDE IS
+// 6 — TWO ENGINES
 // ════════════════════════════════════════════════════════════════════════════
+// This slide used to read "a creator platform with a sponsorship feature",
+// which subordinated the half of the company that does the hardest work. The
+// two engines are peers, and the next slide is why they are in one company.
 pres.addSection({ title: "Product" });
 {
   const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Product" });
   eyebrow(s, "The product");
-  title(s, "A creator platform with a sponsorship feature");
+  title(s, "Two engines, and each one is the other's reason to exist");
 
-  const who = [
-    ["Athlete", "Supply, and the constraint", "Connects platforms, passes an admission gate, gets a paid fan page and a place in the sponsor-facing engine.", "Pays nothing. No monthly fee, ever", C.accent],
-    ["Fan", "Pays for access", "Subscribes to an athlete they already follow, at tiers the athlete sets.", "15% of fan revenue", C.cat2],
-    ["Sponsor", "Pays for attention", "Briefs a campaign and gets a ranked shortlist with the arithmetic shown, then measures delivery.", "10% of sponsorship", C.cat1],
+  const engines = [
+    ["Engine one", "Monetisation", "Athlete and fan", C.cat2,
+     "The athlete's own page, with paid fan tiers they price themselves. They keep 85% and pay nothing " +
+     "to be there. Self serve, with no sales touch per subscriber.",
+     "15% of fan revenue", "48% of Y7"],
+    ["Engine two", "Analytics", "Sponsor", C.cat1,
+     "A campaign brief matched to athletes on measured audience evidence, every score decomposed into " +
+     "the arithmetic behind it, and delivery measured against what was projected.",
+     "10% of deal value, plus €99 to €999 a month", "52% of Y7"],
   ];
-  const cw = (COL - 0.6) / 3;
-  who.forEach(([head, role, text, price, colour], i) => {
-    const x = M + i * (cw + 0.3);
-    card(s, x, 2.18, cw, 3.12);
-    s.addText(head.toUpperCase(), {
-      x: x + 0.3, y: 2.44, w: cw - 0.6, h: 0.32, margin: 0, isTextBox: true, valign: "top",
-      fontFace: DISPLAY, fontSize: 22, color: colour, charSpacing: 1.6,
+  const hw = (COL - 0.4) / 2;
+  engines.forEach(([tag, head, who, colour, text, price, share], i) => {
+    const x = M + i * (hw + 0.4);
+    card(s, x, 2.1, hw, 3.0);
+    s.addText(tag.toUpperCase(), {
+      x: x + 0.32, y: 2.32, w: hw - 0.64, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 11, color: C.ink3, charSpacing: 2.8,
     });
-    s.addText(role.toUpperCase(), {
-      x: x + 0.3, y: 2.8, w: cw - 0.6, h: 0.24, margin: 0, isTextBox: true, valign: "top",
-      fontFace: DISPLAY, fontSize: 10.5, color: C.ink3, charSpacing: 2.2,
+    s.addText(head, {
+      x: x + 0.32, y: 2.6, w: hw - 0.64, h: 0.56, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 30, color: colour, lineSpacing: 32,
     });
-    body(s, text, { x: x + 0.3, y: 3.18, w: cw - 0.6, h: 1.4, fontSize: 13.5, lineSpacing: 19 });
+    s.addText(who.toUpperCase(), {
+      x: x + 0.32, y: 3.12, w: hw - 0.64, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 11.5, color: C.ink3, charSpacing: 2.2,
+    });
+    body(s, text, { x: x + 0.32, y: 3.46, w: hw - 0.64, h: 0.95, fontSize: 13.5, lineSpacing: 19 });
     s.addShape(pres.ShapeType.rect, {
-      x: x + 0.3, y: 4.62, w: cw - 0.6, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+      x: x + 0.32, y: 4.5, w: hw - 0.64, h: 0.014, fill: { color: C.track }, line: { width: 0 },
     });
-    s.addText(price, {
-      x: x + 0.3, y: 4.76, w: cw - 0.6, h: 0.34, margin: 0, isTextBox: true, valign: "top",
-      fontFace: DISPLAY, fontSize: 17, color: C.ink,
+    s.addText([
+      { text: price, options: { fontFace: DISPLAY, fontSize: 16, color: C.ink } },
+      { text: `   ·   ${share}`, options: { fontFace: BODY, fontSize: 12, color: C.ink3 } },
+    ], {
+      x: x + 0.32, y: 4.64, w: hw - 0.64, h: 0.34, margin: 0, isTextBox: true, valign: "top",
     });
+  });
+
+  card(s, M, 5.35, COL, 0.9, C.raised);
+  s.addText("THE ATHLETE PAYS NOTHING", {
+    x: M + 0.3, y: 5.55, w: 3.0, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 13.5, color: C.accent, charSpacing: 2.2,
   });
   body(s,
-    "Fan revenue leads and funds the early years. Sponsorship compounds behind it, and the analytics " +
-    "engine earns its keep by making the second payer possible, which a general creator platform cannot do.", {
-    x: M, y: 5.56, w: COL, h: 0.6, fontSize: 14, color: C.ink2,
+    "No monthly fee, ever, on either engine. The athlete earning €200 a month pays the same rate as the " +
+    "one earning €5,000, which a subscription would not have done. They are the supply, and supply is the constraint.", {
+    x: M + 3.6, y: 5.52, w: COL - 3.9, h: 0.6, fontSize: 13, color: C.ink2, lineSpacing: 17,
   });
+  source(s, "Stride financial model: Y7 net revenue of €3.01M, 48% from fans and 52% from the two sponsor streams.");
   s.addNotes(
-    "So what is Stride. A creator platform with a sponsorship feature.\n\n" +
-    "Three customers. The athlete is the constraint and pays nothing. The fan pays for access, and we " +
-    "take 15 per cent. The sponsor pays for attention, and we take 10.\n\n" +
-    "The flat take with no athlete fee is deliberate: the athlete earning 200 euros a month pays the " +
-    "same rate as the one earning 5,000. A subscription fee would have been regressive."
+    "So what is Stride. Two engines, and I want to be precise that they are peers rather than a product " +
+    "and a feature.\n\n" +
+    "Engine one is monetisation. The athlete gets their own page with paid fan tiers they price " +
+    "themselves, they keep 85 per cent, and they pay nothing to be there. That is 48 per cent of year " +
+    "seven revenue.\n\n" +
+    "Engine two is analytics. A sponsor briefs a campaign, gets athletes matched on measured audience " +
+    "evidence with every score decomposed, and then gets delivery measured against what was projected. " +
+    "Ten per cent of the deal plus a subscription, and that is the other 52 per cent.\n\n" +
+    "One deliberate choice: the flat take with no athlete fee. The athlete earning 200 euros a month " +
+    "pays the same rate as the one earning 5,000. A subscription would have been regressive against " +
+    "exactly the athlete we are built for."
   );
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 6 — IT IS BUILT
+// 7 — THE FLYWHEEL
+// ════════════════════════════════════════════════════════════════════════════
+// The point of the deck. Two engines in one company is only interesting if
+// each one produces the input the other cannot buy, so the loop is drawn
+// rather than asserted.
+{
+  const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Product" });
+  eyebrow(s, "Why they are one company");
+  title(s, "Each engine produces the input the other cannot buy");
+
+  const loop = [
+    ["01", "Fans pay\nthe athlete", "Subscriptions give the athlete a reason to build an audience, and give us revenue from the first month.", C.cat2],
+    ["02", "The athlete connects\ntheir platforms", "Monetising requires the connectors. Those same connectors are the measurement instrument.", C.cat2],
+    ["03", "The sponsor\nsees evidence", "Measured reach, engagement and cost per thousand, per athlete, in place of a follower count.", C.cat1],
+    ["04", "Deals raise\nathlete income", "Which brings the next athlete, and arrives with an audience that can now be measured.", C.accent],
+  ];
+  const cw = 2.6, gap = (COL - 4 * cw) / 3;
+  loop.forEach(([n, head, text, colour], i) => {
+    const x = M + i * (cw + gap);
+    card(s, x, 2.2, cw, 2.2, C.panel);
+    s.addText(n, {
+      x: x + 0.24, y: 2.38, w: 0.8, h: 0.44, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 26, color: colour,
+    });
+    s.addText(head, {
+      x: x + 0.24, y: 2.84, w: cw - 0.48, h: 0.62, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 16, color: C.ink, charSpacing: 1.2, lineSpacing: 19,
+    });
+    body(s, text, { x: x + 0.24, y: 3.5, w: cw - 0.48, h: 0.8, fontSize: 11.5, color: C.ink2, lineSpacing: 15 });
+    if (i < 3) {
+      s.addText("›", {
+        x: x + cw + 0.02, y: 3.0, w: gap - 0.04, h: 0.5, margin: 0, isTextBox: true, valign: "top",
+        align: "center", fontFace: DISPLAY, fontSize: 26, color: C.ink3,
+      });
+    }
+  });
+
+  // The chain reads left to right and then stops, so the thing that makes it a
+  // flywheel rather than a funnel has to be drawn: a rule straight back across
+  // the four, carrying the return.
+  [M, M + 7.47].forEach((x) => {
+    s.addShape(pres.ShapeType.rect, {
+      x, y: 4.62, w: 4.3, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+    });
+  });
+  s.addText("AND FOUR RETURNS TO ONE", {
+    x: M + 4.4, y: 4.51, w: 2.97, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    align: "center", fontFace: DISPLAY, fontSize: 11, color: C.ink3, charSpacing: 2.6,
+  });
+
+  card(s, M, 4.88, COL, 0.95, C.raised);
+  s.addText("WHY NEITHER HALF STANDS ALONE", {
+    x: M + 0.3, y: 5.1, w: 3.5, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 13.5, color: C.accent, charSpacing: 2.2,
+  });
+  body(s,
+    "A creator platform has no reason to measure an audience. A sponsorship data company has no " +
+    "relationship with the athlete, so it cannot get the measurements. Both halves are required, and " +
+    "that is the architecture rather than a roadmap.", {
+    x: M + 4.2, y: 5.06, w: COL - 4.5, h: 0.66, fontSize: 13, color: C.ink2, lineSpacing: 17,
+  });
+
+  body(s,
+    "Fan revenue funds the years in which the data accrues. By the time the analytics are worth selling, " +
+    "someone else has already paid to build them.", {
+    x: M, y: 6.02, w: COL, h: 0.7, fontSize: 16, color: C.ink, lineSpacing: 22,
+  });
+  s.addNotes(
+    "This is the slide I would most like you to remember.\n\n" +
+    "Follow the loop. Fans pay the athlete, so the athlete has a reason to build an audience. To take " +
+    "that money they connect their platforms, and those connectors are the same instrument that measures " +
+    "the audience. That measurement is what the sponsor is shown instead of a follower count. The deal " +
+    "raises the athlete's income, which brings the next athlete, who arrives with another audience to " +
+    "measure.\n\n" +
+    "Now the part that matters commercially. A creator platform has no reason to measure an audience, so " +
+    "it never builds this. A sponsorship data company has no relationship with the athlete, so it cannot " +
+    "get the data at all. You need both sides, and almost nobody has both.\n\n" +
+    "And the financing consequence: fan revenue pays for the years in which the data is accumulating. " +
+    "By the time the analytics are worth selling, somebody else has already funded building them."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 8 — IT IS BUILT
 // ════════════════════════════════════════════════════════════════════════════
 {
   const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Product" });
@@ -488,55 +685,59 @@ pres.addSection({ title: "Product" });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 7 — HOW IT WORKS
+// 9 — WHAT THE SPONSOR SEES
 // ════════════════════════════════════════════════════════════════════════════
+// Deliberately the same composition as the slide before it. The pair is the
+// argument: one engine proved, then the other, on the same ground.
 {
-  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Product" });
-  eyebrow(s, "How it works");
-  title(s, "Four steps, and a rule that holds all four together");
-
-  const steps = [
-    ["01", "Apply", "The athlete connects their platforms and applies. Proof is checked automatically, then a person decides. A club can nominate a whole roster as a second route."],
-    ["02", "Score", "Marketability is computed on eight weighted components, each traceable to the posts behind it, and every score version is kept."],
-    ["03", "Match", "A sponsor briefs a campaign and receives a ranked shortlist in which every score decomposes: audience fit 72 × 32% = 23.1."],
-    ["04", "Deal", "Offer, acceptance, delivery measured against what was projected. An unmeasured campaign reads as unmeasured, never as zero."],
-  ];
-  const cw = (COL - 0.75) / 4;
-  steps.forEach(([n, head, text], i) => {
-    const x = M + i * (cw + 0.25);
-    card(s, x, 2.2, cw, 2.72);
-    s.addText(n, {
-      x: x + 0.26, y: 2.4, w: cw - 0.52, h: 0.52, margin: 0, isTextBox: true, valign: "top",
-      fontFace: DISPLAY, fontSize: 34, color: C.accent,
-    });
-    s.addText(head.toUpperCase(), {
-      x: x + 0.26, y: 2.92, w: cw - 0.52, h: 0.28, margin: 0, isTextBox: true, valign: "top",
-      fontFace: DISPLAY, fontSize: 16, color: C.ink, charSpacing: 2.0,
-    });
-    body(s, text, { x: x + 0.26, y: 3.26, w: cw - 0.52, h: 1.5, fontSize: 12.5, lineSpacing: 17 });
+  const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Product" });
+  eyebrow(s, "The second engine, running");
+  s.addText("And this is what\nreplaces the instinct", {
+    x: M, y: 0.86, w: 4.15, h: 1.6, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 33, color: C.ink, lineSpacing: 35,
   });
-  card(s, M, 5.16, COL, 0.92, C.raised);
-  s.addText("NOTHING SELF-VERIFIES", {
-    x: M + 0.3, y: 5.36, w: 3.0, h: 0.26, margin: 0, isTextBox: true, valign: "top",
-    fontFace: DISPLAY, fontSize: 14, color: C.accent, charSpacing: 2.4,
+  const gets = [
+    "Delivered reach and engagements, per athlete",
+    "Cost per thousand reached, cost per engagement",
+    "Delivered against what was projected when priced",
+    "Share of reach landing in the targeted countries",
+    "Every match score decomposed to its arithmetic",
+    "A dash where nothing is measured. Never a zero",
+  ];
+  gets.forEach((text, i) => {
+    const y = 2.46 + i * 0.4;
+    s.addShape(pres.ShapeType.rect, {
+      x: M, y: y + 0.105, w: 0.14, h: 0.03, fill: { color: C.accent }, line: { width: 0 },
+    });
+    body(s, text, { x: M + 0.3, y, w: 3.85, h: 0.34, fontSize: 12.5, color: C.ink2 });
   });
   body(s,
-    "A club scoring above the verification bar still waits for a human. A rejected proof cannot be " +
-    "cleared by re-submitting the form. That is what a sponsor is actually buying.", {
-    x: M + 3.5, y: 5.34, w: COL - 3.8, h: 0.6, fontSize: 13.5, color: C.ink2, lineSpacing: 18,
+    "The arithmetic is shown because a brand that cannot audit the number will not spend against it a " +
+    "second time. The red figure on that screen is a deal that underdelivered, and the product says so.", {
+    x: M, y: 5.0, w: 3.95, h: 1.1, fontSize: 12.5, color: C.ink3, lineSpacing: 17,
   });
+  s.addImage({
+    path: path.join(SHOTS, "sponsor-campaign-analytics.png"),
+    x: 5.05, y: 0.75, w: 7.85, h: 5.45,
+  });
+  source(s, "Campaign result view, captured from the running application. The demo's engagement figures are seeded, and the product labels them simulated on the screen itself.");
   s.addNotes(
-    "Four steps. Apply, score, match, deal.\n\n" +
-    "I will not go through the arithmetic now, it is in appendix I and I am happy to take it in questions. " +
-    "The one thing worth your attention is the rule at the bottom.\n\n" +
-    "Nothing self-verifies. Every other platform in this space lets supply assert its own numbers. " +
-    "Ours cannot. That is precisely what the sponsor is paying for, and it is why the admission gate " +
-    "is the product rather than a feature of it."
+    "And the same proof for the second engine.\n\n" +
+    "This is the screen a sponsor shows their own management. Delivered reach, engagements, cost per " +
+    "thousand reached, cost per engagement. Underneath, every athlete on the campaign with what they " +
+    "actually delivered against what was projected when the offer was priced.\n\n" +
+    "I want to point at one number. The red one, minus 85.8 per cent. That is a deal that " +
+    "underdelivered, and the platform is telling the sponsor so. Every incentive in this industry runs " +
+    "the other way. That is the number that makes the rest of the screen believable.\n\n" +
+    "And look at the dashes. A deal with nothing attached yet reads as unmeasured, never as zero. " +
+    "Zero would be a lie that flatters us.\n\n" +
+    "One honesty note, and say it before anyone asks: the engagement figures in the demo are seeded, " +
+    "and the product labels them simulated on the screen. The arithmetic is real, the data is a fixture."
   );
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 8 — THE EXPERT
+// 10 — THE EXPERT
 // ════════════════════════════════════════════════════════════════════════════
 {
   const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Product" });
@@ -592,7 +793,7 @@ pres.addSection({ title: "Product" });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 9 — MARKET
+// 11 — MARKET
 // ════════════════════════════════════════════════════════════════════════════
 pres.addSection({ title: "Market" });
 {
@@ -649,7 +850,7 @@ pres.addSection({ title: "Market" });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 10 — WHY NICHE FIRST
+// 12 — WHY NICHE FIRST
 // ════════════════════════════════════════════════════════════════════════════
 {
   const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Market" });
@@ -697,12 +898,14 @@ pres.addSection({ title: "Market" });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 11 — COMPETITION
+// 13 — COMPETITION
 // ════════════════════════════════════════════════════════════════════════════
 {
   const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Market" });
   eyebrow(s, "Four companies tried this before us");
-  title(s, "All four monetise the brand side only. The fan is not in their model");
+  // The table splits two and two along the same seam as our two engines, which
+  // is the strongest available evidence that the pairing is the hard part.
+  title(s, "Two built the marketplace, two built the data. Nobody built both");
 
   const rows = [
     ["Sponsoo", "Marketplace, same model", "11 yrs", "13", "€2.17M", "Total equity zero"],
@@ -723,14 +926,14 @@ pres.addSection({ title: "Market" });
   s.addShape(pres.ShapeType.rect, {
     x: M, y: 2.46, w: COL, h: 0.014, fill: { color: C.track }, line: { width: 0 },
   });
+  // One panel behind the first two rows rather than alternating stripes: the
+  // title claims the set splits two and two, so the shading has to agree.
+  s.addShape(pres.ShapeType.rect, {
+    x: M - 0.12, y: 2.52, w: COL + 0.24, h: 1.04,
+    fill: { color: C.panel }, line: { width: 0 },
+  });
   rows.forEach((r, ri) => {
     const y = 2.58 + ri * 0.52;
-    if (ri % 2 === 0) {
-      s.addShape(pres.ShapeType.rect, {
-        x: M - 0.12, y: y - 0.06, w: COL + 0.24, h: 0.46,
-        fill: { color: C.panel }, line: { width: 0 },
-      });
-    }
     r.forEach((cell, ci) => {
       s.addText(cell, {
         x: colX[ci], y, w: colW[ci], h: 0.34, margin: 0, isTextBox: true, valign: "top",
@@ -758,15 +961,17 @@ pres.addSection({ title: "Market" });
     "a decade. Sponsoo has thirteen people after eleven years and its total equity is zero, which means " +
     "accumulated losses have eaten everything shareholders put in. PitchBook models it at a 94 per cent " +
     "probability of no exit.\n\n" +
-    "So what is different. One thing. All four monetise the brand side only. The fan is not in their " +
-    "business model at all. For us fan subscriptions are 48 per cent of year seven revenue. That is a " +
-    "second payer none of them has, and it is the whole thesis. If it works we are not Sponsoo. " +
-    "If it does not, we are."
+    "But look at how the four split, because it is the slide about the flywheel again. Sponsoo and " +
+    "OpenSponsorship built the marketplace and no analytics worth the name. Hookit and SponsorUnited " +
+    "built the data and never had the athlete relationship, so they sell enterprise dashboards to brands " +
+    "that already spend. Two halves, four companies, nobody with both.\n\n" +
+    "And none of the four has the fan. For us that is 48 per cent of year seven revenue: a second payer " +
+    "none of them has, and it is the whole thesis. If it works we are not Sponsoo. If it does not, we are."
   );
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 12 — REVENUE MIX
+// 14 — REVENUE MIX
 // ════════════════════════════════════════════════════════════════════════════
 pres.addSection({ title: "Model" });
 {
@@ -822,7 +1027,7 @@ pres.addSection({ title: "Model" });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 13 — YEAR ONE
+// 15 — YEAR ONE
 // ════════════════════════════════════════════════════════════════════════════
 {
   const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Model" });
@@ -875,7 +1080,7 @@ pres.addSection({ title: "Model" });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 14 — OPERATIONS AND TEAM
+// 16 — OPERATIONS AND TEAM
 // ════════════════════════════════════════════════════════════════════════════
 {
   const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Model" });
@@ -949,7 +1154,7 @@ pres.addSection({ title: "Model" });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 15 — FINANCIALS
+// 17 — FINANCIALS
 // ════════════════════════════════════════════════════════════════════════════
 pres.addSection({ title: "Money" });
 {
@@ -1007,7 +1212,7 @@ pres.addSection({ title: "Money" });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 16 — THE ASK
+// 18 — THE ASK
 // ════════════════════════════════════════════════════════════════════════════
 {
   const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Money" });
@@ -1074,7 +1279,7 @@ pres.addSection({ title: "Money" });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// 17 — CLOSE
+// 19 — CLOSE
 // ════════════════════════════════════════════════════════════════════════════
 {
   const s = pres.addSlide({ masterName: "COVER", sectionTitle: "Money" });
@@ -1144,8 +1349,8 @@ pres.addSection({ title: "Backup" });
     x: M, y: 3.52, w: COL, h: 0.8, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 40, color: C.ink,
   });
-  body(s, "Pricing, scenarios, risk, valuation, dilution and the admission arithmetic.", {
-    x: M, y: 4.35, w: 8.0, h: 0.4, fontSize: 14, color: C.ink3,
+  body(s, "The four steps, the matching arithmetic, pricing, scenarios, risk, valuation and the admission gate.", {
+    x: M, y: 4.35, w: 8.6, h: 0.4, fontSize: 14, color: C.ink3,
   });
 }
 
@@ -1158,7 +1363,81 @@ function backup(eyebrowText, titleText, lead) {
   return s;
 }
 
-// B1 — pricing
+// B1 — how it works. Moved out of the main line: the mechanics are a
+//      question-and-answer subject rather than a story beat.
+{
+  const s = backup("Backup, mechanics", "Four steps, and a rule that holds all four together",
+    "How an athlete gets in, gets scored, gets matched and gets paid.");
+
+  const steps = [
+    ["01", "Apply", "The athlete connects their platforms and applies. Proof is checked automatically, then a person decides. A club can nominate a whole roster as a second route."],
+    ["02", "Score", "Marketability is computed on eight weighted components, each traceable to the posts behind it, and every score version is kept."],
+    ["03", "Match", "A sponsor briefs a campaign and receives a ranked shortlist in which every score decomposes: audience fit 72 × 32% = 23.1."],
+    ["04", "Deal", "Offer, acceptance, delivery measured against what was projected. An unmeasured campaign reads as unmeasured, never as zero."],
+  ];
+  const cw = (COL - 0.75) / 4;
+  steps.forEach(([n, head, text], i) => {
+    const x = M + i * (cw + 0.25);
+    card(s, x, 2.2, cw, 2.72);
+    s.addText(n, {
+      x: x + 0.26, y: 2.4, w: cw - 0.52, h: 0.52, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 34, color: C.accent,
+    });
+    s.addText(head.toUpperCase(), {
+      x: x + 0.26, y: 2.92, w: cw - 0.52, h: 0.28, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 16, color: C.ink, charSpacing: 2.0,
+    });
+    body(s, text, { x: x + 0.26, y: 3.26, w: cw - 0.52, h: 1.5, fontSize: 12.5, lineSpacing: 17 });
+  });
+  card(s, M, 5.16, COL, 0.92, C.raised);
+  s.addText("NOTHING SELF-VERIFIES", {
+    x: M + 0.3, y: 5.36, w: 3.0, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 14, color: C.accent, charSpacing: 2.4,
+  });
+  body(s,
+    "A club scoring above the verification bar still waits for a human. A rejected proof cannot be " +
+    "cleared by re-submitting the form. That is what a sponsor is actually buying.", {
+    x: M + 3.5, y: 5.34, w: COL - 3.8, h: 0.6, fontSize: 13.5, color: C.ink2, lineSpacing: 18,
+  });
+  s.addNotes(
+    "Four steps. Apply, score, match, deal.\n\n" +
+    "I will not go through the arithmetic now, it is in appendix I and I am happy to take it in questions. " +
+    "The one thing worth your attention is the rule at the bottom.\n\n" +
+    "Nothing self-verifies. Every other platform in this space lets supply assert its own numbers. " +
+    "Ours cannot. That is precisely what the sponsor is paying for, and it is why the admission gate " +
+    "is the product rather than a feature of it."
+  );
+}
+
+// B2 — how a match is explained. The question the matching claim always draws,
+//      answered with the screen rather than a description of the screen.
+{
+  const s = backup("Backup, the matching engine", "A ranked athlete, opened on the arithmetic that ranked them",
+    "Eight weighted components. Bar length is the contribution to the total, not the component alone.");
+  // Cropped to the opened row: at full height the screen does not fit under a
+  // title, and everything above the row is chrome the question is not about.
+  s.addImage({
+    path: path.join(SHOTS, "sponsor-match-composition.png"),
+    x: M, y: 2.3, w: COL, h: 3.555,
+  });
+  const points = [
+    ["The weights are hand set", "A transparent weighted sum. Learned weights come once there are outcomes, and must beat this."],
+    ["Coverage travels with the score", "Three of three platforms, or one of three. A thin score is marked thin, not quietly averaged."],
+    ["It reads in plain language too", "Because the person approving the spend is rarely the person running the campaign."],
+  ];
+  const pw = (COL - 0.6) / 3;
+  points.forEach(([head, text], i) => {
+    const x = M + i * (pw + 0.3);
+    s.addText(head.toUpperCase(), {
+      x, y: 6.0, w: pw, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 12, color: C.accent, charSpacing: 2.0,
+    });
+    body(s, text, { x, y: 6.26, w: pw, h: 0.52, fontSize: 11.5, color: C.ink2, lineSpacing: 15 });
+  });
+  source(s, "Ranked matches for a live campaign, captured from the running application.");
+}
+
+// B3 — pricing
 {
   const s = backup("Backup, pricing", "15% sits between the only two published rates in the market",
     "Both ends of the corridor are real competitor economics, derived from filed accounts.");
@@ -1190,7 +1469,7 @@ function backup(eyebrowText, titleText, lead) {
   source(s, "Patreon and OnlyFans published terms and filed accounts; agency rates from published commission guides.");
 }
 
-// B2 — scenarios
+// B4 — scenarios
 {
   const s = backup("Backup, scenarios", "The plan survives its own pessimistic case",
     "Each case re-runs the whole model on changed drivers rather than adjusting the base result.");
@@ -1237,7 +1516,7 @@ function backup(eyebrowText, titleText, lead) {
   source(s, "Stride financial model, scenario table.");
 }
 
-// B3 — risk
+// B5 — risk
 {
   const s = backup("Backup, risk", "Eleven risks scored, and one of them is the thesis",
     "Probability × impact, both on a 1 to 5 scale. Nothing is rated more likely than 3.");
@@ -1267,7 +1546,7 @@ function backup(eyebrowText, titleText, lead) {
   });
 }
 
-// B4 — valuation and dilution
+// B6 — valuation and dilution
 {
   const s = backup("Backup, valuation", "Where the €1.8M pre-money comes from",
     "Two methods that disagree, and the disagreement is the honest part.");
@@ -1301,7 +1580,7 @@ function backup(eyebrowText, titleText, lead) {
   source(s, "Stride financial model: DCF, comparable transactions from PitchBook, and the dilution waterfall.");
 }
 
-// B5 — the admission arithmetic
+// B7 — the admission arithmetic
 {
   const s = backup("Backup, the gate", "What the admission gate actually costs to run",
     "The one human step in the chain, priced from the policy itself rather than assumed.");
