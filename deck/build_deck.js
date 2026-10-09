@@ -1,0 +1,1338 @@
+/**
+ * Stride — investor pitch deck for the ESADE MSc Business Plan defence.
+ *
+ * 15 minutes, one speaker, shared over Zoom. The register is the product's own:
+ * the "Timing Board" language from apps/web/DESIGN.md, a stadium results board
+ * rather than a SaaS dashboard. Graphite ground, one signal-amber accent,
+ * enormous condensed numerals against 11pt tracked caps. The deck looks like
+ * the thing it is selling, which is the cheapest credibility available.
+ *
+ * Every figure comes from business-plan/model.py or the chart CSVs it writes;
+ * nothing here is typed from memory.
+ *
+ * Joan Riera's evaluation form grades five things, and three of them are the
+ * deck's job rather than the speaker's: investor-grade content, storyline
+ * coherence, and "Look & Feel: Design, page number, layout". Hence the page
+ * number on every slide, the single repeated motif, and a narrative that runs
+ * problem, mechanism, product, proof, market, model, money, ask.
+ */
+const pptxgen = require("pptxgenjs");
+const path = require("path");
+
+// ── palette, lifted from apps/web/src/index.css ─────────────────────────────
+// The app stores RGB triplets so Tailwind can inject alpha; these are the same
+// values as hex. Changing a colour here restyles the whole deck.
+const C = {
+  ground: "101216",      // page ground, graphite not black
+  deep: "0A0C0F",        // the full-bleed board band
+  panel: "171A20",       // card
+  raised: "1F242C",      // hover / inset
+  track: "262C35",       // meter track
+  ink: "F2F4F7",         // headings
+  ink2: "AEB6C2",        // body
+  ink3: "828C9A",        // muted, captions, page numbers
+  accent: "FFB020",      // signal amber, the scoreboard LED
+  accentOn: "14100A",    // text sitting ON amber
+  ok: "3FCF8E",
+  warn: "FF8A3D",
+  critical: "F2555A",
+  cat1: "3B86E0",
+  cat2: "1FBD85",
+  cat3: "A884E8",
+};
+
+// Barlow Condensed ships here as the Bold weight and Barlow as Regular, so
+// neither ever takes bold:true — PowerPoint would synthesise a second, uglier
+// bold on top of the one the face already has.
+const DISPLAY = "Barlow Condensed";
+const BODY = "Barlow";
+
+const W = 13.333, H = 7.5;
+const M = 0.78;                       // side margin
+const COL = W - M * 2;
+
+const UI = path.resolve(__dirname, "../business-plan/attachments/ui");
+
+const pres = new pptxgen();
+pres.layout = "LAYOUT_WIDE";          // 13.333 x 7.5, must precede addSlide
+pres.theme = { headFontFace: DISPLAY, bodyFontFace: BODY };
+pres.author = "Jad Zoghaib";
+pres.title = "Stride — athlete monetisation built on analytics";
+pres.subject = "ESADE MSc Business Plan, final presentation";
+
+// ── layouts ─────────────────────────────────────────────────────────────────
+const pageNum = {
+  x: W - M - 0.8, y: H - 0.52, w: 0.8, h: 0.3, align: "right",
+  fontFace: DISPLAY, fontSize: 12, color: C.ink3,
+};
+
+pres.defineSlideMaster({
+  title: "COVER",
+  background: { color: C.deep },
+  objects: [],
+});
+
+// No wordmark in the footer: the source line lives bottom-left on most slides
+// and the two collided on every one of them. Page number only, which is what
+// the evaluation form actually asks for.
+pres.defineSlideMaster({
+  title: "BOARD",
+  background: { color: C.ground },
+  objects: [],
+  slideNumber: pageNum,
+});
+
+pres.defineSlideMaster({
+  title: "BOARD_DEEP",
+  background: { color: C.deep },
+  objects: [],
+  slideNumber: pageNum,
+});
+
+// ── helpers ─────────────────────────────────────────────────────────────────
+// Every options object is built fresh: pptxgenjs converts values to EMU in
+// place on first use, so a shared literal silently corrupts the second caller.
+
+/** 11pt tracked caps. The deck's smallest voice and its most repeated one. */
+function eyebrow(s, text, opts = {}) {
+  s.addText(text.toUpperCase(), {
+    x: M, y: 0.52, w: COL, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 12.5, color: C.accent, charSpacing: 3.2,
+    ...opts,
+  });
+}
+
+/** The slide's one message, set in the condensed display face. */
+function title(s, text, opts = {}) {
+  s.addText(text, {
+    x: M, y: 0.86, w: COL, h: 0.95, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 36, color: C.ink, lineSpacing: 38,
+    ...opts,
+  });
+}
+
+function body(s, text, opts = {}) {
+  s.addText(text, {
+    margin: 0, isTextBox: true, valign: "top", fontFace: BODY, fontSize: 15,
+    color: C.ink2, lineSpacing: 22, ...opts,
+  });
+}
+
+/** A panel card. No edge stripes: a tint and a hairline is the whole device. */
+function card(s, x, y, w, h, fill = C.panel) {
+  s.addShape(pres.ShapeType.roundRect, {
+    x, y, w, h, rectRadius: 0.04,
+    fill: { color: fill },
+    line: { color: C.track, width: 0.75 },
+  });
+}
+
+/** Scoreboard block: tracked cap label over an enormous numeral. */
+function stat(s, x, y, w, label, value, note, colour = C.ink, size = 54, labelH = 0.24) {
+  s.addText(label.toUpperCase(), {
+    x, y, w, h: labelH, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 11.5, color: C.ink3, charSpacing: 2.2,
+    lineSpacing: 14,
+  });
+  s.addText(value, {
+    x, y: y + labelH, w, h: size / 58, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: size, color: colour, lineSpacing: size * 0.98,
+  });
+  if (note) {
+    s.addText(note, {
+      x, y: y + labelH + size / 58 + 0.03, w, h: 0.78, margin: 0, isTextBox: true, valign: "top",
+      fontFace: BODY, fontSize: 12, color: C.ink3, lineSpacing: 15,
+    });
+  }
+}
+
+function source(s, text) {
+  s.addText(text, {
+    x: M, y: H - 0.52, w: COL - 1.2, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+    fontFace: BODY, fontSize: 9.5, color: C.ink3,
+  });
+}
+
+/** The logo: a short amber dash, then the wordmark. Same as the app's sidebar. */
+function wordmark(s, x, y, size = 30) {
+  const dash = size / 140;                     // short, as in the product
+  s.addShape(pres.ShapeType.rect, {
+    x, y: y + size / 155, w: dash, h: Math.max(0.028, size / 1000),
+    fill: { color: C.accent }, line: { width: 0 },
+  });
+  s.addText("STRIDE", {
+    x: x + dash + size / 260, y, w: size / 7, h: size / 52, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: size, color: C.ink, charSpacing: size / 14,
+  });
+}
+
+/** Chart frame. The fill has to be the slide's own ground, or the plot area
+ *  reads as a lighter rectangle floating on the darker board. */
+function chartFrame(ground) {
+  return {
+    catAxisLabelFontFace: BODY, catAxisLabelColor: C.ink3, catAxisLabelFontSize: 11,
+    valAxisLabelFontFace: BODY, valAxisLabelColor: C.ink3, valAxisLabelFontSize: 11,
+    dataLabelFontFace: DISPLAY, dataLabelFontSize: 11, dataLabelColor: C.ink,
+    valGridLine: { color: C.track, size: 0.75 },
+    catGridLine: { style: "none" },
+    chartArea: { fill: { color: ground } }, plotArea: { fill: { color: ground } },
+    border: { pt: 0, color: ground },
+  };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 1 — COVER
+// ════════════════════════════════════════════════════════════════════════════
+pres.addSection({ title: "Open" });
+{
+  const s = pres.addSlide({ masterName: "COVER", sectionTitle: "Open" });
+  wordmark(s, M, 1.55, 58);
+  s.addText("Athletes are creators with a second payer", {
+    x: M, y: 2.72, w: 10.4, h: 1.5, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 46, color: C.ink, lineSpacing: 50,
+  });
+  s.addText(
+    "Fan subscriptions, sponsorship and the analytics engine that makes the second payer possible. " +
+    "Built for the athletes no agent has ever called.", {
+    x: M, y: 4.22, w: 8.6, h: 0.9, margin: 0, isTextBox: true, valign: "top",
+    fontFace: BODY, fontSize: 15.5, color: C.ink2, lineSpacing: 23,
+  });
+  s.addShape(pres.ShapeType.rect, {
+    x: M, y: 5.5, w: COL, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+  });
+  s.addText([
+    { text: "Jad Zoghaib", options: { color: C.ink, fontFace: DISPLAY, fontSize: 17 } },
+    { text: "   MSc Business Plan, ESADE   ·   Tutor: Ignacio Gallardo Albajar   ·   October 2026",
+      options: { color: C.ink3, fontFace: BODY, fontSize: 12.5 } },
+  ], { x: M, y: 5.72, w: 9.2, h: 0.36, margin: 0, isTextBox: true });
+  s.addText("LIVE DEMO", {
+    x: W - M - 3.3, y: 5.68, w: 3.3, h: 0.2, margin: 0, isTextBox: true, valign: "top",
+    align: "right", fontFace: DISPLAY, fontSize: 10.5, color: C.ink3, charSpacing: 2.6,
+  });
+  s.addText("stride-demo.onrender.com", {
+    x: W - M - 3.3, y: 5.88, w: 3.3, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+    align: "right", fontFace: DISPLAY, fontSize: 16, color: C.accent,
+  });
+  s.addNotes(
+    "Good morning. I am Jad Zoghaib and this is Stride.\n\n" +
+    "One sentence for the whole plan: athletes are creators with a second payer. " +
+    "OnlyFans proved direct fan monetisation beats ad share. Nobody has built it for athletes, " +
+    "who unlike lifestyle creators also have sponsors, clubs and a competitive record that makes " +
+    "their audience measurable.\n\n" +
+    "Everything I show you is live at that URL, and I am happy to open it in the Q&A."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 2 — ORIGIN
+// ════════════════════════════════════════════════════════════════════════════
+pres.addSection({ title: "Problem" });
+{
+  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Problem" });
+  eyebrow(s, "Why this, from me");
+  title(s, "I am not researching this market from outside it");
+
+  const blocks = [
+    ["Athlete", "Capped by the Lebanese national rugby team, with international tournament experience. The athletes in my research are people I play with, which is why the conversations were candid rather than performative."],
+    ["Operator", "Four years in management consulting across MENA. Feasibility studies at $5 to 15M, DCF modelling, and an OpEx reorganisation that delivered SAR 650M of capital optimisation."],
+    ["Builder", "MSc Business Analytics at ESADE. The deployed product, the analytics engine and the financial model behind this plan are all my own work."],
+  ];
+  const cw = (COL - 0.6) / 3;
+  blocks.forEach(([head, text], i) => {
+    const x = M + i * (cw + 0.3);
+    card(s, x, 2.22, cw, 2.62);
+    s.addText(head.toUpperCase(), {
+      x: x + 0.3, y: 2.52, w: cw - 0.6, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 19, color: C.accent, charSpacing: 1.8,
+    });
+    body(s, text, { x: x + 0.3, y: 2.95, w: cw - 0.6, h: 2.3, fontSize: 13.5, lineSpacing: 19 });
+  });
+  body(s, "The plan can make claims about the technology that are checkable rather than aspirational, because I wrote it.", {
+    x: M, y: 5.12, w: COL, h: 0.4, fontSize: 14, color: C.ink3,
+  });
+  s.addNotes(
+    "Thirty seconds on why I am the person telling you this.\n\n" +
+    "I am capped by the Lebanese national rugby team. The athletes I interviewed are people I play with, " +
+    "so I am inside the segment this plan describes, not studying it from outside.\n\n" +
+    "Four years of consulting gave me the modelling. The MSc and the build gave me the product. " +
+    "Everything in the demo is my own code."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 3 — THE PROBLEM
+// ════════════════════════════════════════════════════════════════════════════
+{
+  const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Problem" });
+  eyebrow(s, "What five athletes told me");
+
+  s.addText("€0", {
+    x: M, y: 1.25, w: 5.2, h: 2.5, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 168, color: C.ink, lineSpacing: 160,
+  });
+  s.addText("CURRENT INCOME FROM THEIR AUDIENCE", {
+    x: M, y: 3.62, w: 5.4, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 13, color: C.ink3, charSpacing: 2.6,
+  });
+  s.addText("Not low. Not inconsistent. Nothing", {
+    x: M, y: 4.05, w: 5.6, h: 0.9, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 30, color: C.accent, lineSpacing: 34,
+  });
+
+  card(s, 6.9, 1.35, COL - 6.12, 3.95, C.panel);
+  s.addText("“", {
+    x: 7.2, y: 1.42, w: 1, h: 1, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 80, color: C.track,
+  });
+  body(s,
+    "People are not going to spend time setting up social media and building followers purely " +
+    "around their sport if nothing comes back.", {
+    x: 7.3, y: 2.25, w: COL - 7.0, h: 1.5, fontSize: 19, color: C.ink, lineSpacing: 27,
+  });
+  s.addShape(pres.ShapeType.rect, {
+    x: 7.3, y: 3.9, w: 1.1, h: 0.02, fill: { color: C.accent }, line: { width: 0 },
+  });
+  body(s,
+    "Rugby league players competing in Spain and Lebanon, and top-ranked Lebanese CrossFit athletes. " +
+    "The founder is capped by the Lebanese national rugby team, which is how this access exists.", {
+    x: 7.3, y: 4.08, w: COL - 7.0, h: 1.1, fontSize: 12.5, color: C.ink3, lineSpacing: 17,
+  });
+
+  // The other three findings, so the lower third carries the rest of the
+  // research rather than sitting empty under the headline number.
+  const findings = [
+    ["The inequity is felt", "Influencers producing far less demanding content earn more than competing athletes do"],
+    ["Sponsorship arrives despite the sport", "The one athlete who has a sponsor did not get it as a rugby league player"],
+    ["So they stop building an audience", "Which suppresses the very supply the market is measured on"],
+  ];
+  const fw = (COL - 0.6) / 3;
+  findings.forEach(([head, text], i) => {
+    const x = M + i * (fw + 0.3);
+    s.addShape(pres.ShapeType.rect, {
+      x, y: 5.62, w: fw, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+    });
+    s.addText(head.toUpperCase(), {
+      x, y: 5.76, w: fw, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 12, color: C.ink, charSpacing: 1.8,
+    });
+    body(s, text, { x, y: 6.02, w: fw, h: 0.6, fontSize: 11.5, color: C.ink3, lineSpacing: 15 });
+  });
+  source(s, "Primary research, five semi-structured interviews, 2026. Convenience sample, reported as one.");
+  s.addNotes(
+    "I asked five athletes in my own sports what they earn from their audience.\n\n" +
+    "The answer was not 'a little'. It was zero. Nothing.\n\n" +
+    "And read the quote carefully, because it is the finding that matters most: they do not build an " +
+    "audience, because there is no return on building one. That is not a complaint about pricing. " +
+    "It is a market with no infrastructure in it."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 4 — WHY IT HAPPENS
+// ════════════════════════════════════════════════════════════════════════════
+{
+  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Problem" });
+  eyebrow(s, "The mechanism");
+  title(s, "The layer that turns an audience into income was never built for these sports");
+
+  const halves = [
+    ["In a popular sport", "An agent takes 10 to 20% of an endorsement to make an introduction. The layer exists, and it is expensive.", C.ink2],
+    ["In a niche sport", "There is no agent at all. The athlete's alternative to Stride is not a worse deal. It is no deal.", C.accent],
+  ];
+  const hw = (COL - 0.3) / 2;
+  halves.forEach(([head, text, colour], i) => {
+    const x = M + i * (hw + 0.3);
+    card(s, x, 2.1, hw, 1.62, i === 1 ? C.raised : C.panel);
+    s.addText(head.toUpperCase(), {
+      x: x + 0.28, y: 2.32, w: hw - 0.56, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 12.5, color: C.ink3, charSpacing: 2.6,
+    });
+    body(s, text, { x: x + 0.28, y: 2.62, w: hw - 0.56, h: 1.0, fontSize: 16, color: colour, lineSpacing: 23 });
+  });
+
+  s.addText("AND THAT ABSENCE FEEDS ITSELF", {
+    x: M, y: 4.0, w: COL, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 12, color: C.ink3, charSpacing: 2.8,
+  });
+  const loop = [
+    "No route from audience to income",
+    "So no reason to build an audience",
+    "So the market measures smaller than it is",
+  ];
+  const lw = (COL - 1.3) / 3;
+  loop.forEach((text, i) => {
+    const x = M + i * (lw + 0.65);
+    card(s, x, 4.34, lw, 0.92, C.panel);
+    s.addText(String(i + 1).padStart(2, "0"), {
+      x: x + 0.24, y: 4.5, w: 0.5, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 15, color: C.accent,
+    });
+    body(s, text, { x: x + 0.74, y: 4.5, w: lw - 1.0, h: 0.62, fontSize: 13, color: C.ink, lineSpacing: 17 });
+    if (i < 2) {
+      s.addText("›", {
+        x: x + lw + 0.12, y: 4.56, w: 0.42, h: 0.5, margin: 0, isTextBox: true, valign: "top",
+        align: "center", fontFace: DISPLAY, fontSize: 26, color: C.ink3,
+      });
+    }
+  });
+  body(s,
+    "So the market is sized under the very incentives that suppress it. The plan does not claim the " +
+    "expansion, and the honest error direction is understatement.", {
+    x: M, y: 5.48, w: COL, h: 0.6, fontSize: 14, color: C.ink2,
+  });
+  s.addNotes(
+    "Why does this happen? Because the intermediation layer that converts audience into income was " +
+    "never built below the professional tier.\n\n" +
+    "In football an agent takes 10 to 20 per cent. Expensive, but it exists. In trail running or " +
+    "rugby league there is no agent at all.\n\n" +
+    "And the absence compounds: no route to income, so no reason to build an audience, so the market " +
+    "counts smaller than it really is. That means every number I am about to show you is the " +
+    "conservative reading."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 5 — WHAT STRIDE IS
+// ════════════════════════════════════════════════════════════════════════════
+pres.addSection({ title: "Product" });
+{
+  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Product" });
+  eyebrow(s, "The product");
+  title(s, "A creator platform with a sponsorship feature");
+
+  const who = [
+    ["Athlete", "Supply, and the constraint", "Connects platforms, passes an admission gate, gets a paid fan page and a place in the sponsor-facing engine.", "Pays nothing. No monthly fee, ever", C.accent],
+    ["Fan", "Pays for access", "Subscribes to an athlete they already follow, at tiers the athlete sets.", "15% of fan revenue", C.cat2],
+    ["Sponsor", "Pays for attention", "Briefs a campaign and gets a ranked shortlist with the arithmetic shown, then measures delivery.", "10% of sponsorship", C.cat1],
+  ];
+  const cw = (COL - 0.6) / 3;
+  who.forEach(([head, role, text, price, colour], i) => {
+    const x = M + i * (cw + 0.3);
+    card(s, x, 2.18, cw, 3.12);
+    s.addText(head.toUpperCase(), {
+      x: x + 0.3, y: 2.44, w: cw - 0.6, h: 0.32, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 22, color: colour, charSpacing: 1.6,
+    });
+    s.addText(role.toUpperCase(), {
+      x: x + 0.3, y: 2.8, w: cw - 0.6, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 10.5, color: C.ink3, charSpacing: 2.2,
+    });
+    body(s, text, { x: x + 0.3, y: 3.18, w: cw - 0.6, h: 1.4, fontSize: 13.5, lineSpacing: 19 });
+    s.addShape(pres.ShapeType.rect, {
+      x: x + 0.3, y: 4.62, w: cw - 0.6, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+    });
+    s.addText(price, {
+      x: x + 0.3, y: 4.76, w: cw - 0.6, h: 0.34, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 17, color: C.ink,
+    });
+  });
+  body(s,
+    "Fan revenue leads and funds the early years. Sponsorship compounds behind it, and the analytics " +
+    "engine earns its keep by making the second payer possible, which a general creator platform cannot do.", {
+    x: M, y: 5.56, w: COL, h: 0.6, fontSize: 14, color: C.ink2,
+  });
+  s.addNotes(
+    "So what is Stride. A creator platform with a sponsorship feature.\n\n" +
+    "Three customers. The athlete is the constraint and pays nothing. The fan pays for access, and we " +
+    "take 15 per cent. The sponsor pays for attention, and we take 10.\n\n" +
+    "The flat take with no athlete fee is deliberate: the athlete earning 200 euros a month pays the " +
+    "same rate as the one earning 5,000. A subscription fee would have been regressive."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 6 — IT IS BUILT
+// ════════════════════════════════════════════════════════════════════════════
+{
+  const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Product" });
+  eyebrow(s, "Not a mockup");
+  s.addText("It is built, deployed,\nand you can open it now", {
+    x: M, y: 0.86, w: 4.15, h: 1.6, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 33, color: C.ink, lineSpacing: 35,
+  });
+  const live = [
+    "Admission gate with human review",
+    "Versioned marketability scoring",
+    "Explainable campaign matching",
+    "Offers, deals, delivery measurement",
+    "Audit log and a resilience drill",
+    "Tests on two databases in CI",
+  ];
+  live.forEach((text, i) => {
+    const y = 2.62 + i * 0.355;
+    s.addShape(pres.ShapeType.rect, {
+      x: M, y: y + 0.105, w: 0.14, h: 0.03, fill: { color: C.accent }, line: { width: 0 },
+    });
+    body(s, text, { x: M + 0.3, y, w: 3.8, h: 0.32, fontSize: 13, color: C.ink2 });
+  });
+  s.addText("stride-demo.onrender.com", {
+    x: M, y: 4.95, w: 4.0, h: 0.34, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 18, color: C.accent,
+  });
+  body(s, "Fourteen demo accounts. Registration is open.", {
+    x: M, y: 5.3, w: 4.0, h: 0.3, fontSize: 11.5, color: C.ink3,
+  });
+  s.addImage({
+    path: path.join(UI, "02-athlete-dashboard.png"),
+    x: 5.05, y: 0.75, w: 7.85, h: 5.45,
+  });
+  source(s, "Athlete dashboard, captured from the running application.");
+  s.addNotes(
+    "This is the part most business plans cannot show you.\n\n" +
+    "It is not a mockup and not a prototype. It is deployed, and the URL is on the slide. " +
+    "Fourteen demo accounts, registration open, you can sign in during the questions if you want to.\n\n" +
+    "What you are looking at is an athlete's marketability score, 72, decomposed into the five " +
+    "dimensions that produced it, with the connected platforms and the live offers underneath. " +
+    "Every number on that screen traces back to a platform sync."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 7 — HOW IT WORKS
+// ════════════════════════════════════════════════════════════════════════════
+{
+  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Product" });
+  eyebrow(s, "How it works");
+  title(s, "Four steps, and a rule that holds all four together");
+
+  const steps = [
+    ["01", "Apply", "The athlete connects their platforms and applies. Proof is checked automatically, then a person decides. A club can nominate a whole roster as a second route."],
+    ["02", "Score", "Marketability is computed on eight weighted components, each traceable to the posts behind it, and every score version is kept."],
+    ["03", "Match", "A sponsor briefs a campaign and receives a ranked shortlist in which every score decomposes: audience fit 72 × 32% = 23.1."],
+    ["04", "Deal", "Offer, acceptance, delivery measured against what was projected. An unmeasured campaign reads as unmeasured, never as zero."],
+  ];
+  const cw = (COL - 0.75) / 4;
+  steps.forEach(([n, head, text], i) => {
+    const x = M + i * (cw + 0.25);
+    card(s, x, 2.2, cw, 2.72);
+    s.addText(n, {
+      x: x + 0.26, y: 2.4, w: cw - 0.52, h: 0.52, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 34, color: C.accent,
+    });
+    s.addText(head.toUpperCase(), {
+      x: x + 0.26, y: 2.92, w: cw - 0.52, h: 0.28, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 16, color: C.ink, charSpacing: 2.0,
+    });
+    body(s, text, { x: x + 0.26, y: 3.26, w: cw - 0.52, h: 1.5, fontSize: 12.5, lineSpacing: 17 });
+  });
+  card(s, M, 5.16, COL, 0.92, C.raised);
+  s.addText("NOTHING SELF-VERIFIES", {
+    x: M + 0.3, y: 5.36, w: 3.0, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 14, color: C.accent, charSpacing: 2.4,
+  });
+  body(s,
+    "A club scoring above the verification bar still waits for a human. A rejected proof cannot be " +
+    "cleared by re-submitting the form. That is what a sponsor is actually buying.", {
+    x: M + 3.5, y: 5.34, w: COL - 3.8, h: 0.6, fontSize: 13.5, color: C.ink2, lineSpacing: 18,
+  });
+  s.addNotes(
+    "Four steps. Apply, score, match, deal.\n\n" +
+    "I will not go through the arithmetic now, it is in appendix I and I am happy to take it in questions. " +
+    "The one thing worth your attention is the rule at the bottom.\n\n" +
+    "Nothing self-verifies. Every other platform in this space lets supply assert its own numbers. " +
+    "Ours cannot. That is precisely what the sponsor is paying for, and it is why the admission gate " +
+    "is the product rather than a feature of it."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 8 — THE EXPERT
+// ════════════════════════════════════════════════════════════════════════════
+{
+  const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Product" });
+  eyebrow(s, "Primary research");
+  title(s, "The research changed the product, which is the point of doing it");
+
+  card(s, M, 2.1, 7.2, 3.3, C.panel);
+  s.addText("“", {
+    x: M + 0.28, y: 2.16, w: 1, h: 1, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 76, color: C.track,
+  });
+  body(s,
+    "Open registration to everyone, but build a filtering mechanism so that not anyone " +
+    "can register as an athlete.", {
+    x: M + 0.42, y: 2.92, w: 6.4, h: 1.2, fontSize: 20, color: C.ink, lineSpacing: 28,
+  });
+  s.addShape(pres.ShapeType.rect, {
+    x: M + 0.42, y: 4.28, w: 1.1, h: 0.02, fill: { color: C.accent }, line: { width: 0 },
+  });
+  body(s,
+    "Íñigo Cristóbal Losada, AI Lead at olympics.com, after eleven years at Olympic " +
+    "Broadcasting Services, where he was Broadcaster Services Manager through Tokyo 2020 and Beijing 2022.", {
+    x: M + 0.42, y: 4.46, w: 6.4, h: 0.8, fontSize: 12.5, color: C.ink3, lineSpacing: 17,
+  });
+
+  s.addText("WHAT IT CHANGED", {
+    x: 8.5, y: 2.1, w: COL - 7.72, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 12, color: C.ink3, charSpacing: 2.8,
+  });
+  body(s,
+    "I had pitched it to him as a product for the IOC, open only to Olympic athletes. He rejected " +
+    "that framing outright.", {
+    x: 8.5, y: 2.46, w: COL - 7.72, h: 1.0, fontSize: 14, color: C.ink2, lineSpacing: 20,
+  });
+  body(s,
+    "The admission gate exists because of that conversation. It is not a feature that was designed " +
+    "and then justified.", {
+    x: 8.5, y: 3.48, w: COL - 7.72, h: 1.0, fontSize: 14, color: C.ink, lineSpacing: 20,
+  });
+  body(s,
+    "It also settled market entry. An IOC-only product inherits the IOC's athletes: elite, " +
+    "represented, already monetised. The segment with the actual problem sits below that tier.", {
+    x: 8.5, y: 4.5, w: COL - 7.72, h: 1.2, fontSize: 13, color: C.ink3, lineSpacing: 18,
+  });
+  s.addNotes(
+    "I interviewed an expert with eleven years inside Olympic broadcasting.\n\n" +
+    "I pitched him a product for the IOC, Olympic athletes only. He rejected it and told me to open " +
+    "registration to everyone but filter who gets in.\n\n" +
+    "The admission gate you just saw exists because of that sentence. I want to be precise about this: " +
+    "the research changed the product, it did not decorate it. And it settled where we enter the " +
+    "market, because the IOC's athletes are already represented and already monetised."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 9 — MARKET
+// ════════════════════════════════════════════════════════════════════════════
+pres.addSection({ title: "Market" });
+{
+  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Market" });
+  eyebrow(s, "How big, bottom up");
+  title(s, "A segment nobody measures is a segment nobody has sized a product for");
+
+  const funnel = [
+    ["520M", "EU-27 and UK population", 1.0],
+    ["8.3M", "Compete at club level or above", 0.62],
+    ["138,000", "TAM: niche sports, 5,000+ followers", 0.40],
+    ["55,000", "SAM: six launch markets", 0.26],
+    ["6,300", "Our Y7 target, 11% of SAM", 0.13],
+  ];
+  funnel.forEach(([value, label, frac], i) => {
+    const y = 2.18 + i * 0.66;
+    const last = i === funnel.length - 1;
+    s.addShape(pres.ShapeType.rect, {
+      x: M, y, w: 5.9 * frac, h: 0.48,
+      fill: { color: last ? C.accent : C.track }, line: { width: 0 },
+    });
+    s.addText(value, {
+      x: M + 0.18, y: y + 0.03, w: 2.2, h: 0.4, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 21, color: last ? C.accentOn : C.ink,
+    });
+    body(s, label, { x: M + 6.15, y: y + 0.09, w: 2.75, h: 0.36, fontSize: 12.5, color: C.ink3 });
+  });
+
+  card(s, 9.95, 2.18, COL - 9.17, 3.3, C.panel);
+  stat(s, 10.22, 2.44, 2.3, "European sport sponsorship", "€24.79bn",
+       "Growing 5.9% a year", C.ink, 30, 0.46);
+  s.addShape(pres.ShapeType.rect, {
+    x: 10.22, y: 3.86, w: 2.0, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+  });
+  stat(s, 10.22, 4.04, 2.3, "Spain, the fastest major market", "+14%",
+       "Ahead of the UK and France", C.ok, 30, 0.46);
+
+  body(s,
+    "None of that top-down figure breaks below the professional tier. There is no published number for " +
+    "sponsorship of individual athletes, so the plan does not divide it by anything. The bottom-up funnel " +
+    "exists because the measured market stops exactly where ours starts.", {
+    x: M, y: 5.62, w: COL, h: 0.72, fontSize: 13.5, color: C.ink2, lineSpacing: 19,
+  });
+  source(s, "European Sponsorship Association, 2025, via Statista. Funnel: Eurostat, Eurobarometer 525, and the plan's own Sport Opportunity Index.");
+  s.addNotes(
+    "Market, bottom up, because top down does not work here.\n\n" +
+    "European sport sponsorship is 24.8 billion euros and Spain is the fastest growing major market at " +
+    "plus 14 per cent. But none of that breaks below the professional tier, so I refuse to divide it by " +
+    "a number and call it my market.\n\n" +
+    "Instead: 138,000 niche-sport athletes in Europe with over 5,000 followers. 55,000 in the six markets " +
+    "we would enter. We target 6,300 by year seven, which is 11 per cent of the serviceable market. " +
+    "That is deliberately modest."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 10 — WHY NICHE FIRST
+// ════════════════════════════════════════════════════════════════════════════
+{
+  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Market" });
+  eyebrow(s, "The wedge");
+  title(s, "We start where there is no incumbent, because that is also where the economics are best");
+
+  const cols = [
+    ["Niche sports", "€16", "To acquire one athlete in Y1", "48%", "Of them monetise by Y7", C.accent, C.raised],
+    ["Popular sports", "€40", "To acquire one athlete in Y1", "30%", "Of them monetise by Y7", C.ink2, C.panel],
+  ];
+  const cw = (COL - 0.3) / 2;
+  cols.forEach(([head, cac, cacNote, mon, monNote, colour, fill], i) => {
+    const x = M + i * (cw + 0.3);
+    card(s, x, 2.2, cw, 2.12, fill);
+    s.addText(head.toUpperCase(), {
+      x: x + 0.32, y: 2.42, w: cw - 0.64, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 17, color: colour, charSpacing: 2.0,
+    });
+    s.addText(cac, {
+      x: x + 0.32, y: 2.84, w: 1.9, h: 0.85, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 52, color: C.ink, lineSpacing: 52,
+    });
+    body(s, cacNote, { x: x + 0.32, y: 3.74, w: 2.3, h: 0.5, fontSize: 11.5, color: C.ink3, lineSpacing: 15 });
+    s.addText(mon, {
+      x: x + 3.1, y: 2.84, w: 1.9, h: 0.85, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 52, color: C.ink, lineSpacing: 52,
+    });
+    body(s, monNote, { x: x + 3.1, y: 3.74, w: 2.3, h: 0.5, fontSize: 11.5, color: C.ink3, lineSpacing: 15 });
+  });
+  body(s,
+    "Cheaper to acquire, and a larger share of them earn. Nobody is fighting us for a trail runner with " +
+    "25,000 followers and an inbox of unanswered brand DMs. What we learn there generalises upward. " +
+    "Football does not generalise downward.", {
+    x: M, y: 4.62, w: COL, h: 0.8, fontSize: 14.5, color: C.ink2, lineSpacing: 20,
+  });
+  source(s, "Stride financial model, segment assumptions. Acquisition cost rises over the plan as the mix shifts toward popular sports.");
+  s.addNotes(
+    "Why niche sports first, and this is the strategic heart of the plan.\n\n" +
+    "A niche athlete costs 16 euros to acquire against 40 for a popular one, and by year seven 48 per cent " +
+    "of them monetise against 30 per cent.\n\n" +
+    "Cheaper, and more of them earn. And nobody is competing for them, because there is no agent there " +
+    "to compete with. What we learn in niche sports generalises upward into bigger ones. Starting in " +
+    "football and working down does not work, because in football we would be the fifth option."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 11 — COMPETITION
+// ════════════════════════════════════════════════════════════════════════════
+{
+  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Market" });
+  eyebrow(s, "Four companies tried this before us");
+  title(s, "All four monetise the brand side only. The fan is not in their model");
+
+  const rows = [
+    ["Sponsoo", "Marketplace, same model", "11 yrs", "13", "€2.17M", "Total equity zero"],
+    ["OpenSponsorship", "Marketplace, same model", "12 yrs", "23", "€7.6M", "Still private"],
+    ["Hookit", "Sponsorship data", "18 yrs", "47", "€21.5M", "Sold"],
+    ["SponsorUnited", "Sponsorship data, enterprise", "9 yrs", "355", "€38.8M", "A different business"],
+  ];
+  const headers = ["Company", "What it is", "Age", "People", "Raised", "Where it got to"];
+  const colX = [M, M + 2.5, M + 5.4, M + 6.5, M + 7.7, M + 9.3];
+  const colW = [2.4, 2.8, 1.0, 1.1, 1.5, 2.4];
+
+  headers.forEach((h, i) => {
+    s.addText(h.toUpperCase(), {
+      x: colX[i], y: 2.16, w: colW[i], h: 0.26, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 11, color: C.ink3, charSpacing: 2.2,
+    });
+  });
+  s.addShape(pres.ShapeType.rect, {
+    x: M, y: 2.46, w: COL, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+  });
+  rows.forEach((r, ri) => {
+    const y = 2.58 + ri * 0.52;
+    if (ri % 2 === 0) {
+      s.addShape(pres.ShapeType.rect, {
+        x: M - 0.12, y: y - 0.06, w: COL + 0.24, h: 0.46,
+        fill: { color: C.panel }, line: { width: 0 },
+      });
+    }
+    r.forEach((cell, ci) => {
+      s.addText(cell, {
+        x: colX[ci], y, w: colW[ci], h: 0.34, margin: 0, isTextBox: true, valign: "top",
+        fontFace: ci === 0 ? DISPLAY : BODY, fontSize: ci === 0 ? 16 : 12.5,
+        color: ci === 0 ? C.ink : (ci === 5 ? C.ink2 : C.ink3),
+      });
+    });
+  });
+
+  card(s, M, 4.88, COL, 1.12, C.raised);
+  s.addText("THE SECOND PAYER", {
+    x: M + 0.3, y: 5.08, w: 2.6, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 13.5, color: C.accent, charSpacing: 2.4,
+  });
+  body(s,
+    "Fan subscriptions are 48% of our Y7 revenue, and none of these four has that stream at all. " +
+    "If it works, the economics are not Sponsoo's. If it does not, they are, and this is Sponsoo with " +
+    "eleven fewer years of relationships. The plan prices both cases.", {
+    x: M + 3.2, y: 5.04, w: COL - 3.5, h: 0.84, fontSize: 13.5, color: C.ink2, lineSpacing: 18,
+  });
+  source(s, "PitchBook company profiles, retrieved 1 October 2026, reported in euros.");
+  s.addNotes(
+    "I want to be straight with you about the comparables, because they are not flattering.\n\n" +
+    "Four companies have built in this space. The two doing exactly what we do are small after more than " +
+    "a decade. Sponsoo has thirteen people after eleven years and its total equity is zero, which means " +
+    "accumulated losses have eaten everything shareholders put in. PitchBook models it at a 94 per cent " +
+    "probability of no exit.\n\n" +
+    "So what is different. One thing. All four monetise the brand side only. The fan is not in their " +
+    "business model at all. For us fan subscriptions are 48 per cent of year seven revenue. That is a " +
+    "second payer none of them has, and it is the whole thesis. If it works we are not Sponsoo. " +
+    "If it does not, we are."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 12 — REVENUE MIX
+// ════════════════════════════════════════════════════════════════════════════
+pres.addSection({ title: "Model" });
+{
+  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Model" });
+  eyebrow(s, "Revenue model");
+  title(s, "The business changes shape as it grows");
+
+  const years = ["Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7"];
+  s.addChart(pres.ChartType.bar, [
+    { name: "Fan subscriptions", labels: years, values: [0.0, 0.051, 0.184, 0.396, 0.684, 1.034, 1.436] },
+    { name: "Sponsorship commission", labels: years, values: [0.002, 0.009, 0.046, 0.149, 0.346, 0.649, 0.982] },
+    { name: "Sponsor SaaS", labels: years, values: [0.001, 0.008, 0.056, 0.159, 0.292, 0.441, 0.595] },
+  ], {
+    x: M, y: 2.08, w: 8.3, h: 3.5,
+    barGrouping: "stacked", chartColors: [C.accent, C.cat1, C.cat3],
+    showLegend: true, legendPos: "b", legendColor: C.ink3, legendFontFace: BODY, legendFontSize: 11,
+    showValue: false, valAxisTitle: "", valAxisMaxVal: 3.2,
+    valAxisLabelFormatCode: '"€"0.0"M"', barGapWidthPct: 55,
+    valAxisMinVal: 0,
+    ...chartFrame(C.ground),
+  });
+
+  const notes = [
+    ["Y2", "75%", "of revenue is fan subscriptions, the year the thesis is tested"],
+    ["Y7", "48%", "still fan, with sponsorship and SaaS compounding behind it"],
+  ];
+  notes.forEach(([yr, pct, text], i) => {
+    const y = 2.3 + i * 1.6;
+    card(s, 9.2, y, COL - 8.42, 1.35, C.panel);
+    s.addText(yr, {
+      x: 9.5, y: y + 0.18, w: 0.8, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 12, color: C.ink3,
+    });
+    s.addText(pct, {
+      x: 9.5, y: y + 0.4, w: 1.6, h: 0.5, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 34, color: C.accent, lineSpacing: 34,
+    });
+    body(s, text, { x: 9.5, y: y + 0.88, w: COL - 9.0, h: 0.42, fontSize: 11.5, color: C.ink3, lineSpacing: 15 });
+  });
+  card(s, 9.2, 5.5, COL - 8.42, 0.55, C.raised);
+  s.addText("€3.01M total at Y7", {
+    x: 9.5, y: 5.62, w: 3.2, h: 0.32, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 17, color: C.ink,
+  });
+  source(s, "Stride financial model. Y1 to Y7, net revenue after the athlete's share.");
+  s.addNotes(
+    "The revenue model in one picture. Three streams.\n\n" +
+    "Fan subscriptions in amber lead and fund the early years. Sponsorship commission and the sponsor " +
+    "SaaS tier compound behind them.\n\n" +
+    "The shape is the point: this starts as a subscription business and becomes a two-sided one. " +
+    "Three million euros of net revenue at year seven."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 13 — YEAR ONE
+// ════════════════════════════════════════════════════════════════════════════
+{
+  const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Model" });
+  eyebrow(s, "Go to market");
+  title(s, "Year one, concretely");
+
+  const items = [
+    ["250", "athletes", "recruited from 1,250 applications, in two or three niche Spanish sports"],
+    ["20", "sponsor conversations", "which are the first sales as much as the research, closing about 15 deals"],
+    ["1", "salary", "mine, plus a named athlete partner on 5% equity rather than cash"],
+    ["€113k", "of cash", "two thirds of it available as a non-dilutive ENISA loan"],
+  ];
+  const cw = (COL - 0.75) / 4;
+  items.forEach(([value, unit, note], i) => {
+    const x = M + i * (cw + 0.25);
+    card(s, x, 2.14, cw, 2.5);
+    s.addText(value, {
+      x: x + 0.28, y: 2.38, w: cw - 0.56, h: 0.95, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 54, color: i === 3 ? C.accent : C.ink, lineSpacing: 54,
+    });
+    // "SPONSOR CONVERSATIONS" wraps to two lines, so the label owns the room
+    // for two and the note starts below the taller of the two cases.
+    s.addText(unit.toUpperCase(), {
+      x: x + 0.28, y: 3.34, w: cw - 0.56, h: 0.48, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 13, color: C.ink3, charSpacing: 2.2, lineSpacing: 15,
+    });
+    body(s, note, { x: x + 0.28, y: 3.88, w: cw - 0.56, h: 0.7, fontSize: 12, color: C.ink2, lineSpacing: 16 });
+  });
+
+  card(s, M, 4.84, COL, 1.2, C.panel);
+  s.addText("THE SEQUENCE IS THE OPPOSITE OF THE OBVIOUS ONE", {
+    x: M + 0.3, y: 5.04, w: 5.0, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 13, color: C.accent, charSpacing: 2.2,
+  });
+  body(s,
+    "Build the payment rail and sponsorship billing first, and the fan tier last. Commission is invoiced " +
+    "against a signed deal: it needs no content moderation, no minors safeguarding and no media egress, " +
+    "so it is the cheapest of the three to build and the only one that earns inside the first year.", {
+    x: M + 0.3, y: 5.34, w: COL - 0.6, h: 0.68, fontSize: 13, color: C.ink2, lineSpacing: 17,
+  });
+  s.addNotes(
+    "Year one, concretely, because a plan that cannot say what happens first is not a plan.\n\n" +
+    "250 athletes from 1,250 applications in two or three niche Spanish sports. Twenty sponsor " +
+    "conversations that are the first sales as much as they are research, closing about fifteen deals. " +
+    "One salary, mine, plus an anchor athlete on equity rather than cash. 113,000 euros.\n\n" +
+    "And note the build order, because it is counter-intuitive. We build the sponsorship rail first and " +
+    "the fan product last, even though the fan product is the thesis. Commission earns inside year one. " +
+    "The fan tier cannot, because it needs moderation and safeguarding built first."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 14 — OPERATIONS AND TEAM
+// ════════════════════════════════════════════════════════════════════════════
+{
+  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Model" });
+  eyebrow(s, "Operations and people");
+  title(s, "One human step in the chain, and a team sized to what I can actually run");
+
+  card(s, M, 2.12, 5.6, 2.3, C.panel);
+  s.addText("WHAT IS SUBCONTRACTED", {
+    x: M + 0.3, y: 2.34, w: 5.0, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 12, color: C.ink3, charSpacing: 2.4,
+  });
+  [["Stripe Connect", "Payments, KYC and payouts in 30+ countries"],
+   ["AWS", "Compute, database and media processing"],
+   ["Zero-egress CDN", "Media delivery, the cost that decides viability"],
+  ].forEach(([what, why], i) => {
+    const y = 2.68 + i * 0.52;
+    s.addText(what, {
+      x: M + 0.3, y, w: 2.0, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 15, color: C.ink,
+    });
+    body(s, why, { x: M + 2.4, y: y + 0.04, w: 3.1, h: 0.4, fontSize: 11.5, color: C.ink3, lineSpacing: 15 });
+  });
+
+  card(s, M + 5.9, 2.12, COL - 5.9, 2.3, C.panel);
+  s.addText("HEADCOUNT", {
+    x: M + 6.2, y: 2.34, w: 4.0, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 12, color: C.ink3, charSpacing: 2.4,
+  });
+  const hc = [["Y1", 1, "1"], ["Y4", 2, "2"], ["Y7", 10, "10"], ["Y10", 16, "16"]];
+  hc.forEach(([yr, n, lbl], i) => {
+    const x = M + 6.2 + i * 1.35;
+    s.addShape(pres.ShapeType.rect, {
+      x, y: 3.9 - (n / 16) * 1.0, w: 0.62, h: (n / 16) * 1.0,
+      fill: { color: i === 3 ? C.accent : C.track }, line: { width: 0 },
+    });
+    s.addText(lbl, {
+      x: x - 0.12, y: 3.92, w: 0.86, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+      align: "center", fontFace: DISPLAY, fontSize: 17, color: C.ink,
+    });
+    s.addText(yr, {
+      x: x - 0.12, y: 4.18, w: 0.86, h: 0.22, margin: 0, isTextBox: true, valign: "top",
+      align: "center", fontFace: DISPLAY, fontSize: 11, color: C.ink3, charSpacing: 1.6,
+    });
+  });
+
+  body(s,
+    "The only human step in the value chain is admission review, and it scales with applications rather " +
+    "than with transactions. That is why sixteen people can run this. Sponsoo took eleven years to reach " +
+    "thirteen, so the comparison is deliberate rather than optimistic.", {
+    x: M, y: 4.58, w: COL, h: 0.7, fontSize: 14, color: C.ink2, lineSpacing: 19,
+  });
+  card(s, M, 5.28, COL, 0.94, C.raised);
+  s.addText("THE ASSUMPTION I AM MOST EXPOSED ON", {
+    x: M + 0.3, y: 5.5, w: 4.2, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 12.5, color: C.warn, charSpacing: 2.2,
+  });
+  body(s,
+    "€301k of revenue per employee at Y7, against a private B2B SaaS median of €135k. If I am " +
+    "wrong, the first thing to give is headcount, which means slower growth rather than a cash crisis.", {
+    x: M + 4.7, y: 5.46, w: COL - 4.9, h: 0.66, fontSize: 12.5, color: C.ink2, lineSpacing: 17,
+  });
+  s.addNotes(
+    "Operations and people, briefly, because the exam asks for both.\n\n" +
+    "Payments, compute and media are all subcontracted. The only human step in the whole chain is " +
+    "admission review, and it scales with applications, not with transactions. That is why sixteen " +
+    "people can run this at five million of revenue.\n\n" +
+    "And I will name the weak point before you do: 301,000 euros of revenue per employee is above the " +
+    "top quartile for B2B SaaS. If that is wrong, headcount is what gives, and the consequence is " +
+    "slower growth, not insolvency."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 15 — FINANCIALS
+// ════════════════════════════════════════════════════════════════════════════
+pres.addSection({ title: "Money" });
+{
+  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Money" });
+  eyebrow(s, "Financial plan");
+  title(s, "Loss-making for four years, and the losses are small");
+
+  const years = ["Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7"];
+  s.addChart([
+    { type: pres.ChartType.bar,
+      data: [{ name: "Net revenue", labels: years, values: [0.002, 0.068, 0.287, 0.704, 1.321, 2.124, 3.013] }],
+      options: { chartColors: [C.track], barGapWidthPct: 55 } },
+    { type: pres.ChartType.line,
+      data: [{ name: "EBITDA", labels: years, values: [-0.111, -0.142, -0.072, 0.04, 0.173, 0.393, 0.743] }],
+      options: { chartColors: [C.accent], lineSize: 3, lineSmooth: false,
+                 lineDataSymbol: "circle", lineDataSymbolSize: 7 } },
+  ], {
+    x: M, y: 2.1, w: 8.3, h: 3.45,
+    showLegend: true, legendPos: "b", legendColor: C.ink3, legendFontFace: BODY, legendFontSize: 11,
+    valAxisLabelFormatCode: '"€"0.0"M"',
+    ...chartFrame(C.ground),
+  });
+
+  const facts = [
+    ["EBITDA positive", "Y4", C.ok],
+    ["Cash positive", "Y5", C.ok],
+    ["Y7 EBITDA margin", "24.7%", C.ink],
+    ["Y10 net revenue", "€5.25M", C.ink],
+  ];
+  facts.forEach(([label, value, colour], i) => {
+    const y = 2.18 + i * 0.86;
+    s.addText(label.toUpperCase(), {
+      x: 9.3, y, w: 3.4, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 11, color: C.ink3, charSpacing: 2.2,
+    });
+    s.addText(value, {
+      x: 9.3, y: y + 0.24, w: 3.4, h: 0.5, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 32, color: colour, lineSpacing: 32,
+    });
+  });
+  body(s,
+    "Gross margin climbs from 63% to 70%, not the SaaS 80%, because the payment rail is real.", {
+    x: M, y: 5.68, w: COL, h: 0.5, fontSize: 13.5, color: C.ink3,
+  });
+  source(s, "Stride financial model, base case. Three scenarios are modelled; the pessimistic case still breaks even in Y5.");
+  s.addNotes(
+    "The financials. Revenue in grey, EBITDA the amber line.\n\n" +
+    "We are loss-making for four years and the losses are small: the worst year is 142,000 euros. " +
+    "EBITDA turns positive in year four, cash in year five, and year seven is three million of revenue " +
+    "at a 24.7 per cent margin.\n\n" +
+    "One honest note on margin. We climb to 70 per cent, not the 80 a SaaS business would claim, " +
+    "because we move real money and Stripe takes its cut. I would rather show you 70 that survives " +
+    "diligence."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 16 — THE ASK
+// ════════════════════════════════════════════════════════════════════════════
+{
+  const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Money" });
+  eyebrow(s, "The ask");
+  s.addText("€150k at €1.8M pre-money", {
+    x: M, y: 0.86, w: 8.0, h: 0.8, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 44, color: C.ink,
+  });
+  body(s, "The first of two tranches, and the round that clears the worst point in the cash curve", {
+    x: M, y: 1.68, w: 8.4, h: 0.4, fontSize: 15, color: C.ink2,
+  });
+
+  const years = ["Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7"];
+  s.addChart(pres.ChartType.line, [
+    { name: "Cumulative cash before raises", labels: years,
+      values: [-0.113, -0.254, -0.296, -0.186, 0.08, 0.552, 1.25] },
+  ], {
+    x: M, y: 2.35, w: 7.3, h: 3.1,
+    chartColors: [C.accent], lineSize: 3, lineSmooth: false,
+    lineDataSymbol: "circle", lineDataSymbolSize: 7,
+    showLegend: false, valAxisLabelFormatCode: '"€"0.0"M"',
+    ...chartFrame(C.deep),
+  });
+  s.addText("TROUGH €296k IN Y3", {
+    x: M + 1.55, y: 5.0, w: 2.6, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 11.5, color: C.critical, charSpacing: 1.6,
+  });
+
+  const asks = [
+    ["Total requirement", "€414k", "the €296k trough plus a 40% buffer"],
+    ["Now", "€150k", "equity, which also unlocks €75k of non-dilutive ENISA debt"],
+    ["In Y2", "€250k", "priced against three months of real subscription revenue, not a promise"],
+  ];
+  asks.forEach(([label, value, note], i) => {
+    const y = 2.35 + i * 1.12;
+    card(s, 8.6, y, COL - 7.82, 0.98, i === 1 ? C.raised : C.panel);
+    s.addText(label.toUpperCase(), {
+      x: 8.88, y: y + 0.14, w: 3.2, h: 0.22, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 10.5, color: C.ink3, charSpacing: 2.2,
+    });
+    s.addText(value, {
+      x: 8.88, y: y + 0.34, w: 1.6, h: 0.42, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 27, color: i === 1 ? C.accent : C.ink, lineSpacing: 27,
+    });
+    body(s, note, { x: 10.42, y: y + 0.3, w: 2.0, h: 0.66, fontSize: 10.5, color: C.ink3, lineSpacing: 14 });
+  });
+
+  body(s,
+    "Staging it costs about two points of equity and buys the right to price the second tranche on " +
+    "evidence. A plan whose survival does not depend on the next round arriving on schedule is a " +
+    "stronger one to raise against.", {
+    x: M, y: 5.58, w: COL, h: 0.6, fontSize: 13.5, color: C.ink2, lineSpacing: 18,
+  });
+  s.addNotes(
+    "The ask. 150,000 euros at 1.8 million pre-money, and it is the first of two.\n\n" +
+    "Look at the curve. The worst point is 296,000 euros in year three. Total requirement with a " +
+    "40 per cent buffer is 414,000. But I do not need it now.\n\n" +
+    "150 now, which also unlocks a 75,000 ENISA loan at no equity cost. Then 250 in year two, priced " +
+    "against three months of real subscription revenue instead of against the same promise I am making " +
+    "today. That staging costs me about two points of equity and it is worth it.\n\n" +
+    "The important property: the pre-seed clears the trough on its own. Every round after it is a " +
+    "growth option, not a rescue."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 17 — CLOSE
+// ════════════════════════════════════════════════════════════════════════════
+{
+  const s = pres.addSlide({ masterName: "COVER", sectionTitle: "Money" });
+  s.addText("ONE ASSUMPTION CARRIES THIS PLAN", {
+    x: M, y: 1.35, w: COL, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 13, color: C.accent, charSpacing: 3.2,
+  });
+  s.addText("Will fans of a semi-professional\nathlete actually pay?", {
+    x: M, y: 1.82, w: 9.6, h: 1.8, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 44, color: C.ink, lineSpacing: 48,
+  });
+  body(s,
+    "No interview answers it and no amount of further market sizing can. Only three months of real " +
+    "subscription revenue from one anchor athlete settles it, and that is exactly what the pre-seed buys.", {
+    x: M, y: 3.72, w: 9.2, h: 0.8, fontSize: 15.5, color: C.ink2, lineSpacing: 22,
+  });
+
+  const closes = [
+    ["Tested for", "€80k and one year", "rather than €2.6M and four"],
+    ["If it fails", "A smaller marketplace", "viable, but a different company"],
+    ["Everything else", "Already done", "built, deployed and demonstrable"],
+  ];
+  const cw = (COL - 0.6) / 3;
+  closes.forEach(([label, value, note], i) => {
+    const x = M + i * (cw + 0.3);
+    s.addShape(pres.ShapeType.rect, {
+      x, y: 4.72, w: cw, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+    });
+    s.addText(label.toUpperCase(), {
+      x, y: 4.86, w: cw, h: 0.22, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 10.5, color: C.ink3, charSpacing: 2.2,
+    });
+    s.addText(value, {
+      x, y: 5.08, w: cw, h: 0.38, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 21, color: i === 2 ? C.accent : C.ink,
+    });
+    body(s, note, { x, y: 5.48, w: cw, h: 0.4, fontSize: 11.5, color: C.ink3 });
+  });
+
+  wordmark(s, M, 6.25, 24);
+  s.addText("stride-demo.onrender.com", {
+    x: W - M - 4.0, y: 6.3, w: 4.0, h: 0.34, margin: 0, isTextBox: true, valign: "top",
+    align: "right", fontFace: DISPLAY, fontSize: 16, color: C.accent,
+  });
+  s.addNotes(
+    "I will finish where the plan is weakest, because you are going to ask anyway.\n\n" +
+    "One assumption carries this: will fans of a semi-professional athlete actually pay? " +
+    "No interview I did answers that. No market sizing answers it. Only real subscription revenue does.\n\n" +
+    "So the plan is arranged so that question costs 80,000 euros and one year to answer, instead of " +
+    "2.6 million and four. If the answer is no, what is left is a smaller sponsorship marketplace: " +
+    "viable, but a less interesting company, and I would tell you that rather than find out quietly.\n\n" +
+    "Everything else is already built. Thank you, and I am happy to open the demo."
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// BACKUP — not presented, carried for Q&A
+// ════════════════════════════════════════════════════════════════════════════
+pres.addSection({ title: "Backup" });
+{
+  const s = pres.addSlide({ masterName: "COVER", sectionTitle: "Backup" });
+  s.addText("BACKUP", {
+    x: M, y: 3.1, w: COL, h: 0.4, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 15, color: C.accent, charSpacing: 3.4,
+  });
+  s.addText("Held for questions", {
+    x: M, y: 3.52, w: COL, h: 0.8, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 40, color: C.ink,
+  });
+  body(s, "Pricing, scenarios, risk, valuation, dilution and the admission arithmetic.", {
+    x: M, y: 4.35, w: 8.0, h: 0.4, fontSize: 14, color: C.ink3,
+  });
+}
+
+/** Backup slides share one frame: title, a lead line, then free content. */
+function backup(eyebrowText, titleText, lead) {
+  const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Backup" });
+  eyebrow(s, eyebrowText);
+  title(s, titleText, { fontSize: 32, h: 0.75 });
+  if (lead) body(s, lead, { x: M, y: 1.68, w: COL, h: 0.45, fontSize: 14, color: C.ink2 });
+  return s;
+}
+
+// B1 — pricing
+{
+  const s = backup("Backup, pricing", "15% sits between the only two published rates in the market",
+    "Both ends of the corridor are real competitor economics, derived from filed accounts.");
+  const corridor = [
+    ["Patreon", "10%", "all-in, on filed accounts", C.ink2],
+    ["Stride", "15%", "flat, and no monthly athlete fee", C.accent],
+    ["OnlyFans", "20%", "and agencies take 20 to 50% on top", C.ink2],
+  ];
+  const cw = (COL - 0.6) / 3;
+  corridor.forEach(([who, rate, note, colour], i) => {
+    const x = M + i * (cw + 0.3);
+    card(s, x, 2.4, cw, 1.95, i === 1 ? C.raised : C.panel);
+    s.addText(who.toUpperCase(), {
+      x: x + 0.3, y: 2.62, w: cw - 0.6, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 13, color: C.ink3, charSpacing: 2.4,
+    });
+    s.addText(rate, {
+      x: x + 0.3, y: 2.92, w: cw - 0.6, h: 0.8, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 50, color: colour, lineSpacing: 50,
+    });
+    body(s, note, { x: x + 0.3, y: 3.76, w: cw - 0.6, h: 0.5, fontSize: 12, color: C.ink3, lineSpacing: 16 });
+  });
+  body(s,
+    "At 15% we undercut the nearest comparable for any athlete earning under €1,380 a month, which is " +
+    "the entire long tail we are built for. The decision forfeits €0.5M of Y7 revenue against a 20% take, " +
+    "and buys a pricing argument that survives contact with the exact athlete we target.", {
+    x: M, y: 4.62, w: COL, h: 0.9, fontSize: 14, color: C.ink2, lineSpacing: 20,
+  });
+  source(s, "Patreon and OnlyFans published terms and filed accounts; agency rates from published commission guides.");
+}
+
+// B2 — scenarios
+{
+  const s = backup("Backup, scenarios", "The plan survives its own pessimistic case",
+    "Each case re-runs the whole model on changed drivers rather than adjusting the base result.");
+  const rows = [
+    ["Pessimistic", "Fans/athlete −25%, monetise −20%", "€2.34M", "€399k", "€541k", "Y5"],
+    ["Base", "As modelled", "€3.01M", "€743k", "€414k", "Y4"],
+    ["Optimistic", "Fans/athlete +25%, monetise +20%", "€3.59M", "€1.04M", "€347k", "Y4"],
+  ];
+  const headers = ["Case", "What changes", "Y7 revenue", "Y7 EBITDA", "Capital need", "Profit from"];
+  const colX = [M, M + 1.9, M + 5.3, M + 7.0, M + 8.7, M + 10.4];
+  const colW = [1.8, 3.3, 1.6, 1.6, 1.6, 1.35];
+  headers.forEach((h, i) => {
+    s.addText(h.toUpperCase(), {
+      x: colX[i], y: 2.4, w: colW[i], h: 0.26, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 11, color: C.ink3, charSpacing: 2.0,
+    });
+  });
+  s.addShape(pres.ShapeType.rect, {
+    x: M, y: 2.7, w: COL, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+  });
+  rows.forEach((r, ri) => {
+    const y = 2.84 + ri * 0.62;
+    if (ri === 1) {
+      s.addShape(pres.ShapeType.rect, {
+        x: M - 0.12, y: y - 0.08, w: COL + 0.24, h: 0.56,
+        fill: { color: C.raised }, line: { width: 0 },
+      });
+    }
+    r.forEach((cell, ci) => {
+      s.addText(cell, {
+        x: colX[ci], y, w: colW[ci], h: 0.36, margin: 0, isTextBox: true, valign: "top",
+        fontFace: ci === 0 || ci > 1 ? DISPLAY : BODY,
+        fontSize: ci === 0 ? 17 : (ci === 1 ? 12.5 : 17),
+        color: ci === 1 ? C.ink3 : (ri === 1 ? C.accent : C.ink),
+      });
+    });
+  });
+  body(s,
+    "Even the pessimistic case breaks even, one year later and on €541k instead of €414k. " +
+    "The downside here is a slower, smaller company rather than a failed one, and that is the " +
+    "property the staged raise is designed to protect.", {
+    x: M, y: 5.0, w: COL, h: 0.8, fontSize: 14, color: C.ink2, lineSpacing: 19,
+  });
+  source(s, "Stride financial model, scenario table.");
+}
+
+// B3 — risk
+{
+  const s = backup("Backup, risk", "Eleven risks scored, and one of them is the thesis",
+    "Probability × impact, both on a 1 to 5 scale. Nothing is rated more likely than 3.");
+  const risks = [
+    ["R1", "Fans do not pay for niche-athlete content", "3 × 5 = 15", "Three months of real revenue from one anchor athlete, before the second tranche", C.critical],
+    ["R4", "A funded entrant copies the model", "3 × 4 = 12", "The defence is scoring history and athlete relationships, which take time nobody can buy", C.warn],
+    ["R5", "Regulatory: DAC7, age assurance, startup law", "3 × 4 = 12", "Compliance built in rather than retrofitted; reporting is a product feature", C.warn],
+  ];
+  risks.forEach(([code, what, score, mitigation, colour], i) => {
+    const y = 2.4 + i * 1.12;
+    card(s, M, y, COL, 0.98);
+    s.addText(code, {
+      x: M + 0.28, y: y + 0.26, w: 0.6, h: 0.4, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 24, color: colour,
+    });
+    body(s, what, { x: M + 1.0, y: y + 0.17, w: 4.1, h: 0.6, fontSize: 14, color: C.ink, lineSpacing: 18 });
+    s.addText(score, {
+      x: M + 5.2, y: y + 0.3, w: 1.5, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 16, color: colour,
+    });
+    body(s, mitigation, { x: M + 6.9, y: y + 0.2, w: COL - 7.2, h: 0.62, fontSize: 12, color: C.ink3, lineSpacing: 16 });
+  });
+  body(s,
+    "A risk map that is evenly scattered has not identified which risk is the real one. R1 is the thesis, " +
+    "and the entire financing structure exists to buy it down cheaply.", {
+    x: M, y: 5.9, w: COL, h: 0.5, fontSize: 13.5, color: C.ink2,
+  });
+}
+
+// B4 — valuation and dilution
+{
+  const s = backup("Backup, valuation", "Where the €1.8M pre-money comes from",
+    "Two methods that disagree, and the disagreement is the honest part.");
+  stat(s, M, 2.4, 3.2, "DCF enterprise value", "€1.23M", "25% WACC, 3% terminal growth. Below the pre-money, which is normal for a pre-revenue venture.", C.ink, 46);
+  stat(s, M + 4.3, 2.4, 3.2, "Comparable set", "€1.8M", "Benchmarked against Sponsoo and OpenSponsorship, the two companies running the same model.", C.accent, 46);
+  stat(s, M + 8.6, 2.4, 3.2, "Founder and team hold", "65.2%", "After both tranches, the optional growth round and a fully topped 10% ESOP.", C.ink, 46);
+
+  s.addShape(pres.ShapeType.rect, {
+    x: M, y: 4.55, w: COL, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+  });
+  const dil = [["Pre-seed", "€150k at €1.8M", "87.3%"],
+               ["Extension", "€250k at €3.5M", "81.5%"],
+               ["Growth, optional", "€1.5M at €12M", "72.4%"],
+               ["After ESOP", "10% pool", "65.2%"]];
+  dil.forEach(([stage, terms, held], i) => {
+    const x = M + i * ((COL - 0.6) / 4 + 0.2);
+    const cw = (COL - 0.6) / 4;
+    s.addText(stage.toUpperCase(), {
+      x, y: 4.75, w: cw, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 11, color: C.ink3, charSpacing: 2.0,
+    });
+    body(s, terms, { x, y: 5.0, w: cw, h: 0.3, fontSize: 12.5, color: C.ink2 });
+    s.addText(held, {
+      x, y: 5.3, w: cw, h: 0.42, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 24, color: i === 3 ? C.accent : C.ink,
+    });
+  });
+  body(s, "Founder stake retained through each round", {
+    x: M, y: 5.78, w: 6.0, h: 0.3, fontSize: 11.5, color: C.ink3,
+  });
+  source(s, "Stride financial model: DCF, comparable transactions from PitchBook, and the dilution waterfall.");
+}
+
+// B5 — the admission arithmetic
+{
+  const s = backup("Backup, the gate", "What the admission gate actually costs to run",
+    "The one human step in the chain, priced from the policy itself rather than assumed.");
+  const nums = [
+    ["30.5%", "Admission rate by Y7", "rising from 20% in Y1 as the funnel improves, which makes it a filter rather than a formality"],
+    ["4 min", "Median manual review", "priced at the same loaded salary the people line uses"],
+    ["0.64 FTE", "Reviewer load at Y10", "at 8,500 athletes. Verification is not a money problem at this scale"],
+    ["< 48 h", "Service level", "the reason to automate is latency, not cost: a queued athlete is not earning"],
+  ];
+  const cw = (COL - 0.75) / 4;
+  nums.forEach(([value, label, note], i) => {
+    const x = M + i * (cw + 0.25);
+    card(s, x, 2.4, cw, 2.5);
+    s.addText(value, {
+      x: x + 0.26, y: 2.64, w: cw - 0.52, h: 0.7, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 34, color: C.accent, lineSpacing: 36,
+    });
+    s.addText(label.toUpperCase(), {
+      x: x + 0.26, y: 3.38, w: cw - 0.52, h: 0.42, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 12, color: C.ink3, charSpacing: 2.0,
+    });
+    body(s, note, { x: x + 0.26, y: 3.86, w: cw - 0.52, h: 0.9, fontSize: 11.5, color: C.ink2, lineSpacing: 16 });
+  });
+  body(s,
+    "A club nomination brings a roster of 20 to 40 athletes with the verification problem already solved, " +
+    "and club-nominated applicants are admitted at 45% against 20% direct. That is the channel the growth " +
+    "plan opens at Y3.", {
+    x: M, y: 5.1, w: COL, h: 0.8, fontSize: 14, color: C.ink2, lineSpacing: 19,
+  });
+}
+
+// ── write ───────────────────────────────────────────────────────────────────
+pres.writeFile({ fileName: path.join(__dirname, "Stride_Pitch_Deck.pptx") })
+  .then((f) => console.log("wrote", f));
