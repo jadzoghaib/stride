@@ -17,15 +17,23 @@ import tempfile
 from pptx import Presentation
 
 MUST_HAVE = [
-    "A champion gets given things. Nobody is buying anything.",
     "WHAT THEY DO GET",
     "WHAT EITHER SPORT PAYS HIM",
     "No rate",
+    # Figures that were wrong once and are checked against model.py:
+    # review_fte peaks at 0.061 in Y7 and sits at 0.055 in Y10.
+    "0.06 FTE",
+    # SCENARIOS["Pessimistic"] is 0.70 / 0.75 plus benchmark_churn.
+    "Fans/athlete −30%, monetise −25%, churn at benchmark",
+    # The register scores R4 at 8 and R5 at 9. The three clearing 12 are R1-R3.
+    "Churn is at benchmark, not 45% better",
 ]
 MUST_NOT_HAVE = [
     "INCOME THE SPORT ITSELF PRODUCED",
     "WHAT EITHER SPORT HAS PAID HIM",
     "Not low. Not inconsistent. Nothing",
+    "0.64 FTE",
+    "A funded entrant copies the model",
 ]
 # A whole shape reading exactly "€0" is the old hero figure. Substring matching
 # would also hit "€0.5M" on the pricing slide, which is a real number.

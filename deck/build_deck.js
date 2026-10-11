@@ -207,8 +207,7 @@ pres.addSection({ title: "Open" });
   // The segment, on slide one. Both sides of it, because who we sell to is the
   // part of this plan that is easiest to get wrong in the panel's head.
   s.addText(
-    "For semi-professional athletes in niche sports, and the local businesses near their club. " +
-    "Neither side is served today.", {
+    "For semi-professional athletes in niche sports, and the local businesses near their club", {
     x: M, y: 4.22, w: 8.6, h: 0.9, margin: 0, isTextBox: true, valign: "top",
     fontFace: BODY, fontSize: 15.5, color: C.ink2, lineSpacing: 23,
   });
@@ -300,13 +299,6 @@ pres.addSection({ title: "Problem" });
     "contract, or any reason to arrive a second time.", {
     x: 8.68, y: 3.56, w: 3.6, h: 1.05, fontSize: 13, lineSpacing: 18,
   });
-  s.addShape(pres.ShapeType.rect, {
-    x: 8.68, y: 4.72, w: 3.6, h: 0.014, fill: { color: C.track }, line: { width: 0 },
-  });
-  body(s, "I started building because of him.", {
-    x: 8.68, y: 4.86, w: 3.6, h: 0.4, fontSize: 13, color: C.ink, lineSpacing: 18,
-  });
-
   card(s, M, 5.55, COL, 1.0, C.raised);
   s.addText("WHY I CAN SEE THIS AT ALL", {
     x: M + 0.3, y: 5.77, w: 3.3, h: 0.26, margin: 0, isTextBox: true, valign: "top",
@@ -352,9 +344,11 @@ pres.addSection({ title: "Problem" });
     x: M - 0.06, y: 0.92, w: 1.2, h: 1.0, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 86, color: C.track,
   });
+  // Author's wording. Note this is no longer the interviewee's verbatim
+  // sentence that section 3.1.5 of the submitted plan quotes.
   s.addText(
-    "People are not going to spend time setting up social media and building " +
-    "followers purely around their sport if nothing comes back.", {
+    "People are not going to invest in social media and building followers " +
+    "if the return is minimal", {
     x: M, y: 1.62, w: 7.2, h: 2.1, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 32, color: C.ink, lineSpacing: 36,
   });
@@ -363,8 +357,7 @@ pres.addSection({ title: "Problem" });
   });
   body(s,
     "One of the five. Rugby league players competing in Spain and Lebanon, and top-ranked Lebanese " +
-    "CrossFit athletes. The founder is capped by the Lebanese national rugby team, which is how this " +
-    "access exists.", {
+    "CrossFit athletes", {
     x: M, y: 4.02, w: 7.0, h: 0.8, fontSize: 12.5, color: C.ink3, lineSpacing: 17,
   });
 
@@ -391,11 +384,6 @@ pres.addSection({ title: "Problem" });
     x: 8.58, y: 3.44, w: 3.7, h: 1.0, fontSize: 12.5, color: C.ink2, lineSpacing: 17,
   });
 
-  s.addText("A champion gets given things. Nobody is buying anything.", {
-    x: M, y: 4.98, w: COL, h: 0.5, margin: 0, isTextBox: true, valign: "top",
-    fontFace: DISPLAY, fontSize: 26, color: C.accent, lineSpacing: 30,
-  });
-
   const findings = [
     ["The inequity is felt", "Influencers producing far less demanding content earn more than competing athletes do"],
     ["So they stop building an audience", "Which suppresses the very supply the market is measured on"],
@@ -412,7 +400,6 @@ pres.addSection({ title: "Problem" });
     });
     body(s, text, { x, y: 6.14, w: fw, h: 0.6, fontSize: 11.5, color: C.ink3, lineSpacing: 15 });
   });
-  source(s, "Primary research, five semi-structured interviews, 2026. Convenience sample, reported as one.");
   s.addNotes(
     "He was one of five athletes in my own sports I asked the same question: what does your sport " +
     "actually pay you.\n\n" +
@@ -481,17 +468,6 @@ pres.addSection({ title: "Problem" });
     body(s, text, { x: x + 0.26, y: 4.82, w: cw - 0.52, h: 0.78, fontSize: 12.5, color: C.ink2, lineSpacing: 17 });
   });
 
-  card(s, M, 5.76, COL, 0.88, C.raised);
-  s.addText("THE ASSUMPTION I TEST FIRST", {
-    x: M + 0.3, y: 5.96, w: 3.2, h: 0.26, margin: 0, isTextBox: true, valign: "top",
-    fontFace: DISPLAY, fontSize: 13.5, color: C.accent, charSpacing: 2.2,
-  });
-  body(s,
-    "Twenty sponsor conversations before the pre-seed gate, and the answer that kills it is written down " +
-    "in advance: if brands say they already know what they get, the analytics engine is not a differentiator.", {
-    x: M + 3.8, y: 5.92, w: COL - 4.1, h: 0.62, fontSize: 13, color: C.ink2, lineSpacing: 17,
-  });
-  source(s, "Sponsor discovery programme, section 4.6: four buyer groups, seven questions, each one aimed at an assumption the model depends on.");
   s.addNotes(
     "Now the other side, and this is the half of the company I care most about.\n\n" +
     "The brand paying for this is not Nike. It is a physiotherapy clinic or a regional insurer near the " +
@@ -587,14 +563,14 @@ pres.addSection({ title: "Product" });
     ["Engine one", "Monetisation", "Athlete and fan", C.cat2,
      "The athlete's own page, with paid fan tiers they price themselves. They keep 85% and pay nothing " +
      "to be there. Self serve, with no sales touch per subscriber.",
-     "15% of fan revenue", "48% of Y7"],
+     "15% of fan revenue"],
     ["Engine two", "Analytics", "Sponsor", C.cat1,
      "A campaign brief matched to athletes on measured audience evidence, every score decomposed into " +
      "the arithmetic behind it, and delivery measured against what was projected.",
-     "10% of deal value, plus €99 to €999 a month", "52% of Y7"],
+     "10% of deal value, plus €99 to €999 a month"],
   ];
   const hw = (COL - 0.4) / 2;
-  engines.forEach(([tag, head, who, colour, text, price, share], i) => {
+  engines.forEach(([tag, head, who, colour, text, price], i) => {
     const x = M + i * (hw + 0.4);
     card(s, x, 2.1, hw, 3.0);
     s.addText(tag.toUpperCase(), {
@@ -613,11 +589,11 @@ pres.addSection({ title: "Product" });
     s.addShape(pres.ShapeType.rect, {
       x: x + 0.32, y: 4.5, w: hw - 0.64, h: 0.014, fill: { color: C.track }, line: { width: 0 },
     });
-    s.addText([
-      { text: price, options: { fontFace: DISPLAY, fontSize: 16, color: C.ink } },
-      { text: `   ·   ${share}`, options: { fontFace: BODY, fontSize: 12, color: C.ink3 } },
-    ], {
+    // The Y7 share used to sit beside the price. The source line already
+    // carries the 48/52 split, so it was saying the same thing twice.
+    s.addText(price, {
       x: x + 0.32, y: 4.64, w: hw - 0.64, h: 0.34, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 16, color: C.ink,
     });
   });
 
@@ -759,14 +735,10 @@ pres.addSection({ title: "Product" });
     x: M, y: 4.95, w: 4.0, h: 0.34, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 18, color: C.accent,
   });
-  body(s, "Fourteen demo accounts. Registration is open.", {
-    x: M, y: 5.3, w: 4.0, h: 0.3, fontSize: 11.5, color: C.ink3,
-  });
   s.addImage({
     path: path.join(UI, "02-athlete-dashboard.png"),
     x: 5.05, y: 0.75, w: 7.85, h: 5.45,
   });
-  source(s, "Athlete dashboard, captured from the running application.");
   s.addNotes(
     "This is the part most business plans cannot show you.\n\n" +
     "It is not a mockup and not a prototype. It is deployed, and the URL is on the slide. " +
@@ -813,7 +785,6 @@ pres.addSection({ title: "Product" });
     path: path.join(SHOTS, "sponsor-campaign-analytics.png"),
     x: 5.05, y: 0.75, w: 7.85, h: 5.45,
   });
-  source(s, "Campaign result view, captured from the running application. The demo's engagement figures are seeded, and the product labels them simulated on the screen itself.");
   s.addNotes(
     "And the same proof for the second engine.\n\n" +
     "This is the screen a sponsor shows their own management. Delivered reach, engagements, cost per " +
@@ -1327,7 +1298,6 @@ pres.addSection({ title: "Money" });
     "Gross margin climbs from 63% to 70%, not the SaaS 80%, because the payment rail is real.", {
     x: M, y: 5.68, w: COL, h: 0.5, fontSize: 13.5, color: C.ink3,
   });
-  source(s, "Stride financial model, base case. Three scenarios are modelled; the pessimistic case still breaks even in Y5.");
   s.addNotes(
     "The financials. Revenue in grey, EBITDA the amber line.\n\n" +
     "We are loss-making for four years and the losses are small: the worst year is 142,000 euros. " +
@@ -1710,7 +1680,10 @@ function backup(eyebrowText, titleText, lead) {
   const s = backup("Backup, scenarios", "The plan survives its own pessimistic case",
     "Each case re-runs the whole model on changed drivers rather than adjusting the base result.");
   const rows = [
-    ["Pessimistic", "Fans/athlete −25%, monetise −20%", "€2.34M", "€399k", "€541k", "Y5"],
+    // The real pessimistic drivers: 0.70 and 0.75 in SCENARIOS, and the case
+    // also divides the niche churn advantage back out. It had been written as
+    // a mirror of the optimistic column, which understated the stress test.
+    ["Pessimistic", "Fans/athlete −30%, monetise −25%, churn at benchmark", "€2.34M", "€399k", "€541k", "Y5"],
     ["Base", "As modelled", "€3.01M", "€743k", "€414k", "Y4"],
     ["Optimistic", "Fans/athlete +25%, monetise +20%", "€3.59M", "€1.04M", "€347k", "Y4"],
   ];
@@ -1758,8 +1731,12 @@ function backup(eyebrowText, titleText, lead) {
     "Probability × impact, both on a 1 to 5 scale. Nothing is rated more likely than 3.");
   const risks = [
     ["R1", "Fans do not pay for niche-athlete content", "3 × 5 = 15", "Three months of real revenue from one anchor athlete, before the second tranche", C.critical],
-    ["R4", "A funded entrant copies the model", "3 × 4 = 12", "The defence is scoring history and athlete relationships, which take time nobody can buy", C.warn],
-    ["R5", "Regulatory: DAC7, age assurance, startup law", "3 × 4 = 12", "Compliance built in rather than retrofitted; reporting is a product feature", C.warn],
+    // R2 and R3, not R4 and R5. The register scores R4 at 8 and R5 at 9; the
+    // three that clear 12 are R1, R2 and R3, and those are the ones section 9
+    // puts in bold. Showing a lower risk at a higher score than the document
+    // gives it is the one mistake this slide cannot afford.
+    ["R2", "Churn is at benchmark, not 45% better", "3 × 4 = 12", "Measure early, on one athlete, before the extension. The model understates this", C.warn],
+    ["R3", "Athlete acquisition slower than modelled", "3 × 4 = 12", "Club and federation channels are multiplicative: one conversation is 20 to 40 athletes", C.warn],
   ];
   risks.forEach(([code, what, score, mitigation, colour], i) => {
     const y = 2.4 + i * 1.12;
@@ -1823,7 +1800,9 @@ function backup(eyebrowText, titleText, lead) {
   const nums = [
     ["30.5%", "Admission rate by Y7", "rising from 20% in Y1 as the funnel improves, which makes it a filter rather than a formality"],
     ["4 min", "Median manual review", "priced at the same loaded salary the people line uses"],
-    ["0.64 FTE", "Reviewer load at Y10", "at 8,500 athletes. Verification is not a money problem at this scale"],
+    // 0.06, not 0.64. The model computes review_fte at 0.055 in Y10 and peaks
+    // at 0.061 in Y7; section 12.1 says the burden tops out near 0.06.
+    ["0.06 FTE", "Reviewer load at Y10", "at 8,500 athletes. Verification is not a money problem at this scale"],
     ["< 48 h", "Service level", "the reason to automate is latency, not cost: a queued athlete is not earning"],
   ];
   const cw = (COL - 0.75) / 4;
