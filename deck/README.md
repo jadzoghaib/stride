@@ -85,7 +85,7 @@ them: open the deck, `SaveAs(path, 24, -1)` to a temporary name, and swap it in.
 
 | Slides | |
 |---|---|
-| 1 to 2 | Cover, and why the founder |
+| 1 to 2 | Cover, and the athlete who started it |
 | 3 to 5 | The athlete earns nothing, the brand spends blind, one missing layer |
 | 6 to 7 | The two engines, and the loop that makes them one company |
 | 8 to 9 | Each engine proved: the athlete dashboard, then the campaign result |

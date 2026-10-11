@@ -246,36 +246,85 @@ pres.addSection({ title: "Open" });
 // ════════════════════════════════════════════════════════════════════════════
 // 2 — ORIGIN
 // ════════════════════════════════════════════════════════════════════════════
+// This was three cards of founder credentials, which is the least interesting
+// slide any pitch can open with. One person carries the argument better: he is
+// at the top of two sports and the market has no mechanism to pay him. The
+// credentials still have to be here, because the deck later claims the product
+// and the model are the author's own work, so they keep one line at the foot.
 pres.addSection({ title: "Problem" });
 {
   const s = pres.addSlide({ masterName: "BOARD", sectionTitle: "Problem" });
-  eyebrow(s, "Why this, from me");
-  title(s, "I am not researching this market from outside it");
+  eyebrow(s, "Why this");
+  title(s, "A national champion, and the sport has no way to pay him");
 
-  const blocks = [
-    ["Athlete", "Capped by the Lebanese national rugby team, with international tournament experience. The athletes in my research are people I play with, which is why the conversations were candid rather than performative."],
-    ["Operator", "Four years in management consulting across MENA. Feasibility studies at $5 to 15M, DCF modelling, and an OpEx reorganisation that delivered SAR 650M of capital optimisation."],
-    ["Builder", "MSc Business Analytics at ESADE. The deployed product, the analytics engine and the financial model behind this plan are all my own work."],
-  ];
-  const cw = (COL - 0.6) / 3;
-  blocks.forEach(([head, text], i) => {
-    const x = M + i * (cw + 0.3);
-    card(s, x, 2.22, cw, 2.62);
-    s.addText(head.toUpperCase(), {
-      x: x + 0.3, y: 2.52, w: cw - 0.6, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+  card(s, M, 2.1, 7.3, 3.2);
+  s.addText("TWO SPORTS, AT THE TOP OF BOTH", {
+    x: M + 0.32, y: 2.32, w: 6.6, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 12, color: C.ink3, charSpacing: 2.6,
+  });
+  [["CrossFit", "Champion of Lebanon", 2.76],
+   ["Rugby league", "Among the best in the country", 3.44],
+  ].forEach(([sport, standing, y]) => {
+    s.addText(sport.toUpperCase(), {
+      x: M + 0.32, y, w: 2.6, h: 0.34, margin: 0, isTextBox: true, valign: "top",
       fontFace: DISPLAY, fontSize: 19, color: C.accent, charSpacing: 1.8,
     });
-    body(s, text, { x: x + 0.3, y: 2.95, w: cw - 0.6, h: 2.3, fontSize: 13.5, lineSpacing: 19 });
+    s.addText(standing, {
+      x: M + 3.0, y: y + 0.02, w: 3.9, h: 0.34, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 19, color: C.ink,
+    });
+    s.addShape(pres.ShapeType.rect, {
+      x: M + 0.32, y: y + 0.5, w: 6.6, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+    });
   });
-  body(s, "The plan can make claims about the technology that are checkable rather than aspirational, because I wrote it.", {
-    x: M, y: 5.12, w: COL, h: 0.4, fontSize: 14, color: C.ink3,
+  body(s,
+    "A friend I play rugby with, and one of the five athletes in the research behind this plan. " +
+    "He is not the exception in that group. He is what a niche sport looks like at the very top of it.", {
+    x: M + 0.32, y: 4.12, w: 6.6, h: 1.0, fontSize: 13.5, lineSpacing: 19,
   });
+
+  card(s, 8.38, 2.1, COL - 7.6, 3.2, C.raised);
+  s.addText("WHAT HE EARNS", {
+    x: 8.68, y: 2.32, w: 3.6, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 12, color: C.ink3, charSpacing: 2.6,
+  });
+  // Deliberately a word and not a number: slide 3 owns the enormous €0, and
+  // two giant figures back to back would blunt the one that carries the data.
+  s.addText("Nothing", {
+    x: 8.68, y: 2.68, w: 3.6, h: 0.8, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 46, color: C.accent, lineSpacing: 48,
+  });
+  body(s,
+    "Not a small amount, and not an inconsistent one. There is no mechanism at all by which a record " +
+    "like his, or the audience that comes with it, turns into income.", {
+    x: 8.68, y: 3.56, w: 3.6, h: 1.2, fontSize: 13, lineSpacing: 18,
+  });
+  body(s, "I started building because of him.", {
+    x: 8.68, y: 4.78, w: 3.6, h: 0.4, fontSize: 13, color: C.ink, lineSpacing: 18,
+  });
+
+  card(s, M, 5.55, COL, 1.0, C.raised);
+  s.addText("WHY I CAN SEE THIS AT ALL", {
+    x: M + 0.3, y: 5.77, w: 3.3, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 13, color: C.accent, charSpacing: 2.2,
+  });
+  body(s,
+    "Capped by the Lebanese national rugby team, so these are teammates rather than survey respondents. " +
+    "Four years of consulting built the model; the MSc and the build produced the product and its code.", {
+    x: M + 3.9, y: 5.73, w: COL - 4.2, h: 0.72, fontSize: 13, color: C.ink2, lineSpacing: 17,
+  });
+  source(s, "One of the five athletes in the primary research. Full method and limitations in section 3.1.5.");
   s.addNotes(
-    "Thirty seconds on why I am the person telling you this.\n\n" +
-    "I am capped by the Lebanese national rugby team. The athletes I interviewed are people I play with, " +
-    "so I am inside the segment this plan describes, not studying it from outside.\n\n" +
-    "Four years of consulting gave me the modelling. The MSc and the build gave me the product. " +
-    "Everything in the demo is my own code."
+    "Why this, and it starts with one person.\n\n" +
+    "A friend I play rugby with is the CrossFit champion of Lebanon, and one of the best rugby league " +
+    "players in the country. He earns nothing from either one. Not a little. Nothing.\n\n" +
+    "He is one of the five athletes in my research, and in that group he is not the exception. He is the " +
+    "median. Someone at the very top of two sports, with a real audience, and no mechanism anywhere that " +
+    "turns either of those things into income.\n\n" +
+    "I started building this because of him.\n\n" +
+    "And the reason I can see it at all is on the bottom line: these are teammates, not survey " +
+    "respondents. I am capped for Lebanon myself, which is why the conversations were candid. The " +
+    "consulting built the model, and the demo is my own code."
   );
 }
 
@@ -339,8 +388,9 @@ pres.addSection({ title: "Problem" });
   });
   source(s, "Primary research, five semi-structured interviews, 2026. Convenience sample, reported as one.");
   s.addNotes(
-    "I asked five athletes in my own sports what they earn from their audience.\n\n" +
-    "The answer was not 'a little'. It was zero. Nothing.\n\n" +
+    "He was one of five athletes in my own sports I asked the same question: what do you earn from " +
+    "your audience.\n\n" +
+    "The answer was not 'a little'. It was zero. Nothing, across all five.\n\n" +
     "And read the quote carefully, because it is the finding that matters most: they do not build an " +
     "audience, because there is no return on building one. That is not a complaint about pricing. " +
     "It is a market with no infrastructure in it."

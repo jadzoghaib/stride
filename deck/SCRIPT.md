@@ -17,7 +17,7 @@ thirty seconds and should spend them on slides 7 and 9 rather than hurrying.
 | # | Slide | Target | Should be at |
 |---|---|---|---|
 | 1 | Cover | 0:30 | 0:30 |
-| 2 | Why me | 0:35 | 1:05 |
+| 2 | Why this | 0:35 | 1:05 |
 | 3 | The athlete's €0 | 0:45 | 1:50 |
 | 4 | The buyer's half | 1:05 | 2:55 |
 | 5 | One missing layer | 0:45 | 3:40 |
@@ -61,22 +61,31 @@ no agent. The brands are the businesses near their club.
 Everything I show you is live at that URL, and I'm happy to open it in the
 questions.
 
-## 2 · Why me · 0:35
+## 2 · Why this · 0:35
 
-Thirty seconds on why it's me telling you this.
+Why this, and it starts with one person.
 
-I'm capped by the Lebanese national rugby team. The athletes in my research are
-people I play with, so I'm inside this segment rather than studying it.
+A friend I play rugby with is the CrossFit champion of Lebanon, and one of the
+best rugby league players in the country. He earns nothing from either one. Not
+a little. **Nothing.**
 
-Four years of consulting gave me the modelling. The MSc and the build gave me
-the product. The demo is my own code, which means the claims I make about the
-technology are checkable rather than aspirational.
+He's one of the five athletes in my research, and in that group he isn't the
+exception. He's the median. Someone at the very top of two sports, with a real
+audience, and no mechanism anywhere that turns either of those into income.
+
+I started building this because of him.
+
+*[touch the bottom line, don't dwell]* And the reason I can see it at all:
+these are teammates, not survey respondents. I'm capped for Lebanon myself,
+which is why the conversations were candid. The consulting built the model, and
+the demo is my own code.
 
 ## 3 · The athlete's €0 · 0:45
 
-I asked five athletes in my own sports what they earn from their audience.
+He was one of five athletes in my own sports I asked the same question: what do
+you earn from your audience.
 
-The answer wasn't "a little". It was zero.
+The answer wasn't "a little". It was zero, across all five.
 
 *[beat, then the quote]* And read the quote, because it's the finding that
 matters most. They don't build an audience, because there's no return on
