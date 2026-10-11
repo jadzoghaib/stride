@@ -1,6 +1,6 @@
 # The pitch deck
 
-`Stride_Pitch_Deck.pptx`, 27 slides: 19 presented, a divider, and seven held
+`Stride_Pitch_Deck.pptx`, 28 slides: 19 presented, a divider, and eight held
 back for questions. `Stride_Pitch_Deck.pdf` is the same deck exported, as a
 fallback if PowerPoint misbehaves on the day.
 
@@ -18,6 +18,13 @@ The competition table earns its keep here: the four comparables split exactly
 two and two along the same seam, marketplace or data, and none of them built
 both. That is the strongest available evidence that the pairing is the hard
 part rather than the obvious part.
+
+The question that table always draws is about SponsorUnited, the one comparable
+that got large, and backup slide B3 answers it in the sponsor's own three verbs
+from slide 4. The short version: a data company sells what the market did, and
+only the platform that brokered the deal can say what your money did, because
+the projection delivery is judged against is written onto the deal at the moment
+the offer is made. A company outside the transaction never saw the promise.
 
 Built for the ESADE MSc Business Plan defence: 15 minutes presenting, 10 for
 questions, over Zoom, sharing your own screen. Joan Riera's evaluation form
@@ -86,7 +93,7 @@ them: open the deck, `SaveAs(path, 24, -1)` to a temporary name, and swap it in.
 | 14 to 16 | Revenue mix, Year 1, operations and people |
 | 17 to 19 | Financials, the ask, the close |
 | 20 | Backup divider |
-| 21 to 27 | The four steps, the matching arithmetic, pricing, scenarios, risk, valuation, the admission gate |
+| 21 to 28 | The four steps, the matching arithmetic, how we differ from the data companies, pricing, scenarios, risk, valuation, the admission gate |
 
 Every slide has speaker notes with what to say on it. They are written to be
 spoken, not read off the screen.

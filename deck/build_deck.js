@@ -1349,8 +1349,8 @@ pres.addSection({ title: "Backup" });
     x: M, y: 3.52, w: COL, h: 0.8, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 40, color: C.ink,
   });
-  body(s, "The four steps, the matching arithmetic, pricing, scenarios, risk, valuation and the admission gate.", {
-    x: M, y: 4.35, w: 8.6, h: 0.4, fontSize: 14, color: C.ink3,
+  body(s, "The four steps, the matching arithmetic, how we differ from the data companies, pricing, scenarios, risk, valuation and the admission gate.", {
+    x: M, y: 4.35, w: 10.4, h: 0.7, fontSize: 14, color: C.ink3,
   });
 }
 
@@ -1437,7 +1437,112 @@ function backup(eyebrowText, titleText, lead) {
   source(s, "Ranked matches for a live campaign, captured from the running application.");
 }
 
-// B3 — pricing
+// B3 — the differentiation question, which is always asked about the one
+//      comparable that got big. Slide 13 says nobody built both halves; this
+//      says what that actually costs them, in the sponsor's own three verbs.
+{
+  const s = backup("Backup, the comparable that got large",
+    "They sell what the market did. We measure what your money did",
+    "Slide 13 split the set two and two. This is what the split means to a brand with €2,000 to spend.");
+
+  const cols = [
+    ["Sponsoo,\nOpenSponsorship", "The marketplaces", C.ink3],
+    ["Hookit,\nSponsorUnited", "The data companies", C.ink3],
+    ["Stride", "Both halves, one loop", C.accent],
+  ];
+  const rows = [
+    ["Choose",
+     "Browse a roster. Follower counts, self reported",
+     "Market intelligence: who sponsors whom, at scale",
+     "Ranked against your brief, every score decomposed"],
+    ["Price",
+     "You negotiate. No benchmark",
+     "A media value estimate for a property",
+     "A reach projection attached to the offer itself"],
+    ["Verify",
+     "Screenshots from the athlete",
+     "What the market did, from public posts",
+     "Delivered against that projection, per athlete"],
+    ["The data",
+     "The athlete's own claim",
+     "Scraped, public, third party",
+     "The connector the athlete linked to get paid"],
+    ["The buyer",
+     "Brands of any size, thin support",
+     "Rights holders, agencies, enterprise seats",
+     "The clinic, the gym, the dealer"],
+  ];
+  const labW = 1.8, cw = 3.10, gapC = 0.28;
+  const colX = [0, 1, 2].map((i) => M + 1.85 + i * (cw + gapC));
+
+  // A panel behind our column only. The claim is that one of the three does
+  // all five rows, so the shading marks the column rather than the rows.
+  card(s, colX[2] - 0.18, 2.14, cw + 0.36, 3.56);
+
+  cols.forEach(([head, sub, colour], i) => {
+    s.addText(head, {
+      x: colX[i], y: 2.26, w: cw, h: 0.52, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 16, color: colour === C.accent ? C.ink : C.ink2,
+      charSpacing: 1.2, lineSpacing: 18,
+    });
+    s.addText(sub.toUpperCase(), {
+      x: colX[i], y: 2.8, w: cw, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 10.5, color: colour, charSpacing: 2.0,
+    });
+  });
+  s.addShape(pres.ShapeType.rect, {
+    x: M, y: 3.14, w: COL, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+  });
+
+  rows.forEach(([label, ...cells], ri) => {
+    const y = 3.28 + ri * 0.49;
+    s.addText(label.toUpperCase(), {
+      x: M, y, w: labW, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 12.5, color: C.ink3, charSpacing: 2.2,
+    });
+    cells.forEach((cell, ci) => {
+      s.addText(cell, {
+        x: colX[ci], y: y - 0.02, w: cw, h: 0.44, margin: 0, isTextBox: true, valign: "top",
+        fontFace: BODY, fontSize: 11.5, color: ci === 2 ? C.ink : C.ink3, lineSpacing: 15,
+      });
+    });
+  });
+
+  card(s, M, 5.9, COL, 0.92, C.raised);
+  s.addText("WHY THEY CANNOT FOLLOW", {
+    x: M + 0.3, y: 6.1, w: 3.0, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 14, color: C.accent, charSpacing: 2.4,
+  });
+  body(s,
+    "Delivery is measured against a projection written onto the deal at the moment the offer is made. " +
+    "A company that was not in the transaction never saw the promise, so it has nothing to reconcile " +
+    "against. That is a position, not a feature.", {
+    x: M + 3.5, y: 6.08, w: COL - 3.8, h: 0.6, fontSize: 13.5, color: C.ink2, lineSpacing: 18,
+  });
+  source(s, "Plan section 3.2.2 on the competitive set and section 4.6 on the buyer. Neither data company executes a deal.");
+  s.addNotes(
+    "This is the question I would ask, so let me answer it directly. SponsorUnited has 355 people and " +
+    "has raised nearly 39 million euros. What is left for me.\n\n" +
+    "They sell a database. It tells a large brand or an agency what the sponsorship market is doing: who " +
+    "sponsors whom, what the activations look like, what a property is worth. It is genuinely good, and " +
+    "it is bought on enterprise seats by organisations with a sponsorship department.\n\n" +
+    "What it cannot tell you is whether your own deal delivered what was promised, and the reason is " +
+    "structural rather than technical. We write the projected reach onto the deal row at the moment the " +
+    "offer is made, before the athlete has even accepted. The variance you saw on slide nine is that " +
+    "projection against what actually landed. A company that was not in the transaction never saw the " +
+    "promise, so there is nothing for it to reconcile against. They can tell you what the market did. " +
+    "Only the platform that brokered the deal can tell you what your money did.\n\n" +
+    "And their data is scraped from public posts. Ours comes through the connector the athlete linked in " +
+    "order to get paid by their fans, which is the flywheel slide again: consented, first party, and free " +
+    "to acquire because the athlete came for a different reason.\n\n" +
+    "One honest point. I am not beating SponsorUnited. If a brand is big enough to buy them, we are not " +
+    "in that conversation. Their 355 people are the cost of an enterprise sales motion, and that motion " +
+    "cannot be run at a two thousand euro deal. Their size is the reason the bottom of this market is " +
+    "still empty."
+  );
+}
+
+// B4 — pricing
 {
   const s = backup("Backup, pricing", "15% sits between the only two published rates in the market",
     "Both ends of the corridor are real competitor economics, derived from filed accounts.");
@@ -1469,7 +1574,7 @@ function backup(eyebrowText, titleText, lead) {
   source(s, "Patreon and OnlyFans published terms and filed accounts; agency rates from published commission guides.");
 }
 
-// B4 — scenarios
+// B5 — scenarios
 {
   const s = backup("Backup, scenarios", "The plan survives its own pessimistic case",
     "Each case re-runs the whole model on changed drivers rather than adjusting the base result.");
@@ -1516,7 +1621,7 @@ function backup(eyebrowText, titleText, lead) {
   source(s, "Stride financial model, scenario table.");
 }
 
-// B5 — risk
+// B6 — risk
 {
   const s = backup("Backup, risk", "Eleven risks scored, and one of them is the thesis",
     "Probability × impact, both on a 1 to 5 scale. Nothing is rated more likely than 3.");
@@ -1546,7 +1651,7 @@ function backup(eyebrowText, titleText, lead) {
   });
 }
 
-// B6 — valuation and dilution
+// B7 — valuation and dilution
 {
   const s = backup("Backup, valuation", "Where the €1.8M pre-money comes from",
     "Two methods that disagree, and the disagreement is the honest part.");
@@ -1580,7 +1685,7 @@ function backup(eyebrowText, titleText, lead) {
   source(s, "Stride financial model: DCF, comparable transactions from PitchBook, and the dilution waterfall.");
 }
 
-// B7 — the admission arithmetic
+// B8 — the admission arithmetic
 {
   const s = backup("Backup, the gate", "What the admission gate actually costs to run",
     "The one human step in the chain, priced from the policy itself rather than assumed.");
