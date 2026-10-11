@@ -66,8 +66,8 @@ questions.
 Why this, and it starts with one person.
 
 A friend I play rugby with is the CrossFit champion of Lebanon, and one of the
-best rugby league players in the country. He earns nothing from either one. Not
-a little. **Nothing.**
+best rugby league players in the country. Neither sport has ever paid him
+anything. Not a little. **Nothing.**
 
 He's one of the five athletes in my research, and in that group he isn't the
 exception. He's the median. Someone at the very top of two sports, with a real
@@ -82,14 +82,20 @@ the demo is my own code.
 
 ## 3 · The athlete's €0 · 0:45
 
-He was one of five athletes in my own sports I asked the same question: what do
-you earn from your audience.
+He was one of five athletes in my own sports I asked the same question: what has
+your sport ever paid you.
 
-The answer wasn't "a little". It was zero, across all five.
+The answer wasn't "a little". Across all five it's zero, and I want to be precise
+about what that zero is, because **one of them does have a sponsor.**
 
-*[beat, then the quote]* And read the quote, because it's the finding that
-matters most. They don't build an audience, because there's no return on
-building one.
+He didn't get it as a rugby league player. It came to him some other way, and no
+part of it came through the sport. So the claim isn't that these people are
+uncommercial. A brand pays him. The claim is that the sport captures none of it,
+because there's no route by which it could. That's a stronger finding than five
+zeros would have been.
+
+*[beat, then the quote]* And read the quote, because it's the one that matters
+most. They don't build an audience, because there's no return on building one.
 
 That isn't a complaint about pricing. It's a market with no infrastructure in
 it. And look at the third finding: because they stop building, the market

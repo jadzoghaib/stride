@@ -284,7 +284,10 @@ pres.addSection({ title: "Problem" });
   });
 
   card(s, 8.38, 2.1, COL - 7.6, 3.2, C.raised);
-  s.addText("WHAT HE EARNS", {
+  // Scoped the same way slide 3 is scoped. "What he earns" is a claim about a
+  // person's whole income and I cannot stand behind it; what either sport has
+  // paid him is a claim about a mechanism, and that is the one being made.
+  s.addText("WHAT EITHER SPORT HAS PAID HIM", {
     x: 8.68, y: 2.32, w: 3.6, h: 0.26, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 12, color: C.ink3, charSpacing: 2.6,
   });
@@ -295,12 +298,15 @@ pres.addSection({ title: "Problem" });
     fontFace: DISPLAY, fontSize: 46, color: C.accent, lineSpacing: 48,
   });
   body(s,
-    "Not a small amount, and not an inconsistent one. There is no mechanism at all by which a record " +
-    "like his, or the audience that comes with it, turns into income.", {
-    x: 8.68, y: 3.56, w: 3.6, h: 1.2, fontSize: 13, lineSpacing: 18,
+    "Not a small amount, and not an inconsistent one. Nothing either sport built for him converts into " +
+    "income, so whatever he earns arrives another way.", {
+    x: 8.68, y: 3.56, w: 3.6, h: 1.05, fontSize: 13, lineSpacing: 18,
+  });
+  s.addShape(pres.ShapeType.rect, {
+    x: 8.68, y: 4.72, w: 3.6, h: 0.014, fill: { color: C.track }, line: { width: 0 },
   });
   body(s, "I started building because of him.", {
-    x: 8.68, y: 4.78, w: 3.6, h: 0.4, fontSize: 13, color: C.ink, lineSpacing: 18,
+    x: 8.68, y: 4.86, w: 3.6, h: 0.4, fontSize: 13, color: C.ink, lineSpacing: 18,
   });
 
   card(s, M, 5.55, COL, 1.0, C.raised);
@@ -317,7 +323,7 @@ pres.addSection({ title: "Problem" });
   s.addNotes(
     "Why this, and it starts with one person.\n\n" +
     "A friend I play rugby with is the CrossFit champion of Lebanon, and one of the best rugby league " +
-    "players in the country. He earns nothing from either one. Not a little. Nothing.\n\n" +
+    "players in the country. Neither sport has ever paid him anything. Not a little. Nothing.\n\n" +
     "He is one of the five athletes in my research, and in that group he is not the exception. He is the " +
     "median. Someone at the very top of two sports, with a real audience, and no mechanism anywhere that " +
     "turns either of those things into income.\n\n" +
@@ -339,13 +345,30 @@ pres.addSection({ title: "Problem" });
     x: M, y: 1.25, w: 5.2, h: 2.5, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 168, color: C.ink, lineSpacing: 160,
   });
-  s.addText("CURRENT INCOME FROM THEIR AUDIENCE", {
-    x: M, y: 3.62, w: 5.4, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+  // The label used to read "current income from their audience", which the
+  // third finding immediately contradicted: one of the five does have a
+  // sponsor. Scoped to what the sport produced, the zero is exactly true, and
+  // the exception below is evidence for the thesis rather than against it.
+  s.addText("INCOME THE SPORT ITSELF PRODUCED", {
+    x: M, y: 3.62, w: 5.6, h: 0.3, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 13, color: C.ink3, charSpacing: 2.6,
   });
   s.addText("Not low. Not inconsistent. Nothing", {
     x: M, y: 4.05, w: 5.6, h: 0.9, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 30, color: C.accent, lineSpacing: 34,
+  });
+
+  // Adjacent to the number on purpose. A panel that meets the exception two
+  // inches lower has caught you out; one that meets it here has been told.
+  card(s, M, 4.66, 5.7, 0.94, C.raised);
+  s.addText("ONE OF THE FIVE DOES HAVE A SPONSOR", {
+    x: M + 0.28, y: 4.84, w: 5.2, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 11.5, color: C.accent, charSpacing: 2.0,
+  });
+  body(s,
+    "He did not get it as a rugby league player. None of it came through the sport, which is the " +
+    "finding and not an exception to it.", {
+    x: M + 0.28, y: 5.1, w: 5.2, h: 0.44, fontSize: 12, color: C.ink2, lineSpacing: 16,
   });
 
   card(s, 6.9, 1.35, COL - 6.12, 3.95, C.panel);
@@ -369,31 +392,37 @@ pres.addSection({ title: "Problem" });
 
   // The other three findings, so the lower third carries the rest of the
   // research rather than sitting empty under the headline number.
+  // Two, not three: the sponsorship finding has moved up beside the figure it
+  // qualifies, where it does its work instead of undercutting the number.
   const findings = [
     ["The inequity is felt", "Influencers producing far less demanding content earn more than competing athletes do"],
-    ["Sponsorship arrives despite the sport", "The one athlete who has a sponsor did not get it as a rugby league player"],
     ["So they stop building an audience", "Which suppresses the very supply the market is measured on"],
   ];
-  const fw = (COL - 0.6) / 3;
+  const fw = (COL - 0.3) / 2;
   findings.forEach(([head, text], i) => {
     const x = M + i * (fw + 0.3);
     s.addShape(pres.ShapeType.rect, {
-      x, y: 5.62, w: fw, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+      x, y: 5.74, w: fw, h: 0.014, fill: { color: C.track }, line: { width: 0 },
     });
     s.addText(head.toUpperCase(), {
-      x, y: 5.76, w: fw, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+      x, y: 5.88, w: fw, h: 0.24, margin: 0, isTextBox: true, valign: "top",
       fontFace: DISPLAY, fontSize: 12, color: C.ink, charSpacing: 1.8,
     });
-    body(s, text, { x, y: 6.02, w: fw, h: 0.6, fontSize: 11.5, color: C.ink3, lineSpacing: 15 });
+    body(s, text, { x, y: 6.14, w: fw, h: 0.6, fontSize: 11.5, color: C.ink3, lineSpacing: 15 });
   });
   source(s, "Primary research, five semi-structured interviews, 2026. Convenience sample, reported as one.");
   s.addNotes(
-    "He was one of five athletes in my own sports I asked the same question: what do you earn from " +
-    "your audience.\n\n" +
-    "The answer was not 'a little'. It was zero. Nothing, across all five.\n\n" +
-    "And read the quote carefully, because it is the finding that matters most: they do not build an " +
-    "audience, because there is no return on building one. That is not a complaint about pricing. " +
-    "It is a market with no infrastructure in it."
+    "He was one of five athletes in my own sports I asked the same question: what has your sport ever " +
+    "paid you.\n\n" +
+    "The answer was not 'a little'. Across all five it is zero, and I want to be precise about what " +
+    "that zero is, because one of them does have a sponsor.\n\n" +
+    "He did not get it as a rugby league player. It came to him some other way, and no part of it came " +
+    "through the sport. So the claim is not that these people are uncommercial. A brand pays him. The " +
+    "claim is that the sport captures none of it, because there is no route by which it could. That is " +
+    "a stronger finding than five zeros would have been.\n\n" +
+    "And read the quote, because it is the one that matters most: they do not build an audience, " +
+    "because there is no return on building one. That is not a complaint about pricing. It is a market " +
+    "with no infrastructure in it."
   );
 }
 
