@@ -197,13 +197,18 @@ pres.addSection({ title: "Open" });
 {
   const s = pres.addSlide({ masterName: "COVER", sectionTitle: "Open" });
   wordmark(s, M, 1.55, 58);
-  s.addText("Athletes are creators with a second payer", {
+  // Two imperative sentences, because the opener has about one second to land
+  // and "athletes are creators with a second payer" needs a beat of thought.
+  // The thesis sentence is not lost, it moves into the first thing I say.
+  s.addText("Get the athlete paid.\nShow the brand what it bought.", {
     x: M, y: 2.72, w: 10.4, h: 1.5, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 46, color: C.ink, lineSpacing: 50,
   });
+  // The segment, on slide one. Both sides of it, because who we sell to is the
+  // part of this plan that is easiest to get wrong in the panel's head.
   s.addText(
-    "Paid fan subscriptions on one side, measured sponsorship on the other, and each one produces what " +
-    "the other cannot buy. Built for the athletes no agent has ever called.", {
+    "For semi-professional athletes in niche sports, and the local businesses near their club. " +
+    "Neither side is served today.", {
     x: M, y: 4.22, w: 8.6, h: 0.9, margin: 0, isTextBox: true, valign: "top",
     fontFace: BODY, fontSize: 15.5, color: C.ink2, lineSpacing: 23,
   });
@@ -225,10 +230,15 @@ pres.addSection({ title: "Open" });
   });
   s.addNotes(
     "Good morning. I am Jad Zoghaib and this is Stride.\n\n" +
-    "One sentence for the whole plan: athletes are creators with a second payer. " +
-    "OnlyFans proved direct fan monetisation beats ad share. Nobody has built it for athletes, " +
-    "who unlike lifestyle creators also have sponsors, clubs and a competitive record that makes " +
-    "their audience measurable.\n\n" +
+    "Two sentences. Get the athlete paid, and show the brand what it bought. Those are the two halves " +
+    "of the company, and most of my fifteen minutes is about why they are one company rather than two.\n\n" +
+    "Be clear about who I mean on both sides. The athletes are semi-professional and amateur, in niche " +
+    "sports, with a real following in a real place and no agent. A professional does not need me, they " +
+    "already have one, and they would not use this. The brands are the businesses near that athlete's " +
+    "club: the physiotherapy clinic, the gym, the car dealer.\n\n" +
+    "And the thesis in one sentence: athletes are creators with a second payer. OnlyFans proved direct " +
+    "fan monetisation beats ad share. Nobody built it for athletes, who unlike lifestyle creators also " +
+    "have sponsors, clubs and a competitive record that makes their audience measurable.\n\n" +
     "Everything I show you is live at that URL, and I am happy to open it in the Q&A."
   );
 }
@@ -881,19 +891,40 @@ pres.addSection({ title: "Market" });
     body(s, monNote, { x: x + 3.1, y: 3.74, w: 2.3, h: 0.5, fontSize: 11.5, color: C.ink3, lineSpacing: 15 });
   });
   body(s,
-    "Cheaper to acquire, and a larger share of them earn. Nobody is fighting us for a trail runner with " +
-    "25,000 followers and an inbox of unanswered brand DMs. What we learn there generalises upward. " +
-    "Football does not generalise downward.", {
-    x: M, y: 4.62, w: COL, h: 0.8, fontSize: 14.5, color: C.ink2, lineSpacing: 20,
+    "Cheaper to acquire, and a larger share of them earn. A professional already has an agent and would " +
+    "not use this, so nobody is fighting us for a trail runner with 25,000 followers and an inbox of " +
+    "unanswered brand DMs. What we learn there generalises upward. Football does not generalise downward.", {
+    x: M, y: 4.62, w: COL, h: 0.9, fontSize: 14.5, color: C.ink2, lineSpacing: 20,
+  });
+
+  // The second reason the wedge works, and the one that makes the two sides
+  // fit each other rather than merely coexist: a niche athlete's audience is
+  // concentrated in a place, and that is the thing a local brand cannot buy.
+  card(s, M, 5.62, COL, 0.98, C.raised);
+  s.addText("WHY THE TWO SIDES FIT", {
+    x: M + 0.3, y: 5.84, w: 3.0, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 13.5, color: C.accent, charSpacing: 2.4,
+  });
+  body(s,
+    "A niche athlete's audience is concentrated where they train and compete. That concentration is worth " +
+    "little to a national advertiser, and it is exactly what the clinic two streets from the club is trying " +
+    "to buy and has no other way of buying. The same choice makes supply cheap and demand local.", {
+    x: M + 3.5, y: 5.8, w: COL - 3.8, h: 0.68, fontSize: 13, color: C.ink2, lineSpacing: 17,
   });
   source(s, "Stride financial model, segment assumptions. Acquisition cost rises over the plan as the mix shifts toward popular sports.");
   s.addNotes(
-    "Why niche sports first, and this is the strategic heart of the plan.\n\n" +
-    "A niche athlete costs 16 euros to acquire against 40 for a popular one, and by year seven 48 per cent " +
-    "of them monetise against 30 per cent.\n\n" +
-    "Cheaper, and more of them earn. And nobody is competing for them, because there is no agent there " +
-    "to compete with. What we learn in niche sports generalises upward into bigger ones. Starting in " +
-    "football and working down does not work, because in football we would be the fifth option."
+    "Why niche sports first, and this is the strategic heart of the plan. There are two reasons and the " +
+    "second one is the better one.\n\n" +
+    "The first is cost. A niche athlete costs 16 euros to acquire against 40 for a popular one, and by " +
+    "year seven 48 per cent of them monetise against 30 per cent. Cheaper, and more of them earn, because " +
+    "nobody is competing for them. A professional already has an agent and would not use this.\n\n" +
+    "The second reason is the one I would argue for. A niche athlete's audience is concentrated in a " +
+    "place, around the club and the circuit they compete on. To a national advertiser that is close to " +
+    "worthless, which is why nobody bids for it. To the physiotherapy clinic two streets from the club " +
+    "it is the only thing worth buying, and there is currently no way to buy it. So the same decision " +
+    "that makes my supply cheap is what makes my demand side exist at all.\n\n" +
+    "And what we learn here generalises upward into bigger sports. Starting in football and working down " +
+    "does not work, because in football we would be the fifth option."
   );
 }
 
@@ -943,16 +974,25 @@ pres.addSection({ title: "Market" });
     });
   });
 
-  card(s, M, 4.88, COL, 1.12, C.raised);
+  // The question this table always draws is about the one that got large, so
+  // the answer belongs on the slide rather than only in the backup.
+  body(s,
+    "The one that got large sells data to agencies and rights holders, and never executes a deal. " +
+    "355 people is what enterprise sales costs, and it is the reason nobody runs this motion down at a " +
+    "€2,000 sponsorship.", {
+    x: M, y: 4.80, w: COL, h: 0.56, fontSize: 13.5, color: C.ink2, lineSpacing: 18,
+  });
+
+  card(s, M, 5.48, COL, 1.12, C.raised);
   s.addText("THE SECOND PAYER", {
-    x: M + 0.3, y: 5.08, w: 2.6, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    x: M + 0.3, y: 5.68, w: 2.6, h: 0.26, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 13.5, color: C.accent, charSpacing: 2.4,
   });
   body(s,
     "Fan subscriptions are 48% of our Y7 revenue, and none of these four has that stream at all. " +
     "If it works, the economics are not Sponsoo's. If it does not, they are, and this is Sponsoo with " +
     "eleven fewer years of relationships. The plan prices both cases.", {
-    x: M + 3.2, y: 5.04, w: COL - 3.5, h: 0.84, fontSize: 13.5, color: C.ink2, lineSpacing: 18,
+    x: M + 3.2, y: 5.64, w: COL - 3.5, h: 0.84, fontSize: 13.5, color: C.ink2, lineSpacing: 18,
   });
   source(s, "PitchBook company profiles, retrieved 1 October 2026, reported in euros.");
   s.addNotes(
@@ -965,6 +1005,11 @@ pres.addSection({ title: "Market" });
     "OpenSponsorship built the marketplace and no analytics worth the name. Hookit and SponsorUnited " +
     "built the data and never had the athlete relationship, so they sell enterprise dashboards to brands " +
     "that already spend. Two halves, four companies, nobody with both.\n\n" +
+    "If you want the long answer on SponsorUnited I have a backup slide for it, but the short one is " +
+    "this. They sell what the market did. We measure what one brand's money did, and we can only do that " +
+    "because the projection is written onto the deal at the moment the offer is made. A company that was " +
+    "not in the transaction never saw the promise. I am not beating them, to be clear. I am serving a " +
+    "customer their cost structure will not let them near.\n\n" +
     "And none of the four has the fan. For us that is 48 per cent of year seven revenue: a second payer " +
     "none of them has, and it is the whole thesis. If it works we are not Sponsoo. If it does not, we are."
   );
