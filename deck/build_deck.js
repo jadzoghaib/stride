@@ -388,17 +388,20 @@ pres.addSection({ title: "Problem" });
     ["The inequity is felt", "Influencers producing far less demanding content earn more than competing athletes do"],
     ["So they stop building an audience", "Which suppresses the very supply the market is measured on"],
   ];
+  // Raised from 5.74 after the punch line and the source line came out. Left
+  // where they were, the removals opened a band of dead space across the
+  // middle of the slide; moved up, the air falls to the foot as margin.
   const fw = (COL - 0.3) / 2;
   findings.forEach(([head, text], i) => {
     const x = M + i * (fw + 0.3);
     s.addShape(pres.ShapeType.rect, {
-      x, y: 5.74, w: fw, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+      x, y: 5.30, w: fw, h: 0.014, fill: { color: C.track }, line: { width: 0 },
     });
     s.addText(head.toUpperCase(), {
-      x, y: 5.88, w: fw, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+      x, y: 5.44, w: fw, h: 0.24, margin: 0, isTextBox: true, valign: "top",
       fontFace: DISPLAY, fontSize: 12, color: C.ink, charSpacing: 1.8,
     });
-    body(s, text, { x, y: 6.14, w: fw, h: 0.6, fontSize: 11.5, color: C.ink3, lineSpacing: 15 });
+    body(s, text, { x, y: 5.70, w: fw, h: 0.6, fontSize: 11.5, color: C.ink3, lineSpacing: 15 });
   });
   s.addNotes(
     "He was one of five athletes in my own sports I asked the same question: what does your sport " +
