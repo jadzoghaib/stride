@@ -341,34 +341,33 @@ pres.addSection({ title: "Problem" });
   const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Problem" });
   eyebrow(s, "What five athletes told me");
 
-  s.addText("€0", {
-    x: M, y: 1.25, w: 5.2, h: 2.5, margin: 0, isTextBox: true, valign: "top",
-    fontFace: DISPLAY, fontSize: 168, color: C.ink, lineSpacing: 160,
-  });
-  // The label used to read "current income from their audience", which the
-  // third finding immediately contradicted: one of the five does have a
-  // sponsor. Scoped to what the sport produced, the zero is exactly true, and
-  // the exception below is evidence for the thesis rather than against it.
+  // The label sits ABOVE the figure, not below it. Read in the other order the
+  // slide appears to contradict itself within two inches: an enormous zero,
+  // then a card saying one of them has a sponsor. Scope first, then the number.
   s.addText("INCOME THE SPORT ITSELF PRODUCED", {
-    x: M, y: 3.62, w: 5.6, h: 0.3, margin: 0, isTextBox: true, valign: "top",
+    x: M, y: 1.10, w: 5.6, h: 0.3, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 13, color: C.ink3, charSpacing: 2.6,
   });
+  s.addText("€0", {
+    x: M, y: 1.48, w: 5.2, h: 2.5, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 168, color: C.ink, lineSpacing: 160,
+  });
   s.addText("Not low. Not inconsistent. Nothing", {
-    x: M, y: 4.05, w: 5.6, h: 0.9, margin: 0, isTextBox: true, valign: "top",
+    x: M, y: 3.56, w: 5.6, h: 0.9, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 30, color: C.accent, lineSpacing: 34,
   });
 
   // Adjacent to the number on purpose. A panel that meets the exception two
   // inches lower has caught you out; one that meets it here has been told.
-  card(s, M, 4.66, 5.7, 0.94, C.raised);
+  card(s, M, 4.34, 5.7, 0.94, C.raised);
   s.addText("ONE OF THE FIVE DOES HAVE A SPONSOR", {
-    x: M + 0.28, y: 4.84, w: 5.2, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+    x: M + 0.28, y: 4.52, w: 5.2, h: 0.24, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 11.5, color: C.accent, charSpacing: 2.0,
   });
   body(s,
     "He did not get it as a rugby league player. None of it came through the sport, which is the " +
     "finding and not an exception to it.", {
-    x: M + 0.28, y: 5.1, w: 5.2, h: 0.44, fontSize: 12, color: C.ink2, lineSpacing: 16,
+    x: M + 0.28, y: 4.78, w: 5.2, h: 0.44, fontSize: 12, color: C.ink2, lineSpacing: 16,
   });
 
   card(s, 6.9, 1.35, COL - 6.12, 3.95, C.panel);
@@ -422,7 +421,10 @@ pres.addSection({ title: "Problem" });
     "a stronger finding than five zeros would have been.\n\n" +
     "And read the quote, because it is the one that matters most: they do not build an audience, " +
     "because there is no return on building one. That is not a complaint about pricing. It is a market " +
-    "with no infrastructure in it."
+    "with no infrastructure in it.\n\n" +
+    "If anyone asks why the figure is in euros when two of the three sports are in Lebanon: the whole " +
+    "plan is denominated in euros and Spain is the launch market, so it is the unit every other number " +
+    "in this deck uses. Zero is the one figure where the unit cannot change the answer."
   );
 }
 
