@@ -67,7 +67,7 @@ const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE";          // 13.333 x 7.5, must precede addSlide
 pres.theme = { headFontFace: DISPLAY, bodyFontFace: BODY };
 pres.author = "Jad Zoghaib";
-pres.title = "Stride — athlete monetisation built on analytics";
+pres.title = "Stride: athlete monetisation built on analytics";
 pres.subject = "ESADE MSc Business Plan, final presentation";
 
 // ── layouts ─────────────────────────────────────────────────────────────────
@@ -1416,8 +1416,11 @@ function backup(eyebrowText, titleText, lead) {
 
   const steps = [
     ["01", "Apply", "The athlete connects their platforms and applies. Proof is checked automatically, then a person decides. A club can nominate a whole roster as a second route."],
-    ["02", "Score", "Marketability is computed on eight weighted components, each traceable to the posts behind it, and every score version is kept."],
-    ["03", "Match", "A sponsor briefs a campaign and receives a ranked shortlist in which every score decomposes: audience fit 72 × 32% = 23.1."],
+    // Two different scores, and conflating them is the easiest mistake to make
+    // here: marketability is the athlete's own, the mean of five dimensions.
+    // The eight weighted components are the match, which needs a campaign.
+    ["02", "Score", "Marketability is the mean of five computed dimensions, each traceable to the posts behind it, and every score version is kept."],
+    ["03", "Match", "A sponsor briefs a campaign, and the match is scored on eight weighted components, each one decomposed: audience fit 72 × 32% = 23.1."],
     ["04", "Deal", "Offer, acceptance, delivery measured against what was projected. An unmeasured campaign reads as unmeasured, never as zero."],
   ];
   const cw = (COL - 0.75) / 4;
