@@ -309,7 +309,6 @@ pres.addSection({ title: "Problem" });
     "Four years of consulting built the model; the MSc and the build produced the product and its code.", {
     x: M + 3.9, y: 5.73, w: COL - 4.2, h: 0.72, fontSize: 13, color: C.ink2, lineSpacing: 17,
   });
-  source(s, "One of the five athletes in the primary research. Full method and limitations in section 3.1.5.");
   s.addNotes(
     "Why this, and it starts with one person.\n\n" +
     "A friend I play rugby with is the CrossFit champion of Lebanon, and one of the best rugby league " +
@@ -610,7 +609,6 @@ pres.addSection({ title: "Product" });
     "one earning €5,000, which a subscription would not have done. They are the supply, and supply is the constraint.", {
     x: M + 3.6, y: 5.52, w: COL - 3.9, h: 0.6, fontSize: 13, color: C.ink2, lineSpacing: 17,
   });
-  source(s, "Stride financial model: Y7 net revenue of €3.01M, 48% from fans and 52% from the two sponsor streams.");
   s.addNotes(
     "So what is Stride. Two engines, and I want to be precise that they are peers rather than a product " +
     "and a feature.\n\n" +
@@ -738,6 +736,9 @@ pres.addSection({ title: "Product" });
     x: M, y: 4.95, w: 4.0, h: 0.34, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 18, color: C.accent,
   });
+  // The author's QR, amber to match the accent. A panel on Zoom can open the
+  // demo from their phone without typing the URL.
+  s.addImage({ path: path.join(__dirname, "qr-demo.png"), x: M, y: 5.42, w: 1.63, h: 1.65 });
   s.addImage({
     path: path.join(UI, "02-athlete-dashboard.png"),
     x: 5.05, y: 0.75, w: 7.85, h: 5.45,
@@ -957,16 +958,26 @@ pres.addSection({ title: "Market" });
   // The second reason the wedge works, and the one that makes the two sides
   // fit each other rather than merely coexist: a niche athlete's audience is
   // concentrated in a place, and that is the thing a local brand cannot buy.
-  card(s, M, 5.62, COL, 0.98, C.raised);
-  s.addText("WHY THE TWO SIDES FIT", {
-    x: M + 0.3, y: 5.84, w: 3.0, h: 0.26, margin: 0, isTextBox: true, valign: "top",
-    fontFace: DISPLAY, fontSize: 13.5, color: C.accent, charSpacing: 2.4,
+  card(s, M, 5.56, COL, 1.28, C.raised);
+  // The same sentence twice over was doing the work of a comparison, so it is
+  // drawn as one. Deliberately not another chevron chain: slides 5, 7 and 15
+  // already carry those, and the point here is asymmetry rather than sequence.
+  s.addText("THE SAME AUDIENCE, TWO BUYERS", {
+    x: M + 0.3, y: 5.76, w: 5.0, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 13, color: C.accent, charSpacing: 2.2,
   });
-  body(s,
-    "A niche athlete's audience is concentrated where they train and compete. That concentration is worth " +
-    "little to a national advertiser, and it is exactly what the clinic two streets from the club is trying " +
-    "to buy and has no other way of buying. The same choice makes supply cheap and demand local.", {
-    x: M + 3.5, y: 5.8, w: COL - 3.8, h: 0.68, fontSize: 13, color: C.ink2, lineSpacing: 17,
+  const buyers = [
+    ["To a national advertiser", "Close to worthless, which is why nobody bids for it", C.ink3],
+    ["To the clinic two streets away", "The only thing worth buying, and no other way to buy it", C.ink],
+  ];
+  const bww = (COL - 0.6 - 0.4) / 2;
+  buyers.forEach(([who, verdict, colour], i) => {
+    const x = M + 0.3 + i * (bww + 0.4);
+    s.addText(who.toUpperCase(), {
+      x, y: 6.14, w: bww, h: 0.24, margin: 0, isTextBox: true, valign: "top",
+      fontFace: DISPLAY, fontSize: 11.5, color: i === 1 ? C.accent : C.ink3, charSpacing: 2.0,
+    });
+    body(s, verdict, { x, y: 6.42, w: bww, h: 0.4, fontSize: 13.5, color: colour, lineSpacing: 18 });
   });
   source(s, "Stride financial model, segment assumptions. Acquisition cost rises over the plan as the mix shifts toward popular sports.");
   s.addNotes(
@@ -1136,19 +1147,20 @@ pres.addSection({ title: "Model" });
   eyebrow(s, "Go to market");
   title(s, "Year one, concretely");
 
+  // Three, not four: the salary card came out in the author's own edit, and
+  // the remaining three widen to fill the row rather than leaving a gap.
   const items = [
     ["250", "athletes", "recruited from 1,250 applications, in two or three niche Spanish sports"],
     ["20", "sponsor conversations", "which are the first sales as much as the research, closing about 15 deals"],
-    ["1", "salary", "mine, plus a named athlete partner on 5% equity rather than cash"],
     ["€113k", "of cash", "two thirds of it available as a non-dilutive ENISA loan"],
   ];
-  const cw = (COL - 0.75) / 4;
+  const cw = (COL - 0.8) / 3;
   items.forEach(([value, unit, note], i) => {
-    const x = M + i * (cw + 0.25);
+    const x = M + i * (cw + 0.4);
     card(s, x, 2.14, cw, 2.5);
     s.addText(value, {
       x: x + 0.28, y: 2.38, w: cw - 0.56, h: 0.95, margin: 0, isTextBox: true, valign: "top",
-      fontFace: DISPLAY, fontSize: 54, color: i === 3 ? C.accent : C.ink, lineSpacing: 54,
+      fontFace: DISPLAY, fontSize: 54, color: i === 2 ? C.accent : C.ink, lineSpacing: 54,
     });
     // "SPONSOR CONVERSATIONS" wraps to two lines, so the label owns the room
     // for two and the note starts below the taller of the two cases.
@@ -1159,22 +1171,48 @@ pres.addSection({ title: "Model" });
     body(s, note, { x: x + 0.28, y: 3.88, w: cw - 0.56, h: 0.7, fontSize: 12, color: C.ink2, lineSpacing: 16 });
   });
 
-  card(s, M, 4.84, COL, 1.2, C.panel);
-  s.addText("THE SEQUENCE IS THE OPPOSITE OF THE OBVIOUS ONE", {
-    x: M + 0.3, y: 5.04, w: 5.0, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+  // This was one paragraph of prose describing an order of work, which is the
+  // worst possible shape for an order of work. Drawn as three linked steps it
+  // reads in a glance, and the asymmetry does the arguing: the middle one
+  // needs none of the things that make the last one expensive.
+  s.addText("BUILD ORDER, AND IT IS THE OPPOSITE OF THE OBVIOUS ONE", {
+    x: M, y: 4.90, w: 6.5, h: 0.26, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 13, color: C.accent, charSpacing: 2.2,
   });
+
+  const build = [
+    ["01", "Payment rail", "Stripe Connect, KYC and payouts. Everything else sits on top of it.", C.ink],
+    ["02", "Sponsorship billing", "No moderation. No safeguarding. No media egress. Invoiced against a signed deal.", C.accent],
+    ["03", "Fan tier", "Needs all three of those, so it ships last and earns from Y2.", C.ink],
+  ];
+  const bw = (COL - 1.0) / 3;
+  build.forEach(([n, name, why, colour], i) => {
+    const x = M + i * (bw + 0.5);
+    card(s, x, 5.22, bw, 1.0, i === 1 ? C.raised : C.panel);
+    s.addText([
+      { text: n, options: { fontFace: DISPLAY, fontSize: 15, color: colour } },
+      { text: `   ${name.toUpperCase()}`, options: { fontFace: DISPLAY, fontSize: 15, color: C.ink, charSpacing: 1.8 } },
+    ], {
+      x: x + 0.26, y: 5.40, w: bw - 0.52, h: 0.28, margin: 0, isTextBox: true, valign: "top",
+    });
+    body(s, why, { x: x + 0.26, y: 5.70, w: bw - 0.52, h: 0.44, fontSize: 11.5, color: C.ink2, lineSpacing: 15 });
+    if (i < 2) {
+      s.addText("›", {
+        x: x + bw + 0.04, y: 5.52, w: 0.42, h: 0.5, margin: 0, isTextBox: true, valign: "top",
+        align: "center", fontFace: DISPLAY, fontSize: 24, color: C.ink3,
+      });
+    }
+  });
   body(s,
-    "Build the payment rail and sponsorship billing first, and the fan tier last. Commission is invoiced " +
-    "against a signed deal: it needs no content moderation, no minors safeguarding and no media egress, " +
-    "so it is the cheapest of the three to build and the only one that earns inside the first year.", {
-    x: M + 0.3, y: 5.34, w: COL - 0.6, h: 0.68, fontSize: 13, color: C.ink2, lineSpacing: 17,
+    "The cheapest of the three to build is the only one that earns inside the first year.", {
+    x: M, y: 6.38, w: COL, h: 0.38, fontSize: 14, color: C.ink, lineSpacing: 19,
   });
   s.addNotes(
     "Year one, concretely, because a plan that cannot say what happens first is not a plan.\n\n" +
     "250 athletes from 1,250 applications in two or three niche Spanish sports. Twenty sponsor " +
     "conversations that are the first sales as much as they are research, closing about fifteen deals. " +
-    "One salary, mine, plus an anchor athlete on equity rather than cash. 113,000 euros.\n\n" +
+    "113,000 euros of cash, two thirds of it available as a non-dilutive ENISA loan. One salary, mine, " +
+    "plus an anchor athlete on equity rather than cash.\n\n" +
     "And note the build order, because it is counter-intuitive. We build the sponsorship rail first and " +
     "the fan product last, even though the fan product is the thesis. Commission earns inside year one. " +
     "The fan tier cannot, because it needs moderation and safeguarding built first."

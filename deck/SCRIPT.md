@@ -286,8 +286,9 @@ plan.
 
 Two hundred and fifty athletes from twelve hundred and fifty applications, in
 two or three niche Spanish sports. Twenty sponsor conversations that are the
-first sales as much as the research. One salary, mine, plus an anchor athlete
-on equity. A hundred and thirteen thousand euros.
+first sales as much as the research. A hundred and thirteen thousand euros, two
+thirds of it a non-dilutive ENISA loan. One salary, mine, plus an anchor athlete
+on equity rather than cash.
 
 And note the build order, because it's counter-intuitive: sponsorship rail
 first, fan product last, even though the fan product is the thesis. Commission
