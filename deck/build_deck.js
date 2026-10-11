@@ -284,22 +284,20 @@ pres.addSection({ title: "Problem" });
   });
 
   card(s, 8.38, 2.1, COL - 7.6, 3.2, C.raised);
-  // Scoped the same way slide 3 is scoped. "What he earns" is a claim about a
-  // person's whole income and I cannot stand behind it; what either sport has
-  // paid him is a claim about a mechanism, and that is the one being made.
-  s.addText("WHAT EITHER SPORT HAS PAID HIM", {
+  // Not "nothing", because that is not true and slide 3 now says so: he is a
+  // national champion and he gets given things. What he does not have is a
+  // price, which is the same absence slide 4 calls the buyer's PRICE problem.
+  s.addText("WHAT EITHER SPORT PAYS HIM", {
     x: 8.68, y: 2.32, w: 3.6, h: 0.26, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 12, color: C.ink3, charSpacing: 2.6,
   });
-  // Deliberately a word and not a number: slide 3 owns the enormous €0, and
-  // two giant figures back to back would blunt the one that carries the data.
-  s.addText("Nothing", {
+  s.addText("No rate", {
     x: 8.68, y: 2.68, w: 3.6, h: 0.8, margin: 0, isTextBox: true, valign: "top",
     fontFace: DISPLAY, fontSize: 46, color: C.accent, lineSpacing: 48,
   });
   body(s,
-    "Not a small amount, and not an inconsistent one. Nothing either sport built for him converts into " +
-    "income, so whatever he earns arrives another way.", {
+    "He is given things. Gear, product, the occasional paid post. None of it carries a price, a " +
+    "contract, or any reason to arrive a second time.", {
     x: 8.68, y: 3.56, w: 3.6, h: 1.05, fontSize: 13, lineSpacing: 18,
   });
   s.addShape(pres.ShapeType.rect, {
@@ -323,7 +321,10 @@ pres.addSection({ title: "Problem" });
   s.addNotes(
     "Why this, and it starts with one person.\n\n" +
     "A friend I play rugby with is the CrossFit champion of Lebanon, and one of the best rugby league " +
-    "players in the country. Neither sport has ever paid him anything. Not a little. Nothing.\n\n" +
+    "players in the country. Neither sport pays him.\n\n" +
+    "I want to be precise, because the easy version of this is a big zero and it would not be true. " +
+    "He gets given things. Gear, product, the odd paid post. What none of it has is a price, a " +
+    "contract, or any reason to arrive a second time.\n\n" +
     "He is one of the five athletes in my research, and in that group he is not the exception. He is the " +
     "median. Someone at the very top of two sports, with a real audience, and no mechanism anywhere that " +
     "turns either of those things into income.\n\n" +
@@ -337,62 +338,64 @@ pres.addSection({ title: "Problem" });
 // ════════════════════════════════════════════════════════════════════════════
 // 3 — THE PROBLEM
 // ════════════════════════════════════════════════════════════════════════════
+// This led on an enormous €0, which was the best-looking thing in the deck and
+// was not true. These athletes do receive things: gear, product, the occasional
+// paid post, prize money now and then. What none of it has is a rate, a
+// contract, or any reason to expect it twice. So the claim is structural rather
+// than numerical, the quote carries the slide, and no figure is asserted that
+// an examiner could take apart.
 {
   const s = pres.addSlide({ masterName: "BOARD_DEEP", sectionTitle: "Problem" });
   eyebrow(s, "What five athletes told me");
 
-  // The label sits ABOVE the figure, not below it. Read in the other order the
-  // slide appears to contradict itself within two inches: an enormous zero,
-  // then a card saying one of them has a sponsor. Scope first, then the number.
-  s.addText("INCOME THE SPORT ITSELF PRODUCED", {
-    x: M, y: 1.10, w: 5.6, h: 0.3, margin: 0, isTextBox: true, valign: "top",
-    fontFace: DISPLAY, fontSize: 13, color: C.ink3, charSpacing: 2.6,
-  });
-  s.addText("€0", {
-    x: M, y: 1.48, w: 5.2, h: 2.5, margin: 0, isTextBox: true, valign: "top",
-    fontFace: DISPLAY, fontSize: 168, color: C.ink, lineSpacing: 160,
-  });
-  s.addText("Not low. Not inconsistent. Nothing", {
-    x: M, y: 3.56, w: 5.6, h: 0.9, margin: 0, isTextBox: true, valign: "top",
-    fontFace: DISPLAY, fontSize: 30, color: C.accent, lineSpacing: 34,
-  });
-
-  // Adjacent to the number on purpose. A panel that meets the exception two
-  // inches lower has caught you out; one that meets it here has been told.
-  card(s, M, 4.34, 5.7, 0.94, C.raised);
-  s.addText("ONE OF THE FIVE DOES HAVE A SPONSOR", {
-    x: M + 0.28, y: 4.52, w: 5.2, h: 0.24, margin: 0, isTextBox: true, valign: "top",
-    fontFace: DISPLAY, fontSize: 11.5, color: C.accent, charSpacing: 2.0,
-  });
-  body(s,
-    "He did not get it as a rugby league player. None of it came through the sport, which is the " +
-    "finding and not an exception to it.", {
-    x: M + 0.28, y: 4.78, w: 5.2, h: 0.44, fontSize: 12, color: C.ink2, lineSpacing: 16,
-  });
-
-  card(s, 6.9, 1.35, COL - 6.12, 3.95, C.panel);
   s.addText("“", {
-    x: 7.2, y: 1.42, w: 1, h: 1, margin: 0, isTextBox: true, valign: "top",
-    fontFace: DISPLAY, fontSize: 80, color: C.track,
+    x: M - 0.06, y: 0.92, w: 1.2, h: 1.0, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 86, color: C.track,
   });
-  body(s,
-    "People are not going to spend time setting up social media and building followers purely " +
-    "around their sport if nothing comes back.", {
-    x: 7.3, y: 2.25, w: COL - 7.0, h: 1.5, fontSize: 19, color: C.ink, lineSpacing: 27,
+  s.addText(
+    "People are not going to spend time setting up social media and building " +
+    "followers purely around their sport if nothing comes back.", {
+    x: M, y: 1.62, w: 7.2, h: 2.1, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 32, color: C.ink, lineSpacing: 36,
   });
   s.addShape(pres.ShapeType.rect, {
-    x: 7.3, y: 3.9, w: 1.1, h: 0.02, fill: { color: C.accent }, line: { width: 0 },
+    x: M, y: 3.84, w: 1.1, h: 0.02, fill: { color: C.accent }, line: { width: 0 },
   });
   body(s,
-    "Rugby league players competing in Spain and Lebanon, and top-ranked Lebanese CrossFit athletes. " +
-    "The founder is capped by the Lebanese national rugby team, which is how this access exists.", {
-    x: 7.3, y: 4.08, w: COL - 7.0, h: 1.1, fontSize: 12.5, color: C.ink3, lineSpacing: 17,
+    "One of the five. Rugby league players competing in Spain and Lebanon, and top-ranked Lebanese " +
+    "CrossFit athletes. The founder is capped by the Lebanese national rugby team, which is how this " +
+    "access exists.", {
+    x: M, y: 4.02, w: 7.0, h: 0.8, fontSize: 12.5, color: C.ink3, lineSpacing: 17,
   });
 
-  // The other three findings, so the lower third carries the rest of the
-  // research rather than sitting empty under the headline number.
-  // Two, not three: the sponsorship finding has moved up beside the figure it
-  // qualifies, where it does its work instead of undercutting the number.
+  // The honest version of the old zero. They are given things; nobody is
+  // buying anything, and that distinction is the whole business.
+  card(s, 8.3, 1.3, W - M - 8.3, 3.4, C.panel);
+  s.addText("WHAT THEY DO GET", {
+    x: 8.58, y: 1.52, w: 3.7, h: 0.26, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 12, color: C.ink3, charSpacing: 2.6,
+  });
+  ["Gear and product", "The occasional paid post", "Prize money, sometimes"].forEach((t, i) => {
+    const y = 1.92 + i * 0.4;
+    s.addShape(pres.ShapeType.rect, {
+      x: 8.58, y: y + 0.105, w: 0.14, h: 0.03, fill: { color: C.accent }, line: { width: 0 },
+    });
+    body(s, t, { x: 8.88, y, w: 3.4, h: 0.32, fontSize: 13.5, color: C.ink });
+  });
+  s.addShape(pres.ShapeType.rect, {
+    x: 8.58, y: 3.26, w: 3.7, h: 0.014, fill: { color: C.track }, line: { width: 0 },
+  });
+  body(s,
+    "Real value, and not one euro of it carrying a rate, a contract, or any reason to expect it a " +
+    "second time. One of the five does have a sponsor, and it did not come through his sport.", {
+    x: 8.58, y: 3.44, w: 3.7, h: 1.0, fontSize: 12.5, color: C.ink2, lineSpacing: 17,
+  });
+
+  s.addText("A champion gets given things. Nobody is buying anything.", {
+    x: M, y: 4.98, w: COL, h: 0.5, margin: 0, isTextBox: true, valign: "top",
+    fontFace: DISPLAY, fontSize: 26, color: C.accent, lineSpacing: 30,
+  });
+
   const findings = [
     ["The inequity is felt", "Influencers producing far less demanding content earn more than competing athletes do"],
     ["So they stop building an audience", "Which suppresses the very supply the market is measured on"],
@@ -411,20 +414,19 @@ pres.addSection({ title: "Problem" });
   });
   source(s, "Primary research, five semi-structured interviews, 2026. Convenience sample, reported as one.");
   s.addNotes(
-    "He was one of five athletes in my own sports I asked the same question: what has your sport ever " +
-    "paid you.\n\n" +
-    "The answer was not 'a little'. Across all five it is zero, and I want to be precise about what " +
-    "that zero is, because one of them does have a sponsor.\n\n" +
-    "He did not get it as a rugby league player. It came to him some other way, and no part of it came " +
-    "through the sport. So the claim is not that these people are uncommercial. A brand pays him. The " +
-    "claim is that the sport captures none of it, because there is no route by which it could. That is " +
-    "a stronger finding than five zeros would have been.\n\n" +
-    "And read the quote, because it is the one that matters most: they do not build an audience, " +
-    "because there is no return on building one. That is not a complaint about pricing. It is a market " +
-    "with no infrastructure in it.\n\n" +
-    "If anyone asks why the figure is in euros when two of the three sports are in Lebanon: the whole " +
-    "plan is denominated in euros and Spain is the launch market, so it is the unit every other number " +
-    "in this deck uses. Zero is the one figure where the unit cannot change the answer."
+    "He was one of five athletes in my own sports I asked the same question: what does your sport " +
+    "actually pay you.\n\n" +
+    "I want to be careful here, because the easy version of this slide is a big zero and it would not " +
+    "be true. They do get things. Gear, product, the occasional paid post, prize money now and then. " +
+    "A national champion is given plenty.\n\n" +
+    "What none of it has is a rate, a contract, or any reason at all to expect it a second time. " +
+    "Nobody is buying anything. They are being given things, and you cannot build a career, or a " +
+    "business, on being given things.\n\n" +
+    "One of the five does have a proper sponsor, and he did not get it as a rugby league player. " +
+    "It arrived some other way, and no part of it came through the sport.\n\n" +
+    "And read the quote, because it is the finding that matters most: they do not build an audience, " +
+    "because there is no return on building one. That is not a complaint about money. It is a market " +
+    "with no infrastructure in it."
   );
 }
 

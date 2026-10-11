@@ -18,7 +18,7 @@ thirty seconds and should spend them on slides 7 and 9 rather than hurrying.
 |---|---|---|---|
 | 1 | Cover | 0:30 | 0:30 |
 | 2 | Why this | 0:35 | 1:05 |
-| 3 | The athlete's €0 | 0:45 | 1:50 |
+| 3 | Given, not paid | 0:45 | 1:50 |
 | 4 | The buyer's half | 1:05 | 2:55 |
 | 5 | One missing layer | 0:45 | 3:40 |
 | 6 | Two engines | 1:00 | 4:40 |
@@ -66,8 +66,11 @@ questions.
 Why this, and it starts with one person.
 
 A friend I play rugby with is the CrossFit champion of Lebanon, and one of the
-best rugby league players in the country. Neither sport has ever paid him
-anything. Not a little. **Nothing.**
+best rugby league players in the country. **Neither sport pays him.**
+
+I want to be precise, because the easy version of this is a big zero and it
+wouldn't be true. He gets given things. Gear, product, the odd paid post. What
+none of it has is a price, a contract, or any reason to arrive a second time.
 
 He's one of the five athletes in my research, and in that group he isn't the
 exception. He's the median. Someone at the very top of two sports, with a real
@@ -80,27 +83,29 @@ these are teammates, not survey respondents. I'm capped for Lebanon myself,
 which is why the conversations were candid. The consulting built the model, and
 the demo is my own code.
 
-## 3 · The athlete's €0 · 0:45
+## 3 · Given, not paid · 0:45
 
-He was one of five athletes in my own sports I asked the same question: what has
-your sport ever paid you.
+He was one of five athletes in my own sports I asked the same question: what
+does your sport actually pay you.
 
-The answer wasn't "a little". Across all five it's zero, and I want to be precise
-about what that zero is, because **one of them does have a sponsor.**
+They do get things. Gear, product, the occasional paid post, prize money now and
+then. A national champion is given plenty.
 
-He didn't get it as a rugby league player. It came to him some other way, and no
-part of it came through the sport. So the claim isn't that these people are
-uncommercial. A brand pays him. The claim is that the sport captures none of it,
-because there's no route by which it could. That's a stronger finding than five
-zeros would have been.
+What none of it has is a rate, a contract, or any reason at all to expect it a
+second time. **A champion gets given things. Nobody is buying anything.** And
+you can't build a career, or a business, on being given things.
 
-*[beat, then the quote]* And read the quote, because it's the one that matters
-most. They don't build an audience, because there's no return on building one.
+One of the five does have a proper sponsor, and he didn't get it as a rugby
+league player. It arrived some other way, and no part of it came through the
+sport.
 
-That isn't a complaint about pricing. It's a market with no infrastructure in
-it. And look at the third finding: because they stop building, the market
-measures smaller than it really is. Every number after this is the conservative
-reading.
+*[beat, then the quote]* And read the quote, because it's the finding that
+matters most. They don't build an audience, because there's no return on
+building one.
+
+That isn't a complaint about money. It's a market with no infrastructure in it.
+And look at the second finding: because they stop building, the market measures
+smaller than it really is. Every number after this is the conservative reading.
 
 ## 4 · The buyer's half · 1:05
 
