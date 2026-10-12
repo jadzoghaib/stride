@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stride Defence Rehearsal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+  /* The Stride "Timing Board": a stadium results board, not a web page.
+     Deliberately single-theme, because it is the deck's own visual world. */
+  :root {
+    --ground:#101216; --deep:#0A0C0F; --panel:#171A20; --raised:#1F242C;
+    --track:#262C35; --ink:#F2F4F7; --ink2:#AEB6C2; --ink3:#828C9A;
+    --accent:#FFB020; --accent-on:#14100A; --ok:#3FCF8E; --warn:#FF8A3D; --critical:#F2555A;
+    --display:"Barlow Condensed","Arial Narrow",sans-serif;
+    --body:"Barlow",system-ui,-apple-system,sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--body); font-size:16px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .caps {
+    font-family:var(--display); font-weight:600; text-transform:uppercase;
+    letter-spacing:.18em; font-size:.72rem; color:var(--ink3);
+  }
+  .wrap { max-width:1180px; margin:0 auto; padding:24px 16px 48px; }
+
+  header {
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+    padding-bottom:16px; border-bottom:1px solid var(--track);
+  }
+  .mark {
+    display:inline-flex; align-items:center; gap:9px; font-family:var(--display);
+    font-weight:700; font-size:1.45rem; letter-spacing:.14em;
+  }
+  .mark::before { content:""; width:20px; height:3px; background:var(--accent); }
+  header .caps:last-child { margin-left:auto; }
+
+  /* ── tabs ─────────────────────────────────────────────────── */
+  .tabs { display:flex; gap:4px; margin-top:18px; }
+  .tab {
+    font-family:var(--display); font-weight:600; text-transform:uppercase;
+    letter-spacing:.13em; font-size:.84rem; padding:11px 22px;
+    border:1px solid var(--track); border-bottom:none;
+    border-radius:5px 5px 0 0; background:transparent; color:var(--ink3);
+    cursor:pointer; transition:background .12s,color .12s;
+  }
+  .tab:hover { color:var(--ink2); background:var(--panel); }
+  .tab[aria-selected="true"] { background:var(--panel); color:var(--accent); border-color:var(--track); }
+  .tab:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+  .tabline { height:1px; background:var(--track); margin-bottom:20px; }
+
+  /* ── script view ──────────────────────────────────────────── */
+  .board { display:grid; grid-template-columns:minmax(0,1fr) 290px; gap:16px; align-items:start; }
+  .clockcard, .stat, .script, .qcard {
+    background:var(--panel); border:1px solid var(--track); border-radius:6px;
+  }
+  .clockcard { padding:16px 20px 18px; }
+  .clock {
+    font-family:var(--display); font-weight:700; font-variant-numeric:tabular-nums;
+    font-size:clamp(3.4rem,12vw,6rem); line-height:.92; margin:6px 0 2px;
+  }
+  .clock.over { color:var(--critical); }
+  .of { color:var(--ink3); font-size:.42em; letter-spacing:.06em; }
+  .controls { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  button.btn {
+    font-family:var(--display); font-weight:600; text-transform:uppercase;
+    letter-spacing:.12em; font-size:.8rem; padding:9px 15px; border-radius:4px;
+    border:1px solid var(--track); background:var(--raised); color:var(--ink);
+    cursor:pointer; transition:background .12s;
+  }
+  button.btn:hover { background:var(--track); }
+  button.btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  button.btn.go { background:var(--accent); color:var(--accent-on); border-color:var(--accent); }
+  button.btn:disabled { opacity:.4; cursor:default; }
+
+  .status { display:grid; gap:9px; }
+  .stat { padding:11px 14px 13px; }
+  .stat .v {
+    font-family:var(--display); font-weight:700; font-variant-numeric:tabular-nums;
+    font-size:1.85rem; line-height:1.05; margin-top:2px;
+  }
+  .stat .sub { font-size:.78rem; color:var(--ink3); margin-top:2px; }
+  .v.ok{color:var(--ok)} .v.warn{color:var(--warn)} .v.bad{color:var(--critical)}
+  .bar { height:4px; background:var(--track); border-radius:2px; overflow:hidden; margin-top:8px; }
+  .bar>i { display:block; height:100%; width:0; background:var(--ok); transition:width .3s linear; }
+  .bar>i.warn{background:var(--warn)} .bar>i.bad{background:var(--critical)}
+
+  .script { padding:20px 24px 24px; margin-top:16px; }
+  .scripthead {
+    display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;
+    padding-bottom:13px; border-bottom:1px solid var(--track);
+  }
+  .num {
+    font-family:var(--display); font-weight:700; font-size:2rem; line-height:1;
+    color:var(--accent); font-variant-numeric:tabular-nums;
+  }
+  .sname { font-family:var(--display); font-weight:700; font-size:1.6rem; line-height:1.1; }
+  .tag {
+    font-family:var(--display); font-weight:600; text-transform:uppercase;
+    letter-spacing:.14em; font-size:.66rem; padding:3px 9px; border-radius:3px;
+    border:1px solid currentColor;
+  }
+  .tag.protect{color:var(--accent)} .tag.cut{color:var(--ink3)}
+  .scripthead .caps { margin-left:auto; font-variant-numeric:tabular-nums; }
+  .lines { font-size:1.2rem; line-height:1.62; max-width:62ch; }
+  .lines p { margin:0 0 1em; }
+  .lines p:last-child { margin-bottom:0; }
+  .lines .stage { font-size:.93rem; color:var(--accent); font-style:italic; }
+  .lines b { font-weight:600; color:#fff; }
+
+  .railwrap { margin-top:18px; }
+  .rail { display:flex; gap:3px; margin-top:8px; }
+  .seg {
+    height:28px; background:var(--track); border:0; border-radius:2px; padding:0;
+    cursor:pointer; position:relative; transition:background .15s; min-width:8px;
+  }
+  .seg:hover { background:#333a45; }
+  .seg.done { background:var(--ink3); }
+  .seg.now { background:var(--accent); }
+  .seg.mark::after {
+    content:""; position:absolute; left:50%; bottom:-7px; width:3px; height:3px;
+    margin-left:-1.5px; border-radius:50%; background:var(--accent);
+  }
+  .seg:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .raillegend {
+    display:flex; justify-content:space-between; gap:12px; margin-top:13px;
+    font-size:.78rem; color:var(--ink3);
+  }
+  .keys { margin-top:20px; font-size:.8rem; color:var(--ink3); display:flex; gap:18px; flex-wrap:wrap; }
+  kbd {
+    font-family:var(--display); font-weight:600; letter-spacing:.08em;
+    background:var(--raised); border:1px solid var(--track); border-radius:3px;
+    padding:1px 7px; color:var(--ink2); font-size:.85em;
+  }
+
+  /* ── questions view ───────────────────────────────────────── */
+  .qintro { color:var(--ink2); max-width:70ch; margin:0 0 20px; }
+  .qfilter { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px; }
+  .chip {
+    font-family:var(--display); font-weight:600; text-transform:uppercase;
+    letter-spacing:.12em; font-size:.72rem; padding:6px 13px; border-radius:99px;
+    border:1px solid var(--track); background:transparent; color:var(--ink3);
+    cursor:pointer; transition:background .12s,color .12s;
+  }
+  .chip:hover { color:var(--ink2); background:var(--panel); }
+  .chip[aria-pressed="true"] { background:var(--accent); color:var(--accent-on); border-color:var(--accent); }
+  .chip:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+  .qlist { display:grid; gap:7px; }
+  .qcard { overflow:hidden; }
+  .qbtn {
+    width:100%; text-align:left; background:transparent; border:0; cursor:pointer;
+    padding:14px 18px; display:flex; align-items:flex-start; gap:12px;
+    color:var(--ink); font-family:var(--body); font-size:1.02rem; line-height:1.45;
+  }
+  .qbtn:hover { background:var(--raised); }
+  .qbtn:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+  .qbtn .twist {
+    font-family:var(--display); color:var(--accent); font-size:1.1rem;
+    line-height:1.3; flex:none; transition:transform .15s;
+  }
+  .qcard.open .twist { transform:rotate(90deg); }
+  .qbtn .qt { flex:1; font-weight:500; }
+  .slidechip {
+    font-family:var(--display); font-weight:600; text-transform:uppercase;
+    letter-spacing:.1em; font-size:.64rem; color:var(--accent);
+    border:1px solid var(--accent); border-radius:3px; padding:2px 7px;
+    flex:none; margin-top:2px;
+  }
+  .qa { display:none; padding:0 18px 17px 42px; color:var(--ink2); max-width:78ch; }
+  .qcard.open .qa { display:block; }
+  .qa p { margin:0 0 .85em; }
+  .qa p:last-child { margin-bottom:0; }
+  .qa b { color:#fff; font-weight:600; }
+  .qa .kicker {
+    font-family:var(--display); font-weight:600; text-transform:uppercase;
+    letter-spacing:.14em; font-size:.68rem; color:var(--ink3); margin-bottom:6px;
+  }
+  .qgroup {
+    font-family:var(--display); font-weight:600; text-transform:uppercase;
+    letter-spacing:.16em; font-size:.74rem; color:var(--ink3);
+    margin:22px 0 9px; padding-bottom:7px; border-bottom:1px solid var(--track);
+  }
+  .qgroup:first-child { margin-top:0; }
+
+  .hidden { display:none !important; }
+
+  @media (max-width:820px) {
+    .board { grid-template-columns:1fr; }
+    .status { grid-template-columns:1fr 1fr; }
+    .lines { font-size:1.08rem; }
+    .qa { padding-left:18px; }
+  }
+  @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="mark">STRIDE</span>
+    <span class="caps">Defence rehearsal</span>
+    <span class="caps">19 slides &middot; 15:00 &middot; 10 for questions</span>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tab-script" role="tab" aria-selected="true" aria-controls="view-script">The script</button>
+    <button class="tab" id="tab-qa" role="tab" aria-selected="false" aria-controls="view-qa">Questions they will ask</button>
+  </div>
+  <div class="tabline"></div>
+
+  <!-- ════════ SCRIPT ════════ -->
+  <section id="view-script" role="tabpanel" aria-labelledby="tab-script">
+    <div class="board">
+      <div class="clockcard">
+        <div class="caps">Elapsed</div>
+        <div class="clock" id="clock">0:00<span class="of"> / 15:00</span></div>
+        <div class="caps" id="phase">Not started</div>
+        <div class="controls">
+          <button class="btn go" id="start">Start</button>
+          <button class="btn" id="prev">&larr; Back</button>
+          <button class="btn" id="next">Next slide &rarr;</button>
+          <button class="btn" id="reset">Reset</button>
+        </div>
+      </div>
+      <div class="status">
+        <div class="stat">
+          <div class="caps">On this slide</div>
+          <div class="v" id="onslide">0:00</div>
+          <div class="sub" id="ontarget">target 0:30</div>
+          <div class="bar"><i id="onbar"></i></div>
+        </div>
+        <div class="stat">
+          <div class="caps">Pace</div>
+          <div class="v" id="pace">On time</div>
+          <div class="sub" id="pacesub">measured when you entered this slide</div>
+        </div>
+        <div class="stat">
+          <div class="caps">Leave this slide at</div>
+          <div class="v" id="leaveat">0:30</div>
+          <div class="sub">cumulative target</div>
+        </div>
+      </div>
+    </div>
+
+    <section class="script">
+      <div class="scripthead">
+        <span class="num" id="snum">1</span>
+        <span class="sname" id="stitle">Cover</span>
+        <span id="stag"></span>
+        <span class="caps" id="starget">0:30</span>
+      </div>
+      <div class="lines" id="lines"></div>
+    </section>
+
+    <div class="railwrap">
+      <div class="caps">The budget, drawn to scale</div>
+      <div class="rail" id="rail"></div>
+      <div class="raillegend">
+        <span>Segment width is that slide's share of the fifteen minutes.</span>
+        <span>Dots mark slides 7 and 9, which are not for cutting.</span>
+      </div>
+    </div>
+
+    <div class="keys">
+      <span><kbd>Space</kbd> next slide</span>
+      <span><kbd>&larr;</kbd> back</span>
+      <span><kbd>P</kbd> pause and resume</span>
+      <span><kbd>R</kbd> reset</span>
+    </div>
+  </section>
+
+  <!-- ════════ QUESTIONS ════════ -->
+  <section id="view-qa" role="tabpanel" aria-labelledby="tab-qa" class="hidden">
+    <p class="qintro">Thirty questions a panel could reasonably ask, with the answer
+      underneath and the appendix slide to jump to where one exists. Every figure here
+      is the one in the model, not a recollection of it. Click a question to open it.</p>
+    <div class="qfilter" id="qfilter"></div>
+    <div class="qlist" id="qlist"></div>
+  </section>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// THE SCRIPT. Targets sum to 900 seconds. Same words as the slides'
+// speaker notes, so Presenter View and this page never disagree.
+// ════════════════════════════════════════════════════════════════
+const SLIDES = [
+  { t:"Cover", s:30, lines:[
+    "Good morning. I'm Jad Zoghaib, and this is Stride.",
+    "Two sentences for the whole thing. <b>Get the athlete paid. Show the brand what it bought.</b>",
+    "The athletes are semi-professional, in niche sports, with a real following and no agent. The brands are the businesses near their club.",
+    "Everything I show you is live at that URL, and I'm happy to open it in the questions."
+  ]},
+  { t:"Why this", s:35, lines:[
+    "Why this, and it starts with one person.",
+    "A friend I play rugby with is the CrossFit champion of Lebanon, and one of the best rugby league players in the country. <b>Neither sport pays him.</b>",
+    "I want to be precise, because the easy version of this is a big zero and it wouldn't be true. He gets given things. Gear, product, the odd paid post. What none of it has is a price, a contract, or any reason to arrive a second time.",
+    "<b>I started building this because of him.</b>",
+    { stage:"touch the bottom line, don't dwell" },
+    "And the reason I can see it at all: these are teammates, not survey respondents. I'm capped for Lebanon myself, which is why the conversations were candid. The consulting built the model, and the demo is my own code."
+  ]},
+  { t:"Given, not paid", s:45, lines:[
+    "He was one of five athletes in my own sports I asked the same question: what does your sport actually pay you.",
+    "They do get things. Gear, product, the occasional paid post, prize money now and then. A national champion is given plenty.",
+    "What none of it has is a rate, a contract, or any reason at all to expect it a second time. <b>A champion gets given things. Nobody is buying anything.</b> And you can't build a career, or a business, on being given things.",
+    "One of the five does have a proper sponsor, and he didn't get it as a rugby league player. It arrived some other way, and no part of it came through the sport.",
+    { stage:"beat, then point at the quote" },
+    "Read the quote, because it's the finding that matters most. They don't build an audience, because there's no return on building one.",
+    "That isn't a complaint about money. It's a market with no infrastructure in it. And because they stop building, the market measures smaller than it really is. <b>Every number after this is the conservative reading.</b>"
+  ]},
+  { t:"The buyer's half", s:65, lines:[
+    "Now the other side, and this is the half of the company I care most about.",
+    "The brand paying for this isn't Nike. It's a physiotherapy clinic, a gym, a car dealer near the athlete's club. They have a budget. What they don't have is any instrument at all.",
+    "They can't <b>choose</b>: two athletes, and nothing to compare them on but follower count, which is the one number you can buy. They can't <b>price</b>: there's no rate card anywhere in the segment. And they can't <b>verify</b>: the campaign ends and they know nothing they didn't know before it started.",
+    "I'll be straight about status. I've interviewed athletes, not sponsors. That's the biggest hole in my research, so it's the first thing I test, and I've written down in advance which answer kills it: if brands tell me they already know what they get, my differentiator is gone."
+  ]},
+  { t:"One missing layer", s:45, lines:[
+    "So why does this happen on both sides at once? Because one layer is missing, and it used to do two jobs.",
+    "An agent introduces the athlete to the brand, and an agent vouches for what the brand is getting. In football that costs ten to twenty per cent and it exists. In trail running or rugby league there's no agent at all. So the athlete has no route to income, and the brand has no basis for a decision.",
+    "<b>One absence. Two victims.</b>"
+  ]},
+  { t:"Two engines", s:60, lines:[
+    "So what is Stride. Two engines, and I want to be precise that they're peers rather than a product and a feature.",
+    "Engine one is monetisation. The athlete gets their own page with paid fan tiers they price themselves. They keep eighty-five per cent and pay nothing to be there. That's forty-eight per cent of year seven revenue.",
+    "Engine two is analytics. A sponsor briefs a campaign, gets athletes matched on measured evidence with every score decomposed, then gets delivery measured against what was projected. Ten per cent of the deal plus a subscription, and that's the other fifty-two.",
+    "One deliberate choice: no athlete fee, ever. The athlete earning two hundred a month pays the same rate as the one earning five thousand. A subscription would have been regressive against exactly the athlete we're built for."
+  ]},
+  { t:"The flywheel", s:75, protect:true, lines:[
+    "This is the slide I'd most like you to remember.",
+    "Follow the loop. Fans pay the athlete, so the athlete has a reason to build an audience. To take that money they connect their platforms, and those connectors are the same instrument that measures the audience. That measurement is what the sponsor sees instead of a follower count. The deal raises the athlete's income, which brings the next athlete, who arrives with another audience to measure. And four returns to one.",
+    "Now the part that matters commercially. A creator platform has no reason to measure an audience, so it never builds this. A sponsorship data company has no relationship with the athlete, so it can't get the data at all. You need both halves, and almost nobody has both.",
+    "And the financing consequence, which is the sentence to keep if you keep only one: <b>fan revenue funds the years in which the data accrues. By the time the analytics are worth selling, someone else has already paid to build them.</b>"
+  ]},
+  { t:"It is built", s:40, lines:[
+    "This is the part most business plans can't show you.",
+    "It isn't a mockup. It's deployed, the URL is on the slide, and there's a QR code if you want it on your phone right now. Fourteen demo accounts, registration open.",
+    "What you're looking at is an athlete's marketability score, seventy-two, as the mean of five computed dimensions, each one decomposed, with the connected platforms and the live offers underneath. Every number on that screen traces back to a platform sync."
+  ]},
+  { t:"What the sponsor sees", s:70, protect:true, lines:[
+    "And the same proof for the second engine.",
+    "This is the screen a sponsor shows their own management. Delivered reach, engagements, cost per thousand reached, cost per engagement. Underneath, every athlete on the campaign with what they actually delivered against what was projected when the offer was priced.",
+    { stage:"point at the red figure" },
+    "I want to point at one number. Minus eighty-five point eight per cent. That's a deal that underdelivered, and the platform is telling the sponsor so. Every incentive in this industry runs the other way, and <b>that's the number that makes the rest of the screen believable.</b>",
+    "And look at the dashes. A deal with nothing attached reads as unmeasured, never as zero. Zero would be a lie that flatters us.",
+    "One honesty note, and I'd rather say it than have you find it: the engagement figures in the demo are seeded, and the product labels them simulated on the screen itself. The arithmetic is real. The data is a fixture."
+  ]},
+  { t:"The expert", s:35, lines:[
+    "One expert interview changed the product.",
+    "Íñigo Cristóbal Losada, AI lead at olympics.com, eleven years in Olympic broadcasting. I pitched him a product for the IOC, Olympic athletes only. He rejected it outright and told me to open registration to everyone but filter who gets in.",
+    "The admission gate you just saw exists because of that sentence. <b>The research changed the product; it didn't decorate it.</b>"
+  ]},
+  { t:"Market", s:45, lines:[
+    "Market, bottom up, because top down doesn't work here.",
+    "European sport sponsorship is twenty-four point eight billion, and Spain is the fastest-growing major market at plus fourteen per cent. But none of that breaks below the professional tier, so I refuse to divide it by a number and call it my market.",
+    "Instead: a hundred and thirty-eight thousand niche-sport athletes in Europe over five thousand followers. Fifty-five thousand in our six launch markets. Six thousand three hundred by year seven, which is eleven per cent of that. Deliberately modest."
+  ]},
+  { t:"The wedge", s:50, lines:[
+    "Why niche first. Two reasons, and the second is the better one.",
+    "The first is cost. Sixteen euros to acquire a niche athlete against forty for a popular one, and by year seven forty-eight per cent of them monetise against thirty. A professional already has an agent and wouldn't use this, so nobody is competing for them.",
+    "The second is the one I'd argue for. A niche athlete's audience is concentrated where they train and compete. To a national advertiser that's close to worthless, which is why nobody bids for it. To the clinic two streets from the club it's the only thing worth buying, and there is no other way to buy it.",
+    "<b>The same decision makes my supply cheap and my demand side exist at all.</b>"
+  ]},
+  { t:"Competition", s:50, lines:[
+    "I'll be straight about the comparables, because they aren't flattering.",
+    "Four companies have built here. The two doing exactly what we do are small after more than a decade. Sponsoo has thirteen people after eleven years and its total equity is zero.",
+    "But look at how the four split. Two built the marketplace, two built the data, nobody built both. That's the flywheel slide again.",
+    "On SponsorUnited, the short answer: they sell what the market did, we measure what one brand's money did, and we can only do that because the projection is written onto the deal when the offer is made. I'm not beating them. I'm serving a customer their cost structure won't let them near.",
+    "And none of the four has the fan."
+  ]},
+  { t:"Revenue mix", s:35, lines:[
+    "The revenue model in one picture. Three streams.",
+    "Fan subscriptions in amber, sponsorship commission and the sponsor SaaS tier compounding behind them.",
+    { stage:"get ahead of the invisible Y1 bar" },
+    "Year one is too small to see on this axis, and it's worth knowing why: year one is <b>entirely sponsorship</b>. Fans start paying in year two.",
+    "The shape is the point: this starts as a sponsorship business, becomes a subscription business, and ends as a two-sided one. Seventy-five per cent fan in year two, forty-eight by year seven. Three million of net revenue."
+  ]},
+  { t:"Year one", s:40, lines:[
+    "Year one, concretely, because a plan that can't say what happens first isn't a plan.",
+    "Two hundred and fifty athletes from twelve hundred and fifty applications, in two or three niche Spanish sports. Twenty sponsor conversations that are the first sales as much as the research. A hundred and thirteen thousand euros, two thirds of it a non-dilutive ENISA loan.",
+    "And look at the build order, because it's counter-intuitive. Payment rail, then sponsorship billing, then the fan tier last, even though the fan tier is the thesis.",
+    "<b>Sponsorship billing needs no moderation, no safeguarding and no media egress, so the cheapest of the three to build is the only one that earns inside the first year.</b>"
+  ]},
+  { t:"Operations and people", s:30, cut:true, lines:[
+    "Operations and people, briefly.",
+    "Payments, compute and media are all subcontracted. The only human step in the whole chain is admission review, and it scales with applications rather than transactions. That's why sixteen people can run this.",
+    "And I'll name the weak point before you do: three hundred and one thousand of revenue per employee at year seven, against a private B2B SaaS median of a hundred and thirty-five. If that's wrong, headcount is what gives, and the consequence is slower growth, not insolvency."
+  ]},
+  { t:"Financials", s:45, lines:[
+    "The financials. Revenue in grey, EBITDA the amber line.",
+    "Loss-making for four years, and the losses are small: the worst year is a hundred and forty-two thousand. EBITDA positive in year four, cash in year five, and year seven is three million at a twenty-four point seven per cent margin.",
+    "One honest note on margin. We climb to seventy per cent, not the eighty a SaaS business would claim, because we move real money and Stripe takes its cut. I'd rather show you seventy that survives diligence."
+  ]},
+  { t:"The ask", s:55, lines:[
+    "The ask. A hundred and fifty thousand at one point eight million pre-money, and it's the first of two.",
+    "Look at the curve. The worst point is two hundred and ninety-six thousand in year three. Total requirement with a forty per cent buffer is four hundred and fourteen. But I don't need it now.",
+    "A hundred and fifty now, which also unlocks a seventy-five thousand ENISA loan at no equity cost. Then two hundred and fifty in year two, priced against three months of real subscription revenue instead of against the same promise I'm making today. That staging costs me about two points of equity and it's worth it.",
+    "The important property: <b>the pre-seed clears the trough on its own. Every round after it is a growth option, not a rescue.</b>"
+  ]},
+  { t:"Close", s:50, lines:[
+    "I'll finish where the plan is weakest, because you're going to ask anyway.",
+    "One assumption carries this. Will fans of a semi-professional athlete actually pay? No interview I did answers that. No market sizing answers it. Only real subscription revenue does.",
+    "So the plan is arranged so that question costs eighty thousand euros and one year to answer, instead of two point six million and four. If the answer is no, what's left is a smaller sponsorship marketplace: viable, but a different company, and I'd rather tell you that than find out quietly.",
+    "Everything else is already built. Thank you, and I'm happy to open the demo."
+  ]}
+];
+
+// ════════════════════════════════════════════════════════════════
+// THE QUESTIONS. Every figure checked against model.py and the plan.
+// `slide` is the appendix slide to jump to, where one exists.
+// ════════════════════════════════════════════════════════════════
+const GROUPS = ["The thesis","Market","Competition","Product","Money","Execution","Method"];
+const QA = [
+ {g:"The thesis", q:"Will fans of a semi-professional athlete actually pay?", lead:"The one that decides everything. Answer it before they finish asking.",
+  a:["No interview answers it. No amount of market sizing answers it. <b>Only real subscription revenue does.</b>",
+     "So the plan is built so that question costs <b>€80k and one year</b> to answer rather than €2.6M and four. Three months of measured revenue from one anchor athlete, before the second tranche is priced.",
+     "If the answer is no, what's left is a smaller sponsorship marketplace. Viable, but a different company, and I'd rather tell you that than find out quietly."]},
+ {g:"The thesis", q:"Why would a fan pay when they can follow the athlete for free?",
+  a:["The same question Patreon and OnlyFans already answered in other categories. What's sold isn't the content that's already public, it's access, training detail and proximity.",
+     "The sport-specific part: <b>the fan usually does the sport themselves.</b> That's why the model assumes niche audiences are smaller but convert better, at plus six per cent on the Patreon members-per-creator benchmark, while popular-sport audiences are much larger and convert far worse."]},
+ {g:"The thesis", q:"Isn't this just OnlyFans for athletes?",
+  a:["Structurally it's the same insight, that direct fan payment beats ad share, and I'd rather say so than pretend otherwise.",
+     "The difference is <b>the second payer.</b> A lifestyle creator has one revenue source. An athlete has sponsors, clubs and a competitive record that makes their audience measurable, and none of those exist for a lifestyle creator. That second payer is forty-eight per cent of year seven revenue and none of the four comparables has it."]},
+ {g:"Market", q:"Where does the 138,000 TAM actually come from?",
+  a:["520 million people in the EU-27 and UK, times twenty per cent who participate in organised sport, times eight per cent who compete at club level or above, times fifty-five per cent in niche sports, times three per cent with five thousand followers or more.",
+     "<b>Only the first is a measurement.</b> Eurostat for population, Eurobarometer for participation, and the plan's own sport index for the niche share. The three per cent is flagged in the model itself as the softest number in the plan, and I'd rather say that than defend it as precise."]},
+ {g:"Market", q:"If the TAM is that soft, how can the forecast mean anything?", lead:"The strongest answer in this whole bank. Use it.",
+  a:["Because <b>the forecast doesn't depend on it.</b> The 6,300 athletes at year seven come out of the acquisition model: applications, admission rate, acquisition cost and churn. The eleven per cent of serviceable market is calculated afterwards, as a sanity check.",
+     "Halve the TAM and the year seven target doesn't move. Only the reported share does."]},
+ {g:"Market", q:"Is 11% of the market ambitious or modest?",
+  a:["It's eleven and a half per cent of the <b>serviceable</b> market of 55,000, and four point six per cent of the total addressable 138,000. I report the serviceable figure because it's the harder of the two.",
+     "There's a conservatism in it worth knowing: the serviceable market is defined across six launch markets, and the year seven objective only commits to three. Against the markets we're actually in, the share is higher than eleven per cent. I report the cautious version."]},
+ {g:"Market", q:"Why Spain?",
+  a:["It's the fastest-growing major sponsorship market in Europe at <b>plus fourteen per cent</b>, against the United Kingdom's ten point five and France's ten point three, and the association attributes part of that to investment in women's sport.",
+     "It's also where I am, and the anchor-athlete channel needs proximity: one athlete, then their club, then their federation."]},
+ {g:"Market", q:"You say €24.79bn but that isn't your market at all.",
+  a:["Correct, and the slide says so. It's context. <b>None of that figure breaks below the professional tier</b>, there is no published number for sponsorship of individual athletes anywhere in my sources, and the plan deliberately does not divide it by anything.",
+     "The bottom-up funnel exists precisely because the measured market stops where ours starts. A segment nobody measures is a segment nobody has sized a product for."]},
+ {g:"Competition", q:"SponsorUnited has 355 people and €38.8M. What is left for you?", slide:23,
+  a:["They sell a database: what the sponsorship market is doing, who sponsors whom, what a property is worth, bought on enterprise seats by organisations with a sponsorship department.",
+     "What it can't tell you is whether <b>your own deal</b> delivered what was promised, and the reason is structural. We write the projected reach onto the deal at the moment the offer is made, before the athlete accepts. A company that wasn't in the transaction never saw the promise, so it has nothing to reconcile against.",
+     "<b>I'm not beating them.</b> If a brand is big enough to buy them, I'm not in that conversation. Their 355 people are the cost of an enterprise sales motion, and that motion can't be run at a €2,000 deal. Their size is why the bottom of this market is empty."]},
+ {g:"Competition", q:"Sponsoo has done this for eleven years and has thirteen people. Why are you different?",
+  a:["I'd put it more bluntly: Sponsoo's total equity is <b>zero</b>, which means accumulated losses have consumed everything shareholders put in, and PitchBook models it at a ninety-four per cent probability of no exit.",
+     "The difference is the second payer. Fan subscriptions are forty-eight per cent of our year seven revenue and Sponsoo has no equivalent. <b>If that works, the economics are not Sponsoo's. If it doesn't, they are</b>, and this is Sponsoo with eleven fewer years of relationships. The plan prices both cases and I'd rather show you the second one than hide it."]},
+ {g:"Competition", q:"What stops Patreon adding a sponsorship side?",
+  a:["Nothing stops them trying, but they'd be building it from the wrong end. A creator platform has <b>no reason to measure an audience</b>, because its own revenue doesn't depend on measurement. So it never builds the connectors, and without the connectors there's nothing to sell a sponsor.",
+     "They also have no sport context: no competitive record, no club, no federation, no admission gate. The plan's competitive map has Patreon matching us on fan monetisation and on reaching the long tail, and on neither of the other two axes."]},
+ {g:"Competition", q:"What stops a funded competitor copying this?",
+  a:["Not the code. I could rebuild what exists in months and so could they.",
+     "<b>The defence is the accumulated scoring history and the athlete relationships</b>, which take time nobody can buy. Every admission decision and every campaign outcome improves the matching model, and that compounds.",
+     "It's R4 in the register, scored three by four. Real, but not the one that worries me."]},
+ {g:"Product", q:"How does the matching actually work?", slide:22,
+  a:["Eight weighted components, and every score decomposes to its arithmetic: <b>audience fit 72 × 32% = 23.1.</b> Audience fit carries thirty-two per cent, engagement quality eighteen, audience scale fourteen, then growth, consistency, budget alignment, deal-type overlap and category affinity.",
+     "Two properties worth your attention. Coverage travels with the score, so three platforms of three reads differently from one of three. And weight is redistributed <b>within</b> a group, never across one: if a whole group is unmeasured its weight is forfeited rather than handed to the other group.",
+     "The weights are hand-set. Learned weights come once there are outcomes, and they have to beat the hand-set ones before they ship."]},
+ {g:"Product", q:"You said five dimensions earlier and eight components now. Which is it?", lead:"Two different scores. Getting this straight matters.",
+  a:["Both. They're different objects. <b>Marketability</b> is the athlete's own score, the mean of five computed dimensions: consistency, audience fit, engagement quality, growth and audience scale. That's what the athlete dashboard shows.",
+     "<b>The match score</b> is an athlete against one specific campaign, and that's the eight weighted components. It can't exist without a brief, because three of the eight compare the athlete to the campaign."]},
+ {g:"Product", q:"Is any of the data in that demo real?",
+  a:["The arithmetic is real and the product is really deployed. <b>The engagement figures are seeded</b>, and the product labels them simulated on the screen itself rather than hiding it.",
+     "Live platform connectors are the first product gap, and until they ship the scoring runs on fixtures. I'd rather show you a real system on fixture data than a mockup on invented data."]},
+ {g:"Product", q:"What stops an athlete gaming their own score?",
+  a:["<b>Nothing self-verifies.</b> A club scoring above the verification bar still waits for a human. A rejected proof can't be cleared by re-submitting the form.",
+     "And missing data is <b>null, never zero</b>. An unmeasured campaign reads as unmeasured, not as free. That one decision is most of what a sponsor is actually buying, because every other platform in this space lets supply assert its own numbers."]},
+ {g:"Product", q:"You claim the value is local, but the product reports by country.",
+  a:["True, and I'd rather concede it precisely. <b>The locality is in which athlete the brand picks</b>, not in the measurement.",
+     "The country split is explicitly a derivation, not a measurement: no platform exposes per-impression geography at post level, so the product weights each athlete's own audience-country mix by the reach they actually delivered, and labels it as an estimate. Calling it a measurement would be the easiest lie in the product to tell."]},
+ {g:"Money", q:"Why is year one revenue only about €2,000?", lead:"The chart can't show this. Say it before they squint at it.",
+  a:["Because year one is <b>a hundred per cent sponsorship</b>, by design. Fifteen deals, €1,609 of commission and €537 of sponsor SaaS. Zero fan revenue, zero paying fans.",
+     "The fan tier ships last because it's the only one that needs content moderation, minors safeguarding and media egress. Sponsorship billing needs none of those, so it's the cheapest to build and the only one that earns inside year one."]},
+ {g:"Money", q:"€301k of revenue per employee is aggressive.",
+  a:["It is, and it's the assumption I'm most exposed on after fan churn. The private B2B SaaS median is <b>€135k</b>. We're at 301 by year seven, on ten people and three million of revenue.",
+     "Two things make it less reckless than it reads. Fan subscriptions are self-serve with no sales touch per subscriber, and content moderation is a variable cost line rather than headcount.",
+     "<b>If I'm wrong, headcount is what gives</b>, and the consequence is slower growth rather than a cash crisis."]},
+ {g:"Money", q:"Why only 70% gross margin if this is software?",
+  a:["Because it isn't only software. We move real money and Stripe takes its cut, so the payment rail is a genuine cost of sale. Margin climbs from sixty-three per cent to about seventy across the plan.",
+     "A SaaS business would claim eighty. <b>I'd rather show you seventy that survives diligence</b> than eighty that doesn't."]},
+ {g:"Money", q:"What happens in the pessimistic case?", slide:25,
+  a:["It re-runs the whole model on changed drivers rather than discounting the answer: fans per athlete down thirty per cent, monetisation down twenty-five, and the niche churn advantage removed entirely so niche fans churn at the Patreon benchmark.",
+     "Year seven revenue €2.34M instead of €3.01M, EBITDA €399k, break-even slips from year four to year five, and the capital requirement rises to €541k against €414k.",
+     "<b>That's a bridge round, not an extinction event.</b> The downside is a slower, smaller company, and that's exactly the property the staged raise protects."]},
+ {g:"Money", q:"Where does the €1.8M pre-money come from?", slide:27,
+  a:["Two methods that disagree. A discounted cash flow at a twenty-five per cent WACC and three per cent terminal growth gives <b>€1.23M</b>. The comparable set, benchmarked against Sponsoo and OpenSponsorship, gives <b>€1.8M</b>.",
+     "<b>The disagreement is the honest part.</b> A DCF below the pre-money is normal for a pre-revenue venture, and I'd be more worried if the two agreed exactly."]},
+ {g:"Money", q:"Why split the raise instead of taking €400k now?",
+  a:["Because the second tranche gets priced on evidence instead of on the same promise I'm making today. €150k now, then €250k in year two against <b>three months of measured fan churn</b>.",
+     "The €150k of equity is also what unlocks a €75k ENISA participative loan, because ENISA asks for an own-funds ratio of roughly fifty per cent. That's non-dilutive money the equity buys.",
+     "Staging costs me about two points of equity. The property it buys is that <b>the pre-seed clears the €296k trough on its own</b>, so every round after it is a growth option rather than a rescue."]},
+ {g:"Money", q:"Why 15%, and not 10 or 20?", slide:24,
+  a:["Fifteen sits between the only two published rates in this market: Patreon at ten per cent all-in on filed accounts, OnlyFans at twenty with agencies taking a further twenty to fifty on top.",
+     "At fifteen flat with no athlete fee, we undercut the nearest comparable for any athlete earning under <b>€1,380 a month</b>, which is the entire long tail we're built for.",
+     "It forfeits about €0.5M of year seven revenue against a twenty per cent take. What it buys is a pricing argument that survives contact with exactly the athlete we target, and no regressive monthly fee on someone earning €200 a month."]},
+ {g:"Execution", q:"You are one person. How is this credible?",
+  a:["The scale is a decision rather than a forecast. <b>Sixteen people by year ten</b>, against Sponsoo's thirteen after eleven years, and €400k of capital the plan actually depends on.",
+     "I couldn't run a 355-person organisation like SponsorUnited's and I'm not going to write a plan that assumes I'd learn how inside seven years. The plan is deliberately the size of the person running it.",
+     "And the product already exists. It's deployed, it has tests on two databases in continuous integration, and I wrote it."]},
+ {g:"Execution", q:"Can one person really run the admission gate?", slide:28,
+  a:["Four minutes per review, and the whole manual burden peaks at about <b>0.06 of one full-time person</b> at year ten and 8,500 athletes. Verification is not a money problem at this scale.",
+     "The reason to automate it is <b>latency, not cost</b>: the service level is under forty-eight hours, and a queued athlete isn't earning.",
+     "The admission rate rises from twenty per cent in year one to thirty and a half by year seven, which makes it a filter rather than a formality. And a club nomination brings twenty to forty athletes with the verification problem already solved, admitted at forty-five per cent against twenty direct."]},
+ {g:"Execution", q:"Fifteen deals out of twenty conversations is a 75% close rate.", lead:"The most aggressive number in year one. Concede it fast.",
+  a:["It is the most aggressive assumption in year one and I'd flag it before you do.",
+     "What makes it less absurd than it sounds: those twenty aren't cold. They come through the anchor athlete's club and federation, which is the whole point of the channel.",
+     "And it barely matters structurally. If it's half that, year one commission is about €800 instead of €1,609. <b>Year one revenue is a rounding error either way</b>; what year one buys is the rail and the evidence, not the money."]},
+ {g:"Execution", q:"What is your biggest risk?", slide:26,
+  a:["R1, and it's the thesis itself: fans don't pay for niche athletes. Scored three by five, fifteen, and nothing in the register is rated more likely than three.",
+     "<b>A risk map that's evenly scattered hasn't identified which risk is the real one.</b> Eleven risks are scored and three clear twelve. The entire financing structure exists to buy R1 down cheaply, which is why the fan tier is tested with €80k rather than built out with €2.6M."]},
+ {g:"Method", q:"Your primary research is five athletes.",
+  a:["Five athletes and one expert, and it's a <b>convenience sample reported as one</b>. Both strands come from my own network. The findings are directional and qualitative and I don't claim they're representative.",
+     "What makes them worth having is access rather than size: I'm capped for Lebanon, these are teammates, and the conversations were candid rather than performative.",
+     "The plan doesn't lean on them for sizing. They establish that the problem exists; the sizing comes from Eurostat, Eurobarometer and the sport index."]},
+ {g:"Method", q:"You haven't interviewed a single sponsor.", lead:"They will find this. Get there first.",
+  a:["Correct, and it's the biggest hole in the research. The demand side is currently desk research alone.",
+     "So it's priority one, and it's designed rather than vague: <b>twenty conversations across four buyer groups</b>, local and regional, endemic brands, mid-market consumer and agencies, with seven questions each aimed at a specific assumption in the model.",
+     "And I've written down in advance which answer kills it. <b>If brands tell me they already know what they get back, the analytics engine is not a differentiator</b> and section 3.3's competitive advantage argument fails."]},
+ {g:"Method", q:"Why should I believe the market is bigger than your own funnel says?",
+  a:["I don't claim it is. The plan takes the conservative reading deliberately.",
+     "But the mechanism is worth stating: the funnel counts athletes who <b>already</b> have five thousand followers, and the research finding is that athletes don't build audiences because there's no return on building one. So the threshold measures the market under the current incentives rather than under this one.",
+     "The plan doesn't claim that expansion. It just notes that <b>the honest error direction is understatement.</b>"]},
+ {g:"Method", q:"What is the social impact, beyond the commercial case?",
+  a:["They point the same way, which is the only version of this I find credible. <b>The largest single source of growth in the model is athletes who currently earn nothing beginning to earn.</b>",
+     "It isn't a programme bolted onto the business. If the social outcome fails, the revenue fails with it."]}
+];
+
+// ════════════════════════════════════════════════════════════════
+const $ = (id) => document.getElementById(id);
+const TOTAL = SLIDES.reduce((a,s)=>a+s.s,0);
+const CUM = SLIDES.reduce((acc,s)=>(acc.push((acc[acc.length-1]||0)+s.s),acc),[]);
+const mmss = (sec) => { const n=Math.max(0,Math.round(sec)); return Math.floor(n/60)+":"+String(n%60).padStart(2,"0"); };
+const signed = (sec) => (sec>=0?"+":"−")+mmss(Math.abs(sec));
+
+let idx=0, running=false, elapsed=0, slideStartedAt=0, last=null;
+
+function render() {
+  const sl = SLIDES[idx], onSlide = elapsed - slideStartedAt;
+  $("clock").innerHTML = mmss(elapsed)+'<span class="of"> / '+mmss(TOTAL)+"</span>";
+  $("clock").classList.toggle("over", elapsed > TOTAL);
+  $("phase").textContent = running ? "Running" : (elapsed>0 ? "Paused" : "Not started");
+
+  const frac = sl.s ? onSlide/sl.s : 0;
+  const cls = frac>1.2 ? "bad" : frac>1 ? "warn" : "ok";
+  $("onslide").textContent = mmss(onSlide);
+  $("onslide").className = "v "+(frac>1?cls:"");
+  $("ontarget").textContent = "target "+mmss(sl.s);
+  const bar=$("onbar"); bar.style.width=Math.min(100,frac*100)+"%"; bar.className=cls;
+
+  const due = idx===0 ? 0 : CUM[idx-1];
+  const delta = slideStartedAt - due;
+  const el=$("pace");
+  if (Math.abs(delta)<8) { el.textContent="On time"; el.className="v ok"; $("pacesub").textContent="within eight seconds of the budget"; }
+  else if (delta>0) { el.textContent=signed(delta); el.className="v "+(delta>45?"bad":"warn"); $("pacesub").textContent="behind, entering this slide"; }
+  else { el.textContent=signed(delta); el.className="v ok"; $("pacesub").textContent="ahead, entering this slide"; }
+
+  $("leaveat").textContent = mmss(CUM[idx]);
+  $("snum").textContent = idx+1;
+  $("stitle").textContent = sl.t;
+  $("starget").textContent = "Target "+mmss(sl.s);
+  $("stag").innerHTML = sl.protect ? '<span class="tag protect">Do not cut</span>'
+                      : sl.cut ? '<span class="tag cut">First to cut</span>' : "";
+  $("lines").innerHTML = sl.lines.map((l)=> typeof l==="string"
+      ? "<p>"+l+"</p>" : '<p class="stage">['+l.stage+"]</p>").join("");
+
+  document.querySelectorAll(".seg").forEach((n,i)=>{
+    n.className = "seg"+(SLIDES[i].protect?" mark":"")+(i<idx?" done":i===idx?" now":"");
+  });
+  $("prev").disabled = idx===0;
+  $("next").disabled = idx===SLIDES.length-1;
+  $("start").textContent = running ? "Pause" : elapsed>0 ? "Resume" : "Start";
+}
+function tick(ts){ if(!running){last=null;return;} if(last!==null) elapsed+=(ts-last)/1000; last=ts; render(); requestAnimationFrame(tick); }
+function go(to){ idx=Math.max(0,Math.min(SLIDES.length-1,to)); slideStartedAt=elapsed; window.scrollTo({top:0,behavior:"smooth"}); render(); }
+
+$("start").addEventListener("click",()=>{ running=!running; if(running) requestAnimationFrame(tick); else render(); });
+$("next").addEventListener("click",()=>go(idx+1));
+$("prev").addEventListener("click",()=>go(idx-1));
+$("reset").addEventListener("click",()=>{ running=false; elapsed=0; slideStartedAt=0; idx=0; last=null; render(); });
+
+$("rail").innerHTML = SLIDES.map((s,i)=>
+  '<button class="seg" style="flex:'+s.s+' 1 0" title="'+(i+1)+". "+s.t.replace(/"/g,"&quot;")+" · "+mmss(s.s)+
+  '" aria-label="Go to slide '+(i+1)+'"></button>').join("");
+document.querySelectorAll(".seg").forEach((n,i)=>n.addEventListener("click",()=>go(i)));
+
+// ── questions ────────────────────────────────────────────────
+let filter = "All";
+function renderQA() {
+  const list = $("qlist");
+  const shown = QA.filter(x => filter==="All" || x.g===filter);
+  let html = "", lastG = null;
+  shown.forEach((x, i) => {
+    if (filter==="All" && x.g !== lastG) { html += '<div class="qgroup">'+x.g+"</div>"; lastG = x.g; }
+    html += '<div class="qcard" data-i="'+i+'">'+
+      '<button class="qbtn" aria-expanded="false"><span class="twist">›</span>'+
+      '<span class="qt">'+x.q+"</span>"+
+      (x.slide ? '<span class="slidechip">Slide '+x.slide+"</span>" : "")+
+      "</button><div class=\"qa\">"+
+      (x.lead ? '<div class="kicker">'+x.lead+"</div>" : "")+
+      x.a.map(p=>"<p>"+p+"</p>").join("")+"</div></div>";
+  });
+  list.innerHTML = html;
+  list.querySelectorAll(".qbtn").forEach(b => b.addEventListener("click", () => {
+    const card = b.parentElement, open = card.classList.toggle("open");
+    b.setAttribute("aria-expanded", String(open));
+  }));
+}
+$("qfilter").innerHTML = ["All"].concat(GROUPS).map(g =>
+  '<button class="chip" aria-pressed="'+(g==="All")+'">'+g+"</button>").join("");
+$("qfilter").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+  filter = c.textContent;
+  $("qfilter").querySelectorAll(".chip").forEach(o => o.setAttribute("aria-pressed", String(o===c)));
+  renderQA();
+}));
+
+// ── tabs ─────────────────────────────────────────────────────
+function show(which) {
+  const isScript = which === "script";
+  $("tab-script").setAttribute("aria-selected", String(isScript));
+  $("tab-qa").setAttribute("aria-selected", String(!isScript));
+  $("view-script").classList.toggle("hidden", !isScript);
+  $("view-qa").classList.toggle("hidden", isScript);
+}
+$("tab-script").addEventListener("click", () => show("script"));
+$("tab-qa").addEventListener("click", () => show("qa"));
+
+document.addEventListener("keydown",(e)=>{
+  if ($("view-script").classList.contains("hidden")) return;
+  if (e.target.tagName==="BUTTON" && e.key===" ") return;
+  if (e.key===" ") { e.preventDefault(); go(idx+1); }
+  else if (e.key==="ArrowLeft") { e.preventDefault(); go(idx-1); }
+  else if (e.key==="ArrowRight") { e.preventDefault(); go(idx+1); }
+  else if (e.key.toLowerCase()==="p") $("start").click();
+  else if (e.key.toLowerCase()==="r") $("reset").click();
+});
+
+render();
+renderQA();
+</script>
+</body>
+</html>

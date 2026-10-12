@@ -179,8 +179,9 @@ analytics are worth selling, someone else has already paid to build them.
 
 This is the part most business plans can't show you.
 
-It isn't a mockup. It's deployed, the URL is on the slide, fourteen demo
-accounts, registration open. You can sign in during the questions.
+It isn't a mockup. It's deployed, the URL is on the slide, and there's a QR
+code if you want it on your phone right now. Fourteen demo accounts,
+registration open.
 
 What you're looking at is an athlete's marketability score, seventy-two, as
 the mean of five computed dimensions, each one decomposed, with the connected
@@ -272,12 +273,16 @@ And none of the four has the fan.
 
 The revenue model in one picture. Three streams.
 
-Fan subscriptions in amber lead and fund the early years. Sponsorship
-commission and the sponsor SaaS tier compound behind them.
+Fan subscriptions in amber, sponsorship commission and the sponsor SaaS tier
+compounding behind them.
 
-The shape is the point: this starts as a subscription business and becomes a
-two-sided one. Seventy-five per cent fan in year two, forty-eight by year
-seven. Three million of net revenue.
+*[get ahead of the invisible Y1 bar]* Year one is too small to see on this
+axis, and it's worth knowing why: year one is **entirely sponsorship**. Fans
+start paying in year two.
+
+The shape is the point: this starts as a sponsorship business, becomes a
+subscription business, and ends as a two-sided one. Seventy-five per cent fan
+in year two, forty-eight by year seven. Three million of net revenue.
 
 ## 15 · Year one · 0:40
 
