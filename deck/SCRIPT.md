@@ -370,9 +370,9 @@ Everything else is already built. Thank you, and I'm happy to open the demo.
 | What if you're wrong? | **B5** (25) | The pessimistic case still breaks even, one year later on €541k. |
 | What's the biggest risk? | **B6** (26) | R1, the thesis itself, at 3 × 5. The whole financing structure exists to buy it down cheaply. |
 | Where does €1.8M come from? | **B7** (27) | DCF says €1.23M, comparables say €1.8M, and the disagreement is the honest part. |
-| Can one person run the gate? | **B8** (28) | 0.64 FTE at Y10 and 8,500 athletes. Latency is the reason to automate, not cost. |
+| Can one person run the gate? | **B8** (28) | 0.06 FTE at Y10 and 8,500 athletes. Latency is the reason to automate, not cost. |
 
-**Four questions with no backup slide, worth rehearsing anyway.**
+**Four of the twenty-three questions with no backup slide, worth rehearsing anyway.**
 
 - **"Fifteen deals from twenty conversations is a seventy-five per cent close
   rate."** Say it is the most aggressive number in year one, that the twenty are

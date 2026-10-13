@@ -165,13 +165,15 @@
     line-height:1.3; flex:none; transition:transform .15s;
   }
   .qcard.open .twist { transform:rotate(90deg); }
-  .qbtn .qt { flex:1; font-weight:500; }
+  .qbtn .qt { flex:1; min-width:0; font-weight:500; }
   .slidechip {
     font-family:var(--display); font-weight:600; text-transform:uppercase;
     letter-spacing:.1em; font-size:.64rem; color:var(--accent);
     border:1px solid var(--accent); border-radius:3px; padding:2px 7px;
     flex:none; margin-top:2px;
   }
+  /* Nothing to turn to: the answer is spoken. */
+  .slidechip.none { color:var(--ink3); border-color:var(--track); }
   .qa { display:none; padding:0 18px 17px 42px; color:var(--ink2); max-width:78ch; }
   .qcard.open .qa { display:block; }
   .qa p { margin:0 0 .85em; }
@@ -195,6 +197,7 @@
     .status { grid-template-columns:1fr 1fr; }
     .lines { font-size:1.08rem; }
     .qa { padding-left:18px; }
+    .slidechip { font-size:.56rem; letter-spacing:.06em; padding:2px 5px; }
   }
   @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
 </style>
@@ -277,9 +280,11 @@
 
   <!-- ════════ QUESTIONS ════════ -->
   <section id="view-qa" role="tabpanel" aria-labelledby="tab-qa" class="hidden">
-    <p class="qintro">Thirty questions a panel could reasonably ask, with the answer
-      underneath and the appendix slide to jump to where one exists. Every figure here
-      is the one in the model, not a recollection of it. Click a question to open it.</p>
+    <p class="qintro">Thirty-two questions a panel could reasonably ask, with the
+      answer underneath. Nine have a slide waiting in the appendix and the chip names
+      it. The other twenty-three say so, which means there is nothing to turn to and
+      the answer is spoken from the chair. Every figure here is the one in the model,
+      not a recollection of it. Click a question to open it.</p>
     <div class="qfilter" id="qfilter"></div>
     <div class="qlist" id="qlist"></div>
   </section>
@@ -460,13 +465,13 @@ const QA = [
   a:["Eight weighted components, and every score decomposes to its arithmetic: <b>audience fit 72 × 32% = 23.1.</b> Audience fit carries thirty-two per cent, engagement quality eighteen, audience scale fourteen, then growth, consistency, budget alignment, deal-type overlap and category affinity.",
      "Two properties worth your attention. Coverage travels with the score, so three platforms of three reads differently from one of three. And weight is redistributed <b>within</b> a group, never across one: if a whole group is unmeasured its weight is forfeited rather than handed to the other group.",
      "The weights are hand-set. Learned weights come once there are outcomes, and they have to beat the hand-set ones before they ship."]},
- {g:"Product", q:"You said five dimensions earlier and eight components now. Which is it?", lead:"Two different scores. Getting this straight matters.",
+ {g:"Product", q:"You said five dimensions earlier and eight components now. Which is it?", slide:21, lead:"Two different scores. Getting this straight matters.",
   a:["Both. They're different objects. <b>Marketability</b> is the athlete's own score, the mean of five computed dimensions: consistency, audience fit, engagement quality, growth and audience scale. That's what the athlete dashboard shows.",
      "<b>The match score</b> is an athlete against one specific campaign, and that's the eight weighted components. It can't exist without a brief, because three of the eight compare the athlete to the campaign."]},
  {g:"Product", q:"Is any of the data in that demo real?",
   a:["The arithmetic is real and the product is really deployed. <b>The engagement figures are seeded</b>, and the product labels them simulated on the screen itself rather than hiding it.",
      "Live platform connectors are the first product gap, and until they ship the scoring runs on fixtures. I'd rather show you a real system on fixture data than a mockup on invented data."]},
- {g:"Product", q:"What stops an athlete gaming their own score?",
+ {g:"Product", q:"What stops an athlete gaming their own score?", slide:21,
   a:["<b>Nothing self-verifies.</b> A club scoring above the verification bar still waits for a human. A rejected proof can't be cleared by re-submitting the form.",
      "And missing data is <b>null, never zero</b>. An unmeasured campaign reads as unmeasured, not as free. That one decision is most of what a sponsor is actually buying, because every other platform in this space lets supply assert its own numbers."]},
  {g:"Product", q:"You claim the value is local, but the product reports by country.",
@@ -598,7 +603,9 @@ function renderQA() {
     html += '<div class="qcard" data-i="'+i+'">'+
       '<button class="qbtn" aria-expanded="false"><span class="twist">›</span>'+
       '<span class="qt">'+x.q+"</span>"+
-      (x.slide ? '<span class="slidechip">Slide '+x.slide+"</span>" : "")+
+      (x.slide
+        ? '<span class="slidechip">Appendix '+x.slide+"</span>"
+        : '<span class="slidechip none">No appendix slide</span>')+
       "</button><div class=\"qa\">"+
       (x.lead ? '<div class="kicker">'+x.lead+"</div>" : "")+
       x.a.map(p=>"<p>"+p+"</p>").join("")+"</div></div>";
